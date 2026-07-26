@@ -1,0 +1,23 @@
+{
+  "zone_name": "kirmya.dev",
+  "settings": {
+    "brotli": "on",
+    "minify": {
+      "css": "on",
+      "html": "on",
+      "js": "on"
+    },
+    "security_level": "medium",
+    "browser_cache_ttl": 14400,
+    "always_use_https": "on"
+  },
+  "page_rules": [
+    {
+      "targets": [{ "target": "url", "constraint": { "operator": "matches", "value": "cdn.kirmya.dev/*" } }],
+      "actions": [
+        { "id": "cache_level", "value": "cache_everything" },
+        { "id": "edge_cache_ttl", "value": 2592000 }
+      ]
+    }
+  ]
+}

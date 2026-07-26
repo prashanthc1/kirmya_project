@@ -1,0 +1,57 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "API Request Latency (P99 / P95 / P50)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_milliseconds_bucket[5m])) by (le))",
+          "legendFormat": "P99 Latency"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_milliseconds_bucket[5m])) by (le))",
+          "legendFormat": "P95 Latency"
+        }
+      ]
+    },
+    {
+      "title": "HTTP Error Rate % (4xx & 5xx)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_errors_total[5m])) / sum(rate(http_requests_total[5m])) * 100",
+          "legendFormat": "Error Rate %"
+        }
+      ]
+    },
+    {
+      "title": "Active User Sessions & Connection Pool",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "kirmya_active_user_sessions",
+          "legendFormat": "Active Sessions"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["kirmya", "production", "observability"],
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "Kirmya Enterprise Production Observability Dashboard",
+  "version": 1
+}

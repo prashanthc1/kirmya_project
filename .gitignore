@@ -1,0 +1,280 @@
+# ==============================================================================
+# Kirmya Project - Production-Ready .gitignore Configuration
+# Tech Stack: Next.js (React/TS/MUI v6), Golang (Gin), PostgreSQL, Docker,
+#             Railway, Vercel, GitHub Actions
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment & Secret Configuration Files
+# ------------------------------------------------------------------------------
+# Ignore all environment variable files and secret configurations
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.staging.local
+.env.*.local
+*.env
+*.secret
+
+# Explicitly track configuration templates and example environment files
+!.env.example
+!.env.template
+
+# Credentials, Certificates & Private Keys
+*.pem
+*.crt
+*.key
+*.pub
+*.p12
+*.pfx
+*.asc
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.id_rsa
+*.id_ed25519
+secrets/
+cloud-credentials.json
+service-account*.json
+aws-credentials*
+gcp-credentials*
+
+# ------------------------------------------------------------------------------
+# 2. Node.js / Next.js / TypeScript / Frontend & Mobile
+# ------------------------------------------------------------------------------
+# Dependencies
+node_modules/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Next.js & Build Outputs
+.next/
+out/
+dist/
+build/
+.turbo/
+.cache/
+.swc/
+.eslintcache
+*.tsbuildinfo
+
+# Mobile (React Native / Expo / iOS / Android build cache if present)
+.expo/
+.expo-shared/
+android/app/build/
+android/.gradle/
+ios/Pods/
+ios/build/
+
+# Package Manager Debug Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------------------------
+# 3. Golang (Backend)
+# ------------------------------------------------------------------------------
+# Compiled binaries and executables
+backend/bin/
+backend/kirmya
+backend/kirmya.exe
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go Test and Profiling Artifacts
+*.test
+*.out
+*.prof
+*.pprof
+coverage.txt
+
+# Go Build & Debug Executables (Delve, gopls cache)
+debug
+__debug_bin
+.gopls/
+
+# Dependency Vendoring (Ignore vendor directory unless vendoring is explicitly enforced)
+vendor/
+
+# Explicitly track Go module specification files
+!go.mod
+!go.sum
+!backend/go.mod
+!backend/go.sum
+
+# ------------------------------------------------------------------------------
+# 4. Database & Storage (PostgreSQL, SQLite, Dumps)
+# ------------------------------------------------------------------------------
+# Local PostgreSQL storage and data mounts
+postgres-data/
+pgdata/
+.postgres/
+data/postgres/
+docker-data/
+
+# SQLite databases (local testing / dev)
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite3-journal
+*.db-shm
+*.db-wal
+
+# Local database backups and dump exports
+*.dump
+*.sql.gz
+*.bak
+*.backup
+*.dump.sql
+
+# Ignore ad-hoc local SQL dumps, but preserve migration scripts
+*.sql
+!scripts/migrations/*.sql
+!backend/migrations/*.sql
+!migrations/*.sql
+
+# ------------------------------------------------------------------------------
+# 5. Docker & Container Cache
+# ------------------------------------------------------------------------------
+# Docker volumes & local container artifacts
+.docker/
+docker-cache/
+.docker-cache/
+
+# Explicitly track Dockerfiles and Compose configurations
+!Dockerfile
+!Dockerfile.*
+!docker-compose.yml
+!docker-compose.yaml
+!docker-compose.prod.yml
+!docker-compose.dev.yml
+!docker-compose.*.yml
+
+# ------------------------------------------------------------------------------
+# 6. Cloud & Deployment Tooling (Railway, Vercel, Cloudflare)
+# ------------------------------------------------------------------------------
+.railway/
+.vercel/
+.cloudflare/
+
+# Explicitly track Railway project config if used
+!railway.json
+
+# ------------------------------------------------------------------------------
+# 7. IDE & Text Editor Configuration
+# ------------------------------------------------------------------------------
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs (Goland, WebStorm, IntelliJ, PyCharm)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse / NetBeans / Other Editors
+.project
+.classpath
+.settings/
+.history/
+*.swp
+*.swo
+*~
+.ionide/
+
+# ------------------------------------------------------------------------------
+# 8. Operating System Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+ehthumbs_vista.db
+Icon?
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+
+# ------------------------------------------------------------------------------
+# 9. Logs & Diagnostics
+# ------------------------------------------------------------------------------
+logs/
+*.log
+*.out
+*.err
+*.dmp
+core
+core.*
+debug.log
+
+# ------------------------------------------------------------------------------
+# 10. Testing, Coverage & Benchmarking
+# ------------------------------------------------------------------------------
+coverage/
+.nyc_output/
+.pytest_cache/
+.jest/
+benchmark-results/
+
+# Playwright & Cypress test artifacts
+playwright-report/
+test-results/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# ------------------------------------------------------------------------------
+# 11. Temporary Files & Archives
+# ------------------------------------------------------------------------------
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Compression Archives
+*.zip
+*.tar
+*.gz
+*.tgz
+*.rar
+*.7z
+*.iso
+
+# ------------------------------------------------------------------------------
+# 12. Explicit Unignores for Core Documentation & CI/CD Workflows
+# ------------------------------------------------------------------------------
+!.github/
+!.github/workflows/
+!README.md
+!LICENSE
+!docs/
+!scripts/
