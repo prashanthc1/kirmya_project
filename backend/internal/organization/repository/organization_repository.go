@@ -60,7 +60,7 @@ func (r *pgxOrganizationRepository) seedDefaultData() {
 	}
 
 	org2 := &domain.Organization{
-		ID:           uuid.MustParse("org22222-2222-2222-2222-222222222222"),
+		ID:           uuid.MustParse("00022222-2222-2222-2222-222222222222"),
 		Name:         "TechCorp Global Recruiting",
 		OrgType:      domain.TypeRecruiterAgency,
 		TenantDomain: "techcorp-agency.tenant",
@@ -71,7 +71,7 @@ func (r *pgxOrganizationRepository) seedDefaultData() {
 	}
 
 	org3 := &domain.Organization{
-		ID:           uuid.MustParse("org33333-3333-3333-3333-333333333333"),
+		ID:           uuid.MustParse("00033333-3333-3333-3333-333333333333"),
 		Name:         "Kirmya Leadership Academy",
 		OrgType:      domain.TypeTrainingProvider,
 		TenantDomain: "leadership-academy.tenant",
