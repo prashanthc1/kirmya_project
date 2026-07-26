@@ -49,7 +49,7 @@ func NewEventRepository(pool *pgxpool.Pool) EventRepository {
 
 func (r *pgxEventRepository) seedDefaultData() {
 	h1 := &domain.EventHost{
-		ID:           uuid.MustParse("h1111111-1111-1111-1111-111111111111"),
+		ID:           uuid.MustParse("a1111111-1111-1111-1111-111111111111"),
 		UserID:       uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"),
 		HostName:     "Sarah Jenkins",
 		CompanyName:  "TechCorp & Kirmya Careers",

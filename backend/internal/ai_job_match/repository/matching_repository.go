@@ -43,11 +43,11 @@ func (r *pgxMatchingRepository) seedDefaultData() {
 	now := time.Now()
 	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
 
-	m1ID := uuid.MustParse("m1111111-1111-1111-1111-111111111111")
+	m1ID := uuid.MustParse("a1111111-1111-1111-1111-111111111111")
 	m1 := &domain.AIJobMatch{
 		ID:            m1ID,
 		UserID:        userID,
-		JobID:         uuid.MustParse("j1111111-1111-1111-1111-111111111111"),
+		JobID:         uuid.MustParse("b1111111-1111-1111-1111-111111111111"),
 		JobTitle:      "Senior Go Backend Architect",
 		CompanyName:   "Stripe Global",
 		OverallScore:  96,
@@ -83,11 +83,11 @@ func (r *pgxMatchingRepository) seedDefaultData() {
 	}
 	r.matches[m1ID] = m1
 
-	m2ID := uuid.MustParse("m2222222-2222-2222-2222-222222222222")
+	m2ID := uuid.MustParse("a2222222-2222-2222-2222-222222222222")
 	m2 := &domain.AIJobMatch{
 		ID:            m2ID,
 		UserID:        userID,
-		JobID:         uuid.MustParse("j2222222-2222-2222-2222-222222222222"),
+		JobID:         uuid.MustParse("b2222222-2222-2222-2222-222222222222"),
 		JobTitle:      "Lead Distributed Systems Engineer",
 		CompanyName:   "TechCorp Cloud",
 		OverallScore:  88,

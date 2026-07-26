@@ -46,9 +46,9 @@ func (r *pgxRecruiterAIRepository) seedDefaultData() {
 	now := time.Now()
 	orgID := uuid.MustParse("00000000-0000-0000-0000-000000000000")
 	recruiterID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
-	jobID := uuid.MustParse("j1111111-1111-1111-1111-111111111111")
+	jobID := uuid.MustParse("b1111111-1111-1111-1111-111111111111")
 
-	sessID := uuid.MustParse("s1111111-1111-1111-1111-111111111111")
+	sessID := uuid.MustParse("a1111111-1111-1111-1111-111111111111")
 	s1 := &domain.RecruiterAISession{
 		ID:          sessID,
 		OrgID:       orgID,

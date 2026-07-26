@@ -70,7 +70,7 @@ func (r *pgxRecommendationRepository) seedDefaultData() {
 
 	r.candidates[domain.ItemTypeJob] = []domain.RecommendationItem{
 		{
-			ItemID:         uuid.MustParse("j1111111-1111-1111-1111-111111111111"),
+			ItemID:         uuid.MustParse("b1111111-1111-1111-1111-111111111111"),
 			ItemType:       domain.ItemTypeJob,
 			Title:          "Senior Go Backend Architect",
 			Subtitle:       "Stripe Global • $180k - $220k • Remote",

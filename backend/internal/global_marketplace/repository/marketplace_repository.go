@@ -63,13 +63,13 @@ func (r *pgxMarketplaceRepository) seedDefaultData() {
 
 	r.jobs = []domain.InternationalJobItem{
 		{
-			JobID:      uuid.MustParse("j1111111-1111-1111-1111-111111111111"),
+			JobID:      uuid.MustParse("b1111111-1111-1111-1111-111111111111"),
 			Title:      "Senior Go Backend Architect",
 			Company:    "Stripe Global (UAE Hub)",
 			RegionCode: domain.RegionGCC,
 			PrimaryLocation: domain.JobLocation{
 				ID:              uuid.New(),
-				JobID:           uuid.MustParse("j1111111-1111-1111-1111-111111111111"),
+				JobID:           uuid.MustParse("b1111111-1111-1111-1111-111111111111"),
 				CountryName:     "United Arab Emirates",
 				CountryCode:     "AE",
 				FlagEmoji:       "🇦🇪",
@@ -84,13 +84,13 @@ func (r *pgxMarketplaceRepository) seedDefaultData() {
 			PostedTime:      "2 hours ago",
 		},
 		{
-			JobID:      uuid.MustParse("j2222222-2222-2222-2222-222222222222"),
+			JobID:      uuid.MustParse("b2222222-2222-2222-2222-222222222222"),
 			Title:      "Lead Distributed Systems Engineer",
 			Company:    "TechCorp Cloud (India R&D)",
 			RegionCode: domain.RegionAPAC,
 			PrimaryLocation: domain.JobLocation{
 				ID:              uuid.New(),
-				JobID:           uuid.MustParse("j2222222-2222-2222-2222-222222222222"),
+				JobID:           uuid.MustParse("b2222222-2222-2222-2222-222222222222"),
 				CountryName:     "India",
 				CountryCode:     "IN",
 				FlagEmoji:       "🇮🇳",
@@ -105,13 +105,13 @@ func (r *pgxMarketplaceRepository) seedDefaultData() {
 			PostedTime:      "5 hours ago",
 		},
 		{
-			JobID:      uuid.MustParse("j3333333-3333-3333-3333-333333333333"),
+			JobID:      uuid.MustParse("b3333333-3333-3333-3333-333333333333"),
 			Title:      "Principal Cloud Infrastructure Architect",
 			Company:    "Neom Digital (Saudi Arabia)",
 			RegionCode: domain.RegionGCC,
 			PrimaryLocation: domain.JobLocation{
 				ID:              uuid.New(),
-				JobID:           uuid.MustParse("j3333333-3333-3333-3333-333333333333"),
+				JobID:           uuid.MustParse("b3333333-3333-3333-3333-333333333333"),
 				CountryName:     "Saudi Arabia",
 				CountryCode:     "SA",
 				FlagEmoji:       "🇸🇦",

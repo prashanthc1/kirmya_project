@@ -104,7 +104,7 @@ func (s *nativeMobileService) GetMobileUserProfile(ctx context.Context, userID u
 func (s *nativeMobileService) GetMobileUserJobs(ctx context.Context, userID uuid.UUID) ([]domain.MobileJobItem, error) {
 	return []domain.MobileJobItem{
 		{
-			JobID:      uuid.MustParse("j1111111-1111-1111-1111-111111111111"),
+			JobID:      uuid.MustParse("b1111111-1111-1111-1111-111111111111"),
 			Title:      "Senior Go Backend Architect",
 			Company:    "Stripe Global",
 			Location:   "Remote / SF",
@@ -114,7 +114,7 @@ func (s *nativeMobileService) GetMobileUserJobs(ctx context.Context, userID uuid
 			PostedTime: "2 hours ago",
 		},
 		{
-			JobID:      uuid.MustParse("j2222222-2222-2222-2222-222222222222"),
+			JobID:      uuid.MustParse("b2222222-2222-2222-2222-222222222222"),
 			Title:      "Lead Distributed Systems Engineer",
 			Company:    "TechCorp Cloud",
 			Location:   "Remote",

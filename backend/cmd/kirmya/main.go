@@ -160,6 +160,10 @@ import (
 	recommendationRepo "kirmya/internal/recommendation_engine/repository"
 	recommendationSvc "kirmya/internal/recommendation_engine/service"
 
+	landingHttp "kirmya/internal/landing/delivery/http"
+	landingRepo "kirmya/internal/landing/repository"
+	landingSvc "kirmya/internal/landing/service"
+
 	telemetryPkg "kirmya/internal/shared/telemetry"
 
 	"kirmya/internal/shared/cache"
@@ -374,6 +378,10 @@ func main() {
 	recommendationRepository := recommendationRepo.NewRecommendationRepository(dbPool)
 	recommendationService := recommendationSvc.NewRecommendationService(recommendationRepository)
 	recommendationHandler := recommendationHttp.NewRecommendationHandler(recommendationService)
+
+	landingRepository := landingRepo.NewLandingRepository(dbPool)
+	landingService := landingSvc.NewLandingService(landingRepository)
+	landingHandler := landingHttp.NewLandingHandler(landingService)
 
 	// Initialize cache layer (attempts Redis, fallbacks to in-memory)
 	var appCache cache.Cache
@@ -743,6 +751,14 @@ func main() {
 			recommendationGroup.POST("/events", recommendationHandler.TrackEvent)
 			recommendationGroup.GET("/preferences", recommendationHandler.GetUserPreferences)
 			recommendationGroup.POST("/preferences", recommendationHandler.UpdatePreferences)
+		}
+
+		// Landing Page Dynamic Content routes
+		landingGroup := api.Group("/landing")
+		{
+			landingGroup.GET("/content", landingHandler.GetLandingContent)
+			landingGroup.POST("/admin/testimonials", middleware.AuthRequired(), landingHandler.CreateTestimonial)
+			landingGroup.POST("/admin/featured-jobs", middleware.AuthRequired(), landingHandler.CreateFeaturedJob)
 		}
 
 		// Profile paths protected by Auth

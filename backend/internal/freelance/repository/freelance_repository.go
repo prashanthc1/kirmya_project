@@ -57,7 +57,7 @@ func (r *pgxFreelanceRepository) seedDefaultData() {
 	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
 	clientID := uuid.MustParse("c9999999-9999-9999-9999-999999999999")
 
-	p1ID := uuid.MustParse("p1111111-1111-1111-1111-111111111111")
+	p1ID := uuid.MustParse("f1111111-1111-1111-1111-111111111111")
 	p1 := &domain.Project{
 		ID:             p1ID,
 		ClientID:       clientID,
@@ -73,7 +73,7 @@ func (r *pgxFreelanceRepository) seedDefaultData() {
 	}
 	r.projects[p1ID] = p1
 
-	p2ID := uuid.MustParse("p2222222-2222-2222-2222-222222222222")
+	p2ID := uuid.MustParse("f2222222-2222-2222-2222-222222222222")
 	p2 := &domain.Project{
 		ID:             p2ID,
 		ClientID:       clientID,
