@@ -4,47 +4,71 @@ import (
 	"context"
 	"kirmya/internal/profile/models"
 	"kirmya/internal/profile/repository"
+	"kirmya/internal/shared/cache"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type ProfileService struct {
-	repo *repository.ProfileRepository
+	repo  *repository.ProfileRepository
+	cache cache.MultiTierCache
 }
 
 func NewProfileService(repo *repository.ProfileRepository) *ProfileService {
 	return &ProfileService{repo: repo}
 }
 
+func (s *ProfileService) SetCache(c cache.Cache) {
+	if c != nil {
+		s.cache = cache.NewMultiTierCache(c)
+	}
+}
+
 // GetOrCreateProfile retrieves the profile for a user, or creates a default one if none exists.
 func (s *ProfileService) GetOrCreateProfile(ctx context.Context, userID uuid.UUID) (*models.UserProfile, error) {
-	p, err := s.repo.GetByUserID(ctx, userID)
+	fetchFunc := func() (interface{}, error) {
+		p, err := s.repo.GetByUserID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		if p == nil {
+			p = &models.UserProfile{
+				ID:                         uuid.New(),
+				UserID:                     userID,
+				Headline:                   "Professional at Kirmya",
+				Summary:                    "",
+				AvailabilityStatus:         "looking_for_networking",
+				ProfileCompletedPercentage: 25,
+				Volunteering:               "",
+				Publications:               "",
+				Licenses:                   "",
+				CreatedAt:                  time.Now(),
+				UpdatedAt:                  time.Now(),
+			}
+			if err := s.repo.Create(ctx, p); err != nil {
+				return nil, err
+			}
+		}
+		return p, nil
+	}
+
+	if s.cache == nil {
+		res, err := fetchFunc()
+		if err != nil {
+			return nil, err
+		}
+		return res.(*models.UserProfile), nil
+	}
+
+	cacheKey := cache.UserProfileKey(userID)
+	var prof models.UserProfile
+	err := s.cache.GetOrFetch(ctx, cacheKey, 15*time.Minute, fetchFunc, &prof)
 	if err != nil {
 		return nil, err
 	}
-
-	if p == nil {
-		// Initialize default profile
-		p = &models.UserProfile{
-			ID:                         uuid.New(),
-			UserID:                     userID,
-			Headline:                   "Professional at Kirmya",
-			Summary:                    "",
-			AvailabilityStatus:         "looking_for_networking",
-			ProfileCompletedPercentage: 25, // default initialized fields score (headline + availability status)
-			Volunteering:               "",
-			Publications:               "",
-			Licenses:                   "",
-			CreatedAt:                  time.Now(),
-			UpdatedAt:                  time.Now(),
-		}
-		if err := s.repo.Create(ctx, p); err != nil {
-			return nil, err
-		}
-	}
-
-	return p, nil
+	return &prof, nil
 }
 
 // CalculateAndUpdateCompletion scores profile progress and saves updates.

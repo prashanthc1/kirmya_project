@@ -1,0 +1,19 @@
+{
+  "candidate": {
+    "id": "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d",
+    "email": "candidate.test@kirmya.com",
+    "password": "Password123!",
+    "full_name": "Alex Rivera",
+    "role": "candidate",
+    "headline": "Senior Go Backend Architect",
+    "skills": ["Go", "PostgreSQL", "Next.js", "Docker", "Redis"]
+  },
+  "recruiter": {
+    "id": "8b7c6d5e-4f3a-2b1c-0d9e-8f7a6b5c4d3e",
+    "email": "recruiter.test@kirmya.com",
+    "password": "Password123!",
+    "full_name": "Sarah Jenkins",
+    "role": "recruiter",
+    "company": "Stripe Global"
+  }
+}

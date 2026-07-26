@@ -17,17 +17,17 @@ const client = axios.create({
 
 export const recommendationApi = {
   getUnifiedRecommendations: async (): Promise<UnifiedRecommendationsResponse> => {
-    const response = await client.get('/recommendations/unified');
+    const response = await client.get('/recommendation-engine/unified');
     return response.data;
   },
 
   trackEvent: async (payload: TrackEventPayload): Promise<{ message: string }> => {
-    const response = await client.post('/recommendations/events', payload);
+    const response = await client.post('/recommendation-engine/events', payload);
     return response.data;
   },
 
   getPreferences: async (): Promise<UserPreference> => {
-    const response = await client.get('/recommendations/preferences');
+    const response = await client.get('/recommendation-engine/preferences');
     return response.data;
   },
 };

@@ -10,13 +10,12 @@ import (
 
 	"kirmya/internal/auth/models"
 	"kirmya/internal/auth/repository"
+	configPkg "kirmya/internal/shared/config"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var jwtSecretKey = []byte("kirmya-secure-token-signing-key-for-local-monolith")
 
 type AuthService struct {
 	repo *repository.AuthRepository
@@ -182,7 +181,7 @@ func (s *AuthService) GenerateAccessToken(userID uuid.UUID, email string) (strin
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecretKey)
+	return token.SignedString(configPkg.GetJWTSecretBytes())
 }
 
 // ValidateAccessToken parses and validates a signed JWT token.
@@ -191,7 +190,7 @@ func (s *AuthService) ValidateAccessToken(tokenStr string) (*models.JWTClaims, e
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
-		return jwtSecretKey, nil
+		return configPkg.GetJWTSecretBytes(), nil
 	})
 
 	if err != nil {

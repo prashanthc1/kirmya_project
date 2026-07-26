@@ -165,8 +165,9 @@ import (
 	landingSvc "kirmya/internal/landing/service"
 
 	telemetryPkg "kirmya/internal/shared/telemetry"
+	configPkg "kirmya/internal/shared/config"
+	cachePkg "kirmya/internal/shared/cache"
 
-	"kirmya/internal/shared/cache"
 	"kirmya/internal/shared/database"
 	"kirmya/internal/shared/middleware"
 
@@ -174,6 +175,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"os"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -184,10 +187,22 @@ func main() {
 
 	slog.Info("Starting Kirmya backend modular monolith...")
 
+	cfg, cfgErr := configPkg.LoadConfig()
+	if cfgErr != nil {
+		slog.Error("Configuration load error", slog.String("error", cfgErr.Error()))
+		os.Exit(1)
+	}
+	_ = cfg
+
 	// 1. Initialize Database pool
 	db, err := database.Connect()
 	if err != nil {
-		slog.Warn("Database connection failed (running in offline/mock mode for test support)", slog.String("error", err.Error()))
+		if os.Getenv("ALLOW_NO_DB") == "true" {
+			slog.Warn("Database connection failed (running in offline/mock mode for test support)", slog.String("error", err.Error()))
+		} else {
+			slog.Error("Database connection failed", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
 	} else {
 		defer db.Close()
 	}
@@ -200,10 +215,29 @@ func main() {
 	r.Use(middleware.StructuredLogger())
 	r.Use(middleware.SecurityHeaders())
 
-	// 3. Register CORS Middleware
+	// 3. Register CORS Middleware with strict origin allowlist
+	allowedOriginsEnv := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOriginsEnv == "" {
+		allowedOriginsEnv = os.Getenv("CORS_ALLOWED_ORIGINS")
+	}
+	if allowedOriginsEnv == "" {
+		allowedOriginsEnv = "http://localhost:3000,http://127.0.0.1:3000"
+	}
+	allowedOriginsMap := make(map[string]bool)
+	for _, origin := range strings.Split(allowedOriginsEnv, ",") {
+		origin = strings.TrimSpace(origin)
+		if origin != "" {
+			allowedOriginsMap[origin] = true
+		}
+	}
+
 	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		reqOrigin := c.GetHeader("Origin")
+		if reqOrigin != "" && allowedOriginsMap[reqOrigin] {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", reqOrigin)
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Writer.Header().Set("Vary", "Origin")
+		}
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
@@ -214,14 +248,16 @@ func main() {
 		c.Next()
 	})
 
-	// 4. Initialize module dependencies if DB is available
+	// 4. Initialize Caching Tier & module dependencies
 	var dbPool *pgxpool.Pool
 	if db != nil {
 		dbPool = db.Pool
 	}
+	appCache := cachePkg.InitCache()
 
 	pRepo := profileRepo.NewProfileRepository(dbPool)
 	pService := profileSvc.NewProfileService(pRepo)
+	pService.SetCache(appCache)
 	pHandler := profileHttp.NewProfileHandler(pService)
 
 	rRepo := resumeRepo.NewResumeRepository(dbPool)
@@ -324,7 +360,7 @@ func main() {
 
 	unifiedSearchRepository := unifiedSearchRepo.NewSearchRepository(dbPool)
 	unifiedSearchEngineAdapter := unifiedSearchAdapter.NewPostgreSQLSearchAdapter(dbPool)
-	unifiedSearchService := unifiedSearchSvc.NewSearchService(unifiedSearchRepository, unifiedSearchEngineAdapter)
+	unifiedSearchService := unifiedSearchSvc.NewSearchService(unifiedSearchRepository, unifiedSearchEngineAdapter, appCache)
 	unifiedSearchHandler := unifiedSearchHttp.NewSearchHandler(unifiedSearchService)
 
 	mobileRepository := mobileRepo.NewMobileRepository(dbPool)
@@ -380,32 +416,16 @@ func main() {
 	recommendationHandler := recommendationHttp.NewRecommendationHandler(recommendationService)
 
 	landingRepository := landingRepo.NewLandingRepository(dbPool)
-	landingService := landingSvc.NewLandingService(landingRepository)
+	landingService := landingSvc.NewLandingService(landingRepository, appCache)
 	landingHandler := landingHttp.NewLandingHandler(landingService)
-
-	// Initialize cache layer (attempts Redis, fallbacks to in-memory)
-	var appCache cache.Cache
-	redisHost := os.Getenv("REDIS_HOST")
-	if redisHost == "" {
-		redisHost = "localhost:6379"
-	}
-	redisPassword := os.Getenv("REDIS_PASSWORD")
-
-	rCache, err := cache.NewRedisCache(redisHost, redisPassword)
-	if err != nil {
-		slog.Warn("Redis connection failed. Utilizing in-memory cache fallback.", slog.String("error", err.Error()))
-		appCache = cache.NewInMemoryCache()
-	} else {
-		slog.Info("Successfully connected to Redis cache cluster.", slog.String("host", redisHost))
-		appCache = rCache
-	}
-	_ = appCache // Available for global cache-aside usage across modules
 
 	// 5. Register Routes
 	api := r.Group("/api/v1")
 	api.Use(middleware.TenantIsolationMiddleware())
 	api.Use(middleware.MobileDeviceMiddleware())
 	api.Use(middleware.TelemetryMiddleware())
+	api.Use(middleware.GzipCompressionMiddleware())
+	api.Use(middleware.TimeoutMiddleware(5 * time.Second))
 	{
 		// Prometheus Metrics Exposition Endpoint
 		api.GET("/metrics", func(c *gin.Context) {
@@ -612,7 +632,7 @@ func main() {
 		}
 
 		// Unified Search Platform routes protected by Auth
-		unifiedSearchGroup := api.Group("/search")
+		unifiedSearchGroup := api.Group("/unified-search")
 		unifiedSearchGroup.Use(middleware.AuthRequired())
 		{
 			unifiedSearchGroup.GET("", unifiedSearchHandler.Search)
@@ -744,7 +764,7 @@ func main() {
 		}
 
 		// Upgraded Recommendation Engine routes protected by Auth
-		recommendationGroup := api.Group("/recommendations")
+		recommendationGroup := api.Group("/recommendation-engine")
 		recommendationGroup.Use(middleware.AuthRequired())
 		{
 			recommendationGroup.GET("/unified", recommendationHandler.GetUnifiedRecommendations)

@@ -58,9 +58,9 @@ func (r *pgxIntelligenceRepository) seedDefaultData() {
 		},
 		{
 			ID:                uuid.New(),
-			Industry:          "AI & Machine Learning Infrastructure",
+			Industry:          "Artificial Intelligence & ML Engineering",
 			Region:            "GLOBAL",
-			GrowthRatePct:     45.8,
+			GrowthRatePct:     48.9,
 			AvgSalaryUSD:      210000,
 			ActiveJobPostings: 12400,
 			TimePeriod:        "Q3 2026",
@@ -70,51 +70,41 @@ func (r *pgxIntelligenceRepository) seedDefaultData() {
 
 	r.skillTrends = []domain.SkillTrend{
 		{
-			ID:                  uuid.New(),
-			SkillName:           "Go (Golang) Microservices",
-			Category:            "Backend Engineering",
-			DemandScore:         96,
-			GrowthYoYPct:        42.5,
-			AvgSalaryPremiumPct: 24.0,
-			ForecastTier:        domain.ForecastSurging,
-			UpdatedAt:           now,
+			ID:                   uuid.New(),
+			SkillName:            "Go (Golang)",
+			Category:             "Backend Systems",
+			DemandScore:          98,
+			GrowthYoYPct:         38.5,
+			AvgSalaryPremiumPct:  24.0,
+			ForecastTier:         domain.ForecastSurging,
+			UpdatedAt:            now,
 		},
 		{
-			ID:                  uuid.New(),
-			SkillName:           "PostgreSQL Performance Optimization",
-			Category:            "Database Infrastructure",
-			DemandScore:         92,
-			GrowthYoYPct:        38.0,
-			AvgSalaryPremiumPct: 18.5,
-			ForecastTier:        domain.ForecastSurging,
-			UpdatedAt:           now,
+			ID:                   uuid.New(),
+			SkillName:            "PostgreSQL & pgxpool Tuning",
+			Category:             "Database Engineering",
+			DemandScore:          95,
+			GrowthYoYPct:         29.0,
+			AvgSalaryPremiumPct:  19.5,
+			ForecastTier:         domain.ForecastSurging,
+			UpdatedAt:            now,
 		},
 		{
-			ID:                  uuid.New(),
-			SkillName:           "Kubernetes & Distributed Systems",
-			Category:            "Cloud Infrastructure",
-			DemandScore:         89,
-			GrowthYoYPct:        29.4,
-			AvgSalaryPremiumPct: 22.0,
-			ForecastTier:        domain.ForecastSurging,
-			UpdatedAt:           now,
-		},
-		{
-			ID:                  uuid.New(),
-			SkillName:           "React Native & Cross-Platform Mobile",
-			Category:            "Mobile Engineering",
-			DemandScore:         86,
-			GrowthYoYPct:        25.1,
-			AvgSalaryPremiumPct: 16.0,
-			ForecastTier:        domain.ForecastStable,
-			UpdatedAt:           now,
+			ID:                   uuid.New(),
+			SkillName:            "Next.js & MUI v6 Glassmorphism",
+			Category:             "Frontend Development",
+			DemandScore:          92,
+			GrowthYoYPct:         26.2,
+			AvgSalaryPremiumPct:  17.0,
+			ForecastTier:         domain.ForecastSurging,
+			UpdatedAt:            now,
 		},
 	}
 
 	r.hiringStats = []domain.HiringStatistic{
 		{
 			ID:                      uuid.New(),
-			RoleTitle:               "Senior Go Backend Architect",
+			RoleTitle:               "Senior Staff Go Engineer",
 			Region:                  "ME_GCC",
 			TalentAvailabilityCount: 1420,
 			AvgDaysToHire:           18,
@@ -134,6 +124,27 @@ func (r *pgxIntelligenceRepository) seedDefaultData() {
 }
 
 func (r *pgxIntelligenceRepository) GetMarketInsights(ctx context.Context, industry, region string) ([]domain.MarketInsight, error) {
+	if r.pool != nil {
+		query := `SELECT id, industry, region, growth_rate_pct, avg_salary_usd, active_job_postings, time_period, created_at 
+		          FROM market_insights 
+		          WHERE ($1 = '' OR $1 = 'ALL' OR industry = $1) AND ($2 = '' OR $2 = 'ALL' OR region = $2) 
+		          ORDER BY growth_rate_pct DESC`
+		rows, err := r.pool.Query(ctx, query, industry, region)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.MarketInsight
+			for rows.Next() {
+				var m domain.MarketInsight
+				if err := rows.Scan(&m.ID, &m.Industry, &m.Region, &m.GrowthRatePct, &m.AvgSalaryUSD, &m.ActiveJobPostings, &m.TimePeriod, &m.CreatedAt); err == nil {
+					list = append(list, m)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -151,12 +162,48 @@ func (r *pgxIntelligenceRepository) GetMarketInsights(ctx context.Context, indus
 }
 
 func (r *pgxIntelligenceRepository) GetSkillTrends(ctx context.Context) ([]domain.SkillTrend, error) {
+	if r.pool != nil {
+		query := `SELECT id, skill_name, category, demand_score, growth_yoy_pct, avg_salary_premium_pct, forecast_tier, updated_at FROM skill_trends ORDER BY demand_score DESC`
+		rows, err := r.pool.Query(ctx, query)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.SkillTrend
+			for rows.Next() {
+				var s domain.SkillTrend
+				if err := rows.Scan(&s.ID, &s.SkillName, &s.Category, &s.DemandScore, &s.GrowthYoYPct, &s.AvgSalaryPremiumPct, &s.ForecastTier, &s.UpdatedAt); err == nil {
+					list = append(list, s)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.skillTrends, nil
 }
 
 func (r *pgxIntelligenceRepository) GetHiringStatistics(ctx context.Context, region string) ([]domain.HiringStatistic, error) {
+	if r.pool != nil {
+		query := `SELECT id, role_title, region, talent_availability_count, avg_days_to_hire, competition_level, updated_at FROM hiring_statistics WHERE ($1 = '' OR $1 = 'ALL' OR region = $1)`
+		rows, err := r.pool.Query(ctx, query, region)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.HiringStatistic
+			for rows.Next() {
+				var h domain.HiringStatistic
+				if err := rows.Scan(&h.ID, &h.RoleTitle, &h.Region, &h.TalentAvailabilityCount, &h.AvgDaysToHire, &h.CompetitionLevel, &h.UpdatedAt); err == nil {
+					list = append(list, h)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

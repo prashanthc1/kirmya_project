@@ -25,26 +25,26 @@ client.interceptors.request.use((config: any) => {
 
 export const searchApi = {
   search: async (q: string, category?: string): Promise<SearchResponse> => {
-    const response = await client.get('/search', {
+    const response = await client.get('/unified-search', {
       params: { q, category: category || 'all' },
     });
     return response.data;
   },
 
   getSuggestions: async (q: string): Promise<{ suggestions: SearchSuggestion[]; count: number }> => {
-    const response = await client.get('/search/suggestions', {
+    const response = await client.get('/unified-search/suggestions', {
       params: { q },
     });
     return response.data;
   },
 
   getUserHistory: async (): Promise<{ data: SearchHistoryItem[]; count: number }> => {
-    const response = await client.get('/search/history');
+    const response = await client.get('/unified-search/history');
     return response.data;
   },
 
   savePreference: async (payload: SaveSearchPreferencePayload): Promise<{ message: string }> => {
-    const response = await client.post('/search/preferences', payload);
+    const response = await client.post('/unified-search/preferences', payload);
     return response.data;
   },
 };

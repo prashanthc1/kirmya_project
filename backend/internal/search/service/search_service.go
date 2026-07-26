@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"strings"
+	"time"
 
 	"kirmya/internal/search/adapter"
 	"kirmya/internal/search/domain"
 	"kirmya/internal/search/repository"
+	"kirmya/internal/shared/cache"
 
 	"github.com/google/uuid"
 )
@@ -21,40 +23,64 @@ type SearchService interface {
 type searchService struct {
 	repo          repository.SearchRepository
 	searchAdapter adapter.SearchEngineAdapter
+	cache         cache.MultiTierCache
 }
 
-func NewSearchService(repo repository.SearchRepository, searchAdapter adapter.SearchEngineAdapter) SearchService {
+func NewSearchService(repo repository.SearchRepository, searchAdapter adapter.SearchEngineAdapter, c cache.Cache) SearchService {
+	var multiCache cache.MultiTierCache
+	if c != nil {
+		multiCache = cache.NewMultiTierCache(c)
+	}
 	return &searchService{
 		repo:          repo,
 		searchAdapter: searchAdapter,
+		cache:         multiCache,
 	}
 }
 
 func (s *searchService) Search(ctx context.Context, userID uuid.UUID, query, category string) (*domain.SearchResponse, error) {
-	results, counts, err := s.searchAdapter.ExecuteSearch(ctx, query, category)
+	fetchFunc := func() (interface{}, error) {
+		results, counts, err := s.searchAdapter.ExecuteSearch(ctx, query, category)
+		if err != nil {
+			return nil, err
+		}
+
+		if query != "" {
+			historyItem := &domain.SearchHistoryItem{
+				ID:             uuid.New(),
+				UserID:         userID,
+				Query:          query,
+				CategoryFilter: category,
+				ResultsCount:   len(results),
+			}
+			_ = s.repo.SaveSearchHistory(ctx, historyItem)
+		}
+
+		return &domain.SearchResponse{
+			Query:            query,
+			Category:         category,
+			TotalResults:     len(results),
+			EngineUsed:       s.searchAdapter.GetEngineName(),
+			Results:          results,
+			CategoriesCounts: counts,
+		}, nil
+	}
+
+	if s.cache == nil {
+		res, err := fetchFunc()
+		if err != nil {
+			return nil, err
+		}
+		return res.(*domain.SearchResponse), nil
+	}
+
+	cacheKey := cache.JobSearchKey(query, category)
+	var resp domain.SearchResponse
+	err := s.cache.GetOrFetch(ctx, cacheKey, 10*time.Minute, fetchFunc, &resp)
 	if err != nil {
 		return nil, err
 	}
-
-	if query != "" {
-		historyItem := &domain.SearchHistoryItem{
-			ID:             uuid.New(),
-			UserID:         userID,
-			Query:          query,
-			CategoryFilter: category,
-			ResultsCount:   len(results),
-		}
-		_ = s.repo.SaveSearchHistory(ctx, historyItem)
-	}
-
-	return &domain.SearchResponse{
-		Query:            query,
-		Category:         category,
-		TotalResults:     len(results),
-		EngineUsed:       s.searchAdapter.GetEngineName(),
-		Results:          results,
-		CategoriesCounts: counts,
-	}, nil
+	return &resp, nil
 }
 
 func (s *searchService) GetSuggestions(ctx context.Context, query string) ([]domain.SearchSuggestion, error) {

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
@@ -40,6 +41,16 @@ func (r *pgxAnalyticsRepository) TrackEvent(ctx context.Context, event *domain.A
 	}
 	event.CreatedAt = time.Now()
 
+	if r.pool != nil {
+		metaBytes, _ := json.Marshal(event.Properties)
+		query := `INSERT INTO analytics_events (id, user_id, event_type, event_metadata, created_at) 
+		          VALUES ($1, $2, $3, $4, $5)`
+		_, err := r.pool.Exec(ctx, query, event.ID, event.UserID, event.EventName, metaBytes, event.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -58,13 +69,12 @@ func (r *pgxAnalyticsRepository) GetAdminAnalytics(ctx context.Context, tenantID
 		TotalJobOpenings:   1840,
 		HiringVelocityDays: 18.2,
 		SkillDemandHeatmap: []domain.SkillDemandItem{
-			{Skill: "Go (Golang)", Count: 3420, Share: 28.5},
-			{Skill: "React / Next.js", Count: 2980, Share: 24.8},
-			{Skill: "PostgreSQL Architecture", Count: 2150, Share: 17.9},
-			{Skill: "System Design & Microservices", Count: 1890, Share: 15.8},
-			{Skill: "Kubernetes & Cloud Infra", Count: 1560, Share: 13.0},
+			{Skill: "Go / Golang", Count: 98, Share: 24.5},
+			{Skill: "PostgreSQL Architecture", Count: 95, Share: 18.2},
+			{Skill: "Next.js & React", Count: 92, Share: 15.0},
+			{Skill: "Docker & Kubernetes", Count: 89, Share: 12.8},
 		},
-		MarketTrendSummary: "High demand for Senior Full-Stack Engineers & Go Backend Architects. Hiring speed increased by 18% month-over-month.",
+		MarketTrendSummary: "High candidate migration toward Go backend engineering and AI career platform tools.",
 	}, nil
 }
 
@@ -74,17 +84,16 @@ func (r *pgxAnalyticsRepository) GetRecruiterAnalytics(ctx context.Context, tena
 
 	return &domain.RecruiterAnalytics{
 		TotalCandidatesScreened: 480,
-		AvgTimeToHireDays:       16.4,
-		ApplicationToOfferRate:  12.8,
+		AvgTimeToHireDays:       16.5,
+		ApplicationToOfferRate:  22.4,
 		CandidateFunnel: []domain.ConversionStage{
-			{Stage: "Applied", Count: 480, Percentage: 100.0},
-			{Stage: "ATS Screened", Count: 288, Percentage: 60.0},
-			{Stage: "Technical Interview", Count: 144, Percentage: 30.0},
-			{Stage: "Offer Extended", Count: 62, Percentage: 12.9},
-			{Stage: "Hired", Count: 48, Percentage: 10.0},
+			{Stage: "Applied", Count: 1280, Percentage: 100.0},
+			{Stage: "AI Screened", Count: 420, Percentage: 32.8},
+			{Stage: "Interviewed", Count: 140, Percentage: 10.9},
+			{Stage: "Offered", Count: 28, Percentage: 2.2},
 		},
-		TopPerformingJob: "Senior Full-Stack Go Engineer",
-		JobViewsCount:    3410,
+		TopPerformingJob: "Senior Go Microservices Engineer",
+		JobViewsCount:    3450,
 	}, nil
 }
 
@@ -92,32 +101,12 @@ func (r *pgxAnalyticsRepository) GetUserAnalytics(ctx context.Context, tenantID,
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	viewsCount := 0
-	searchesCount := 0
-
-	for _, ev := range r.events {
-		if ev.UserID == userID {
-			if ev.EventName == domain.EventProfileView {
-				viewsCount++
-			} else if ev.EventName == domain.EventSearchAppearance {
-				searchesCount++
-			}
-		}
-	}
-
-	if viewsCount < 84 {
-		viewsCount = 84
-	}
-	if searchesCount < 210 {
-		searchesCount = 210
-	}
-
 	return &domain.UserAnalytics{
-		ProfileViewsCount:       viewsCount,
-		SearchAppearancesCount:  searchesCount,
+		ProfileViewsCount:       342,
+		SearchAppearancesCount:  128,
 		ApplicationsCount:       14,
 		InterviewInvitationRate: 35.7,
 		ProfileCompleteness:     95,
-		TopSearchingCompanies:   []string{"Stripe Global", "TechCorp", "Google", "Kirmya Careers"},
+		TopSearchingCompanies:   []string{"Stripe", "Datadog", "Cloudflare"},
 	}, nil
 }

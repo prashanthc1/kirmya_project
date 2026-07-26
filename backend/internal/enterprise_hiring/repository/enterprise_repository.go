@@ -79,31 +79,21 @@ func (r *pgxEnterpriseRepository) seedDefaultData() {
 		TeamLeadID:     uuid.New(),
 		TeamLeadName:   "Dr. Marcus Vance (VP AI)",
 		MemberCount:    8,
-		CreatedAt:      now.Add(-10 * 24 * time.Hour),
+		CreatedAt:      now,
 	}
 
 	p1ID := uuid.New()
 	r.pools[p1ID] = &domain.CandidatePool{
 		ID:             p1ID,
 		EnterpriseID:   entID,
-		Name:           "Senior Go & Distributed Systems Talent Pipeline",
-		Description:    "Pre-vetted 90%+ AI Match candidates with 5+ years microservice experience",
-		CandidateCount: 342,
+		Name:           "Principal Systems Engineers Pipeline",
+		Description:    "Pre-vetted Senior & Staff Go Engineers for core platform scale",
+		CandidateCount: 42,
 		CreatedAt:      now,
 	}
 
-	actorID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	actorID := uuid.New()
 	r.logs = []domain.AuditLog{
-		{
-			ID:           uuid.New(),
-			EnterpriseID: entID,
-			ActorID:      actorID,
-			ActorEmail:   "alex.rivera@stripe.com",
-			Action:       "CANDIDATE_POOL_EXPORT",
-			Resource:     "Candidate Pool: Senior Go Talent Pipeline",
-			IPAddress:    "192.168.1.100",
-			CreatedAt:    now.Add(-15 * time.Minute),
-		},
 		{
 			ID:           uuid.New(),
 			EnterpriseID: entID,
@@ -118,6 +108,17 @@ func (r *pgxEnterpriseRepository) seedDefaultData() {
 }
 
 func (r *pgxEnterpriseRepository) GetEnterpriseOverview(ctx context.Context, entID uuid.UUID) (*domain.Enterprise, error) {
+	if r.pool != nil {
+		query := `SELECT id, name, industry, tier, domain, created_at, updated_at FROM enterprises WHERE id = $1`
+		ent := &domain.Enterprise{}
+		err := r.pool.QueryRow(ctx, query, entID).Scan(
+			&ent.ID, &ent.Name, &ent.Industry, &ent.Tier, &ent.Domain, &ent.CreatedAt, &ent.UpdatedAt,
+		)
+		if err == nil {
+			return ent, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -130,6 +131,24 @@ func (r *pgxEnterpriseRepository) GetEnterpriseOverview(ctx context.Context, ent
 }
 
 func (r *pgxEnterpriseRepository) GetTeams(ctx context.Context, entID uuid.UUID) ([]domain.HiringTeam, error) {
+	if r.pool != nil {
+		query := `SELECT id, enterprise_id, department_name, team_name, team_lead_id, created_at FROM teams WHERE enterprise_id = $1`
+		rows, err := r.pool.Query(ctx, query, entID)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.HiringTeam
+			for rows.Next() {
+				var t domain.HiringTeam
+				if err := rows.Scan(&t.ID, &t.EnterpriseID, &t.DepartmentName, &t.TeamName, &t.TeamLeadID, &t.CreatedAt); err == nil {
+					list = append(list, t)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -146,14 +165,40 @@ func (r *pgxEnterpriseRepository) CreateTeam(ctx context.Context, team *domain.H
 	}
 	team.CreatedAt = time.Now()
 
+	if r.pool != nil {
+		query := `INSERT INTO teams (id, enterprise_id, department_name, team_name, team_lead_id, created_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6)`
+		_, err := r.pool.Exec(ctx, query, team.ID, team.EnterpriseID, team.DepartmentName, team.TeamName, team.TeamLeadID, team.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
 	r.teams[team.ID] = team
 	return nil
 }
 
 func (r *pgxEnterpriseRepository) GetCandidatePools(ctx context.Context, entID uuid.UUID) ([]domain.CandidatePool, error) {
+	if r.pool != nil {
+		query := `SELECT id, enterprise_id, name, description, candidate_count, created_at FROM candidate_pools WHERE enterprise_id = $1`
+		rows, err := r.pool.Query(ctx, query, entID)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.CandidatePool
+			for rows.Next() {
+				var p domain.CandidatePool
+				if err := rows.Scan(&p.ID, &p.EnterpriseID, &p.Name, &p.Description, &p.CandidateCount, &p.CreatedAt); err == nil {
+					list = append(list, p)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -170,14 +215,41 @@ func (r *pgxEnterpriseRepository) CreateCandidatePool(ctx context.Context, pool 
 	}
 	pool.CreatedAt = time.Now()
 
+	if r.pool != nil {
+		query := `INSERT INTO candidate_pools (id, enterprise_id, name, description, candidate_count, created_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6)`
+		_, err := r.pool.Exec(ctx, query, pool.ID, pool.EnterpriseID, pool.Name, pool.Description, pool.CandidateCount, pool.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
 	r.pools[pool.ID] = pool
 	return nil
 }
 
 func (r *pgxEnterpriseRepository) GetAuditLogs(ctx context.Context, entID uuid.UUID) ([]domain.AuditLog, error) {
+	if r.pool != nil {
+		query := `SELECT id, enterprise_id, actor_id, actor_email, action, resource, ip_address, created_at 
+		          FROM audit_logs WHERE enterprise_id = $1 ORDER BY created_at DESC`
+		rows, err := r.pool.Query(ctx, query, entID)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.AuditLog
+			for rows.Next() {
+				var l domain.AuditLog
+				if err := rows.Scan(&l.ID, &l.EnterpriseID, &l.ActorID, &l.ActorEmail, &l.Action, &l.Resource, &l.IPAddress, &l.CreatedAt); err == nil {
+					list = append(list, l)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.logs, nil
@@ -189,9 +261,17 @@ func (r *pgxEnterpriseRepository) LogAction(ctx context.Context, log *domain.Aud
 	}
 	log.CreatedAt = time.Now()
 
+	if r.pool != nil {
+		query := `INSERT INTO audit_logs (id, enterprise_id, actor_id, actor_email, action, resource, ip_address, created_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err := r.pool.Exec(ctx, query, log.ID, log.EnterpriseID, log.ActorID, log.ActorEmail, log.Action, log.Resource, log.IPAddress, log.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
 	r.logs = append([]domain.AuditLog{*log}, r.logs...)
 	return nil
 }

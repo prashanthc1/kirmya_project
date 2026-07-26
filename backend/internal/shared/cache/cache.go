@@ -41,6 +41,14 @@ func NewRedisCache(addr string, password string) (*RedisCache, error) {
 	return &RedisCache{client: client}, nil
 }
 
+func ParseRedisURL(redisURL string) (*redis.Options, error) {
+	return redis.ParseURL(redisURL)
+}
+
+func NewRedisClientWithOpts(opts *redis.Options) *redis.Client {
+	return redis.NewClient(opts)
+}
+
 func (r *RedisCache) Get(ctx context.Context, key string) (string, error) {
 	val, err := r.client.Get(ctx, key).Result()
 	if err != nil {

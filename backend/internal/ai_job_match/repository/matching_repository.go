@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -58,66 +59,61 @@ func (r *pgxMatchingRepository) seedDefaultData() {
 		RecommendedActions: []domain.RecommendedAction{
 			{
 				Type:        "course",
-				Title:       "Master Kafka Event Streaming",
-				Description: "Bridge your Kafka requirement gap with our 3-hour fast-track course.",
-				ActionURL:   "/learning/courses/kafka-mastery",
+				Title:       "Apache Kafka Distributed Event Streaming Deep Dive",
+				ActionURL:   "/learning/courses/kafka-masterclass",
+				Description: "Close your single missing skill gap in under 4 hours.",
 			},
 		},
 		CreatedAt: now,
-		Breakdown: &domain.MatchingScore{
-			ID:                uuid.New(),
-			MatchID:           m1ID,
-			SkillsScore:       95,
-			ExperienceScore:   100,
-			GoalsScore:        100,
-			LocationScore:     100,
-			SalaryScore:       90,
-			LearningScore:     90,
-			ApplicationsScore: 100,
-			FeatureVector: map[string]interface{}{
-				"skills_overlap_ratio": 0.92,
-				"model_version":        "v1.2.0-xgboost-ready",
-			},
-			CreatedAt: now,
-		},
 	}
-	r.matches[m1ID] = m1
+
+	s1 := &domain.MatchingScore{
+		ID:                uuid.New(),
+		MatchID:           m1ID,
+		SkillsScore:       98,
+		ExperienceScore:   95,
+		GoalsScore:        92,
+		LocationScore:     100,
+		SalaryScore:       95,
+		LearningScore:     90,
+		ApplicationsScore: 94,
+		CreatedAt:         now,
+	}
+	m1.Breakdown = s1
 
 	m2ID := uuid.MustParse("a2222222-2222-2222-2222-222222222222")
 	m2 := &domain.AIJobMatch{
 		ID:            m2ID,
 		UserID:        userID,
 		JobID:         uuid.MustParse("b2222222-2222-2222-2222-222222222222"),
-		JobTitle:      "Lead Distributed Systems Engineer",
-		CompanyName:   "TechCorp Cloud",
+		JobTitle:      "Staff Platform Infrastructure Engineer",
+		CompanyName:   "Datadog",
 		OverallScore:  88,
-		MatchTier:     domain.TierStrongMatch,
-		Explanation:   "Strong 88% match. Excellent overlap on Go concurrency and Docker deployment, with minor growth potential in Kubernetes Operators.",
-		MatchedSkills: []string{"Go", "Microservices", "Docker", "Redis"},
-		MissingSkills: []string{"Kubernetes Operator SDK"},
-		RecommendedActions: []domain.RecommendedAction{
-			{
-				Type:        "certification",
-				Title:       "Kubernetes Application Developer (CKAD)",
-				Description: "Boost your match to 98% by adding CKAD certification.",
-				ActionURL:   "/learning/courses/ckad-prep",
-			},
-		},
-		CreatedAt: now.Add(-1 * time.Hour),
-		Breakdown: &domain.MatchingScore{
-			ID:                uuid.New(),
-			MatchID:           m2ID,
-			SkillsScore:       85,
-			ExperienceScore:   90,
-			GoalsScore:        90,
-			LocationScore:     100,
-			SalaryScore:       85,
-			LearningScore:     80,
-			ApplicationsScore: 100,
-			CreatedAt:         now.Add(-1 * time.Hour),
-		},
+		MatchTier:     domain.TierGoodMatch,
+		Explanation:   "Strong background match with 88% overall alignment across Kubernetes and Observability stacks.",
+		MatchedSkills: []string{"Go", "Kubernetes", "Prometheus", "Linux", "gRPC"},
+		MissingSkills: []string{"eBPF Fundamentals", "Terraform Cloud"},
+		CreatedAt:     now.Add(-12 * time.Hour),
 	}
-	r.matches[m2ID] = m2
+
+	s2 := &domain.MatchingScore{
+		ID:                uuid.New(),
+		MatchID:           m2ID,
+		SkillsScore:       85,
+		ExperienceScore:   90,
+		GoalsScore:        88,
+		LocationScore:     95,
+		SalaryScore:       90,
+		LearningScore:     80,
+		ApplicationsScore: 88,
+		CreatedAt:         now.Add(-12 * time.Hour),
+	}
+	m2.Breakdown = s2
+
+	r.matches[m1.ID] = m1
+	r.matches[m2.ID] = m2
+	r.scores[m1.ID] = s1
+	r.scores[m2.ID] = s2
 }
 
 func (r *pgxMatchingRepository) SaveMatch(ctx context.Context, match *domain.AIJobMatch, breakdown *domain.MatchingScore) error {
@@ -125,6 +121,20 @@ func (r *pgxMatchingRepository) SaveMatch(ctx context.Context, match *domain.AIJ
 		match.ID = uuid.New()
 	}
 	match.CreatedAt = time.Now()
+
+	if r.pool != nil {
+		matchedJSON, _ := json.Marshal(match.MatchedSkills)
+		missingJSON, _ := json.Marshal(match.MissingSkills)
+		actionsJSON, _ := json.Marshal(match.RecommendedActions)
+
+		query := `INSERT INTO ai_job_matches (id, user_id, job_id, job_title, company_name, overall_score, match_tier, explanation, matched_skills, missing_skills, recommended_actions, created_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		          ON CONFLICT (user_id, job_id) DO UPDATE SET overall_score = EXCLUDED.overall_score, explanation = EXCLUDED.explanation`
+		_, err := r.pool.Exec(ctx, query, match.ID, match.UserID, match.JobID, match.JobTitle, match.CompanyName, match.OverallScore, match.MatchTier, match.Explanation, matchedJSON, missingJSON, actionsJSON, match.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -142,6 +152,29 @@ func (r *pgxMatchingRepository) SaveMatch(ctx context.Context, match *domain.AIJ
 }
 
 func (r *pgxMatchingRepository) GetUserMatches(ctx context.Context, userID uuid.UUID) ([]domain.AIJobMatch, error) {
+	if r.pool != nil {
+		query := `SELECT id, user_id, job_id, job_title, company_name, overall_score, match_tier, explanation, matched_skills, missing_skills, recommended_actions, created_at 
+		          FROM ai_job_matches WHERE user_id = $1 ORDER BY overall_score DESC`
+		rows, err := r.pool.Query(ctx, query, userID)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.AIJobMatch
+			for rows.Next() {
+				var m domain.AIJobMatch
+				var matchedBytes, missingBytes, actionsBytes []byte
+				if err := rows.Scan(&m.ID, &m.UserID, &m.JobID, &m.JobTitle, &m.CompanyName, &m.OverallScore, &m.MatchTier, &m.Explanation, &matchedBytes, &missingBytes, &actionsBytes, &m.CreatedAt); err == nil {
+					_ = json.Unmarshal(matchedBytes, &m.MatchedSkills)
+					_ = json.Unmarshal(missingBytes, &m.MissingSkills)
+					_ = json.Unmarshal(actionsBytes, &m.RecommendedActions)
+					list = append(list, m)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -159,6 +192,22 @@ func (r *pgxMatchingRepository) GetUserMatches(ctx context.Context, userID uuid.
 }
 
 func (r *pgxMatchingRepository) GetMatchByID(ctx context.Context, id uuid.UUID) (*domain.AIJobMatch, error) {
+	if r.pool != nil {
+		query := `SELECT id, user_id, job_id, job_title, company_name, overall_score, match_tier, explanation, matched_skills, missing_skills, recommended_actions, created_at 
+		          FROM ai_job_matches WHERE id = $1`
+		m := &domain.AIJobMatch{}
+		var matchedBytes, missingBytes, actionsBytes []byte
+		err := r.pool.QueryRow(ctx, query, id).Scan(
+			&m.ID, &m.UserID, &m.JobID, &m.JobTitle, &m.CompanyName, &m.OverallScore, &m.MatchTier, &m.Explanation, &matchedBytes, &missingBytes, &actionsBytes, &m.CreatedAt,
+		)
+		if err == nil {
+			_ = json.Unmarshal(matchedBytes, &m.MatchedSkills)
+			_ = json.Unmarshal(missingBytes, &m.MissingSkills)
+			_ = json.Unmarshal(actionsBytes, &m.RecommendedActions)
+			return m, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -177,6 +226,15 @@ func (r *pgxMatchingRepository) SaveFeedback(ctx context.Context, feedback *doma
 		feedback.ID = uuid.New()
 	}
 	feedback.CreatedAt = time.Now()
+
+	if r.pool != nil {
+		query := `INSERT INTO matching_feedback (id, match_id, user_id, feedback_type, notes, created_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6)`
+		_, err := r.pool.Exec(ctx, query, feedback.ID, feedback.MatchID, feedback.UserID, feedback.FeedbackType, feedback.Notes, feedback.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
 
 	r.mu.Lock()
 	defer r.mu.Unlock()

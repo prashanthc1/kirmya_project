@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"kirmya/internal/freelance/domain"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -61,46 +63,73 @@ func (r *pgxFreelanceRepository) seedDefaultData() {
 	p1 := &domain.Project{
 		ID:             p1ID,
 		ClientID:       clientID,
-		Title:          "Build High-Throughput Go Microservice & Redis Caching Layer",
-		Description:    "Short-term contract to optimize an existing payment processing API in Go. Requires deep PostgreSQL GIN index experience.",
-		Budget:         1500,
+		Title:          "PostgreSQL Query Optimization & Indexing Benchmark",
+		Description:    "Audit 38 migration files and add GIN / partial indexes for 10M rows scale",
+		Budget:         3500,
 		BudgetType:     domain.BudgetTypeFixed,
-		SkillsRequired: []string{"Go", "PostgreSQL", "Redis", "REST API"},
+		SkillsRequired: []string{"PostgreSQL", "Go", "Database Tuning"},
 		Status:         domain.ProjectStatusOpen,
-		CreatedAt:      now,
-		UpdatedAt:      now,
-		ProposalsCount: 2,
+		ProposalsCount: 8,
+		CreatedAt:      now.Add(-6 * time.Hour),
+		UpdatedAt:      now.Add(-6 * time.Hour),
 	}
-	r.projects[p1ID] = p1
 
 	p2ID := uuid.MustParse("f2222222-2222-2222-2222-222222222222")
 	p2 := &domain.Project{
 		ID:             p2ID,
 		ClientID:       clientID,
-		Title:          "Next.js Dashboard & Material UI Glassmorphism UI Polish",
-		Description:    "Help us polish 5 React/Next.js dashboard pages with dark-mode HSL glassmorphic styling.",
-		Budget:         85,
+		Title:          "Next.js MUI v6 Glassmorphism Dashboard Engineering",
+		Description:    "Build high-performance recruiter talent pipeline UI components",
+		Budget:         120,
 		BudgetType:     domain.BudgetTypeHourly,
-		SkillsRequired: []string{"Next.js", "React", "TypeScript", "Material UI"},
-		Status:         domain.ProjectStatusOpen,
-		CreatedAt:      now.Add(-2 * time.Hour),
-		UpdatedAt:      now.Add(-2 * time.Hour),
-		ProposalsCount: 1,
+		SkillsRequired: []string{"Next.js", "TypeScript", "MUI v6", "React"},
+		Status:         domain.ProjectStatusInProgress,
+		ProposalsCount: 14,
+		CreatedAt:      now.Add(-48 * time.Hour),
+		UpdatedAt:      now.Add(-48 * time.Hour),
 	}
-	r.projects[p2ID] = p2
 
-	prof := &domain.FreelancerProfile{
+	r.projects[p1.ID] = p1
+	r.projects[p2.ID] = p2
+
+	prop1ID := uuid.New()
+	prop1 := &domain.Proposal{
+		ID:            prop1ID,
+		ProjectID:     p1ID,
+		FreelancerID:  userID,
+		BidAmount:     3400,
+		EstimatedDays: 4,
+		CoverLetter:   "Staff Database Architect with extensive experience in pgxpool connection management.",
+		Status:        domain.ProposalStatusSubmitted,
+		CreatedAt:     now.Add(-2 * time.Hour),
+	}
+	r.proposals[prop1ID] = prop1
+
+	contract1ID := uuid.New()
+	contract1 := &domain.Contract{
+		ID:           contract1ID,
+		ProjectID:    p2ID,
+		ProposalID:   uuid.New(),
+		ClientID:     clientID,
+		FreelancerID: userID,
+		TotalAmount:  4800,
+		Status:       "active",
+		CreatedAt:    now.Add(-24 * time.Hour),
+		UpdatedAt:    now.Add(-24 * time.Hour),
+	}
+	r.contracts[contract1ID] = contract1
+
+	r.profiles[userID] = &domain.FreelancerProfile{
 		ID:                 uuid.New(),
 		UserID:             userID,
-		HourlyRate:         85,
-		Tagline:            "Senior Full-Stack Go & Next.js Systems Architect",
-		Skills:             []string{"Go", "PostgreSQL", "Next.js", "React", "Docker"},
-		PortfolioLinks:     []domain.PortfolioItem{{Title: "High-Scale Payment Pipeline", URL: "https://github.com/kirmya/go-pipeline"}},
+		HourlyRate:         125,
+		Tagline:            "Principal Go & Distributed Systems Architect",
+		Skills:             []string{"Go", "PostgreSQL", "Microservices", "System Design", "Docker"},
+		PortfolioLinks:     []domain.PortfolioItem{{Title: "Kirmya Core Architecture", URL: "https://kirmya.com"}},
 		AvailabilityStatus: "available",
 		CreatedAt:          now,
 		UpdatedAt:          now,
 	}
-	r.profiles[userID] = prof
 }
 
 func (r *pgxFreelanceRepository) CreateProject(ctx context.Context, proj *domain.Project) error {
@@ -110,14 +139,53 @@ func (r *pgxFreelanceRepository) CreateProject(ctx context.Context, proj *domain
 	proj.CreatedAt = time.Now()
 	proj.UpdatedAt = time.Now()
 
+	if r.pool != nil {
+		skillsBytes, _ := json.Marshal(proj.SkillsRequired)
+		query := `INSERT INTO projects (id, client_id, title, description, budget, budget_type, skills_required, status, created_at, updated_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		_, err := r.pool.Exec(ctx, query, proj.ID, proj.ClientID, proj.Title, proj.Description, proj.Budget, proj.BudgetType, skillsBytes, proj.Status, proj.CreatedAt, proj.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
-
 	r.projects[proj.ID] = proj
 	return nil
 }
 
 func (r *pgxFreelanceRepository) GetProjects(ctx context.Context, status string) ([]domain.Project, error) {
+	if r.pool != nil {
+		var query string
+		var rows pgx.Rows
+		var err error
+
+		if status != "" && status != "ALL" {
+			query = `SELECT id, client_id, title, description, budget, budget_type, skills_required, status, created_at, updated_at FROM projects WHERE status = $1 ORDER BY created_at DESC`
+			rows, err = r.pool.Query(ctx, query, status)
+		} else {
+			query = `SELECT id, client_id, title, description, budget, budget_type, skills_required, status, created_at, updated_at FROM projects ORDER BY created_at DESC`
+			rows, err = r.pool.Query(ctx, query)
+		}
+
+		if err == nil {
+			defer rows.Close()
+			var list []domain.Project
+			for rows.Next() {
+				var p domain.Project
+				var skillsBytes []byte
+				if err := rows.Scan(&p.ID, &p.ClientID, &p.Title, &p.Description, &p.Budget, &p.BudgetType, &skillsBytes, &p.Status, &p.CreatedAt, &p.UpdatedAt); err == nil {
+					_ = json.Unmarshal(skillsBytes, &p.SkillsRequired)
+					list = append(list, p)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -131,6 +199,19 @@ func (r *pgxFreelanceRepository) GetProjects(ctx context.Context, status string)
 }
 
 func (r *pgxFreelanceRepository) GetProjectByID(ctx context.Context, id uuid.UUID) (*domain.Project, error) {
+	if r.pool != nil {
+		query := `SELECT id, client_id, title, description, budget, budget_type, skills_required, status, created_at, updated_at FROM projects WHERE id = $1`
+		p := &domain.Project{}
+		var skillsBytes []byte
+		err := r.pool.QueryRow(ctx, query, id).Scan(
+			&p.ID, &p.ClientID, &p.Title, &p.Description, &p.Budget, &p.BudgetType, &skillsBytes, &p.Status, &p.CreatedAt, &p.UpdatedAt,
+		)
+		if err == nil {
+			_ = json.Unmarshal(skillsBytes, &p.SkillsRequired)
+			return p, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -142,6 +223,14 @@ func (r *pgxFreelanceRepository) GetProjectByID(ctx context.Context, id uuid.UUI
 }
 
 func (r *pgxFreelanceRepository) UpdateProjectStatus(ctx context.Context, id uuid.UUID, status string) error {
+	if r.pool != nil {
+		query := `UPDATE projects SET status = $1, updated_at = $2 WHERE id = $3`
+		_, err := r.pool.Exec(ctx, query, status, time.Now(), id)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -158,6 +247,15 @@ func (r *pgxFreelanceRepository) SubmitProposal(ctx context.Context, prop *domai
 	}
 	prop.CreatedAt = time.Now()
 
+	if r.pool != nil {
+		query := `INSERT INTO proposals (id, project_id, freelancer_id, bid_amount, estimated_days, cover_letter, status, created_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err := r.pool.Exec(ctx, query, prop.ID, prop.ProjectID, prop.FreelancerID, prop.BidAmount, prop.EstimatedDays, prop.CoverLetter, prop.Status, prop.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -169,6 +267,24 @@ func (r *pgxFreelanceRepository) SubmitProposal(ctx context.Context, prop *domai
 }
 
 func (r *pgxFreelanceRepository) GetProjectProposals(ctx context.Context, projectID uuid.UUID) ([]domain.Proposal, error) {
+	if r.pool != nil {
+		query := `SELECT id, project_id, freelancer_id, bid_amount, estimated_days, cover_letter, status, created_at FROM proposals WHERE project_id = $1 ORDER BY created_at DESC`
+		rows, err := r.pool.Query(ctx, query, projectID)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.Proposal
+			for rows.Next() {
+				var p domain.Proposal
+				if err := rows.Scan(&p.ID, &p.ProjectID, &p.FreelancerID, &p.BidAmount, &p.EstimatedDays, &p.CoverLetter, &p.Status, &p.CreatedAt); err == nil {
+					list = append(list, p)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -182,6 +298,17 @@ func (r *pgxFreelanceRepository) GetProjectProposals(ctx context.Context, projec
 }
 
 func (r *pgxFreelanceRepository) GetProposalByID(ctx context.Context, id uuid.UUID) (*domain.Proposal, error) {
+	if r.pool != nil {
+		query := `SELECT id, project_id, freelancer_id, bid_amount, estimated_days, cover_letter, status, created_at FROM proposals WHERE id = $1`
+		p := &domain.Proposal{}
+		err := r.pool.QueryRow(ctx, query, id).Scan(
+			&p.ID, &p.ProjectID, &p.FreelancerID, &p.BidAmount, &p.EstimatedDays, &p.CoverLetter, &p.Status, &p.CreatedAt,
+		)
+		if err == nil {
+			return p, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -193,6 +320,14 @@ func (r *pgxFreelanceRepository) GetProposalByID(ctx context.Context, id uuid.UU
 }
 
 func (r *pgxFreelanceRepository) UpdateProposalStatus(ctx context.Context, id uuid.UUID, status string) error {
+	if r.pool != nil {
+		query := `UPDATE proposals SET status = $1 WHERE id = $2`
+		_, err := r.pool.Exec(ctx, query, status, id)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -209,6 +344,15 @@ func (r *pgxFreelanceRepository) CreateContract(ctx context.Context, contract *d
 	contract.CreatedAt = time.Now()
 	contract.UpdatedAt = time.Now()
 
+	if r.pool != nil {
+		query := `INSERT INTO contracts (id, project_id, proposal_id, client_id, freelancer_id, total_amount, status, created_at, updated_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+		_, err := r.pool.Exec(ctx, query, contract.ID, contract.ProjectID, contract.ProposalID, contract.ClientID, contract.FreelancerID, contract.TotalAmount, contract.Status, contract.CreatedAt, contract.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -217,6 +361,24 @@ func (r *pgxFreelanceRepository) CreateContract(ctx context.Context, contract *d
 }
 
 func (r *pgxFreelanceRepository) GetUserContracts(ctx context.Context, userID uuid.UUID) ([]domain.Contract, error) {
+	if r.pool != nil {
+		query := `SELECT id, project_id, proposal_id, client_id, freelancer_id, total_amount, status, created_at, updated_at FROM contracts WHERE freelancer_id = $1 OR client_id = $1 ORDER BY created_at DESC`
+		rows, err := r.pool.Query(ctx, query, userID)
+		if err == nil {
+			defer rows.Close()
+			var list []domain.Contract
+			for rows.Next() {
+				var c domain.Contract
+				if err := rows.Scan(&c.ID, &c.ProjectID, &c.ProposalID, &c.ClientID, &c.FreelancerID, &c.TotalAmount, &c.Status, &c.CreatedAt, &c.UpdatedAt); err == nil {
+					list = append(list, c)
+				}
+			}
+			if len(list) > 0 {
+				return list, nil
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -235,6 +397,18 @@ func (r *pgxFreelanceRepository) SaveProfile(ctx context.Context, prof *domain.F
 	}
 	prof.UpdatedAt = time.Now()
 
+	if r.pool != nil {
+		skillsBytes, _ := json.Marshal(prof.Skills)
+		portfolioBytes, _ := json.Marshal(prof.PortfolioLinks)
+		query := `INSERT INTO freelancer_profiles (id, user_id, hourly_rate, tagline, skills, portfolio_links, availability_status, created_at, updated_at) 
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+		          ON CONFLICT (user_id) DO UPDATE SET hourly_rate = EXCLUDED.hourly_rate, tagline = EXCLUDED.tagline, skills = EXCLUDED.skills, portfolio_links = EXCLUDED.portfolio_links, availability_status = EXCLUDED.availability_status, updated_at = EXCLUDED.updated_at`
+		_, err := r.pool.Exec(ctx, query, prof.ID, prof.UserID, prof.HourlyRate, prof.Tagline, skillsBytes, portfolioBytes, prof.AvailabilityStatus, prof.CreatedAt, prof.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -243,6 +417,20 @@ func (r *pgxFreelanceRepository) SaveProfile(ctx context.Context, prof *domain.F
 }
 
 func (r *pgxFreelanceRepository) GetProfileByUserID(ctx context.Context, userID uuid.UUID) (*domain.FreelancerProfile, error) {
+	if r.pool != nil {
+		query := `SELECT id, user_id, hourly_rate, tagline, skills, portfolio_links, availability_status, created_at, updated_at FROM freelancer_profiles WHERE user_id = $1`
+		prof := &domain.FreelancerProfile{}
+		var skillsBytes, portfolioBytes []byte
+		err := r.pool.QueryRow(ctx, query, userID).Scan(
+			&prof.ID, &prof.UserID, &prof.HourlyRate, &prof.Tagline, &skillsBytes, &portfolioBytes, &prof.AvailabilityStatus, &prof.CreatedAt, &prof.UpdatedAt,
+		)
+		if err == nil {
+			_ = json.Unmarshal(skillsBytes, &prof.Skills)
+			_ = json.Unmarshal(portfolioBytes, &prof.PortfolioLinks)
+			return prof, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
