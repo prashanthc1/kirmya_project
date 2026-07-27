@@ -13,6 +13,13 @@ func TestPostgreSQLDatabaseIntegration(t *testing.T) {
 	if os.Getenv("ALLOW_NO_DB") == "true" {
 		t.Skip("Skipping live database pool integration test when running in ALLOW_NO_DB mock mode")
 	}
+	// DATABASE_URL is the signal that a Postgres instance was deliberately
+	// provisioned. Without it database.Connect() falls back to hardcoded local
+	// dev credentials, so the test fails on any machine or CI job with no local
+	// Postgres. Set DATABASE_URL to make this test run and fail hard.
+	if os.Getenv("DATABASE_URL") == "" {
+		t.Skip("Skipping live database pool integration test: DATABASE_URL is not set")
+	}
 
 	db, err := database.Connect()
 	if err != nil {

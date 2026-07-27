@@ -2,14 +2,14 @@
 
 import React from 'react';
 import AuthLayout from '../../components/auth/AuthLayout';
-import SignUpForm from '../../components/auth/SignUpForm';
+import SignInForm from '../../components/auth/SignInForm';
 import AuthErrorBoundary from '../../components/auth/ErrorBoundary';
 
-export default function RegisterPage() {
+export default function SignInPage() {
   return (
     <AuthErrorBoundary>
       <AuthLayout>
-        <SignUpForm />
+        <SignInForm />
       </AuthLayout>
     </AuthErrorBoundary>
   );

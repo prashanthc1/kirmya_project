@@ -40,6 +40,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EditIcon from '@mui/icons-material/Edit';
 import SettingsIcon from '@mui/icons-material/Settings';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 import { useColorMode } from '../../providers';
 import { companyApi } from '../../../features/company/services/companyApi';

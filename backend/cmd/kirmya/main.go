@@ -33,6 +33,7 @@ import (
 	notifySvc "kirmya/internal/notification/service"
 
 	authHttp "kirmya/internal/auth/delivery/http"
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	authRepo "kirmya/internal/auth/repository"
 	authSvc "kirmya/internal/auth/service"
 
@@ -288,6 +289,7 @@ func main() {
 	authRepository := authRepo.NewAuthRepository(dbPool)
 	authService := authSvc.NewAuthService(authRepository)
 	authHandler := authHttp.NewAuthHandler(authService)
+	authMiddleware := authMiddlewarePkg.NewAuthMiddleware(authService)
 
 	analyticsRepository := analyticsRepo.NewAnalyticsRepository(dbPool)
 	analyticsService := analyticsSvc.NewAnalyticsService(analyticsRepository)
@@ -441,6 +443,12 @@ func main() {
 			authGroup.POST("/login", authHandler.Login)
 			authGroup.POST("/refresh", authHandler.Refresh)
 			authGroup.POST("/logout", authHandler.Logout)
+			authGroup.POST("/verify-email", authHandler.VerifyEmail)
+			authGroup.POST("/resend-verification", authHandler.ResendVerification)
+			authGroup.GET("/session", authHandler.GetSession)
+
+			// Protected auth endpoints
+			authGroup.GET("/me", authMiddleware.RequireAuth(), authHandler.GetMe)
 		}
 
 		// Analytics routes protected by Auth

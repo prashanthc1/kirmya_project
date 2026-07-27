@@ -45,7 +45,7 @@ func TestAuthRegisterAndLoginAPIIntegration(t *testing.T) {
 	router := setupTestRouter()
 
 	// 1. Test Register Payload
-	regPayload := `{"email":"newuser.api@kirmya.com","password":"Password123!","full_name":"API Tester"}`
+	regPayload := `{"firstName":"API","lastName":"Tester","email":"newuser.api@kirmya.com","password":"SecureP@ssw0rd123!","confirmPassword":"SecureP@ssw0rd123!","acceptTerms":true,"acceptPrivacy":true}`
 	req, _ := http.NewRequest("POST", "/api/v1/auth/register", strings.NewReader(regPayload))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -53,17 +53,18 @@ func TestAuthRegisterAndLoginAPIIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusCreated {
-		t.Fatalf("Expected HTTP 201 Created on register, got status %d", w.Code)
+		t.Fatalf("Expected HTTP 201 Created on register, got status %d: %s", w.Code, w.Body.String())
 	}
 
 	var regResp map[string]interface{}
 	_ = json.Unmarshal(w.Body.Bytes(), &regResp)
-	if regResp["email"] != "newuser.api@kirmya.com" {
-		t.Errorf("Expected user email newuser.api@kirmya.com in register response, got %v", regResp["email"])
+	userObj, ok := regResp["user"].(map[string]interface{})
+	if !ok || userObj["email"] != "newuser.api@kirmya.com" {
+		t.Errorf("Expected user email newuser.api@kirmya.com in register response, got %v", regResp)
 	}
 
 	// 2. Test Login Payload with registered credentials
-	loginPayload := `{"email":"newuser.api@kirmya.com","password":"Password123!"}`
+	loginPayload := `{"email":"newuser.api@kirmya.com","password":"SecureP@ssw0rd123!"}`
 	reqLogin, _ := http.NewRequest("POST", "/api/v1/auth/login", strings.NewReader(loginPayload))
 	reqLogin.Header.Set("Content-Type", "application/json")
 
@@ -76,8 +77,8 @@ func TestAuthRegisterAndLoginAPIIntegration(t *testing.T) {
 
 	var loginResp map[string]interface{}
 	_ = json.Unmarshal(wLogin.Body.Bytes(), &loginResp)
-	if loginResp["accessToken"] == nil {
-		t.Errorf("Expected accessToken in login response body")
+	if loginResp["access_token"] == nil && loginResp["accessToken"] == nil {
+		t.Errorf("Expected access token in login response body")
 	}
 
 	// 3. Test Prometheus Metrics Endpoint

@@ -7,17 +7,41 @@ import (
 	"github.com/google/uuid"
 )
 
-// UserAccount represents a database credentials record.
-type UserAccount struct {
-	ID           uuid.UUID `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	IsActive     bool      `json:"isActive"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+// User represents a user account record in PostgreSQL.
+type User struct {
+	ID               uuid.UUID `json:"id"`
+	UUID             uuid.UUID `json:"uuid"`
+	FirstName        string    `json:"firstName"`
+	LastName         string    `json:"lastName"`
+	Email            string    `json:"email"`
+	PasswordHash     string    `json:"-"`
+	EmailVerified    bool      `json:"emailVerified"`
+	RoleID           string    `json:"roleId"`
+	Status           string    `json:"status"`
+	Country          string    `json:"country"`
+	CurrentLocation  string    `json:"currentLocation"`
+	JobTitle         string    `json:"jobTitle"`
+	EmploymentStatus string    `json:"employmentStatus"`
+	CreatedAt        time.Time `json:"createdAt"`
+	UpdatedAt        time.Time `json:"updatedAt"`
 }
 
-// RefreshToken tracks active sessions and rotation limits.
+// UserAccount model alias for backward compatibility.
+type UserAccount = User
+
+// Session tracks active refresh tokens and user sessions.
+type Session struct {
+	ID           uuid.UUID  `json:"id"`
+	UserID       uuid.UUID  `json:"userId"`
+	RefreshToken string     `json:"refreshToken"`
+	IPAddress    string     `json:"ipAddress"`
+	UserAgent    string     `json:"userAgent"`
+	ExpiresAt    time.Time  `json:"expiresAt"`
+	RevokedAt    *time.Time `json:"revokedAt,omitempty"`
+	CreatedAt    time.Time  `json:"createdAt"`
+}
+
+// RefreshToken alias for Session for legacy references.
 type RefreshToken struct {
 	ID        uuid.UUID `json:"id"`
 	UserID    uuid.UUID `json:"userId"`
@@ -27,27 +51,28 @@ type RefreshToken struct {
 	IsRevoked bool      `json:"isRevoked"`
 }
 
-// JWTClaims encapsulates user metadata embedded in signed tokens.
+// EmailVerification stores email confirmation tokens.
+type EmailVerification struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"userId"`
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// AuditLog tracks security actions.
+type AuditLog struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"userId"`
+	Action    string    `json:"action"`
+	IPAddress string    `json:"ipAddress"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// JWTClaims encapsulates JWT custom payload.
 type JWTClaims struct {
 	UserID uuid.UUID `json:"userId"`
 	Email  string    `json:"email"`
+	Role   string    `json:"role"`
 	jwt.RegisteredClaims
-}
-
-// RegisterRequest contains credentials and registration options.
-type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=12"`
-}
-
-// LoginRequest contains authentication credentials.
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
-
-// LoginResponse contains the access token.
-type LoginResponse struct {
-	AccessToken string      `json:"accessToken"`
-	User        UserAccount `json:"user"`
 }
