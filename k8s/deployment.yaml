@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kirmya-backend
+  labels:
+    app: kirmya-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kirmya-backend
+  template:
+    metadata:
+      labels:
+        app: kirmya-backend
+    spec:
+      containers:
+        - name: backend
+          image: kirmya-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: kirmya-backend-secret
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "250m"
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /api/v1/metrics
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/metrics
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kirmya-backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: kirmya-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kirmya-frontend
+  labels:
+    app: kirmya-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kirmya-frontend
+  template:
+    metadata:
+      labels:
+        app: kirmya-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: kirmya-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: kirmya-frontend-config
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: "200m"
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kirmya-frontend-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: kirmya-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
