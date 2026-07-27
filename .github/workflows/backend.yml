@@ -1,0 +1,62 @@
+name: Backend Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'scripts/migrations/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'scripts/migrations/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  backend-ci:
+    name: Go Backend Quality, Vet & Docker Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go Environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Download Go Module Dependencies
+        run: go mod download
+
+      - name: Verify Go Module Tidy State
+        run: go mod verify
+
+      - name: Run Go Unit & Integration Tests
+        run: go test -v ./... ./test/integration/...
+        env:
+          ALLOW_NO_DB: "true"
+
+      - name: Run Go Vet Static Code Analysis
+        run: go vet ./...
+
+      - name: Environment Configuration Audit
+        run: |
+          if [ ! -f .env.example ]; then
+            echo "::error::backend/.env.example is missing!"
+            exit 1
+          fi
+          echo "Backend .env.example validated successfully."
+
+      - name: Build Backend Executable Binary
+        run: go build -v -o bin/kirmya ./cmd/kirmya
+
+      - name: Build Production Docker Container Image
+        run: docker build -t kirmya-backend:latest .
