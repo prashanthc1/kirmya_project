@@ -11,7 +11,6 @@ import (
 )
 
 func TelemetryMiddleware() gin.HandlerFunc {
-	tracer := telemetry.NewTracer()
 	collector := telemetry.GetGlobalCollector()
 
 	return func(c *gin.Context) {
@@ -24,7 +23,7 @@ func TelemetryMiddleware() gin.HandlerFunc {
 		c.Set("trace_id", traceID)
 		c.Header("X-Trace-ID", traceID)
 
-		ctx, _ := tracer.StartSpan(c.Request.Context(), c.Request.Method+" "+c.Request.URL.Path)
+		ctx, _ := telemetry.StartSpan(c.Request.Context(), c.Request.Method+" "+c.Request.URL.Path)
 		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
