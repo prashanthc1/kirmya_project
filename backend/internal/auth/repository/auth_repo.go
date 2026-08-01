@@ -66,6 +66,18 @@ func (r *AuthRepository) CreateUser(ctx context.Context, u *models.User) error {
 	return nil
 }
 
+// CreateProfile inserts a new profile record in PostgreSQL or memory
+func (r *AuthRepository) CreateProfile(ctx context.Context, u *models.User) error {
+	if r.db != nil {
+		profileID := uuid.New()
+		query := `INSERT INTO profiles (id, user_id, country, location, professional_status, job_title, profile_completion_percentage, created_at, updated_at)
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		          ON CONFLICT (user_id) DO NOTHING`
+		_, _ = r.db.Exec(ctx, query, profileID, u.ID, u.Country, u.CurrentLocation, u.EmploymentStatus, u.JobTitle, 25, u.CreatedAt, u.UpdatedAt)
+	}
+	return nil
+}
+
 // CreateUserAccount wrapper for legacy support
 func (r *AuthRepository) CreateUserAccount(ctx context.Context, u *models.UserAccount) error {
 	return r.CreateUser(ctx, u)

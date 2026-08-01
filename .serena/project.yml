@@ -1,0 +1,2 @@
+project_name: "my_project"
+languages: ["typescript", "go", "bash"]

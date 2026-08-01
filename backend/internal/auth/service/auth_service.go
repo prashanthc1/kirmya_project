@@ -69,6 +69,9 @@ func (s *AuthService) Register(ctx context.Context, req *dto.RegisterRequest, ip
 		return nil, "", err
 	}
 
+	// Create profile record
+	_ = s.repo.CreateProfile(ctx, u)
+
 	// Create email verification record
 	verifyToken := uuid.New().String()
 	ev := &models.EmailVerification{

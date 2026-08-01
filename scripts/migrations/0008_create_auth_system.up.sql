@@ -1,4 +1,4 @@
--- up migration: comprehensive authentication system schema (users, sessions, email_verifications, audit_logs)
+-- up migration: comprehensive authentication system schema (users, sessions, email_verifications, audit_logs, profiles)
 
 -- 1. Users Table
 CREATE TABLE IF NOT EXISTS users (
@@ -32,7 +32,22 @@ CREATE TABLE IF NOT EXISTS usr_accounts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Sessions Table
+-- 2. Profiles Table
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    country VARCHAR(100) DEFAULT '',
+    location VARCHAR(100) DEFAULT '',
+    professional_status VARCHAR(100) DEFAULT '',
+    job_title VARCHAR(100) DEFAULT '',
+    profile_completion_percentage INT DEFAULT 25,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
+
+-- 3. Sessions Table
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -57,24 +72,26 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     is_revoked BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- 3. Email Verifications Table
+-- 4. Email Verifications Table
 CREATE TABLE IF NOT EXISTS email_verifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    verified_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_email_verifications_token ON email_verifications(token);
 CREATE INDEX IF NOT EXISTS idx_email_verifications_user_id ON email_verifications(user_id);
 
--- 4. Audit Logs Table
+-- 5. Audit Logs Table
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     action VARCHAR(100) NOT NULL,
     ip_address VARCHAR(45) DEFAULT '',
+    user_agent TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

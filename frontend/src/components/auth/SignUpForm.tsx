@@ -9,37 +9,43 @@ import {
   Box,
   TextField,
   Button,
-  FormControlLabel,
-  Checkbox,
   Stack,
-  IconButton,
   Alert,
   Typography,
   CircularProgress,
   Link as MuiLink,
   Grid,
   MenuItem,
-  Card,
-  CardContent,
   Avatar,
 } from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 
 import AuthHeader from './AuthHeader';
-import SocialLoginButtons from './SocialLoginButtons';
-import PasswordStrength from './PasswordStrength';
+import PasswordInput from './PasswordInput';
+import PasswordStrengthIndicator from './PasswordStrength';
+import SocialSignupButtons from './SocialSignupButtons';
+import TermsAgreement from './TermsAgreement';
 import AuthFooter from './AuthFooter';
 import { useRegister } from '../../hooks/useRegister';
 
-// Zod Validation Schema
+// Zod Validation Schema matching exact prompt requirements
 const signUpSchema = z
   .object({
-    firstName: z.string().min(1, 'First name is required'),
-    lastName: z.string().min(1, 'Last name is required'),
-    email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
+    firstName: z
+      .string()
+      .min(1, 'First name is required')
+      .min(2, 'First name must be at least 2 characters')
+      .max(50, 'First name must not exceed 50 characters'),
+    lastName: z
+      .string()
+      .min(1, 'Last name is required')
+      .min(2, 'Last name must be at least 2 characters')
+      .max(50, 'Last name must not exceed 50 characters'),
+    email: z
+      .string()
+      .min(1, 'Email address is required')
+      .email('Please enter a valid email address'),
     password: z
       .string()
       .min(12, 'Password must be at least 12 characters long')
@@ -48,12 +54,12 @@ const signUpSchema = z
       .regex(/[0-9]/, 'Password must contain at least one number')
       .regex(/[!@#$%^&*()_+=\[\]{}|;:',.<>?/~\-]/, 'Password must contain at least one special character'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
-    country: z.string().optional(),
-    currentLocation: z.string().optional(),
-    jobTitle: z.string().optional(),
-    employmentStatus: z.string().optional(),
+    country: z.string().min(1, 'Country is required'),
+    currentLocation: z.string().min(1, 'Current location is required'),
+    employmentStatus: z.string().min(1, 'Professional status is required'),
+    jobTitle: z.string().min(1, 'Current or target job title is required'),
     acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: 'You must accept the Terms of Service' }),
+      errorMap: () => ({ message: 'You must agree to the Terms of Service and Privacy Policy' }),
     }),
     acceptPrivacy: z.literal(true, {
       errorMap: () => ({ message: 'You must accept the Privacy Policy' }),
@@ -67,26 +73,23 @@ const signUpSchema = z
 
 type SignUpFormInputs = z.infer<typeof signUpSchema>;
 
-const employmentOptions = [
-  'Full-time Employee',
-  'Part-time Employee',
-  'Self-Employed / Freelancer',
-  'Entrepreneur / Business Owner',
-  'Student / Graduate',
-  'Actively Seeking Opportunities',
+const professionalStatusOptions = [
+  'Looking for a job',
+  'Currently employed',
+  'Freelancer',
+  'Student',
+  'Entrepreneur',
 ];
 
 export const SignUpForm: React.FC = () => {
   const router = useRouter();
   const { register, submitting, error, setError, successData } = useRegister();
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<SignUpFormInputs>({
     resolver: zodResolver(signUpSchema),
@@ -98,8 +101,8 @@ export const SignUpForm: React.FC = () => {
       confirmPassword: '',
       country: 'United Arab Emirates',
       currentLocation: 'Dubai',
+      employmentStatus: 'Looking for a job',
       jobTitle: '',
-      employmentStatus: 'Full-time Employee',
       acceptTerms: true,
       acceptPrivacy: true,
       subscribeCareerUpdates: true,
@@ -107,14 +110,19 @@ export const SignUpForm: React.FC = () => {
   });
 
   const watchPassword = watch('password', '');
+  const watchAcceptTerms = watch('acceptTerms', true);
+  const watchSubscribeUpdates = watch('subscribeCareerUpdates', true);
 
   const onSubmit = async (data: SignUpFormInputs) => {
     try {
       setError(null);
+      // Email lowercase normalization
+      const normalizedEmail = data.email.trim().toLowerCase();
+
       await register({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: normalizedEmail,
         password: data.password,
         confirmPassword: data.confirmPassword,
         country: data.country,
@@ -130,7 +138,7 @@ export const SignUpForm: React.FC = () => {
     }
   };
 
-  // Success Screen when account is created
+  // Verification Screen upon successful account creation
   if (successData) {
     return (
       <Box sx={{ textAlign: 'center', py: 2 }}>
@@ -148,7 +156,7 @@ export const SignUpForm: React.FC = () => {
         </Avatar>
 
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
-          Account Created Successfully!
+          Verify Your Kirmya Account
         </Typography>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -156,13 +164,13 @@ export const SignUpForm: React.FC = () => {
           <Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>
             {watch('email')}
           </Box>
-          . Please verify your email address to activate your profile.
+          . Please verify your email address to complete your account setup.
         </Typography>
 
         {successData.verificationToken && (
           <Alert severity="info" sx={{ mb: 3, textAlign: 'left', borderRadius: '12px' }}>
             <Typography variant="caption" display="block" sx={{ fontWeight: 700 }}>
-              Dev Direct Verification Token:
+              Verification Token (Dev Sandbox):
             </Typography>
             <Typography variant="caption" sx={{ wordBreak: 'break-all', fontFamily: 'monospace' }}>
               {successData.verificationToken}
@@ -175,7 +183,7 @@ export const SignUpForm: React.FC = () => {
             variant="contained"
             fullWidth
             size="large"
-            onClick={() => router.push('/auth/signin')}
+            onClick={() => router.push('/signin')}
             sx={{
               py: 1.4,
               borderRadius: '12px',
@@ -192,7 +200,7 @@ export const SignUpForm: React.FC = () => {
             onClick={() => alert('Verification email resent successfully.')}
             sx={{ py: 1.2, borderRadius: '12px', textTransform: 'none' }}
           >
-            Resend Email Verification
+            Resend Verification Email
           </Button>
         </Stack>
 
@@ -203,7 +211,7 @@ export const SignUpForm: React.FC = () => {
 
   return (
     <Box>
-      <AuthHeader title="Join Kirmya Network" subtitle="Create your verified professional account in 2 minutes" />
+      <AuthHeader title="Create your Kirmya account" subtitle="Start rebuilding your career journey today" />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setError(null)}>
@@ -273,58 +281,30 @@ export const SignUpForm: React.FC = () => {
             name="password"
             control={control}
             render={({ field }) => (
-              <TextField
+              <PasswordInput
                 {...field}
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
-                fullWidth
-                variant="outlined"
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 disabled={submitting}
                 autoComplete="new-password"
-                InputProps={{
-                  endAdornment: (
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      aria-label="toggle password visibility"
-                    >
-                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                    </IconButton>
-                  ),
-                }}
               />
             )}
           />
 
-          <PasswordStrength password={watchPassword} />
+          <PasswordStrengthIndicator password={watchPassword} />
 
           <Controller
             name="confirmPassword"
             control={control}
             render={({ field }) => (
-              <TextField
+              <PasswordInput
                 {...field}
                 label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                fullWidth
-                variant="outlined"
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
                 disabled={submitting}
                 autoComplete="new-password"
-                InputProps={{
-                  endAdornment: (
-                    <IconButton
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      edge="end"
-                      aria-label="toggle confirm password visibility"
-                    >
-                      {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                    </IconButton>
-                  ),
-                }}
               />
             )}
           />
@@ -332,33 +312,44 @@ export const SignUpForm: React.FC = () => {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <Controller
-                name="jobTitle"
+                name="employmentStatus"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Job Title / Role"
+                    select
+                    label="Professional Status"
                     fullWidth
                     variant="outlined"
+                    error={!!errors.employmentStatus}
+                    helperText={errors.employmentStatus?.message}
                     disabled={submitting}
-                    placeholder="e.g. Software Engineer"
-                  />
+                  >
+                    {professionalStatusOptions.map((opt) => (
+                      <MenuItem key={opt} value={opt}>
+                        {opt}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 )}
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <Controller
-                name="employmentStatus"
+                name="jobTitle"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} select label="Employment Status" fullWidth variant="outlined" disabled={submitting}>
-                    {employmentOptions.map((opt) => (
-                      <MenuItem key={opt} value={opt}>
-                        {opt}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                  <TextField
+                    {...field}
+                    label="Current or Target Job Title"
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors.jobTitle}
+                    helperText={errors.jobTitle?.message}
+                    disabled={submitting}
+                    placeholder="e.g. Software Engineer"
+                  />
                 )}
               />
             </Grid>
@@ -370,7 +361,15 @@ export const SignUpForm: React.FC = () => {
                 name="country"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="Country" fullWidth variant="outlined" disabled={submitting} />
+                  <TextField
+                    {...field}
+                    label="Country"
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors.country}
+                    helperText={errors.country?.message}
+                    disabled={submitting}
+                  />
                 )}
               />
             </Grid>
@@ -380,70 +379,31 @@ export const SignUpForm: React.FC = () => {
                 name="currentLocation"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} label="City / Location" fullWidth variant="outlined" disabled={submitting} />
+                  <TextField
+                    {...field}
+                    label="Current Location / City"
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors.currentLocation}
+                    helperText={errors.currentLocation?.message}
+                    disabled={submitting}
+                  />
                 )}
               />
             </Grid>
           </Grid>
 
-          <Stack spacing={0.5} sx={{ mt: 1 }}>
-            <Controller
-              name="acceptTerms"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value} color="primary" size="small" />}
-                  label={
-                    <Typography variant="body2">
-                      I accept the{' '}
-                      <MuiLink href="#" underline="hover" color="primary.main">
-                        Terms of Service
-                      </MuiLink>
-                    </Typography>
-                  }
-                />
-              )}
-            />
-            {errors.acceptTerms && (
-              <Typography variant="caption" color="error" sx={{ ml: 3 }}>
-                {errors.acceptTerms.message}
-              </Typography>
-            )}
-
-            <Controller
-              name="acceptPrivacy"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value} color="primary" size="small" />}
-                  label={
-                    <Typography variant="body2">
-                      I accept the{' '}
-                      <MuiLink href="#" underline="hover" color="primary.main">
-                        Privacy Policy
-                      </MuiLink>
-                    </Typography>
-                  }
-                />
-              )}
-            />
-            {errors.acceptPrivacy && (
-              <Typography variant="caption" color="error" sx={{ ml: 3 }}>
-                {errors.acceptPrivacy.message}
-              </Typography>
-            )}
-
-            <Controller
-              name="subscribeCareerUpdates"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value} color="primary" size="small" />}
-                  label={<Typography variant="body2" color="text.secondary">Subscribe to AI career trajectory recommendations</Typography>}
-                />
-              )}
-            />
-          </Stack>
+          <TermsAgreement
+            acceptTerms={watchAcceptTerms}
+            onAcceptTermsChange={(val) => {
+              setValue('acceptTerms', val as any, { shouldValidate: true });
+              setValue('acceptPrivacy', val as any, { shouldValidate: true });
+            }}
+            acceptTermsError={errors.acceptTerms?.message}
+            subscribeCareerUpdates={watchSubscribeUpdates}
+            onSubscribeCareerUpdatesChange={(val) => setValue('subscribeCareerUpdates', val)}
+            disabled={submitting}
+          />
 
           <Button
             type="submit"
@@ -469,7 +429,7 @@ export const SignUpForm: React.FC = () => {
         </Stack>
       </form>
 
-      <SocialLoginButtons />
+      <SocialSignupButtons />
 
       <Box sx={{ mt: 3, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
@@ -477,7 +437,7 @@ export const SignUpForm: React.FC = () => {
           <MuiLink
             component="button"
             type="button"
-            onClick={() => router.push('/auth/signin')}
+            onClick={() => router.push('/signin')}
             sx={{ color: 'primary.main', fontWeight: 700, textDecoration: 'none' }}
           >
             Sign In

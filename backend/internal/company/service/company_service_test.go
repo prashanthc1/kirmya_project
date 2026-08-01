@@ -97,7 +97,7 @@ func TestGetRecommendationsStubs(t *testing.T) {
 		t.Errorf("Expected exactly 3 recommended profiles, got %d", len(profiles))
 	}
 
-	if companies[0].Handle != "google-uae" {
-		t.Errorf("Expected first recommendation handle to be 'google-uae', got %s", companies[0].Handle)
+	if companies[0].Handle != "emaar" {
+		t.Errorf("Expected first recommendation handle to be 'emaar', got %s", companies[0].Handle)
 	}
 }

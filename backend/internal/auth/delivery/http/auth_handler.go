@@ -51,10 +51,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		UpdatedAt:        u.UpdatedAt,
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message":           "Registration successful. Please check your email to verify your account.",
-		"user":              userDTO,
-		"verificationToken": verifyToken, // Provided for automated testing / dev flow
+	c.JSON(http.StatusCreated, dto.RegisterResponseDTO{
+		Message:                   "Registration successful. Please check your email to verify your account.",
+		UserID:                    u.ID,
+		EmailVerificationRequired: true,
+		VerificationToken:         verifyToken,
+		User:                      userDTO,
 	})
 }
 

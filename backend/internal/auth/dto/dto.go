@@ -6,20 +6,61 @@ import (
 	"github.com/google/uuid"
 )
 
-// RegisterRequest represents payload for sign up.
+// RegisterRequest represents payload for sign up supporting both snake_case & camelCase.
 type RegisterRequest struct {
-	FirstName              string `json:"firstName" binding:"required"`
-	LastName               string `json:"lastName" binding:"required"`
+	FirstName              string `json:"firstName"`
+	FirstNameSnake         string `json:"first_name"`
+	LastName               string `json:"lastName"`
+	LastNameSnake          string `json:"last_name"`
 	Email                  string `json:"email" binding:"required,email"`
-	Password               string `json:"password" binding:"required,min=8"`
-	ConfirmPassword        string `json:"confirmPassword" binding:"required"`
+	Password               string `json:"password" binding:"required,min=12"`
+	ConfirmPassword        string `json:"confirmPassword"`
 	Country                string `json:"country"`
 	CurrentLocation        string `json:"currentLocation"`
+	LocationSnake          string `json:"location"`
 	JobTitle               string `json:"jobTitle"`
+	JobTitleSnake          string `json:"job_title"`
 	EmploymentStatus       string `json:"employmentStatus"`
-	AcceptTerms            bool   `json:"acceptTerms" binding:"required"`
-	AcceptPrivacy          bool   `json:"acceptPrivacy" binding:"required"`
+	ProfessionalStatusSnake string `json:"professional_status"`
+	AcceptTerms            bool   `json:"acceptTerms"`
+	AcceptTermsSnake       bool   `json:"accept_terms"`
+	AcceptPrivacy          bool   `json:"acceptPrivacy"`
+	AcceptPrivacySnake     bool   `json:"accept_privacy"`
 	SubscribeCareerUpdates bool   `json:"subscribeCareerUpdates"`
+}
+
+// NormalizeFields ensures field values from both camelCase and snake_case inputs are populated.
+func (r *RegisterRequest) NormalizeFields() {
+	if r.FirstName == "" && r.FirstNameSnake != "" {
+		r.FirstName = r.FirstNameSnake
+	}
+	if r.LastName == "" && r.LastNameSnake != "" {
+		r.LastName = r.LastNameSnake
+	}
+	if r.CurrentLocation == "" && r.LocationSnake != "" {
+		r.CurrentLocation = r.LocationSnake
+	}
+	if r.JobTitle == "" && r.JobTitleSnake != "" {
+		r.JobTitle = r.JobTitleSnake
+	}
+	if r.EmploymentStatus == "" && r.ProfessionalStatusSnake != "" {
+		r.EmploymentStatus = r.ProfessionalStatusSnake
+	}
+	if !r.AcceptTerms && r.AcceptTermsSnake {
+		r.AcceptTerms = r.AcceptTermsSnake
+	}
+	if !r.AcceptPrivacy && r.AcceptPrivacySnake {
+		r.AcceptPrivacy = r.AcceptPrivacySnake
+	}
+}
+
+// RegisterResponseDTO returned upon successful registration.
+type RegisterResponseDTO struct {
+	Message                   string         `json:"message"`
+	UserID                    uuid.UUID      `json:"user_id"`
+	EmailVerificationRequired bool           `json:"email_verification_required"`
+	VerificationToken         string         `json:"verificationToken,omitempty"`
+	User                      UserProfileDTO `json:"user"`
 }
 
 // LoginRequest represents payload for sign in.

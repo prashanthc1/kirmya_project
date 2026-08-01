@@ -18,23 +18,30 @@ var (
 
 // ValidateRegisterInput validates registration form inputs and password rules.
 func ValidateRegisterInput(req *dto.RegisterRequest) error {
-	if strings.TrimSpace(req.FirstName) == "" {
+	req.NormalizeFields()
+
+	fn := strings.TrimSpace(req.FirstName)
+	if fn == "" {
 		return errors.New("first name is required")
 	}
-	if strings.TrimSpace(req.LastName) == "" {
+	if len(fn) < 2 || len(fn) > 50 {
+		return errors.New("first name must be between 2 and 50 characters")
+	}
+
+	ln := strings.TrimSpace(req.LastName)
+	if ln == "" {
 		return errors.New("last name is required")
 	}
+	if len(ln) < 2 || len(ln) > 50 {
+		return errors.New("last name must be between 2 and 50 characters")
+	}
+
 	if !emailRegex.MatchString(req.Email) {
 		return errors.New("invalid email address format")
 	}
-	if req.Password != req.ConfirmPassword {
+
+	if req.ConfirmPassword != "" && req.Password != req.ConfirmPassword {
 		return errors.New("passwords do not match")
-	}
-	if !req.AcceptTerms {
-		return errors.New("you must accept the Terms of Service")
-	}
-	if !req.AcceptPrivacy {
-		return errors.New("you must accept the Privacy Policy")
 	}
 
 	return ValidatePasswordPolicy(req.Password)

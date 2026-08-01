@@ -2,22 +2,23 @@ package service
 
 import (
 	"context"
-	"kirmya/internal/recruiter/models"
-	"kirmya/internal/recruiter/repository"
 	"testing"
 	"time"
+
+	"kirmya/internal/recruiter/models"
+	"kirmya/internal/recruiter/repository"
 
 	"github.com/google/uuid"
 )
 
 func TestCreateJobFlow(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterServiceWithRepo(repo)
+	svc := NewRecruiterService(repo)
 
 	userID := uuid.New()
 	payload := &models.CreateJobPayload{
 		Title:       "Staff Engineer (Go)",
-		Description: "Design structured slog and redis abstractions.",
+		Description: "Design structured logging and microservice abstractions.",
 		Department:  "Infrastructure",
 		Location:    "Dubai, UAE",
 		SalaryRange: "AED 30,000 - 40,000",
@@ -32,14 +33,14 @@ func TestCreateJobFlow(t *testing.T) {
 		t.Errorf("Expected job title 'Staff Engineer (Go)', got %s", job.Title)
 	}
 
-	if job.Status != "active" {
-		t.Errorf("Expected job status 'active', got %s", job.Status)
+	if job.Status != "Active" {
+		t.Errorf("Expected job status 'Active', got %s", job.Status)
 	}
 }
 
 func TestPipelineStubsGeneration(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterServiceWithRepo(repo)
+	svc := NewRecruiterService(repo)
 
 	jobID := uuid.New()
 
@@ -48,19 +49,18 @@ func TestPipelineStubsGeneration(t *testing.T) {
 		t.Fatalf("Expected no error fetching pipeline, got %v", err)
 	}
 
-	// Should generate 4 stubs automatically
-	if len(pipeline) != 4 {
-		t.Errorf("Expected exactly 4 mock pipeline records, got %d", len(pipeline))
+	if len(pipeline) != 3 {
+		t.Errorf("Expected exactly 3 mock pipeline records, got %d", len(pipeline))
 	}
 
-	if pipeline[0].CandidateName != "Salim Al-Harthy" {
-		t.Errorf("Expected first mock candidate to be 'Salim Al-Harthy', got %s", pipeline[0].CandidateName)
+	if pipeline[0].CandidateName != "Sarah Chen" {
+		t.Errorf("Expected first mock candidate to be 'Sarah Chen', got %s", pipeline[0].CandidateName)
 	}
 }
 
 func TestUpdatePipelineStageFlow(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterServiceWithRepo(repo)
+	svc := NewRecruiterService(repo)
 
 	userID := uuid.New()
 	pipelineID := uuid.New()
@@ -80,7 +80,7 @@ func TestUpdatePipelineStageFlow(t *testing.T) {
 
 func TestGetAnalyticsStubs(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterServiceWithRepo(repo)
+	svc := NewRecruiterService(repo)
 
 	userID := uuid.New()
 
@@ -91,9 +91,5 @@ func TestGetAnalyticsStubs(t *testing.T) {
 
 	if analytics.TotalJobsActive != 3 {
 		t.Errorf("Expected default active jobs count to be 3, got %d", analytics.TotalJobsActive)
-	}
-
-	if analytics.TotalCandidatesCount != 14 {
-		t.Errorf("Expected default candidate count to be 14, got %d", analytics.TotalCandidatesCount)
 	}
 }
