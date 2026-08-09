@@ -13,10 +13,11 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+    fileParallelism: false,
     // A test that fills a form types one character at a time and re-renders a
     // MUI tree on each. That is comfortably under a second on its own and
     // several seconds when the whole suite runs its files side by side, so the
     // budget is set for the loaded case rather than the quiet one.
-    testTimeout: 20_000,
+    testTimeout: 35_000,
   },
 });
