@@ -7,15 +7,42 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
-
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-echo -e "${BLUE}====================================================${NC}"
-echo -e "${BLUE}        KIRMYA LOCAL CI QUALITY & VERIFICATION      ${NC}"
-echo -e "${BLUE}====================================================${NC}"
+# Ensure Go binary is in PATH under Git Bash / Windows / Linux
+GO_EXE="$(where.exe go 2>/dev/null | head -1)"
+if [ -n "$GO_EXE" ]; then
+    GO_DIR="$(dirname "$GO_EXE")"
+    if command -v cygpath &>/dev/null; then
+        GO_DIR="$(cygpath -u "$GO_DIR")"
+    fi
+    export PATH="$PATH:$GO_DIR"
+fi
+export PATH="$PATH:/c/Program Files/Go/bin"
 
-# Track failures
-FAILED_STEPS=()
+# Ensure Node binary is in PATH under Git Bash / Windows / Linux
+NODE_EXE="$(where.exe node 2>/dev/null | head -1)"
+if [ -n "$NODE_EXE" ]; then
+    NODE_DIR="$(dirname "$NODE_EXE")"
+    if command -v cygpath &>/dev/null; then
+        NODE_DIR="$(cygpath -u "$NODE_DIR")"
+    fi
+    export PATH="$PATH:$NODE_DIR"
+fi
+export PATH="$PATH:/c/Program Files/nodejs"
+GO_CMD="go"
+if ! command -v go &>/dev/null && command -v go.exe &>/dev/null; then
+    GO_CMD="go.exe"
+fi
+
+run_npm() {
+    if command -v npm &>/dev/null && node --version &>/dev/null; then
+        npm "$@"
+    else
+        cmd.exe /c npm "$@"
+    fi
+}
+echo -e "${BLUE}====================================================${NC}"
 
 run_step() {
     local name="$1"
@@ -56,34 +83,29 @@ else
     fi
 fi
 
-run_step "Backend Go Module Verification" go mod verify
-ALLOW_NO_DB=true run_step "Backend Unit & Integration Tests" go test -v ./...
-run_step "Backend Go Vet Analysis" go vet ./...
+run_step "Backend Go Module Verification" $GO_CMD mod verify
+ALLOW_NO_DB=true run_step "Backend Unit & Integration Tests" $GO_CMD test ./...
+run_step "Backend Go Vet Analysis" $GO_CMD vet ./...
 
 echo -e "\n${YELLOW}▶ Running: Regenerate OpenAPI Documentation (Make Swagger)${NC}"
-if go run github.com/swaggo/swag/cmd/swag@v1.16.4 init -g cmd/kirmya/main.go --output internal/docs --parseInternal --overridesFile .swaggo; then
+if $GO_CMD run github.com/swaggo/swag/cmd/swag@v1.16.4 init -g cmd/kirmya/main.go --output internal/docs --parseInternal --overridesFile .swaggo; then
     echo -e "${GREEN}✔ OpenAPI Spec regenerated.${NC}"
 else
-    echo -e "${RED}✖ FAILED: Swagger generation failed.${NC}"
-    FAILED_STEPS+=("OpenAPI Spec Generation")
+    echo -e "${RED}✖ FAILED: Regenerate OpenAPI Documentation${NC}"
+    FAILED_STEPS+=("Regenerate OpenAPI Documentation")
 fi
 
 echo -e "\n${YELLOW}▶ Running: OpenAPI Spec Diff Check${NC}"
 if git diff --quiet -- internal/docs; then
     echo -e "${GREEN}✔ PASSED: Committed OpenAPI spec is current.${NC}"
 else
-    echo -e "${RED}✖ FAILED: internal/docs is stale. Run 'make swagger' locally and commit the result.${NC}"
+    echo -e "${RED}✖ FAILED: Committed OpenAPI spec is stale. Run 'make swagger' and commit internal/docs.${NC}"
     git --no-pager diff --stat -- internal/docs
-    FAILED_STEPS+=("Committed OpenAPI Spec Current Check")
+    FAILED_STEPS+=("OpenAPI Spec Diff Check")
 fi
 
-run_step "Backend OpenAPI Schema & Route Coverage Validation" go run ./tools/swaggercheck
-run_step "Backend Executable Binary Compilation" go build -v -o bin/kirmya ./cmd/kirmya
-
-# ----------------------------------------------------
-# 2. FRONTEND CI PIPELINE
-# ----------------------------------------------------
-echo -e "\n${BLUE}--- [2/3] Frontend CI Pipeline ---${NC}"
+run_step "Backend OpenAPI Schema & Route Coverage Validation" $GO_CMD run ./tools/swaggercheck
+run_step "Backend Executable Binary Compilation" $GO_CMD build -v -o bin/kirmya ./cmd/kirmya
 cd "$ROOT_DIR/frontend"
 
 echo -e "\n${YELLOW}▶ Running: Frontend Environment Audit${NC}"
@@ -94,15 +116,15 @@ else
     echo -e "${GREEN}✔ PASSED: Frontend Environment Audit${NC}"
 fi
 
-run_step "Frontend Next.js Linter" npm run lint
+run_step "Frontend Next.js Linter" run_npm run lint
 
-if npm run | grep -q "test"; then
-    run_step "Frontend Unit Tests (Vitest)" npm run test
+if run_npm run | grep -q "test"; then
+    run_step "Frontend Unit Tests (Vitest)" run_npm run test
 else
     echo -e "${YELLOW}Skipping unit tests (no test script configured).${NC}"
 fi
 
-NEXT_PUBLIC_API_URL="https://api.kirmya.com" run_step "Frontend Next.js Build" npm run build
+NEXT_PUBLIC_API_URL="https://api.kirmya.com" run_step "Frontend Next.js Build" run_npm run build
 
 # ----------------------------------------------------
 # 3. SECURITY AUDIT PIPELINE
@@ -110,14 +132,13 @@ NEXT_PUBLIC_API_URL="https://api.kirmya.com" run_step "Frontend Next.js Build" n
 echo -e "\n${BLUE}--- [3/3] Security & Vulnerability Audit ---${NC}"
 cd "$ROOT_DIR/frontend"
 echo -e "\n${YELLOW}▶ Running: Frontend npm audit${NC}"
-npm audit --audit-level=high || echo -e "${YELLOW}⚠ Frontend npm audit identified non-blocking dependencies to update.${NC}"
+run_npm audit --audit-level=high || echo -e "${YELLOW}⚠ Frontend npm audit identified non-blocking dependencies to update.${NC}"
 
 cd "$ROOT_DIR/backend"
 if command -v govulncheck &> /dev/null; then
     echo -e "\n${YELLOW}▶ Running: Backend govulncheck${NC}"
     govulncheck ./... || echo -e "${YELLOW}⚠ Backend govulncheck identified non-critical advisories.${NC}"
 fi
-
 # ----------------------------------------------------
 # SUMMARY RESULT
 # ----------------------------------------------------
