@@ -37,6 +37,12 @@ func Connect() (*DBConnection, error) {
 		return nil, fmt.Errorf("unable to ping database: %w", err)
 	}
 
+	// Automatically run database migrations to keep schema in sync
+	if err := RunMigrations(ctx, pool); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("database migration failed: %w", err)
+	}
+
 	return &DBConnection{Pool: pool}, nil
 }
 

@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS recommendation_feedback (
     user_id UUID NOT NULL,
     job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
     recommendation_id UUID,
-    action_type VARCHAR(50) NOT NULL, -- 'interested', 'not_interested', 'hide_company', 'hide_role', 'already_applied', 'too_senior', 'too_junior', 'wrong_location', 'wrong_salary'
+    action_type VARCHAR(50) DEFAULT 'interested',
     feedback_reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
+ALTER TABLE recommendation_feedback ADD COLUMN IF NOT EXISTS job_id UUID REFERENCES jobs(id) ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS idx_rec_feedback_user ON recommendation_feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_rec_feedback_job ON recommendation_feedback(job_id);
 

@@ -14,9 +14,8 @@ set -a
 . ./.env
 set +a
 
-# ponytail: no local Postgres wired up yet; backend boots in offline mode.
-# Drop this once .env DATABASE_URL matches a running instance.
-export ALLOW_NO_DB=true
+# Local Postgres is connected and database migrations are applied.
+export ALLOW_NO_DB=false
 
 # Forward every .env key (plus ALLOW_NO_DB) across the WSL/Windows boundary.
 # Regenerated from .env on each launch so new vars need no edit here.

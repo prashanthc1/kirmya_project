@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS roles (
     permissions JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE roles ADD COLUMN IF NOT EXISTS enterprise_id UUID REFERENCES enterprises(id) ON DELETE CASCADE;
 
 CREATE INDEX IF NOT EXISTS idx_roles_enterprise ON roles(enterprise_id);
 
@@ -59,6 +60,10 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     ip_address VARCHAR(45) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS enterprise_id UUID REFERENCES enterprises(id) ON DELETE CASCADE;
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS actor_id UUID;
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS actor_email VARCHAR(255) DEFAULT '';
+ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS resource VARCHAR(255) DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_enterprise ON audit_logs(enterprise_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs(actor_id);

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS interview_feedback (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE interview_feedback ADD COLUMN IF NOT EXISTS application_id UUID REFERENCES job_applications(id) ON DELETE CASCADE;
 
 CREATE TABLE IF NOT EXISTS job_offers (
     id UUID PRIMARY KEY,

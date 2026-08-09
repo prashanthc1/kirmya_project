@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS interview_preparations (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
     job_id UUID REFERENCES jobs(id) ON DELETE SET NULL,
-    application_id UUID ON DELETE SET NULL,
+    application_id UUID REFERENCES job_applications(id) ON DELETE SET NULL,
     company_name VARCHAR(255) NOT NULL DEFAULT '',
     job_title VARCHAR(255) NOT NULL DEFAULT '',
     job_description TEXT DEFAULT '',
