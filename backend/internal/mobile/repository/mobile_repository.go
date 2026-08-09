@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"kirmya/internal/mobile/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,7 +20,11 @@ type MobileRepository interface {
 	GetUploadSessionByID(ctx context.Context, id uuid.UUID) (*domain.MobileUploadSession, error)
 }
 
-type pgxMobileRepository struct {
+// memoryMobileRepository satisfies MobileRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryMobileRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -28,14 +33,20 @@ type pgxMobileRepository struct {
 }
 
 func NewMobileRepository(pool *pgxpool.Pool) MobileRepository {
-	return &pgxMobileRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "mobile",
+		Data:        "registered mobile devices and chunked upload sessions",
+		Consequence: "devices have to re-register and uploads in flight during a restart are orphaned",
+	})
+
+	return &memoryMobileRepository{
 		pool:    pool,
 		devices: make(map[uuid.UUID]*domain.UserMobileDevice),
 		uploads: make(map[uuid.UUID]*domain.MobileUploadSession),
 	}
 }
 
-func (r *pgxMobileRepository) RegisterDevice(ctx context.Context, dev *domain.UserMobileDevice) error {
+func (r *memoryMobileRepository) RegisterDevice(ctx context.Context, dev *domain.UserMobileDevice) error {
 	if dev.ID == uuid.Nil {
 		dev.ID = uuid.New()
 	}
@@ -49,7 +60,7 @@ func (r *pgxMobileRepository) RegisterDevice(ctx context.Context, dev *domain.Us
 	return nil
 }
 
-func (r *pgxMobileRepository) GetUserDevices(ctx context.Context, userID uuid.UUID) ([]domain.UserMobileDevice, error) {
+func (r *memoryMobileRepository) GetUserDevices(ctx context.Context, userID uuid.UUID) ([]domain.UserMobileDevice, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -62,7 +73,7 @@ func (r *pgxMobileRepository) GetUserDevices(ctx context.Context, userID uuid.UU
 	return list, nil
 }
 
-func (r *pgxMobileRepository) CreateUploadSession(ctx context.Context, sess *domain.MobileUploadSession) error {
+func (r *memoryMobileRepository) CreateUploadSession(ctx context.Context, sess *domain.MobileUploadSession) error {
 	if sess.ID == uuid.Nil {
 		sess.ID = uuid.New()
 	}
@@ -75,7 +86,7 @@ func (r *pgxMobileRepository) CreateUploadSession(ctx context.Context, sess *dom
 	return nil
 }
 
-func (r *pgxMobileRepository) GetUploadSessionByID(ctx context.Context, id uuid.UUID) (*domain.MobileUploadSession, error) {
+func (r *memoryMobileRepository) GetUploadSessionByID(ctx context.Context, id uuid.UUID) (*domain.MobileUploadSession, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

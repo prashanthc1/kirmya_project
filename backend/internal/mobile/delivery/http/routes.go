@@ -5,7 +5,7 @@ import (
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *MobileHandler) {
+func RegisterRoutes(api *gin.RouterGroup, handler *MobileHandler) *gin.RouterGroup {
 	mobileGroup := api.Group("/mobile")
 	{
 		mobileGroup.GET("/config", handler.GetMobileConfig)
@@ -13,4 +13,5 @@ func RegisterRoutes(api *gin.RouterGroup, handler *MobileHandler) {
 		mobileGroup.POST("/devices", sharedMiddleware.AuthRequired(), handler.RegisterDevice)
 		mobileGroup.POST("/uploads/presign", sharedMiddleware.AuthRequired(), handler.CreatePresignedUpload)
 	}
+	return mobileGroup
 }

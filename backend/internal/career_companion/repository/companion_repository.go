@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kirmya/internal/career_companion/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,7 +28,11 @@ type CompanionRepository interface {
 	GetUserContext(ctx context.Context, userID uuid.UUID) (*domain.AIUserContext, error)
 }
 
-type pgxCompanionRepository struct {
+// memoryCompanionRepository satisfies CompanionRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryCompanionRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -38,7 +43,13 @@ type pgxCompanionRepository struct {
 }
 
 func NewCompanionRepository(pool *pgxpool.Pool) CompanionRepository {
-	repo := &pgxCompanionRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "career_companion",
+		Data:        "companion conversations, messages, career plans and per-user AI context",
+		Consequence: "every chat thread is lost and the companion forgets the user it was advising",
+	})
+
+	repo := &memoryCompanionRepository{
 		pool:          pool,
 		conversations: make(map[uuid.UUID]*domain.AIConversation),
 		messages:      make(map[uuid.UUID][]domain.AIMessage),
@@ -49,7 +60,7 @@ func NewCompanionRepository(pool *pgxpool.Pool) CompanionRepository {
 	return repo
 }
 
-func (r *pgxCompanionRepository) seedDefaultData() {
+func (r *memoryCompanionRepository) seedDefaultData() {
 	now := time.Now()
 	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
 
@@ -113,7 +124,7 @@ func (r *pgxCompanionRepository) seedDefaultData() {
 	}
 }
 
-func (r *pgxCompanionRepository) CreateConversation(ctx context.Context, conv *domain.AIConversation) error {
+func (r *memoryCompanionRepository) CreateConversation(ctx context.Context, conv *domain.AIConversation) error {
 	if conv.ID == uuid.Nil {
 		conv.ID = uuid.New()
 	}
@@ -127,7 +138,7 @@ func (r *pgxCompanionRepository) CreateConversation(ctx context.Context, conv *d
 	return nil
 }
 
-func (r *pgxCompanionRepository) GetConversationByID(ctx context.Context, id uuid.UUID) (*domain.AIConversation, error) {
+func (r *memoryCompanionRepository) GetConversationByID(ctx context.Context, id uuid.UUID) (*domain.AIConversation, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -141,7 +152,7 @@ func (r *pgxCompanionRepository) GetConversationByID(ctx context.Context, id uui
 	return nil, fmt.Errorf("conversation not found: %s", id)
 }
 
-func (r *pgxCompanionRepository) GetUserConversations(ctx context.Context, userID uuid.UUID) ([]domain.AIConversation, error) {
+func (r *memoryCompanionRepository) GetUserConversations(ctx context.Context, userID uuid.UUID) ([]domain.AIConversation, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -158,7 +169,7 @@ func (r *pgxCompanionRepository) GetUserConversations(ctx context.Context, userI
 	return list, nil
 }
 
-func (r *pgxCompanionRepository) SaveMessage(ctx context.Context, msg *domain.AIMessage) error {
+func (r *memoryCompanionRepository) SaveMessage(ctx context.Context, msg *domain.AIMessage) error {
 	if msg.ID == uuid.Nil {
 		msg.ID = uuid.New()
 	}
@@ -171,7 +182,7 @@ func (r *pgxCompanionRepository) SaveMessage(ctx context.Context, msg *domain.AI
 	return nil
 }
 
-func (r *pgxCompanionRepository) GetConversationMessages(ctx context.Context, conversationID uuid.UUID) ([]domain.AIMessage, error) {
+func (r *memoryCompanionRepository) GetConversationMessages(ctx context.Context, conversationID uuid.UUID) ([]domain.AIMessage, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -181,7 +192,7 @@ func (r *pgxCompanionRepository) GetConversationMessages(ctx context.Context, co
 	return []domain.AIMessage{}, nil
 }
 
-func (r *pgxCompanionRepository) SaveCareerPlan(ctx context.Context, plan *domain.CareerPlan) error {
+func (r *memoryCompanionRepository) SaveCareerPlan(ctx context.Context, plan *domain.CareerPlan) error {
 	if plan.ID == uuid.Nil {
 		plan.ID = uuid.New()
 	}
@@ -195,7 +206,7 @@ func (r *pgxCompanionRepository) SaveCareerPlan(ctx context.Context, plan *domai
 	return nil
 }
 
-func (r *pgxCompanionRepository) GetLatestCareerPlan(ctx context.Context, userID uuid.UUID) (*domain.CareerPlan, error) {
+func (r *memoryCompanionRepository) GetLatestCareerPlan(ctx context.Context, userID uuid.UUID) (*domain.CareerPlan, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -206,7 +217,7 @@ func (r *pgxCompanionRepository) GetLatestCareerPlan(ctx context.Context, userID
 	return nil, nil
 }
 
-func (r *pgxCompanionRepository) SaveUserContext(ctx context.Context, uctx *domain.AIUserContext) error {
+func (r *memoryCompanionRepository) SaveUserContext(ctx context.Context, uctx *domain.AIUserContext) error {
 	if uctx.ID == uuid.Nil {
 		uctx.ID = uuid.New()
 	}
@@ -219,7 +230,7 @@ func (r *pgxCompanionRepository) SaveUserContext(ctx context.Context, uctx *doma
 	return nil
 }
 
-func (r *pgxCompanionRepository) GetUserContext(ctx context.Context, userID uuid.UUID) (*domain.AIUserContext, error) {
+func (r *memoryCompanionRepository) GetUserContext(ctx context.Context, userID uuid.UUID) (*domain.AIUserContext, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

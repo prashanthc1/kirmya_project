@@ -2,10 +2,17 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler) {
-	onboardingGroup := api.Group("/onboarding")
+func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+	// Onboarding starts before a user necessarily has a session, so the routes
+	// run under OptionalAuth: a bearer token binds the request to the real user,
+	// and anything anonymous falls back to the demo user in the handler.
+	group := api.Group("", authMiddleware.OptionalAuth())
+
+	onboardingGroup := group.Group("/onboarding")
 	{
 		onboardingGroup.GET("", handler.GetProgress)
 		onboardingGroup.POST("/start", handler.StartOnboarding)
@@ -15,12 +22,12 @@ func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler) {
 		onboardingGroup.GET("/connections", handler.GetConnections)
 	}
 
-	api.GET("/profile/completion", handler.GetProfileCompletion)
-	api.POST("/profile/photo", handler.UploadProfilePhoto)
-	api.POST("/resume/upload", handler.UploadResume)
-	api.POST("/skills", handler.SaveSkills)
-	api.POST("/work-experience", handler.SaveWorkExperience)
-	api.POST("/education", handler.SaveEducation)
-	api.POST("/certifications", handler.SaveCertifications)
-	api.POST("/career-preferences", handler.SaveCareerPreferences)
+	group.GET("/profile/completion", handler.GetProfileCompletion)
+	group.POST("/profile/photo", handler.UploadProfilePhoto)
+	group.POST("/resume/upload", handler.UploadResume)
+	group.POST("/skills", handler.SaveSkills)
+	group.POST("/work-experience", handler.SaveWorkExperience)
+	group.POST("/education", handler.SaveEducation)
+	group.POST("/certifications", handler.SaveCertifications)
+	group.POST("/career-preferences", handler.SaveCareerPreferences)
 }

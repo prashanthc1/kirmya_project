@@ -1,0 +1,6 @@
+// swag type overrides.
+//
+// google/uuid.UUID is a [16]byte array, which swag would otherwise publish as an
+// array of integers. Every UUID crosses the wire as its canonical string form,
+// so the documented schema must say so.
+replace github.com/google/uuid.UUID string

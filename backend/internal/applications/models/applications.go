@@ -1,0 +1,221 @@
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type ApplicationStage string
+
+const (
+	StageApplied     ApplicationStage = "Applied"
+	StageViewed      ApplicationStage = "Viewed"
+	StageShortlisted ApplicationStage = "Shortlisted"
+	StageInterview   ApplicationStage = "Interview"
+	StageOffer       ApplicationStage = "Offer"
+	StageAccepted    ApplicationStage = "Accepted"
+	StageRejected    ApplicationStage = "Rejected"
+)
+
+type ApplicationSummary struct {
+	ID               uuid.UUID        `json:"id"`
+	JobID            uuid.UUID        `json:"job_id"`
+	JobTitle         string           `json:"job_title"`
+	CompanyID        uuid.UUID        `json:"company_id"`
+	CompanyName      string           `json:"company_name"`
+	CompanyLogo      string           `json:"company_logo"`
+	Location         string           `json:"location"`
+	EmploymentType   string           `json:"employment_type"`
+	SalaryRange      string           `json:"salary_range"`
+	CurrentStatus    ApplicationStage `json:"current_status"`
+	AppliedAt        time.Time        `json:"applied_at"`
+	LastUpdate       time.Time        `json:"last_update"`
+	RecruiterID      *uuid.UUID       `json:"recruiter_id,omitempty"`
+	RecruiterName    string           `json:"recruiter_name,omitempty"`
+	RecruiterAvatar  string           `json:"recruiter_avatar,omitempty"`
+	RecruiterEmail   string           `json:"recruiter_email,omitempty"`
+	NextInterviewDate *time.Time      `json:"next_interview_date,omitempty"`
+	IsSaved          bool             `json:"is_saved"`
+	NotesCount       int              `json:"notes_count"`
+}
+
+type ApplicationTimelineItem struct {
+	ID          uuid.UUID `json:"id"`
+	Status      string    `json:"status"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Date        time.Time `json:"date"`
+	MovedBy     string    `json:"moved_by"`
+}
+
+type ApplicationNote struct {
+	ID            uuid.UUID `json:"id"`
+	ApplicationID uuid.UUID `json:"application_id"`
+	CandidateID   uuid.UUID `json:"candidate_id"`
+	NoteText      string    `json:"note_text"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type ApplicationDetail struct {
+	Summary           ApplicationSummary        `json:"summary"`
+	JobDescription    string                    `json:"job_description"`
+	Requirements      []string                  `json:"requirements"`
+	Skills            []string                  `json:"skills"`
+	Timeline          []ApplicationTimelineItem `json:"timeline"`
+	SubmittedResume   *CandidateDocument        `json:"submitted_resume,omitempty"`
+	SubmittedCoverLetter *CandidateDocument     `json:"submitted_cover_letter,omitempty"`
+	Notes             []ApplicationNote         `json:"notes"`
+	Interviews        []CandidateInterview      `json:"interviews"`
+	Offer             *JobOfferDTO              `json:"offer,omitempty"`
+}
+
+type JobOfferDTO struct {
+	ID            uuid.UUID  `json:"id"`
+	ApplicationID uuid.UUID  `json:"application_id"`
+	PositionTitle string     `json:"position_title"`
+	Salary        string     `json:"salary"`
+	Currency      string     `json:"currency"`
+	Benefits      string     `json:"benefits"`
+	JoiningDate   *time.Time `json:"joining_date,omitempty"`
+	ContractType  string     `json:"contract_type"`
+	Status        string     `json:"status"`
+	CreatedAt     time.Time  `json:"created_at"`
+	ExpiresAt     *time.Time `json:"expires_at,omitempty"`
+}
+
+type SavedJobCollectionDTO struct {
+	ID          uuid.UUID `json:"id"`
+	CandidateID uuid.UUID `json:"candidate_id"`
+	Name        string    `json:"name"`
+	Color       string    `json:"color"`
+	Description string    `json:"description"`
+	JobsCount   int       `json:"jobs_count"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type SavedJobDTO struct {
+	ID             uuid.UUID  `json:"id"`
+	CandidateID    uuid.UUID  `json:"candidate_id"`
+	JobID          uuid.UUID  `json:"job_id"`
+	JobTitle       string     `json:"job_title"`
+	CompanyName    string     `json:"company_name"`
+	CompanyLogo    string     `json:"company_logo"`
+	Location       string     `json:"location"`
+	SalaryRange    string     `json:"salary_range"`
+	EmploymentType string     `json:"employment_type"`
+	CollectionID   *uuid.UUID `json:"collection_id,omitempty"`
+	CollectionName string     `json:"collection_name,omitempty"`
+	Notes          string     `json:"notes"`
+	SavedAt        time.Time  `json:"saved_at"`
+}
+
+type JobAlertDTO struct {
+	ID             uuid.UUID `json:"id"`
+	CandidateID    uuid.UUID `json:"candidate_id"`
+	Title          string    `json:"title"`
+	Keywords       string    `json:"keywords"`
+	JobTitles      []string  `json:"job_titles"`
+	Skills         []string  `json:"skills"`
+	Location       string    `json:"location"`
+	Industry       string    `json:"industry"`
+	SalaryMin      int       `json:"salary_min"`
+	SalaryMax      int       `json:"salary_max"`
+	EmploymentType string    `json:"employment_type"`
+	Frequency      string    `json:"frequency"` // 'Instant', 'Daily', 'Weekly'
+	ChannelEmail   bool      `json:"channel_email"`
+	ChannelPush    bool      `json:"channel_push"`
+	ChannelInApp   bool      `json:"channel_in_app"`
+	IsActive       bool      `json:"is_active"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type CreateJobAlertPayload struct {
+	Title          string   `json:"title"`
+	Keywords       string   `json:"keywords"`
+	JobTitles      []string `json:"job_titles"`
+	Skills         []string `json:"skills"`
+	Location       string   `json:"location"`
+	Industry       string   `json:"industry"`
+	SalaryMin      int      `json:"salary_min"`
+	SalaryMax      int      `json:"salary_max"`
+	EmploymentType string   `json:"employment_type"`
+	Frequency      string   `json:"frequency"`
+	ChannelEmail   bool     `json:"channel_email"`
+	ChannelPush    bool     `json:"channel_push"`
+	ChannelInApp   bool     `json:"channel_in_app"`
+}
+
+type CandidateInterview struct {
+	ID             uuid.UUID `json:"id"`
+	ApplicationID  uuid.UUID `json:"application_id"`
+	JobTitle       string    `json:"job_title"`
+	CompanyName    string    `json:"company_name"`
+	CompanyLogo    string    `json:"company_logo"`
+	Title          string    `json:"title"`
+	Status         string    `json:"status"` // 'scheduled', 'completed', 'cancelled'
+	ScheduledStart time.Time `json:"scheduled_start"`
+	ScheduledEnd   time.Time `json:"scheduled_end"`
+	LocationType   string    `json:"location_type"`
+	MeetingLink    string    `json:"meeting_link"`
+	Notes          string    `json:"notes"`
+	Interviewer    string    `json:"interviewer"`
+}
+
+type CandidateDocument struct {
+	ID             uuid.UUID `json:"id"`
+	CandidateID    uuid.UUID `json:"candidate_id"`
+	Title          string    `json:"title"`
+	DocumentType   string    `json:"document_type"` // 'Resume', 'Cover Letter', 'Certificate', 'Portfolio'
+	FileURL        string    `json:"file_url"`
+	SizeBytes      int64     `json:"size_bytes"`
+	FileType       string    `json:"file_type"`
+	IsDefault      bool      `json:"is_default"`
+	UploadedAt     time.Time `json:"uploaded_at"`
+}
+
+type ApplicationStatsDTO struct {
+	TotalApplications    int     `json:"total_applications"`
+	ActiveApplications   int     `json:"active_applications"`
+	InterviewsScheduled  int     `json:"interviews_scheduled"`
+	OffersReceived       int     `json:"offers_received"`
+	RejectedApplications int     `json:"rejected_applications"`
+	ResponseRate         float64 `json:"response_rate"`
+}
+
+type AIApplicationInsightsDTO struct {
+	ApplicationSuccessRate float64  `json:"application_success_rate"`
+	ProfileMatchScore      int      `json:"profile_match_score"`
+	ResumeMatchScore       int      `json:"resume_match_score"`
+	MissingSkills          []string `json:"missing_skills"`
+	ImprovementSuggestions []string `json:"improvement_suggestions"`
+	RecommendedJobs        []string `json:"recommended_jobs"`
+}
+
+type CareerAnalyticsDTO struct {
+	ApplicationsSent     int                `json:"applications_sent"`
+	InterviewRate        float64            `json:"interview_rate"`
+	ResponseRate         float64            `json:"response_rate"`
+	TimeToResponseDays   float64            `json:"time_to_response_days"`
+	MostAppliedRoles     []CategoryCount    `json:"most_applied_roles"`
+	MostAppliedCompanies []CategoryCount    `json:"most_applied_companies"`
+	ApplicationTrend     []MonthlyCountDTO `json:"application_trend"`
+	StatusFunnel         []FunnelStageDTO   `json:"status_funnel"`
+}
+
+type CategoryCount struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type MonthlyCountDTO struct {
+	Month string `json:"month"`
+	Count int    `json:"count"`
+}
+
+type FunnelStageDTO struct {
+	Stage string `json:"stage"`
+	Count int    `json:"count"`
+}

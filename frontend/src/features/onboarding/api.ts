@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
   OnboardingProgress,
   ProfileCompletion,
@@ -14,13 +13,12 @@ import {
   CommunityRecommendation,
   ConnectionRecommendation,
 } from './types';
+import { authApiClient } from '../../services/authService';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-
-const apiClient = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,
-});
+// Share the auth client so onboarding requests carry the bearer access token and
+// go through the 401 refresh retry. Without a token the backend stores progress
+// under its demo user, which keeps the flow usable before sign-in.
+const apiClient = authApiClient;
 
 export const onboardingApi = {
   getProgress: async (): Promise<OnboardingProgress> => {
@@ -48,16 +46,19 @@ export const onboardingApi = {
     return res.data;
   },
 
+  // Content-Type is cleared so the browser sets multipart/form-data with the
+  // boundary; the client default (application/json) would otherwise make axios
+  // serialise the FormData and the server reject the upload.
   uploadPhoto: async (formData: FormData): Promise<{ message: string; photo_url: string }> => {
     const res = await apiClient.post('/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': null },
     });
     return res.data;
   },
 
   uploadResume: async (formData: FormData): Promise<ResumeParsedResult> => {
     const res = await apiClient.post<ResumeParsedResult>('/resume/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': null },
     });
     return res.data;
   },

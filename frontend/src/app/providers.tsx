@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getTheme } from '../theme/theme';
+import { AuthProvider } from '../features/auth/context/authContext';
 
 type ColorModeContextType = {
   mode: 'light' | 'dark';
@@ -16,10 +18,16 @@ const ColorModeContext = createContext<ColorModeContextType>({
 
 export const useColorMode = () => useContext(ColorModeContext);
 
-import { AuthProvider } from '../features/auth/context/authContext';
-
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<'light' | 'dark'>('dark'); // Default to modern dark mode
+  const [mode, setMode] = useState<'light' | 'dark'>('dark');
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
 
   useEffect(() => {
     const savedMode = localStorage.getItem('kirmya-theme-mode') as 'light' | 'dark';
@@ -38,12 +46,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ColorModeContext.Provider value={{ mode, toggleColorMode }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </ColorModeContext.Provider>
   );
 }

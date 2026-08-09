@@ -22,13 +22,19 @@ import AIReviewStep from '../../components/onboarding/AIReviewStep';
 import CompletionStep from '../../components/onboarding/CompletionStep';
 
 import { onboardingApi } from '../../features/onboarding/api';
+import { useAuth } from '../../features/auth/context/authContext';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
+    // Wait for the session restore to settle, otherwise the first request goes
+    // out without an access token and reads the demo user's progress.
+    if (authLoading) return;
+
     onboardingApi
       .getProgress()
       .then((res) => {
@@ -39,7 +45,7 @@ export default function OnboardingPage() {
         }
       })
       .catch(() => {});
-  }, [router]);
+  }, [authLoading, router]);
 
   const handleNextStep = (stepData?: any) => {
     if (stepData) {

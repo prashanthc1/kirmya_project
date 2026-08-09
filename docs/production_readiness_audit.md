@@ -4,6 +4,17 @@
 **Audited Platform**: Kirmya AI-Powered Career Platform (Go 1.25 / Next.js 14 / PostgreSQL 16 / Redis 7)  
 **Status**: **PRODUCTION READY (98 / 100)**
 
+> **Correction, 2026-08-09**: the "Backend & Data Repositories" row below
+> originally claimed a 100% PostgreSQL repository migration with zero mock maps
+> in production, scored 10/10. That was not accurate. Thirteen modules —
+> including `verification` — satisfy their repository interface entirely from
+> process memory while accepting a `pgxpool.Pool` they never query. The row and
+> section B have been corrected, the backend now refuses to start in production
+> with those repositories wired unless `ALLOW_EPHEMERAL_REPOS=true`, and the
+> full inventory and reasoning are in
+> [ADR 0001: Ephemeral repositories](decisions/0001-ephemeral-repositories.md).
+> The overall score above predates this correction and should be re-derived.
+
 ---
 
 ## 📊 1. Overall Production Readiness Summary
@@ -11,7 +22,7 @@
 | Category | Score | Status | Key Highlights |
 | :--- | :---: | :---: | :--- |
 | **Architecture & Code Quality** | **10/10** | ✅ PASSED | Clean Architecture pattern across internal services; clear interface abstractions |
-| **Backend & Data Repositories** | **10/10** | ✅ PASSED | 100% PostgreSQL `pgxpool.Pool` repository migration; zero raw mock maps in production |
+| **Backend & Data Repositories** | **6/10** | ⚠️ CONDITIONAL | 29 of 42 modules on PostgreSQL; **13 modules are memory-only** and lose their data on restart — see [ADR 0001](decisions/0001-ephemeral-repositories.md) |
 | **Caching & Invalidation** | **10/10** | ✅ PASSED | Multi-tier Redis Cache-Aside with automated invalidation & thread-safe fallback |
 | **Database & Schema Optimization**| **10/10** | ✅ PASSED | 40 database migrations; B-Tree, GIN, & Partial composite indexes applied |
 | **API Performance & Reliability** | **9.5/10**| ✅ PASSED | Gzip compression, 5s timeout deadlines, standard pagination, Prometheus metrics |
@@ -30,6 +41,8 @@
 
 ### B. Backend & Data Repositories
 - **PostgreSQL Integration**: 39 database tables backed by parameterized `$1`, `$2` prepared statements. Connection pool (`pgxpool.Pool`) configured with max pool connections, idle timeout, and health verification.
+- **Memory-only modules (open issue)**: `assessment`, `career_ai`, `career_companion`, `endorsement`, `global_marketplace`, `landing`, `mobile`, `native_mobile`, `recommendation_engine`, `referral`, `resume_analysis`, `search` and `verification` hold all of their state in process memory — 65 of 325 routes. Their data does not survive a restart and is not shared between replicas. `internal/shared/persistence` now registers each one and blocks production startup unless `ALLOW_EPHEMERAL_REPOS=true` acknowledges the loss. See [ADR 0001](decisions/0001-ephemeral-repositories.md).
+- **Fabricated landing content**: the public landing endpoint serves seeded placeholder figures (`150,000+ professionals helped`, `94.8% AI match accuracy`). These are not measurements and should not be published as-is.
 - **Redis Integration**: High-priority caching enabled for Landing Page (30m TTL), Job Search (10m TTL), and User Profiles (15m TTL). Cache failures gracefully fall back to database without dropping requests.
 - **API Security**: `ALLOWED_ORIGINS` CORS enforcement, SameSite Strict refresh cookies, 5-second request timeouts, and structured error responses.
 

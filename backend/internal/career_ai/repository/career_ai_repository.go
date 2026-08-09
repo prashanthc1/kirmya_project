@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kirmya/internal/career_ai/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -25,7 +26,11 @@ type CareerAIRepository interface {
 	GetUserUsageLogs(ctx context.Context, userID uuid.UUID) ([]domain.AIUsageLog, error)
 }
 
-type pgxCareerAIRepository struct {
+// memoryCareerAIRepository satisfies CareerAIRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryCareerAIRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -35,7 +40,13 @@ type pgxCareerAIRepository struct {
 }
 
 func NewCareerAIRepository(pool *pgxpool.Pool) CareerAIRepository {
-	return &pgxCareerAIRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "career_ai",
+		Data:        "career sessions, AI recommendations and AI usage logs",
+		Consequence: "advice history disappears and the usage counters any cost control relies on reset to zero",
+	})
+
+	return &memoryCareerAIRepository{
 		pool:            pool,
 		sessions:        make(map[uuid.UUID]*domain.CareerSession),
 		recommendations: make(map[uuid.UUID]*domain.AIRecommendation),
@@ -43,7 +54,7 @@ func NewCareerAIRepository(pool *pgxpool.Pool) CareerAIRepository {
 	}
 }
 
-func (r *pgxCareerAIRepository) CreateSession(ctx context.Context, session *domain.CareerSession) error {
+func (r *memoryCareerAIRepository) CreateSession(ctx context.Context, session *domain.CareerSession) error {
 	if session.ID == uuid.Nil {
 		session.ID = uuid.New()
 	}
@@ -56,7 +67,7 @@ func (r *pgxCareerAIRepository) CreateSession(ctx context.Context, session *doma
 	return nil
 }
 
-func (r *pgxCareerAIRepository) GetSessionByID(ctx context.Context, id uuid.UUID) (*domain.CareerSession, error) {
+func (r *memoryCareerAIRepository) GetSessionByID(ctx context.Context, id uuid.UUID) (*domain.CareerSession, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if s, exists := r.sessions[id]; exists {
@@ -73,7 +84,7 @@ func (r *pgxCareerAIRepository) GetSessionByID(ctx context.Context, id uuid.UUID
 	return nil, fmt.Errorf("career session not found: %s", id)
 }
 
-func (r *pgxCareerAIRepository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]domain.CareerSession, error) {
+func (r *memoryCareerAIRepository) GetUserSessions(ctx context.Context, userID uuid.UUID) ([]domain.CareerSession, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.CareerSession
@@ -85,7 +96,7 @@ func (r *pgxCareerAIRepository) GetUserSessions(ctx context.Context, userID uuid
 	return list, nil
 }
 
-func (r *pgxCareerAIRepository) SaveRecommendation(ctx context.Context, rec *domain.AIRecommendation) error {
+func (r *memoryCareerAIRepository) SaveRecommendation(ctx context.Context, rec *domain.AIRecommendation) error {
 	if rec.ID == uuid.Nil {
 		rec.ID = uuid.New()
 	}
@@ -97,7 +108,7 @@ func (r *pgxCareerAIRepository) SaveRecommendation(ctx context.Context, rec *dom
 	return nil
 }
 
-func (r *pgxCareerAIRepository) GetRecommendationsBySession(ctx context.Context, sessionID uuid.UUID) ([]domain.AIRecommendation, error) {
+func (r *memoryCareerAIRepository) GetRecommendationsBySession(ctx context.Context, sessionID uuid.UUID) ([]domain.AIRecommendation, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.AIRecommendation
@@ -109,7 +120,7 @@ func (r *pgxCareerAIRepository) GetRecommendationsBySession(ctx context.Context,
 	return list, nil
 }
 
-func (r *pgxCareerAIRepository) GetUserRecommendations(ctx context.Context, userID uuid.UUID) ([]domain.AIRecommendation, error) {
+func (r *memoryCareerAIRepository) GetUserRecommendations(ctx context.Context, userID uuid.UUID) ([]domain.AIRecommendation, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.AIRecommendation
@@ -121,7 +132,7 @@ func (r *pgxCareerAIRepository) GetUserRecommendations(ctx context.Context, user
 	return list, nil
 }
 
-func (r *pgxCareerAIRepository) LogUsage(ctx context.Context, log *domain.AIUsageLog) error {
+func (r *memoryCareerAIRepository) LogUsage(ctx context.Context, log *domain.AIUsageLog) error {
 	if log.ID == uuid.Nil {
 		log.ID = uuid.New()
 	}
@@ -133,7 +144,7 @@ func (r *pgxCareerAIRepository) LogUsage(ctx context.Context, log *domain.AIUsag
 	return nil
 }
 
-func (r *pgxCareerAIRepository) GetUserUsageLogs(ctx context.Context, userID uuid.UUID) ([]domain.AIUsageLog, error) {
+func (r *memoryCareerAIRepository) GetUserUsageLogs(ctx context.Context, userID uuid.UUID) ([]domain.AIUsageLog, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.AIUsageLog

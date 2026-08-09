@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"kirmya/internal/endorsement/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,7 +27,11 @@ type EndorsementRepository interface {
 	GetUserReferences(ctx context.Context, candidateID uuid.UUID) ([]domain.ProfessionalReference, error)
 }
 
-type pgxEndorsementRepository struct {
+// memoryEndorsementRepository satisfies EndorsementRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryEndorsementRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -36,7 +41,13 @@ type pgxEndorsementRepository struct {
 }
 
 func NewEndorsementRepository(pool *pgxpool.Pool) EndorsementRepository {
-	return &pgxEndorsementRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "endorsement",
+		Data:        "skill endorsements, professional recommendations and references",
+		Consequence: "endorsements written by other people vanish and cannot be recovered",
+	})
+
+	return &memoryEndorsementRepository{
 		pool:            pool,
 		endorsements:    make(map[uuid.UUID]*domain.SkillEndorsement),
 		recommendations: make(map[uuid.UUID]*domain.ProfessionalRecommendation),
@@ -44,7 +55,7 @@ func NewEndorsementRepository(pool *pgxpool.Pool) EndorsementRepository {
 	}
 }
 
-func (r *pgxEndorsementRepository) HasEndorsed(ctx context.Context, userID, endorserID uuid.UUID, skillName string) (bool, error) {
+func (r *memoryEndorsementRepository) HasEndorsed(ctx context.Context, userID, endorserID uuid.UUID, skillName string) (bool, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -57,7 +68,7 @@ func (r *pgxEndorsementRepository) HasEndorsed(ctx context.Context, userID, endo
 	return false, nil
 }
 
-func (r *pgxEndorsementRepository) CreateEndorsement(ctx context.Context, end *domain.SkillEndorsement) error {
+func (r *memoryEndorsementRepository) CreateEndorsement(ctx context.Context, end *domain.SkillEndorsement) error {
 	if end.ID == uuid.Nil {
 		end.ID = uuid.New()
 	}
@@ -70,7 +81,7 @@ func (r *pgxEndorsementRepository) CreateEndorsement(ctx context.Context, end *d
 	return nil
 }
 
-func (r *pgxEndorsementRepository) GetUserEndorsements(ctx context.Context, userID uuid.UUID) ([]domain.SkillEndorsementGroup, error) {
+func (r *memoryEndorsementRepository) GetUserEndorsements(ctx context.Context, userID uuid.UUID) ([]domain.SkillEndorsementGroup, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -92,7 +103,7 @@ func (r *pgxEndorsementRepository) GetUserEndorsements(ctx context.Context, user
 	return result, nil
 }
 
-func (r *pgxEndorsementRepository) CreateRecommendation(ctx context.Context, rec *domain.ProfessionalRecommendation) error {
+func (r *memoryEndorsementRepository) CreateRecommendation(ctx context.Context, rec *domain.ProfessionalRecommendation) error {
 	if rec.ID == uuid.Nil {
 		rec.ID = uuid.New()
 	}
@@ -106,7 +117,7 @@ func (r *pgxEndorsementRepository) CreateRecommendation(ctx context.Context, rec
 	return nil
 }
 
-func (r *pgxEndorsementRepository) GetRecommendationsForUser(ctx context.Context, userID uuid.UUID) ([]domain.ProfessionalRecommendation, error) {
+func (r *memoryEndorsementRepository) GetRecommendationsForUser(ctx context.Context, userID uuid.UUID) ([]domain.ProfessionalRecommendation, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -119,7 +130,7 @@ func (r *pgxEndorsementRepository) GetRecommendationsForUser(ctx context.Context
 	return list, nil
 }
 
-func (r *pgxEndorsementRepository) UpdateRecommendationStatus(ctx context.Context, id uuid.UUID, status string, isFlagged bool) error {
+func (r *memoryEndorsementRepository) UpdateRecommendationStatus(ctx context.Context, id uuid.UUID, status string, isFlagged bool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -132,7 +143,7 @@ func (r *pgxEndorsementRepository) UpdateRecommendationStatus(ctx context.Contex
 	return fmt.Errorf("recommendation not found: %s", id)
 }
 
-func (r *pgxEndorsementRepository) CreateReference(ctx context.Context, ref *domain.ProfessionalReference) error {
+func (r *memoryEndorsementRepository) CreateReference(ctx context.Context, ref *domain.ProfessionalReference) error {
 	if ref.ID == uuid.Nil {
 		ref.ID = uuid.New()
 	}
@@ -145,7 +156,7 @@ func (r *pgxEndorsementRepository) CreateReference(ctx context.Context, ref *dom
 	return nil
 }
 
-func (r *pgxEndorsementRepository) GetUserReferences(ctx context.Context, candidateID uuid.UUID) ([]domain.ProfessionalReference, error) {
+func (r *memoryEndorsementRepository) GetUserReferences(ctx context.Context, candidateID uuid.UUID) ([]domain.ProfessionalReference, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

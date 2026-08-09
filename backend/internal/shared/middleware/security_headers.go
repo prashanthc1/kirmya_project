@@ -20,8 +20,10 @@ func SecurityHeaders() gin.HandlerFunc {
 		// Enable HTTP Strict Transport Security (HSTS)
 		c.Header("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
 
-		// Tighten CSP policies
-		c.Header("Content-Security-Policy", "default-src 'self'; connect-src 'self' ws: wss: http://localhost:8080 ws://localhost:8080; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';")
+		// Tighten CSP policies. This server answers with JSON and the Swagger UI
+		// only, so 'self' covers everything it legitimately loads — cross-origin
+		// browser access is governed by CORS, not by this policy.
+		c.Header("Content-Security-Policy", "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval';")
 
 		c.Next()
 	}

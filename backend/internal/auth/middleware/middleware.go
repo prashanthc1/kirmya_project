@@ -49,6 +49,36 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	}
 }
 
+// OptionalAuth validates the access token when one is supplied and populates the
+// user context, but lets unauthenticated requests through untouched. Flows that
+// run before sign-in (onboarding) use it so handlers can decide themselves
+// whether an anonymous caller is acceptable.
+func (m *AuthMiddleware) OptionalAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if m == nil || m.authService == nil {
+			c.Next()
+			return
+		}
+
+		parts := strings.SplitN(c.GetHeader("Authorization"), " ", 2)
+		if len(parts) != 2 || parts[0] != "Bearer" || parts[1] == "" {
+			c.Next()
+			return
+		}
+
+		claims, err := m.authService.ValidateAccessToken(parts[1])
+		if err != nil {
+			c.Next()
+			return
+		}
+
+		c.Set("userID", claims.UserID)
+		c.Set("email", claims.Email)
+		c.Set("role", claims.Role)
+		c.Next()
+	}
+}
+
 // RequireRole enforces specific user roles (e.g., 'admin', 'user').
 func (m *AuthMiddleware) RequireRole(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {

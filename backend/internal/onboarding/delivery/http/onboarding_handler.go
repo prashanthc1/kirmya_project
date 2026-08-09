@@ -1,8 +1,11 @@
 package http
 
 import (
+	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"kirmya/internal/onboarding/domain"
@@ -12,27 +15,73 @@ import (
 	"github.com/google/uuid"
 )
 
+// DemoUserID owns everything written by callers that reach onboarding without a
+// session. It is a shared identity: demo progress is not private per visitor.
+var DemoUserID = uuid.MustParse("00000000-0000-0000-0000-000000000001")
+
 type OnboardingHandler struct {
 	svc service.OnboardingService
+
+	// allowDemoUser keeps the write path open for anonymous callers. Set
+	// ONBOARDING_ALLOW_DEMO_USER=false to require a real session instead.
+	allowDemoUser bool
 }
 
 func NewOnboardingHandler(svc service.OnboardingService) *OnboardingHandler {
-	return &OnboardingHandler{svc: svc}
+	allowDemo := demoUserAllowed()
+	if allowDemo && strings.EqualFold(os.Getenv("APP_ENV"), "production") {
+		slog.Warn("Onboarding demo-user fallback is enabled in production; anonymous callers share one profile",
+			slog.String("demo_user_id", DemoUserID.String()))
+	}
+	return &OnboardingHandler{svc: svc, allowDemoUser: allowDemo}
 }
 
-// GetUserFromContext extracts user ID or uses demo UUID for testing
-func getUserID(c *gin.Context) uuid.UUID {
+// demoUserAllowed reports whether anonymous onboarding writes are accepted. The
+// fallback stays on unless explicitly switched off, so the flow keeps working
+// for visitors who have not signed in yet.
+func demoUserAllowed() bool {
+	raw, ok := os.LookupEnv("ONBOARDING_ALLOW_DEMO_USER")
+	if !ok || strings.TrimSpace(raw) == "" {
+		return true
+	}
+	allowed, err := strconv.ParseBool(strings.TrimSpace(raw))
+	if err != nil {
+		return true
+	}
+	return allowed
+}
+
+// resolveUserID returns the authenticated user from the OptionalAuth context, or
+// the demo user when the request is anonymous and the fallback is enabled. It
+// writes the 401 response itself when neither identity is available.
+func (h *OnboardingHandler) resolveUserID(c *gin.Context) (uuid.UUID, bool) {
 	if val, ok := c.Get("userID"); ok {
-		if uid, ok := val.(uuid.UUID); ok {
-			return uid
+		switch uid := val.(type) {
+		case uuid.UUID:
+			if uid != uuid.Nil {
+				return uid, true
+			}
+		case string:
+			if parsed, err := uuid.Parse(uid); err == nil {
+				return parsed, true
+			}
 		}
 	}
-	// Fallback demo user ID
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+
+	if h.allowDemoUser {
+		return DemoUserID, true
+	}
+
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication is required to continue onboarding"})
+	c.Abort()
+	return uuid.Nil, false
 }
 
 func (h *OnboardingHandler) GetProgress(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	p, err := h.svc.GetProgress(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -42,7 +91,10 @@ func (h *OnboardingHandler) GetProgress(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) StartOnboarding(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	err := h.svc.SaveStep(c.Request.Context(), userID, 1)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -52,7 +104,10 @@ func (h *OnboardingHandler) StartOnboarding(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) SaveProgress(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	var body struct {
 		Step int `json:"step"`
 	}
@@ -70,7 +125,10 @@ func (h *OnboardingHandler) SaveProgress(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) CompleteOnboarding(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	err := h.svc.CompleteOnboarding(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -80,7 +138,10 @@ func (h *OnboardingHandler) CompleteOnboarding(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) GetProfileCompletion(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	comp, err := h.svc.GetProfileCompletion(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -90,6 +151,10 @@ func (h *OnboardingHandler) GetProfileCompletion(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) UploadProfilePhoto(c *gin.Context) {
+	if _, ok := h.resolveUserID(c); !ok {
+		return
+	}
+
 	file, err := c.FormFile("photo")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Photo file is required"})
@@ -114,7 +179,10 @@ func (h *OnboardingHandler) UploadProfilePhoto(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) UploadResume(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	file, err := c.FormFile("resume")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Resume file is required"})
@@ -136,6 +204,10 @@ func (h *OnboardingHandler) UploadResume(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) SaveSkills(c *gin.Context) {
+	if _, ok := h.resolveUserID(c); !ok {
+		return
+	}
+
 	var body struct {
 		Skills []domain.SkillItem `json:"skills"`
 	}
@@ -147,6 +219,10 @@ func (h *OnboardingHandler) SaveSkills(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) SaveWorkExperience(c *gin.Context) {
+	if _, ok := h.resolveUserID(c); !ok {
+		return
+	}
+
 	var body struct {
 		Experiences []domain.WorkExperienceItem `json:"experiences"`
 	}
@@ -158,6 +234,10 @@ func (h *OnboardingHandler) SaveWorkExperience(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) SaveEducation(c *gin.Context) {
+	if _, ok := h.resolveUserID(c); !ok {
+		return
+	}
+
 	var body struct {
 		Educations []domain.EducationItem `json:"educations"`
 	}
@@ -169,6 +249,10 @@ func (h *OnboardingHandler) SaveEducation(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) SaveCertifications(c *gin.Context) {
+	if _, ok := h.resolveUserID(c); !ok {
+		return
+	}
+
 	var body struct {
 		Certifications []domain.CertificationItem `json:"certifications"`
 	}
@@ -180,7 +264,10 @@ func (h *OnboardingHandler) SaveCertifications(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) SaveCareerPreferences(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	var pref domain.CareerPreferences
 	if err := c.ShouldBindJSON(&pref); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid career preferences payload"})
@@ -195,7 +282,10 @@ func (h *OnboardingHandler) SaveCareerPreferences(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) GetCommunities(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	comms, err := h.svc.GetRecommendedCommunities(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -205,7 +295,10 @@ func (h *OnboardingHandler) GetCommunities(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) GetConnections(c *gin.Context) {
-	userID := getUserID(c)
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
 	conns, err := h.svc.GetRecommendedConnections(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

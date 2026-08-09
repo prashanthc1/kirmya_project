@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"kirmya/internal/assessment/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -26,7 +27,11 @@ type AssessmentRepository interface {
 	GetUserBadges(ctx context.Context, userID uuid.UUID) ([]domain.SkillBadge, error)
 }
 
-type pgxAssessmentRepository struct {
+// memoryAssessmentRepository satisfies AssessmentRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryAssessmentRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -37,7 +42,13 @@ type pgxAssessmentRepository struct {
 }
 
 func NewAssessmentRepository(pool *pgxpool.Pool) AssessmentRepository {
-	repo := &pgxAssessmentRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "assessment",
+		Data:        "skill assessments, question banks, results and earned badges",
+		Consequence: "candidates lose completed assessments and the badges awarded for them",
+	})
+
+	repo := &memoryAssessmentRepository{
 		pool:        pool,
 		assessments: make(map[uuid.UUID]*domain.Assessment),
 		questions:   make(map[uuid.UUID][]domain.Question),
@@ -50,7 +61,7 @@ func NewAssessmentRepository(pool *pgxpool.Pool) AssessmentRepository {
 
 func intPtr(i int) *int { return &i }
 
-func (r *pgxAssessmentRepository) seedInitialData() {
+func (r *memoryAssessmentRepository) seedInitialData() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -161,7 +172,7 @@ func (r *pgxAssessmentRepository) seedInitialData() {
 	}
 }
 
-func (r *pgxAssessmentRepository) GetAssessments(ctx context.Context, category, level string) ([]domain.Assessment, error) {
+func (r *memoryAssessmentRepository) GetAssessments(ctx context.Context, category, level string) ([]domain.Assessment, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.Assessment
@@ -177,7 +188,7 @@ func (r *pgxAssessmentRepository) GetAssessments(ctx context.Context, category, 
 	return list, nil
 }
 
-func (r *pgxAssessmentRepository) GetAssessmentByID(ctx context.Context, id uuid.UUID) (*domain.Assessment, error) {
+func (r *memoryAssessmentRepository) GetAssessmentByID(ctx context.Context, id uuid.UUID) (*domain.Assessment, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if item, exists := r.assessments[id]; exists {
@@ -188,7 +199,7 @@ func (r *pgxAssessmentRepository) GetAssessmentByID(ctx context.Context, id uuid
 	return nil, fmt.Errorf("assessment not found: %s", id)
 }
 
-func (r *pgxAssessmentRepository) GetQuestionsByAssessmentID(ctx context.Context, assessmentID uuid.UUID) ([]domain.Question, error) {
+func (r *memoryAssessmentRepository) GetQuestionsByAssessmentID(ctx context.Context, assessmentID uuid.UUID) ([]domain.Question, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if qList, exists := r.questions[assessmentID]; exists {
@@ -197,7 +208,7 @@ func (r *pgxAssessmentRepository) GetQuestionsByAssessmentID(ctx context.Context
 	return nil, fmt.Errorf("no questions found for assessment: %s", assessmentID)
 }
 
-func (r *pgxAssessmentRepository) SaveUserResult(ctx context.Context, result *domain.UserAssessmentResult) error {
+func (r *memoryAssessmentRepository) SaveUserResult(ctx context.Context, result *domain.UserAssessmentResult) error {
 	if result.ID == uuid.Nil {
 		result.ID = uuid.New()
 	}
@@ -209,7 +220,7 @@ func (r *pgxAssessmentRepository) SaveUserResult(ctx context.Context, result *do
 	return nil
 }
 
-func (r *pgxAssessmentRepository) GetUserResults(ctx context.Context, userID uuid.UUID) ([]domain.UserAssessmentResult, error) {
+func (r *memoryAssessmentRepository) GetUserResults(ctx context.Context, userID uuid.UUID) ([]domain.UserAssessmentResult, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.UserAssessmentResult
@@ -221,7 +232,7 @@ func (r *pgxAssessmentRepository) GetUserResults(ctx context.Context, userID uui
 	return list, nil
 }
 
-func (r *pgxAssessmentRepository) CalculatePercentileRank(ctx context.Context, assessmentID uuid.UUID, score int) int {
+func (r *memoryAssessmentRepository) CalculatePercentileRank(ctx context.Context, assessmentID uuid.UUID, score int) int {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -246,7 +257,7 @@ func (r *pgxAssessmentRepository) CalculatePercentileRank(ctx context.Context, a
 	return rank
 }
 
-func (r *pgxAssessmentRepository) IssueBadge(ctx context.Context, badge *domain.SkillBadge) error {
+func (r *memoryAssessmentRepository) IssueBadge(ctx context.Context, badge *domain.SkillBadge) error {
 	if badge.ID == uuid.Nil {
 		badge.ID = uuid.New()
 	}
@@ -258,7 +269,7 @@ func (r *pgxAssessmentRepository) IssueBadge(ctx context.Context, badge *domain.
 	return nil
 }
 
-func (r *pgxAssessmentRepository) GetUserBadges(ctx context.Context, userID uuid.UUID) ([]domain.SkillBadge, error) {
+func (r *memoryAssessmentRepository) GetUserBadges(ctx context.Context, userID uuid.UUID) ([]domain.SkillBadge, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.SkillBadge

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kirmya/internal/resume_analysis/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,7 +19,11 @@ type ResumeAnalysisRepository interface {
 	GetUserAnalysisHistory(ctx context.Context, userID uuid.UUID) ([]domain.ResumeAnalysis, error)
 }
 
-type pgxResumeAnalysisRepository struct {
+// memoryResumeAnalysisRepository satisfies ResumeAnalysisRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryResumeAnalysisRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -28,7 +33,13 @@ type pgxResumeAnalysisRepository struct {
 }
 
 func NewResumeAnalysisRepository(pool *pgxpool.Pool) ResumeAnalysisRepository {
-	return &pgxResumeAnalysisRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "resume_analysis",
+		Data:        "resume analyses, scores and improvement history",
+		Consequence: "users lose their analyses and scores can no longer be compared over time",
+	})
+
+	return &memoryResumeAnalysisRepository{
 		pool:         pool,
 		analyses:     make(map[uuid.UUID]*domain.ResumeAnalysis),
 		scores:       make(map[uuid.UUID]*domain.ResumeScores),
@@ -36,7 +47,7 @@ func NewResumeAnalysisRepository(pool *pgxpool.Pool) ResumeAnalysisRepository {
 	}
 }
 
-func (r *pgxResumeAnalysisRepository) SaveAnalysis(ctx context.Context, analysis *domain.ResumeAnalysis) error {
+func (r *memoryResumeAnalysisRepository) SaveAnalysis(ctx context.Context, analysis *domain.ResumeAnalysis) error {
 	if analysis.ID == uuid.Nil {
 		analysis.ID = uuid.New()
 	}
@@ -69,7 +80,7 @@ func (r *pgxResumeAnalysisRepository) SaveAnalysis(ctx context.Context, analysis
 	return nil
 }
 
-func (r *pgxResumeAnalysisRepository) GetAnalysisByID(ctx context.Context, id uuid.UUID) (*domain.ResumeAnalysis, error) {
+func (r *memoryResumeAnalysisRepository) GetAnalysisByID(ctx context.Context, id uuid.UUID) (*domain.ResumeAnalysis, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -86,7 +97,7 @@ func (r *pgxResumeAnalysisRepository) GetAnalysisByID(ctx context.Context, id uu
 	return nil, fmt.Errorf("resume analysis report not found: %s", id)
 }
 
-func (r *pgxResumeAnalysisRepository) GetUserAnalysisHistory(ctx context.Context, userID uuid.UUID) ([]domain.ResumeAnalysis, error) {
+func (r *memoryResumeAnalysisRepository) GetUserAnalysisHistory(ctx context.Context, userID uuid.UUID) ([]domain.ResumeAnalysis, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

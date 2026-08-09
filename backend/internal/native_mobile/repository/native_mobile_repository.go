@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kirmya/internal/native_mobile/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,7 +23,11 @@ type NativeMobileRepository interface {
 	RevokeSession(ctx context.Context, sessionID uuid.UUID) error
 }
 
-type pgxNativeMobileRepository struct {
+// memoryNativeMobileRepository satisfies NativeMobileRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryNativeMobileRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -32,7 +37,13 @@ type pgxNativeMobileRepository struct {
 }
 
 func NewNativeMobileRepository(pool *pgxpool.Pool) NativeMobileRepository {
-	repo := &pgxNativeMobileRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "native_mobile",
+		Data:        "devices, push notification tokens and mobile sessions",
+		Consequence: "push notifications stop reaching every user whose token was only held in memory",
+	})
+
+	repo := &memoryNativeMobileRepository{
 		pool:     pool,
 		devices:  make(map[uuid.UUID]*domain.UserDevice),
 		tokens:   make(map[uuid.UUID]*domain.PushToken),
@@ -42,7 +53,7 @@ func NewNativeMobileRepository(pool *pgxpool.Pool) NativeMobileRepository {
 	return repo
 }
 
-func (r *pgxNativeMobileRepository) seedDefaultData() {
+func (r *memoryNativeMobileRepository) seedDefaultData() {
 	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
 	now := time.Now()
 
@@ -87,7 +98,7 @@ func (r *pgxNativeMobileRepository) seedDefaultData() {
 	r.sessions[refreshTokenStr] = mSess
 }
 
-func (r *pgxNativeMobileRepository) RegisterDevice(ctx context.Context, dev *domain.UserDevice) error {
+func (r *memoryNativeMobileRepository) RegisterDevice(ctx context.Context, dev *domain.UserDevice) error {
 	if dev.ID == uuid.Nil {
 		dev.ID = uuid.New()
 	}
@@ -100,7 +111,7 @@ func (r *pgxNativeMobileRepository) RegisterDevice(ctx context.Context, dev *dom
 	return nil
 }
 
-func (r *pgxNativeMobileRepository) SavePushToken(ctx context.Context, token *domain.PushToken) error {
+func (r *memoryNativeMobileRepository) SavePushToken(ctx context.Context, token *domain.PushToken) error {
 	if token.ID == uuid.Nil {
 		token.ID = uuid.New()
 	}
@@ -113,7 +124,7 @@ func (r *pgxNativeMobileRepository) SavePushToken(ctx context.Context, token *do
 	return nil
 }
 
-func (r *pgxNativeMobileRepository) GetUserPushTokens(ctx context.Context, userID uuid.UUID) ([]domain.PushToken, error) {
+func (r *memoryNativeMobileRepository) GetUserPushTokens(ctx context.Context, userID uuid.UUID) ([]domain.PushToken, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -126,7 +137,7 @@ func (r *pgxNativeMobileRepository) GetUserPushTokens(ctx context.Context, userI
 	return list, nil
 }
 
-func (r *pgxNativeMobileRepository) CreateSession(ctx context.Context, sess *domain.MobileSession) error {
+func (r *memoryNativeMobileRepository) CreateSession(ctx context.Context, sess *domain.MobileSession) error {
 	if sess.ID == uuid.Nil {
 		sess.ID = uuid.New()
 	}
@@ -139,7 +150,7 @@ func (r *pgxNativeMobileRepository) CreateSession(ctx context.Context, sess *dom
 	return nil
 }
 
-func (r *pgxNativeMobileRepository) GetSessionByRefreshToken(ctx context.Context, tokenStr string) (*domain.MobileSession, error) {
+func (r *memoryNativeMobileRepository) GetSessionByRefreshToken(ctx context.Context, tokenStr string) (*domain.MobileSession, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -150,7 +161,7 @@ func (r *pgxNativeMobileRepository) GetSessionByRefreshToken(ctx context.Context
 	return nil, fmt.Errorf("session not found or expired")
 }
 
-func (r *pgxNativeMobileRepository) RevokeSession(ctx context.Context, sessionID uuid.UUID) error {
+func (r *memoryNativeMobileRepository) RevokeSession(ctx context.Context, sessionID uuid.UUID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

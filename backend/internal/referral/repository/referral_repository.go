@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kirmya/internal/referral/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,7 +28,11 @@ type ReferralRepository interface {
 	GetHistoryByReferral(ctx context.Context, referralID uuid.UUID) ([]domain.ReferralHistory, error)
 }
 
-type pgxReferralRepository struct {
+// memoryReferralRepository satisfies ReferralRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryReferralRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -37,7 +42,13 @@ type pgxReferralRepository struct {
 }
 
 func NewReferralRepository(pool *pgxpool.Pool) ReferralRepository {
-	return &pgxReferralRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "referral",
+		Data:        "referral requests, referrals and referral history",
+		Consequence: "referral credit is lost, including any reward already owed to a user",
+	})
+
+	return &memoryReferralRepository{
 		pool:      pool,
 		requests:  make(map[uuid.UUID]*domain.ReferralRequest),
 		referrals: make(map[uuid.UUID]*domain.Referral),
@@ -45,7 +56,7 @@ func NewReferralRepository(pool *pgxpool.Pool) ReferralRepository {
 	}
 }
 
-func (r *pgxReferralRepository) CreateRequest(ctx context.Context, req *domain.ReferralRequest) error {
+func (r *memoryReferralRepository) CreateRequest(ctx context.Context, req *domain.ReferralRequest) error {
 	if req.ID == uuid.Nil {
 		req.ID = uuid.New()
 	}
@@ -59,7 +70,7 @@ func (r *pgxReferralRepository) CreateRequest(ctx context.Context, req *domain.R
 	return nil
 }
 
-func (r *pgxReferralRepository) GetOpenRequests(ctx context.Context) ([]domain.ReferralRequest, error) {
+func (r *memoryReferralRepository) GetOpenRequests(ctx context.Context) ([]domain.ReferralRequest, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -72,7 +83,7 @@ func (r *pgxReferralRepository) GetOpenRequests(ctx context.Context) ([]domain.R
 	return list, nil
 }
 
-func (r *pgxReferralRepository) GetRequestByID(ctx context.Context, id uuid.UUID) (*domain.ReferralRequest, error) {
+func (r *memoryReferralRepository) GetRequestByID(ctx context.Context, id uuid.UUID) (*domain.ReferralRequest, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -83,7 +94,7 @@ func (r *pgxReferralRepository) GetRequestByID(ctx context.Context, id uuid.UUID
 	return nil, fmt.Errorf("referral request not found: %s", id)
 }
 
-func (r *pgxReferralRepository) UpdateRequestStatus(ctx context.Context, id uuid.UUID, status string) error {
+func (r *memoryReferralRepository) UpdateRequestStatus(ctx context.Context, id uuid.UUID, status string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -95,7 +106,7 @@ func (r *pgxReferralRepository) UpdateRequestStatus(ctx context.Context, id uuid
 	return fmt.Errorf("referral request not found: %s", id)
 }
 
-func (r *pgxReferralRepository) CreateReferral(ctx context.Context, ref *domain.Referral) error {
+func (r *memoryReferralRepository) CreateReferral(ctx context.Context, ref *domain.Referral) error {
 	if ref.ID == uuid.Nil {
 		ref.ID = uuid.New()
 	}
@@ -109,7 +120,7 @@ func (r *pgxReferralRepository) CreateReferral(ctx context.Context, ref *domain.
 	return nil
 }
 
-func (r *pgxReferralRepository) GetReferralByID(ctx context.Context, id uuid.UUID) (*domain.Referral, error) {
+func (r *memoryReferralRepository) GetReferralByID(ctx context.Context, id uuid.UUID) (*domain.Referral, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -127,7 +138,7 @@ func (r *pgxReferralRepository) GetReferralByID(ctx context.Context, id uuid.UUI
 	return nil, fmt.Errorf("referral record not found: %s", id)
 }
 
-func (r *pgxReferralRepository) GetUserReferrals(ctx context.Context, userID uuid.UUID) ([]domain.Referral, error) {
+func (r *memoryReferralRepository) GetUserReferrals(ctx context.Context, userID uuid.UUID) ([]domain.Referral, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -148,7 +159,7 @@ func (r *pgxReferralRepository) GetUserReferrals(ctx context.Context, userID uui
 	return list, nil
 }
 
-func (r *pgxReferralRepository) UpdateReferralStatus(ctx context.Context, id uuid.UUID, status string, privacyMasked bool) error {
+func (r *memoryReferralRepository) UpdateReferralStatus(ctx context.Context, id uuid.UUID, status string, privacyMasked bool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -161,7 +172,7 @@ func (r *pgxReferralRepository) UpdateReferralStatus(ctx context.Context, id uui
 	return fmt.Errorf("referral record not found: %s", id)
 }
 
-func (r *pgxReferralRepository) AddHistory(ctx context.Context, hist *domain.ReferralHistory) error {
+func (r *memoryReferralRepository) AddHistory(ctx context.Context, hist *domain.ReferralHistory) error {
 	if hist.ID == uuid.Nil {
 		hist.ID = uuid.New()
 	}
@@ -174,7 +185,7 @@ func (r *pgxReferralRepository) AddHistory(ctx context.Context, hist *domain.Ref
 	return nil
 }
 
-func (r *pgxReferralRepository) GetHistoryByReferral(ctx context.Context, referralID uuid.UUID) ([]domain.ReferralHistory, error) {
+func (r *memoryReferralRepository) GetHistoryByReferral(ctx context.Context, referralID uuid.UUID) ([]domain.ReferralHistory, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

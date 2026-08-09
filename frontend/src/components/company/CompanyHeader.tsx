@@ -1,201 +1,237 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+/**
+ * Public header for a company page: identity, key figures and the viewer's
+ * actions. Everything rendered here comes from `CompanyDetail`; nothing is
+ * defaulted to a plausible-looking figure when the company has not supplied it.
+ */
+import React from 'react';
+import NextLink from 'next/link';
 import {
-  Box,
-  Typography,
-  Button,
-  Stack,
   Avatar,
+  Box,
+  Button,
   Chip,
-  IconButton,
+  Divider,
   Rating,
+  Stack,
+  Typography,
   useTheme,
 } from '@mui/material';
-import VerifiedIcon from '@mui/icons-material/Verified';
+import BusinessIcon from '@mui/icons-material/Business';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LanguageIcon from '@mui/icons-material/Language';
-import WorkIcon from '@mui/icons-material/Work';
-import ShareIcon from '@mui/icons-material/Share';
-import FlagIcon from '@mui/icons-material/Flag';
-import BusinessIcon from '@mui/icons-material/Business';
-import FollowButton from './FollowButton';
-import ShareDialog from './ShareDialog';
+import GroupsIcon from '@mui/icons-material/Groups';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import SettingsIcon from '@mui/icons-material/Settings';
+
+import { CompanyDetail } from '../../features/company/types';
+import { canOpenDashboard } from '../../features/company/permissions';
+import { HiringChip, VerifiedBadge } from './CompanyBadges';
+import CompanyFollow from './CompanyFollow';
 
 interface CompanyHeaderProps {
-  company: any;
-  profile: any;
-  following: boolean;
-  onReport: () => void;
+  company: CompanyDetail;
+  identifier: string;
+  isAuthenticated: boolean;
+  onRequireSignIn?: () => void;
 }
+
+const numberFormat = new Intl.NumberFormat();
 
 export const CompanyHeader: React.FC<CompanyHeaderProps> = ({
   company,
-  profile,
-  following,
-  onReport,
+  identifier,
+  isAuthenticated,
+  onRequireSignIn,
 }) => {
-  const router = useRouter();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [shareOpen, setShareOpen] = useState(false);
+  const showDashboardLink = canOpenDashboard(company.viewer);
 
   return (
-    <Box sx={{ mb: 4 }}>
-      {/* Cover Image Banner */}
+    <Box component="header" sx={{ mb: 4 }}>
+      <Box
+        role="presentation"
+        sx={{
+          height: { xs: 140, md: 240 },
+          borderRadius: '24px',
+          background: company.coverUrl
+            ? `url(${company.coverUrl}) center/cover no-repeat`
+            : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 45%, #ec4899 100%)',
+          boxShadow: isDark
+            ? '0 10px 30px rgba(0, 0, 0, 0.45)'
+            : '0 10px 30px rgba(99, 102, 241, 0.15)',
+        }}
+      />
+
       <Box
         sx={{
-          height: { xs: 180, md: 280 },
-          borderRadius: '24px',
-          background: profile.coverUrl
-            ? `url(${profile.coverUrl}) center/cover no-repeat`
-            : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 40%, #ec4899 100%)',
+          px: { xs: 2, md: 4 },
+          mt: { xs: -6, md: -8 },
           position: 'relative',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
         }}
       >
-        {profile.isHiring && (
-          <Chip
-            label="ACTIVELY HIRING"
-            color="success"
-            sx={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              fontWeight: 900,
-              px: 1.5,
-              fontSize: '0.75rem',
-            }}
-          />
-        )}
-      </Box>
-
-      {/* Main Info Card Header */}
-      <Box sx={{ px: { xs: 2, md: 4 }, mt: -7, position: 'relative', zIndex: 2 }}>
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={3}
           alignItems={{ xs: 'flex-start', md: 'flex-end' }}
-          justifyContent="space-between"
         >
-          {/* Logo & Company Title */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} alignItems={{ xs: 'flex-start', sm: 'flex-end' }}>
-            <Avatar
-              src={profile.logoUrl || undefined}
-              sx={{
-                width: 110,
-                height: 110,
-                borderRadius: '24px',
-                border: '4px solid',
-                borderColor: isDark ? '#0f172a' : '#ffffff',
-                bgcolor: 'primary.main',
-                fontSize: '2.8rem',
-                fontWeight: 900,
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              {company.name[0]}
-            </Avatar>
+          <Avatar
+            src={company.logoUrl || undefined}
+            alt={`${company.name} logo`}
+            variant="rounded"
+            sx={{
+              width: { xs: 88, md: 128 },
+              height: { xs: 88, md: 128 },
+              borderRadius: '24px',
+              border: '4px solid',
+              borderColor: theme.palette.background.default,
+              bgcolor: theme.palette.primary.main,
+              fontSize: 40,
+            }}
+          >
+            {company.name?.charAt(0) ?? <BusinessIcon />}
+          </Avatar>
 
-            <Box sx={{ pt: 1 }}>
-              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-                <Typography variant="h3" sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em' }}>
-                  {company.name}
-                </Typography>
-                {profile.isVerified && (
-                  <VerifiedIcon sx={{ color: '#0284c7', fontSize: 28 }} titleAccess="Verified Employer" />
-                )}
-              </Stack>
-
-              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
-                {profile.industry} • Founded {profile.foundedYear} • {profile.companySize}
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 800 }}>
+                {company.name}
               </Typography>
+              <VerifiedBadge isVerified={company.isVerified} size="medium" />
+              <HiringChip isHiring={company.isHiring} />
+            </Stack>
 
-              {/* Rating & Location */}
-              <Stack direction="row" spacing={2.5} alignItems="center" flexWrap="wrap" useFlexGap>
-                <Stack direction="row" spacing={0.8} alignItems="center">
-                  <Rating value={profile.rating || 4.9} precision={0.1} readOnly size="small" />
-                  <Typography variant="caption" sx={{ fontWeight: 800 }}>
-                    {profile.rating || 4.9} ({profile.reviewCount || 280} Reviews)
-                  </Typography>
-                </Stack>
+            {company.tagline && (
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+                {company.tagline}
+              </Typography>
+            )}
 
+            <Stack
+              direction="row"
+              spacing={2}
+              flexWrap="wrap"
+              useFlexGap
+              sx={{ mt: 1.5, color: 'text.secondary' }}
+            >
+              {company.industry && (
                 <Stack direction="row" spacing={0.5} alignItems="center">
-                  <LocationOnIcon fontSize="small" color="primary" />
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                    {profile.location}
+                  <BusinessIcon fontSize="small" />
+                  <Typography variant="body2">{company.industry}</Typography>
+                </Stack>
+              )}
+              {company.headquarters && (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <LocationOnIcon fontSize="small" />
+                  <Typography variant="body2">{company.headquarters}</Typography>
+                </Stack>
+              )}
+              {company.companySize && (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <GroupsIcon fontSize="small" />
+                  <Typography variant="body2">{company.companySize} employees</Typography>
+                </Stack>
+              )}
+              {company.website && (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <LanguageIcon fontSize="small" />
+                  <Typography
+                    variant="body2"
+                    component="a"
+                    href={company.website}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    sx={{ color: 'primary.main', textDecoration: 'none' }}
+                  >
+                    Website
                   </Typography>
                 </Stack>
-              </Stack>
-            </Box>
-          </Stack>
+              )}
+            </Stack>
+          </Box>
 
-          {/* Action Buttons */}
-          <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ pt: { xs: 2, md: 0 } }}>
-            <FollowButton
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexShrink: 0 }}>
+            <CompanyFollow
+              identifier={identifier}
               companyId={company.id}
-              initialFollowing={following}
-              sx={{ py: 1.2, px: 3, borderRadius: '12px', fontSize: '0.95rem' }}
+              isFollowing={company.isFollowing}
+              isAuthenticated={isAuthenticated}
+              onRequireSignIn={onRequireSignIn}
             />
-
-            <Button
-              variant="contained"
-              startIcon={<WorkIcon />}
-              onClick={() => {
-                const el = document.getElementById('open-jobs-section');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              sx={{
-                py: 1.2,
-                px: 3,
-                borderRadius: '12px',
-                fontWeight: 800,
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                boxShadow: '0 6px 20px rgba(16, 185, 129, 0.3)',
-              }}
-            >
-              View {profile.openJobsCount} Jobs
-            </Button>
-
-            <Button
-              variant="outlined"
-              startIcon={<LanguageIcon />}
-              component="a"
-              href={profile.website}
-              target="_blank"
-              sx={{ py: 1.2, px: 2.5, borderRadius: '12px', fontWeight: 700, textTransform: 'none' }}
-            >
-              Website
-            </Button>
-
-            <IconButton
-              onClick={() => setShareOpen(true)}
-              sx={{ bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)', borderRadius: '12px' }}
-            >
-              <ShareIcon />
-            </IconButton>
-
-            <IconButton
-              onClick={onReport}
-              sx={{ bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)', borderRadius: '12px' }}
-            >
-              <FlagIcon />
-            </IconButton>
+            {showDashboardLink && (
+              <Button
+                component={NextLink}
+                href={`/company/dashboard?company=${company.slug}`}
+                variant="outlined"
+                startIcon={<SettingsIcon />}
+              >
+                Manage
+              </Button>
+            )}
           </Stack>
         </Stack>
-      </Box>
 
-      {/* Share Modal Dialog */}
-      <ShareDialog
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        companyName={company.name}
-        handle={company.handle}
-      />
+        <Divider sx={{ mt: 3 }} />
+
+        <Stack
+          direction="row"
+          spacing={{ xs: 2, md: 4 }}
+          flexWrap="wrap"
+          useFlexGap
+          sx={{ py: 2 }}
+        >
+          <HeaderFigure
+            icon={<GroupsIcon fontSize="small" />}
+            value={numberFormat.format(company.followersCount)}
+            label="Followers"
+          />
+          <HeaderFigure
+            icon={<WorkOutlineIcon fontSize="small" />}
+            value={numberFormat.format(company.openJobsCount)}
+            label="Open jobs"
+          />
+          {company.employeesCount > 0 && (
+            <HeaderFigure
+              icon={<BusinessIcon fontSize="small" />}
+              value={numberFormat.format(company.employeesCount)}
+              label="People on Kirmya"
+            />
+          )}
+          {company.reviewCount > 0 && (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Rating value={company.rating} precision={0.1} size="small" readOnly />
+              <Typography variant="body2" color="text.secondary">
+                {company.rating.toFixed(1)} · {numberFormat.format(company.reviewCount)} reviews
+              </Typography>
+            </Stack>
+          )}
+          {company.foundedYear > 0 && (
+            <Chip size="small" variant="outlined" label={`Founded ${company.foundedYear}`} />
+          )}
+        </Stack>
+      </Box>
     </Box>
   );
 };
+
+const HeaderFigure: React.FC<{ icon: React.ReactNode; value: string; label: string }> = ({
+  icon,
+  value,
+  label,
+}) => (
+  <Stack direction="row" spacing={1} alignItems="center">
+    {icon}
+    <Typography variant="body2">
+      <Box component="span" sx={{ fontWeight: 700 }}>
+        {value}
+      </Box>{' '}
+      <Box component="span" sx={{ color: 'text.secondary' }}>
+        {label}
+      </Box>
+    </Typography>
+  </Stack>
+);
 
 export default CompanyHeader;

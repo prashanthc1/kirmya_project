@@ -16,12 +16,17 @@ import (
 
 	jobMatchHttp "kirmya/internal/ai_job_match/delivery/http"
 	jobMatchRepo "kirmya/internal/ai_job_match/repository"
+
 	jobMatchScoring "kirmya/internal/ai_job_match/scoring"
 	jobMatchSvc "kirmya/internal/ai_job_match/service"
 
 	analyticsHttp "kirmya/internal/analytics/delivery/http"
 	analyticsRepo "kirmya/internal/analytics/repository"
 	analyticsSvc "kirmya/internal/analytics/service"
+
+	applicationsHttp "kirmya/internal/applications/delivery/http"
+	applicationsRepo "kirmya/internal/applications/repository"
+	applicationsSvc "kirmya/internal/applications/service"
 
 	assessmentHttp "kirmya/internal/assessment/delivery/http"
 	assessmentEval "kirmya/internal/assessment/evaluator"
@@ -61,13 +66,22 @@ import (
 	complianceRepo "kirmya/internal/compliance/repository"
 	complianceSvc "kirmya/internal/compliance/service"
 
+	coverLetterHttp "kirmya/internal/cover_letter/delivery/http"
+	coverLetterRepo "kirmya/internal/cover_letter/repository"
+	coverLetterSvc "kirmya/internal/cover_letter/service"
+
+	interviewPrepHttp "kirmya/internal/interview_prep/delivery/http"
+	interviewPrepRepo "kirmya/internal/interview_prep/repository"
+	interviewPrepSvc "kirmya/internal/interview_prep/service"
+
 	endorsementHttp "kirmya/internal/endorsement/delivery/http"
 	endorsementRepo "kirmya/internal/endorsement/repository"
 	endorsementSvc "kirmya/internal/endorsement/service"
 
-	enterpriseHttp "kirmya/internal/enterprise_hiring/delivery/http"
 	enterpriseRepo "kirmya/internal/enterprise_hiring/repository"
 	enterpriseSvc "kirmya/internal/enterprise_hiring/service"
+
+	enterpriseHttp "kirmya/internal/enterprise_hiring/delivery/http"
 
 	eventHttp "kirmya/internal/event/delivery/http"
 	eventProvider "kirmya/internal/event/provider"
@@ -86,6 +100,10 @@ import (
 	interviewRepo "kirmya/internal/interview/repository"
 	interviewSvc "kirmya/internal/interview/service"
 
+	jobAlertsHttp "kirmya/internal/job_alerts/delivery/http"
+	jobAlertsRepo "kirmya/internal/job_alerts/repository"
+	jobAlertsSvc "kirmya/internal/job_alerts/service"
+
 	landingHttp "kirmya/internal/landing/delivery/http"
 	landingRepo "kirmya/internal/landing/repository"
 	landingSvc "kirmya/internal/landing/service"
@@ -96,7 +114,7 @@ import (
 	learningSvc "kirmya/internal/learning/service"
 
 	msgHttp "kirmya/internal/messaging/delivery/http"
-	"kirmya/internal/messaging/pubsub"
+	pubsub "kirmya/internal/messaging/pubsub"
 	msgRepo "kirmya/internal/messaging/repository"
 	msgSvc "kirmya/internal/messaging/service"
 
@@ -179,24 +197,20 @@ import (
 	cachePkg "kirmya/internal/shared/cache"
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/database"
+	persistencePkg "kirmya/internal/shared/persistence"
 )
 
 func main() {
-	// Setup structured JSON logger for production scale
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	})))
 
 	slog.Info("Starting Kirmya backend modular monolith...")
 
-	// Load .env for local development. Real environment variables always win, so
-	// managed platforms (Railway, Docker) are unaffected and a missing file is fine.
 	if envErr := godotenv.Load(); envErr != nil {
 		if errors.Is(envErr, fs.ErrNotExist) {
 			slog.Info("No .env file found, using process environment only")
 		} else {
-			// Parse errors from godotenv embed the whole file, so the message is
-			// deliberately omitted to keep secrets out of the logs.
 			slog.Warn("Failed to parse .env file, using process environment only")
 		}
 	} else {
@@ -208,9 +222,7 @@ func main() {
 		slog.Error("Configuration load error", slog.String("error", cfgErr.Error()))
 		os.Exit(1)
 	}
-	_ = cfg
 
-	// 1. Initialize database pool
 	db, err := database.Connect()
 	if err != nil {
 		if os.Getenv("ALLOW_NO_DB") == "true" {
@@ -228,14 +240,38 @@ func main() {
 		dbPool = db.Pool
 	}
 
-	// 2. Initialize caching tier and module dependencies
 	appCache := cachePkg.InitCache()
-	handlers := buildHandlers(dbPool, appCache)
+	deps := buildDependencies(cfg, dbPool, appCache)
 
-	// 3. Build the HTTP router (global middleware + module routes)
-	r := router.New(handlers)
+	// buildDependencies is what registers the ephemeral repositories, so the
+	// audit runs against the wiring this binary actually performed.
+	if auditErr := persistencePkg.Audit(cfg.AppEnv, cfg.AllowEphemeralRepos); auditErr != nil {
+		slog.Error("Persistence audit failed", slog.String("error", auditErr.Error()))
+		os.Exit(1)
+	}
 
-	// 4. Start the server
+	deps.AllowedOrigins = cfg.CORSAllowedOrigins
+	deps.TrustedProxies = cfg.TrustedProxies
+	deps.RateLimit = router.RateLimitConfig{
+		RequestsPerMinute: cfg.RateLimitRequestsPerMinute,
+		Burst:             cfg.RateLimitBurst,
+	}
+	deps.Metrics = router.MetricsConfig{
+		Username: cfg.MetricsUsername,
+		Password: cfg.MetricsPassword,
+	}
+
+	r := router.New(deps, router.SwaggerConfig{
+		Enabled:  cfg.SwaggerEnabled,
+		Host:     cfg.SwaggerHost,
+		BasePath: cfg.SwaggerBasePath,
+		Username: cfg.SwaggerUsername,
+		Password: cfg.SwaggerPassword,
+	})
+
+	if cfg.SwaggerEnabled {
+		slog.Info("Swagger UI available", slog.String("url", "http://"+cfg.SwaggerHost+"/swagger/index.html"))
+	}
 	slog.Info("Kirmya API Monolith active on port :8080")
 	if err := r.Run(":8080"); err != nil {
 		slog.Error("Failed to run HTTP server", slog.String("error", err.Error()))
@@ -243,16 +279,14 @@ func main() {
 	}
 }
 
-// buildHandlers wires repositories, services and handlers for every module.
-func buildHandlers(dbPool *pgxpool.Pool, appCache cachePkg.Cache) router.Handlers {
+func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cachePkg.Cache) router.RouterDependencies {
 	pRepo := profileRepo.NewProfileRepository(dbPool)
-	pService := profileSvc.NewProfileService(pRepo)
-	pService.SetCache(appCache)
-	pHandler := profileHttp.NewProfileHandler(pService)
+	pSvc := profileSvc.NewProfileService(pRepo)
+	pHandler := profileHttp.NewProfileHandler(pSvc)
 
 	rRepo := resumeRepo.NewResumeRepository(dbPool)
-	rService := resumeSvc.NewResumeService(rRepo)
-	rHandler := resumeHttp.NewResumeHandler(rService)
+	rSvc := resumeSvc.NewResumeService(rRepo)
+	rHandler := resumeHttp.NewResumeHandler(rSvc)
 
 	recRepository := recRepo.NewRecommendationRepository(dbPool)
 	recService := recSvc.NewRecommendationService(recRepository, pRepo)
@@ -290,17 +324,21 @@ func buildHandlers(dbPool *pgxpool.Pool, appCache cachePkg.Cache) router.Handler
 	aiHandler := aiHttp.NewAIHandler(aiService)
 
 	companyRepository := companyRepo.NewCompanyRepository(dbPool)
-	companyService := companySvc.NewCompanyService(companyRepository)
+	companyManagementRepository := companyRepo.NewManagementRepository(dbPool)
+	companyService := companySvc.NewCompanyService(companyRepository, companyManagementRepository)
 	companyHandler := companyHttp.NewCompanyHandler(companyService)
+	companyManagementService := companySvc.NewManagementService(
+		companyManagementRepository,
+		companyRepository,
+		notifyService,
+		cfg.AppBaseURL,
+		cfg.AnalyticsViewSalt,
+	)
+	companyManagementHandler := companyHttp.NewManagementHandler(companyManagementService)
 
 	recruiterRepository := recruiterRepo.NewRecruiterRepository(dbPool)
 	recruiterService := recruiterSvc.NewRecruiterService(recruiterRepository)
 	recruiterHandler := recruiterHttp.NewRecruiterHandler(recruiterService)
-
-	postgresSearchProvider := candidateSearchSvc.NewPostgresSearchProvider(dbPool)
-	candidateSearchRepository := candidateSearchRepo.NewSearchRepository(dbPool)
-	candidateSearchService := candidateSearchSvc.NewSearchService(postgresSearchProvider, candidateSearchRepository, recruiterRepository)
-	candidateSearchHandler := candidateSearchHttp.NewSearchHandler(candidateSearchService)
 
 	interviewRepository := interviewRepo.NewInterviewRepository(dbPool)
 	interviewService := interviewSvc.NewInterviewService(interviewRepository, psBroker)
@@ -353,6 +391,11 @@ func buildHandlers(dbPool *pgxpool.Pool, appCache cachePkg.Cache) router.Handler
 	searchEngineAdapter := searchAdapter.NewPostgreSQLSearchAdapter(dbPool)
 	searchService := searchSvc.NewSearchService(searchRepository, searchEngineAdapter, appCache)
 	searchHandler := searchHttp.NewSearchHandler(searchService)
+
+	cSearchRepository := candidateSearchRepo.NewSearchRepository(dbPool)
+	cSearchProvider := candidateSearchSvc.NewPostgresSearchProvider(dbPool)
+	cSearchService := candidateSearchSvc.NewSearchService(cSearchProvider, cSearchRepository, recruiterRepository)
+	candidateSearchHandler := candidateSearchHttp.NewSearchHandler(cSearchService)
 
 	mobileRepository := mobileRepo.NewMobileRepository(dbPool)
 	mobileService := mobileSvc.NewMobileService(mobileRepository)
@@ -414,46 +457,66 @@ func buildHandlers(dbPool *pgxpool.Pool, appCache cachePkg.Cache) router.Handler
 	onboardingService := onboardingSvc.NewOnboardingService(onboardingRepository)
 	onboardingHandler := onboardingHttp.NewOnboardingHandler(onboardingService)
 
-	return router.Handlers{
-		Auth:           authHandler,
-		AuthMiddleware: authMiddleware,
+	appsRepository := applicationsRepo.NewApplicationsRepository(dbPool)
+	appsService := applicationsSvc.NewApplicationsService(appsRepository)
+	appsHandler := applicationsHttp.NewApplicationsHandler(appsService)
 
-		AI:                   aiHandler,
-		Analytics:            analyticsHandler,
-		Assessment:           assessmentHandler,
-		CandidateSearch:      candidateSearchHandler,
-		CareerAI:             careerAIHandler,
-		CareerCompanion:      companionHandler,
-		Community:            commHandler,
-		Company:              companyHandler,
-		Compliance:           complianceHandler,
-		Endorsement:          endorsementHandler,
-		EnterpriseHiring:     enterpriseHandler,
-		Event:                eventHandler,
-		Freelance:            freelanceHandler,
-		GlobalMarketplace:    marketplaceHandler,
-		Interview:            interviewHandler,
-		JobMatch:             jobMatchHandler,
-		Landing:              landingHandler,
-		Learning:             learningHandler,
-		Messaging:            msgHandler,
-		Mobile:               mobileHandler,
-		NativeMobile:         nativeMobileHandler,
-		Networking:           netHandler,
-		Notification:         notifyHandler,
-		Onboarding:           onboardingHandler,
-		Organization:         organizationHandler,
-		Profile:              pHandler,
-		Recommendation:       recHandler,
-		RecommendationEngine: recommendationHandler,
-		Recruiter:            recruiterHandler,
-		RecruiterAI:          recruiterAIHandler,
-		Referral:             referralHandler,
-		Resume:               rHandler,
-		ResumeAnalysis:       resumeAnalysisHandler,
-		Search:               searchHandler,
-		TrustSafety:          trustHandler,
-		Verification:         verificationHandler,
-		WorkforceIntel:       intelligenceHandler,
+	jAlertsRepository := jobAlertsRepo.NewJobAlertsRepository(dbPool)
+	jAlertsService := jobAlertsSvc.NewJobAlertsService(jAlertsRepository)
+	jAlertsHandler := jobAlertsHttp.NewJobAlertsHandler(jAlertsService)
+
+	coverLetterRepository := coverLetterRepo.NewCoverLetterRepository(dbPool)
+	coverLetterService := coverLetterSvc.NewCoverLetterService(coverLetterRepository)
+	coverLetterHandler := coverLetterHttp.NewCoverLetterHandler(coverLetterService)
+
+	interviewPrepRepository := interviewPrepRepo.NewPostgresRepository(dbPool)
+	interviewPrepService := interviewPrepSvc.NewInterviewPrepService(interviewPrepRepository)
+	interviewPrepHandler := interviewPrepHttp.NewInterviewPrepHandler(interviewPrepService)
+
+	return router.RouterDependencies{
+		AuthHandler:                 authHandler,
+		AuthMiddleware:              authMiddleware,
+		ProfileHandler:              pHandler,
+		ResumeHandler:               rHandler,
+		RecommendationHandler:       recHandler,
+		NetworkingHandler:           netHandler,
+		CommunityHandler:            commHandler,
+		MessagingHandler:            msgHandler,
+		NotificationHandler:         notifyHandler,
+		AnalyticsHandler:            analyticsHandler,
+		AIHandler:                   aiHandler,
+		CompanyHandler:              companyHandler,
+		CompanyManagementHandler:    companyManagementHandler,
+		RecruiterHandler:            recruiterHandler,
+		CandidateSearchHandler:      candidateSearchHandler,
+		InterviewHandler:            interviewHandler,
+		LearningHandler:             learningHandler,
+		AssessmentHandler:           assessmentHandler,
+		CareerAIHandler:             careerAIHandler,
+		ResumeAnalysisHandler:       resumeAnalysisHandler,
+		VerificationHandler:         verificationHandler,
+		EndorsementHandler:          endorsementHandler,
+		ReferralHandler:             referralHandler,
+		EventHandler:                eventHandler,
+		OrganizationHandler:         organizationHandler,
+		UnifiedSearchHandler:        searchHandler,
+		MobileHandler:               mobileHandler,
+		NativeMobileHandler:         nativeMobileHandler,
+		CompanionHandler:            companionHandler,
+		JobMatchHandler:             jobMatchHandler,
+		RecruiterAIHandler:          recruiterAIHandler,
+		MarketplaceHandler:          marketplaceHandler,
+		FreelanceHandler:            freelanceHandler,
+		EnterpriseHandler:           enterpriseHandler,
+		TrustHandler:                trustHandler,
+		ComplianceHandler:           complianceHandler,
+		IntelligenceHandler:         intelligenceHandler,
+		RecommendationEngineHandler: recommendationHandler,
+		LandingHandler:              landingHandler,
+		OnboardingHandler:           onboardingHandler,
+		ApplicationsHandler:         appsHandler,
+		JobAlertsHandler:            jAlertsHandler,
+		CoverLetterHandler:          coverLetterHandler,
+		InterviewPrepHandler:        interviewPrepHandler,
 	}
 }

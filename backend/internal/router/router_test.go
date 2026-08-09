@@ -6,6 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	authMiddleware "kirmya/internal/auth/middleware"
+	authService "kirmya/internal/auth/service"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +21,16 @@ func TestRouteTable(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Zero-value handlers: routes are registered by method value, never called.
-	engine := New(Handlers{})
+	// Swagger stays disabled so the golden file covers the API surface only.
+	//
+	// The auth middleware is the exception. Modules that refuse to mount their
+	// write routes without one — the company module does — would otherwise be
+	// represented in the golden file by their public reads alone, and the
+	// authenticated half of the API would drift unnoticed. The service behind
+	// it is hollow because nothing here serves a request.
+	engine := New(Handlers{
+		AuthMiddleware: authMiddleware.NewAuthMiddleware(&authService.AuthService{}),
+	}, SwaggerConfig{})
 
 	var got []string
 	for _, route := range engine.Routes() {

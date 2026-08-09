@@ -2,18 +2,30 @@ package service
 
 import (
 	"context"
+	"errors"
+	"testing"
+
 	"kirmya/internal/company/models"
 	"kirmya/internal/company/repository"
-	"testing"
 
 	"github.com/google/uuid"
 )
 
-func TestRegisterCompanyFlow(t *testing.T) {
-	repo := repository.NewCompanyRepository(nil)
-	svc := NewCompanyService(repo)
+// offlineService builds the service the way a process that failed to reach
+// PostgreSQL would: real repositories, no pool behind them.
+func offlineService() *CompanyService {
+	return NewCompanyService(
+		repository.NewCompanyRepository(nil),
+		repository.NewManagementRepository(nil),
+	)
+}
 
-	creatorID := uuid.New()
+// A company registration that cannot reach the database must fail. An earlier
+// version of this service answered from a fixture instead, so a caller could
+// not tell a stored company from an invented one.
+func TestRegisterCompanyRequiresDatabase(t *testing.T) {
+	svc := offlineService()
+
 	payload := &models.RegisterCompanyPayload{
 		Name:        "Acme Middle East",
 		Handle:      "acme-me",
@@ -24,27 +36,17 @@ func TestRegisterCompanyFlow(t *testing.T) {
 		FoundedYear: 2018,
 	}
 
-	c, p, err := svc.RegisterCompany(context.Background(), creatorID, payload)
-	if err != nil {
-		t.Fatalf("Expected no error registering company, got %v", err)
-	}
-
-	if c.Name != "Acme Middle East" {
-		t.Errorf("Expected name 'Acme Middle East', got %s", c.Name)
-	}
-
-	if p.Industry != "Logistics" {
-		t.Errorf("Expected industry 'Logistics', got %s", p.Industry)
+	company, profile, err := svc.RegisterCompany(context.Background(), uuid.New(), payload)
+	if !errors.Is(err, repository.ErrNoDatabase) {
+		t.Fatalf("expected ErrNoDatabase, got company=%v profile=%v err=%v", company, profile, err)
 	}
 }
 
-func TestUpdateProfileAuthorizationCheck(t *testing.T) {
-	repo := repository.NewCompanyRepository(nil)
-	svc := NewCompanyService(repo)
-
-	// Since database pool is nil, GetMemberRole returns "admin" by default in our repo offline stub mode
-	userID := uuid.New()
-	companyID := uuid.New()
+// Profile edits are authorized against the caller's stored grant. With no
+// database there is no grant, and the previous behaviour — treating an
+// unreadable membership as "admin" — would hand the profile to anyone.
+func TestUpdateProfileDeniesWhenGrantCannotBeRead(t *testing.T) {
+	svc := offlineService()
 
 	payload := &models.UpdateProfilePayload{
 		About:            "New overview about Acme",
@@ -56,48 +58,37 @@ func TestUpdateProfileAuthorizationCheck(t *testing.T) {
 		EmployeeInsights: "High satisfaction rate.",
 	}
 
-	// Should succeed because GetMemberRole returns "admin" by default in offline tests
-	err := svc.UpdateProfile(context.Background(), userID, companyID, payload)
-	if err != nil {
-		t.Fatalf("Expected update to succeed for admin user, got %v", err)
+	err := svc.UpdateProfile(context.Background(), uuid.New(), uuid.New(), payload)
+	if err == nil {
+		t.Fatal("expected the update to be refused when the caller's membership cannot be read")
 	}
 }
 
-func TestFollowCompanyOffline(t *testing.T) {
-	repo := repository.NewCompanyRepository(nil)
-	svc := NewCompanyService(repo)
+// Following is a write. It reports the state it actually persisted, so with no
+// database it reports an error rather than a cheerful "true".
+func TestFollowCompanyRequiresDatabase(t *testing.T) {
+	svc := offlineService()
 
-	companyID := uuid.New()
-	userID := uuid.New()
-
-	following, err := svc.FollowCompany(context.Background(), companyID, userID)
-	if err != nil {
-		t.Fatalf("Expected no error toggling follow status, got %v", err)
+	following, err := svc.FollowCompany(context.Background(), uuid.New(), uuid.New())
+	if err == nil {
+		t.Fatalf("expected an error following without a database, got following=%v", following)
 	}
-
-	if !following {
-		t.Errorf("Expected following state to toggle to true, got false")
+	if following {
+		t.Error("a follow that was never stored must not report itself as active")
 	}
 }
 
-func TestGetRecommendationsStubs(t *testing.T) {
-	repo := repository.NewCompanyRepository(nil)
-	svc := NewCompanyService(repo)
+// Recommendations come from the discovery shelves, which come from the
+// database. No database means no recommendations — not a hardcoded list of
+// real companies the platform has no data for.
+func TestGetRecommendationsReturnsNothingWithoutDatabase(t *testing.T) {
+	svc := offlineService()
 
-	companies, profiles, err := svc.GetRecommendations(context.Background(), 3)
-	if err != nil {
-		t.Fatalf("Expected no error fetching recommendations stubs, got %v", err)
+	companies, profiles, err := svc.GetRecommendations(context.Background(), uuid.New(), 3)
+	if err == nil && len(companies) != 0 {
+		t.Errorf("expected no recommended companies, got %d", len(companies))
 	}
-
-	if len(companies) != 3 {
-		t.Errorf("Expected exactly 3 recommended companies, got %d", len(companies))
-	}
-
-	if len(profiles) != 3 {
-		t.Errorf("Expected exactly 3 recommended profiles, got %d", len(profiles))
-	}
-
-	if companies[0].Handle != "emaar" {
-		t.Errorf("Expected first recommendation handle to be 'emaar', got %s", companies[0].Handle)
+	if err == nil && len(profiles) != 0 {
+		t.Errorf("expected no recommended profiles, got %d", len(profiles))
 	}
 }

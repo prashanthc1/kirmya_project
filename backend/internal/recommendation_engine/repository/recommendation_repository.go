@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"kirmya/internal/recommendation_engine/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,7 +20,11 @@ type RecommendationRepository interface {
 	GetCandidatesByDomain(ctx context.Context, itemType string) ([]domain.RecommendationItem, error)
 }
 
-type pgxRecommendationRepository struct {
+// memoryRecommendationRepository satisfies RecommendationRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryRecommendationRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -30,7 +35,13 @@ type pgxRecommendationRepository struct {
 }
 
 func NewRecommendationRepository(pool *pgxpool.Pool) RecommendationRepository {
-	repo := &pgxRecommendationRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "recommendation_engine",
+		Data:        "user recommendation preferences and candidate recommendation sets",
+		Consequence: "personalisation resets to the seeded defaults for everyone",
+	})
+
+	repo := &memoryRecommendationRepository{
 		pool:        pool,
 		preferences: make(map[uuid.UUID]*domain.UserPreference),
 		candidates:  make(map[string][]domain.RecommendationItem),
@@ -39,7 +50,7 @@ func NewRecommendationRepository(pool *pgxpool.Pool) RecommendationRepository {
 	return repo
 }
 
-func (r *pgxRecommendationRepository) seedDefaultData() {
+func (r *memoryRecommendationRepository) seedDefaultData() {
 	now := time.Now()
 	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
 
@@ -58,11 +69,11 @@ func (r *pgxRecommendationRepository) seedDefaultData() {
 		ModelName: "Kirmya Hybrid Collaborative & Content Filtering v3.2",
 		Version:   "3.2.0-ml",
 		Weights: map[string]float64{
-			"skills_weight":    0.35,
-			"affinity_weight":  0.25,
-			"location_weight":  0.15,
-			"recency_weight":   0.15,
-			"popularity_w":     0.10,
+			"skills_weight":   0.35,
+			"affinity_weight": 0.25,
+			"location_weight": 0.15,
+			"recency_weight":  0.15,
+			"popularity_w":    0.10,
 		},
 		IsActive:  true,
 		TrainedAt: now,
@@ -167,7 +178,7 @@ func (r *pgxRecommendationRepository) seedDefaultData() {
 	}
 }
 
-func (r *pgxRecommendationRepository) TrackEvent(ctx context.Context, evt *domain.Event) error {
+func (r *memoryRecommendationRepository) TrackEvent(ctx context.Context, evt *domain.Event) error {
 	if evt.ID == uuid.Nil {
 		evt.ID = uuid.New()
 	}
@@ -180,7 +191,7 @@ func (r *pgxRecommendationRepository) TrackEvent(ctx context.Context, evt *domai
 	return nil
 }
 
-func (r *pgxRecommendationRepository) GetUserPreferences(ctx context.Context, userID uuid.UUID) (*domain.UserPreference, error) {
+func (r *memoryRecommendationRepository) GetUserPreferences(ctx context.Context, userID uuid.UUID) (*domain.UserPreference, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -199,7 +210,7 @@ func (r *pgxRecommendationRepository) GetUserPreferences(ctx context.Context, us
 	}, nil
 }
 
-func (r *pgxRecommendationRepository) SaveUserPreferences(ctx context.Context, pref *domain.UserPreference) error {
+func (r *memoryRecommendationRepository) SaveUserPreferences(ctx context.Context, pref *domain.UserPreference) error {
 	if pref.ID == uuid.Nil {
 		pref.ID = uuid.New()
 	}
@@ -212,13 +223,13 @@ func (r *pgxRecommendationRepository) SaveUserPreferences(ctx context.Context, p
 	return nil
 }
 
-func (r *pgxRecommendationRepository) GetActiveModelWeights(ctx context.Context) (*domain.ModelWeights, error) {
+func (r *memoryRecommendationRepository) GetActiveModelWeights(ctx context.Context) (*domain.ModelWeights, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.models, nil
 }
 
-func (r *pgxRecommendationRepository) GetCandidatesByDomain(ctx context.Context, itemType string) ([]domain.RecommendationItem, error) {
+func (r *memoryRecommendationRepository) GetCandidatesByDomain(ctx context.Context, itemType string) ([]domain.RecommendationItem, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.candidates[itemType], nil

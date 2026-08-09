@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"kirmya/internal/shared/persistence"
 	"kirmya/internal/verification/domain"
 
 	"github.com/google/uuid"
@@ -26,7 +27,11 @@ type VerificationRepository interface {
 	UpdateTrustScore(ctx context.Context, status *domain.VerificationStatus) error
 }
 
-type pgxVerificationRepository struct {
+// memoryVerificationRepository satisfies VerificationRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryVerificationRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -36,7 +41,13 @@ type pgxVerificationRepository struct {
 }
 
 func NewVerificationRepository(pool *pgxpool.Pool) VerificationRepository {
-	return &pgxVerificationRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "verification",
+		Data:        "verification requests, document records and verification status",
+		Consequence: "verified users show as unverified again and pending reviews are lost",
+	})
+
+	return &memoryVerificationRepository{
 		pool:      pool,
 		requests:  make(map[uuid.UUID]*domain.VerificationRequest),
 		documents: make(map[uuid.UUID]*domain.VerificationDocument),
@@ -44,7 +55,7 @@ func NewVerificationRepository(pool *pgxpool.Pool) VerificationRepository {
 	}
 }
 
-func (r *pgxVerificationRepository) CreateRequest(ctx context.Context, req *domain.VerificationRequest) error {
+func (r *memoryVerificationRepository) CreateRequest(ctx context.Context, req *domain.VerificationRequest) error {
 	if req.ID == uuid.Nil {
 		req.ID = uuid.New()
 	}
@@ -57,7 +68,7 @@ func (r *pgxVerificationRepository) CreateRequest(ctx context.Context, req *doma
 	return nil
 }
 
-func (r *pgxVerificationRepository) GetRequestByID(ctx context.Context, id uuid.UUID) (*domain.VerificationRequest, error) {
+func (r *memoryVerificationRepository) GetRequestByID(ctx context.Context, id uuid.UUID) (*domain.VerificationRequest, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if req, exists := r.requests[id]; exists {
@@ -74,7 +85,7 @@ func (r *pgxVerificationRepository) GetRequestByID(ctx context.Context, id uuid.
 	return nil, fmt.Errorf("verification request not found: %s", id)
 }
 
-func (r *pgxVerificationRepository) GetUserRequests(ctx context.Context, userID uuid.UUID) ([]domain.VerificationRequest, error) {
+func (r *memoryVerificationRepository) GetUserRequests(ctx context.Context, userID uuid.UUID) ([]domain.VerificationRequest, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.VerificationRequest
@@ -94,7 +105,7 @@ func (r *pgxVerificationRepository) GetUserRequests(ctx context.Context, userID 
 	return list, nil
 }
 
-func (r *pgxVerificationRepository) UpdateRequestStatus(ctx context.Context, id uuid.UUID, status, notes string) error {
+func (r *memoryVerificationRepository) UpdateRequestStatus(ctx context.Context, id uuid.UUID, status, notes string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if req, exists := r.requests[id]; exists {
@@ -106,7 +117,7 @@ func (r *pgxVerificationRepository) UpdateRequestStatus(ctx context.Context, id 
 	return fmt.Errorf("request not found: %s", id)
 }
 
-func (r *pgxVerificationRepository) AddDocument(ctx context.Context, doc *domain.VerificationDocument) error {
+func (r *memoryVerificationRepository) AddDocument(ctx context.Context, doc *domain.VerificationDocument) error {
 	if doc.ID == uuid.Nil {
 		doc.ID = uuid.New()
 	}
@@ -118,7 +129,7 @@ func (r *pgxVerificationRepository) AddDocument(ctx context.Context, doc *domain
 	return nil
 }
 
-func (r *pgxVerificationRepository) GetDocumentsByRequest(ctx context.Context, requestID uuid.UUID) ([]domain.VerificationDocument, error) {
+func (r *memoryVerificationRepository) GetDocumentsByRequest(ctx context.Context, requestID uuid.UUID) ([]domain.VerificationDocument, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	var list []domain.VerificationDocument
@@ -130,7 +141,7 @@ func (r *pgxVerificationRepository) GetDocumentsByRequest(ctx context.Context, r
 	return list, nil
 }
 
-func (r *pgxVerificationRepository) GetOrCreateStatus(ctx context.Context, userID uuid.UUID) (*domain.VerificationStatus, error) {
+func (r *memoryVerificationRepository) GetOrCreateStatus(ctx context.Context, userID uuid.UUID) (*domain.VerificationStatus, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for _, st := range r.statuses {
@@ -157,7 +168,7 @@ func (r *pgxVerificationRepository) GetOrCreateStatus(ctx context.Context, userI
 	return newStatus, nil
 }
 
-func (r *pgxVerificationRepository) UpdatePrivacy(ctx context.Context, userID uuid.UUID, privacySetting string, hideDocs bool) (*domain.VerificationStatus, error) {
+func (r *memoryVerificationRepository) UpdatePrivacy(ctx context.Context, userID uuid.UUID, privacySetting string, hideDocs bool) (*domain.VerificationStatus, error) {
 	st, err := r.GetOrCreateStatus(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -171,7 +182,7 @@ func (r *pgxVerificationRepository) UpdatePrivacy(ctx context.Context, userID uu
 	return st, nil
 }
 
-func (r *pgxVerificationRepository) UpdateTrustScore(ctx context.Context, status *domain.VerificationStatus) error {
+func (r *memoryVerificationRepository) UpdateTrustScore(ctx context.Context, status *domain.VerificationStatus) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	status.UpdatedAt = time.Now()

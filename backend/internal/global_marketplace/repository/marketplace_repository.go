@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"kirmya/internal/global_marketplace/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,7 +19,11 @@ type MarketplaceRepository interface {
 	SearchInternationalJobs(ctx context.Context, regionCode, countryCode, arrangement string) ([]domain.InternationalJobItem, error)
 }
 
-type pgxMarketplaceRepository struct {
+// memoryMarketplaceRepository satisfies MarketplaceRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryMarketplaceRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -29,12 +34,18 @@ type pgxMarketplaceRepository struct {
 }
 
 func NewMarketplaceRepository(pool *pgxpool.Pool) MarketplaceRepository {
-	repo := &pgxMarketplaceRepository{pool: pool}
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "global_marketplace",
+		Data:        "seeded regions, market insights and marketplace opportunities",
+		Consequence: "the marketplace only ever serves fixture data; nothing written to it survives",
+	})
+
+	repo := &memoryMarketplaceRepository{pool: pool}
 	repo.seedDefaultData()
 	return repo
 }
 
-func (r *pgxMarketplaceRepository) seedDefaultData() {
+func (r *memoryMarketplaceRepository) seedDefaultData() {
 	r.regions = []domain.Region{
 		{ID: uuid.New(), Name: "Middle East & GCC", Code: domain.RegionGCC, Description: "UAE, Saudi Arabia, Qatar, Bahrain, Kuwait, Oman"},
 		{ID: uuid.New(), Name: "India & APAC", Code: domain.RegionAPAC, Description: "India, Singapore, APAC Tech Hubs"},
@@ -128,25 +139,25 @@ func (r *pgxMarketplaceRepository) seedDefaultData() {
 	}
 }
 
-func (r *pgxMarketplaceRepository) GetCountries(ctx context.Context) ([]domain.Country, error) {
+func (r *memoryMarketplaceRepository) GetCountries(ctx context.Context) ([]domain.Country, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.countries, nil
 }
 
-func (r *pgxMarketplaceRepository) GetRegions(ctx context.Context) ([]domain.Region, error) {
+func (r *memoryMarketplaceRepository) GetRegions(ctx context.Context) ([]domain.Region, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.regions, nil
 }
 
-func (r *pgxMarketplaceRepository) GetCurrencies(ctx context.Context) ([]domain.Currency, error) {
+func (r *memoryMarketplaceRepository) GetCurrencies(ctx context.Context) ([]domain.Currency, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	return r.currencies, nil
 }
 
-func (r *pgxMarketplaceRepository) SearchInternationalJobs(ctx context.Context, regionCode, countryCode, arrangement string) ([]domain.InternationalJobItem, error) {
+func (r *memoryMarketplaceRepository) SearchInternationalJobs(ctx context.Context, regionCode, countryCode, arrangement string) ([]domain.InternationalJobItem, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

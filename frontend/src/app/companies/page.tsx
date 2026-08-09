@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Box, Tabs, Tab } from '@mui/material';
 import CompanyDirectoryLayout from '../../components/company/CompanyDirectoryLayout';
-import CompanySearch from '../../components/company/CompanySearch';
+import DirectorySearchBar from '../../components/company/DirectorySearchBar';
 import CompanyFilters from '../../components/company/CompanyFilters';
 import CompanyGrid from '../../components/company/CompanyGrid';
 import FeaturedCompanies from '../../components/company/FeaturedCompanies';
@@ -101,7 +101,7 @@ export default function CompaniesDirectoryPage() {
   return (
     <CompanyDirectoryLayout>
       {/* Top Search Bar */}
-      <CompanySearch onSearch={handleSearch} />
+      <DirectorySearchBar onSearch={handleSearch} />
 
       {/* Tabs Navigation */}
       <Box sx={{ borderBottom: 1, borderColor: 'rgba(255, 255, 255, 0.1)', mb: 4 }}>

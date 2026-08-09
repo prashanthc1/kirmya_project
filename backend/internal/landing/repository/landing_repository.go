@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"kirmya/internal/landing/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -17,7 +18,11 @@ type LandingRepository interface {
 	CreateFeaturedJob(ctx context.Context, j *domain.FeaturedJob) error
 }
 
-type pgxLandingRepository struct {
+// memoryLandingRepository satisfies LandingRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memoryLandingRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -28,12 +33,18 @@ type pgxLandingRepository struct {
 }
 
 func NewLandingRepository(pool *pgxpool.Pool) LandingRepository {
-	repo := &pgxLandingRepository{pool: pool}
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "landing",
+		Data:        "seeded landing statistics, testimonials and featured jobs",
+		Consequence: "the public landing page publishes invented figures, and submitted testimonials are dropped",
+	})
+
+	repo := &memoryLandingRepository{pool: pool}
 	repo.seedDefaultData()
 	return repo
 }
 
-func (r *pgxLandingRepository) seedDefaultData() {
+func (r *memoryLandingRepository) seedDefaultData() {
 	now := time.Now()
 
 	r.statistics = []domain.LandingStatistic{
@@ -122,7 +133,7 @@ func (r *pgxLandingRepository) seedDefaultData() {
 	}
 }
 
-func (r *pgxLandingRepository) GetLandingContent(ctx context.Context) (*domain.LandingContentResponse, error) {
+func (r *memoryLandingRepository) GetLandingContent(ctx context.Context) (*domain.LandingContentResponse, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -134,7 +145,7 @@ func (r *pgxLandingRepository) GetLandingContent(ctx context.Context) (*domain.L
 	}, nil
 }
 
-func (r *pgxLandingRepository) CreateTestimonial(ctx context.Context, t *domain.Testimonial) error {
+func (r *memoryLandingRepository) CreateTestimonial(ctx context.Context, t *domain.Testimonial) error {
 	if t.ID == uuid.Nil {
 		t.ID = uuid.New()
 	}
@@ -147,7 +158,7 @@ func (r *pgxLandingRepository) CreateTestimonial(ctx context.Context, t *domain.
 	return nil
 }
 
-func (r *pgxLandingRepository) CreateFeaturedJob(ctx context.Context, j *domain.FeaturedJob) error {
+func (r *memoryLandingRepository) CreateFeaturedJob(ctx context.Context, j *domain.FeaturedJob) error {
 	if j.ID == uuid.Nil {
 		j.ID = uuid.New()
 	}

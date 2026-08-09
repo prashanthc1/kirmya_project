@@ -53,7 +53,28 @@ jobs:
             echo "::error::backend/.env.example is missing!"
             exit 1
           fi
+          for key in SWAGGER_ENABLED SWAGGER_HOST SWAGGER_BASE_PATH; do
+            if ! grep -q "^${key}=" .env.example; then
+              echo "::error::backend/.env.example is missing ${key}!"
+              exit 1
+            fi
+          done
           echo "Backend .env.example validated successfully."
+
+      - name: Regenerate OpenAPI Documentation
+        run: make swagger
+
+      - name: Verify Committed OpenAPI Spec Is Current
+        run: |
+          if ! git diff --quiet -- internal/docs; then
+            echo "::error::internal/docs is stale. Run 'make swagger' locally and commit the result."
+            git --no-pager diff --stat -- internal/docs
+            exit 1
+          fi
+          echo "Committed OpenAPI spec matches the source annotations."
+
+      - name: Validate OpenAPI Schema And Route Coverage
+        run: make swagger-validate
 
       - name: Build Backend Executable Binary
         run: go build -v -o bin/kirmya ./cmd/kirmya

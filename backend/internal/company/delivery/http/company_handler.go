@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"kirmya/internal/company/domain"
 	"kirmya/internal/company/models"
 	"kirmya/internal/company/service"
 
@@ -39,10 +40,9 @@ func (h *CompanyHandler) ListDirectory(c *gin.Context) {
 		Limit:          limit,
 	}
 
-	userID, _ := h.getUserID(c)
-	res, err := h.service.ListDirectory(c.Request.Context(), filter, userID)
+	res, err := h.service.ListDirectory(c.Request.Context(), filter, h.optionalUserID(c))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, err)
 		return
 	}
 
@@ -290,16 +290,90 @@ func (h *CompanyHandler) FollowCompany(c *gin.Context) {
 	})
 }
 
+// UnfollowCompany removes the caller's follow. It used to answer with a canned
+// success without touching storage, so the follow survived every "unfollow".
 func (h *CompanyHandler) UnfollowCompany(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+	companyID, ok := h.companyIDFromRequest(c)
+	if !ok {
+		return
+	}
+
+	if err := h.service.Unfollow(c.Request.Context(), companyID, userID); err != nil {
+		respondError(c, err)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"following": false, "message": "Unfollowed successfully"})
 }
 
+// SaveCompany bookmarks a company for the caller.
 func (h *CompanyHandler) SaveCompany(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"saved": true, "message": "Company saved successfully"})
+	userID, err := h.getUserID(c)
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+	companyID, ok := h.companyIDFromRequest(c)
+	if !ok {
+		return
+	}
+
+	saved, err := h.service.SaveCompany(c.Request.Context(), companyID, userID)
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"saved": saved, "message": "Company saved successfully"})
 }
 
+// UnsaveCompany removes a bookmark.
 func (h *CompanyHandler) UnsaveCompany(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		respondError(c, err)
+		return
+	}
+	companyID, ok := h.companyIDFromRequest(c)
+	if !ok {
+		return
+	}
+
+	if err := h.service.UnsaveCompany(c.Request.Context(), companyID, userID); err != nil {
+		respondError(c, err)
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"saved": false, "message": "Company unsaved successfully"})
+}
+
+// companyIDFromRequest reads the company id from the path, the body or the
+// query string, because these routes are reached both ways by existing clients.
+func (h *CompanyHandler) companyIDFromRequest(c *gin.Context) (uuid.UUID, bool) {
+	raw := c.Param("id")
+	if raw == "" {
+		var payload struct {
+			CompanyID string `json:"company_id"`
+			Alt       string `json:"companyId"`
+		}
+		_ = c.ShouldBindJSON(&payload)
+		raw = payload.CompanyID
+		if raw == "" {
+			raw = payload.Alt
+		}
+	}
+	if raw == "" {
+		raw = c.Query("company_id")
+	}
+
+	companyID, err := uuid.Parse(raw)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return uuid.Nil, false
+	}
+	return companyID, true
 }
 
 func (h *CompanyHandler) GetRecommendations(c *gin.Context) {
@@ -309,13 +383,13 @@ func (h *CompanyHandler) GetRecommendations(c *gin.Context) {
 		limit = 4
 	}
 
-	companies, profiles, err := h.service.GetRecommendations(c.Request.Context(), limit)
+	companies, profiles, err := h.service.GetRecommendations(c.Request.Context(), h.optionalUserID(c), limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondError(c, err)
 		return
 	}
 
-	var list []gin.H
+	list := []gin.H{}
 	for i := range companies {
 		list = append(list, gin.H{
 			"company": companies[i],
@@ -346,71 +420,41 @@ func (h *CompanyHandler) SearchCompanies(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
-func (h *CompanyHandler) RequestVerification(c *gin.Context) {
-	userID, err := h.getUserID(c)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-
-	companyIDStr := c.Param("id")
-	companyID, err := uuid.Parse(companyIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
-		return
-	}
-
-	var payload struct {
-		Documents []string `json:"documents" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = h.service.RequestVerification(c.Request.Context(), userID, companyID, payload.Documents)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Verification request submitted successfully"})
-}
-
-func (h *CompanyHandler) UpdateVerificationStatus(c *gin.Context) {
-	reqIDStr := c.Param("requestId")
-	reqID, err := uuid.Parse(reqIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
-		return
-	}
-
-	var payload struct {
-		Status string `json:"status" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = h.service.UpdateVerificationStatus(c.Request.Context(), reqID, payload.Status)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Verification status updated successfully"})
-}
-
-// Helpers
+// getUserID returns the authenticated caller.
+//
+// It used to fall back to a fixed demonstration account whenever the context
+// carried no user, which meant an unauthenticated request on a route that had
+// lost its middleware would write under that account's identity. There is no
+// fallback now: no user means no user, and every write path treats that as
+// unauthorized.
 func (h *CompanyHandler) getUserID(c *gin.Context) (uuid.UUID, error) {
 	val, exists := c.Get("userID")
 	if !exists {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001"), nil
+		return uuid.Nil, domain.ErrUnauthenticated
 	}
-	uid, ok := val.(uuid.UUID)
-	if !ok {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001"), nil
+	switch id := val.(type) {
+	case uuid.UUID:
+		if id == uuid.Nil {
+			return uuid.Nil, domain.ErrUnauthenticated
+		}
+		return id, nil
+	case string:
+		parsed, err := uuid.Parse(id)
+		if err != nil || parsed == uuid.Nil {
+			return uuid.Nil, domain.ErrUnauthenticated
+		}
+		return parsed, nil
+	default:
+		return uuid.Nil, domain.ErrUnauthenticated
 	}
-	return uid, nil
+}
+
+// optionalUserID returns the caller when there is one, and the zero uuid
+// otherwise. It is for read paths that shape their response around the viewer.
+func (h *CompanyHandler) optionalUserID(c *gin.Context) uuid.UUID {
+	id, err := h.getUserID(c)
+	if err != nil {
+		return uuid.Nil
+	}
+	return id
 }

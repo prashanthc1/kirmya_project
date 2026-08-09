@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"kirmya/internal/search/domain"
+	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -18,7 +19,11 @@ type SearchRepository interface {
 	GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error)
 }
 
-type pgxSearchRepository struct {
+// memorySearchRepository satisfies SearchRepository entirely from process
+// memory. It accepts the pool so a SQL implementation can take its place
+// without changing any caller, but it never queries it: the data lives and
+// dies with this process. Registered in internal/shared/persistence.
+type memorySearchRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -27,14 +32,20 @@ type pgxSearchRepository struct {
 }
 
 func NewSearchRepository(pool *pgxpool.Pool) SearchRepository {
-	return &pgxSearchRepository{
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "search",
+		Data:        "search history and saved search preferences",
+		Consequence: "saved searches and history disappear from every account",
+	})
+
+	return &memorySearchRepository{
 		pool:        pool,
 		history:     make(map[uuid.UUID]*domain.SearchHistoryItem),
 		preferences: make(map[uuid.UUID]*domain.SearchPreference),
 	}
 }
 
-func (r *pgxSearchRepository) SaveSearchHistory(ctx context.Context, item *domain.SearchHistoryItem) error {
+func (r *memorySearchRepository) SaveSearchHistory(ctx context.Context, item *domain.SearchHistoryItem) error {
 	if item.ID == uuid.Nil {
 		item.ID = uuid.New()
 	}
@@ -47,7 +58,7 @@ func (r *pgxSearchRepository) SaveSearchHistory(ctx context.Context, item *domai
 	return nil
 }
 
-func (r *pgxSearchRepository) GetUserSearchHistory(ctx context.Context, userID uuid.UUID, limit int) ([]domain.SearchHistoryItem, error) {
+func (r *memorySearchRepository) GetUserSearchHistory(ctx context.Context, userID uuid.UUID, limit int) ([]domain.SearchHistoryItem, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -73,7 +84,7 @@ func (r *pgxSearchRepository) GetUserSearchHistory(ctx context.Context, userID u
 	return list, nil
 }
 
-func (r *pgxSearchRepository) SaveSearchPreference(ctx context.Context, pref *domain.SearchPreference) error {
+func (r *memorySearchRepository) SaveSearchPreference(ctx context.Context, pref *domain.SearchPreference) error {
 	if pref.ID == uuid.Nil {
 		pref.ID = uuid.New()
 	}
@@ -86,7 +97,7 @@ func (r *pgxSearchRepository) SaveSearchPreference(ctx context.Context, pref *do
 	return nil
 }
 
-func (r *pgxSearchRepository) GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error) {
+func (r *memorySearchRepository) GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
