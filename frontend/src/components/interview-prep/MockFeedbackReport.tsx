@@ -116,7 +116,7 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
               </Typography>
             </Stack>
             <Typography variant="body2" sx={{ color: '#E2E8F0', fontStyle: 'italic' }}>
-              "{answer.suggested_answer}"
+              &quot;{answer.suggested_answer}&quot;
             </Typography>
           </Box>
         )}

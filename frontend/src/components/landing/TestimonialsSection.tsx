@@ -96,7 +96,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
                   </Stack>
 
                   <Typography variant="body1" sx={{ fontStyle: 'italic', lineHeight: 1.65, color: 'text.primary', flexGrow: 1 }}>
-                    "{t.quote}"
+                    &quot;{t.quote}&quot;
                   </Typography>
 
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
@@ -132,7 +132,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
                 <Stack spacing={2}>
                   <Rating value={list[currentIndex].rating || 5} readOnly size="small" sx={{ color: '#f59e0b' }} />
                   <Typography variant="body1" sx={{ fontStyle: 'italic', lineHeight: 1.65 }}>
-                    "{list[currentIndex].quote}"
+                    &quot;{list[currentIndex].quote}&quot;
                   </Typography>
                   <Stack direction="row" spacing={1.5} alignItems="center">
                     <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 800 }}>

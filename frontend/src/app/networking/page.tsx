@@ -304,7 +304,7 @@ export default function NetworkingPage() {
                 </Typography>
                 
                 {connections.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">You haven't established connections yet. Review recommendations to begin.</Typography>
+                  <Typography variant="body2" color="text.secondary">You haven&apos;t established connections yet. Review recommendations to begin.</Typography>
                 ) : (
                   <Stack spacing={2}>
                     {connections.map((conn) => (

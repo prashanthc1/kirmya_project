@@ -113,7 +113,7 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
               borderRadius: 2,
             }}
           >
-            "{letter.introduction || letter.body}"
+            &quot;{letter.introduction || letter.body}&quot;
           </Typography>
 
           <Stack direction="row" spacing={2} mb={2}>

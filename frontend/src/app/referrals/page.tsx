@@ -291,7 +291,7 @@ export default function ReferralsPage() {
                     </Typography>
 
                     <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2, flexGrow: 1 }}>
-                      "{req.message_to_referrer}"
+                      &quot;{req.message_to_referrer}&quot;
                     </Typography>
 
                     <Typography variant="caption" sx={{ color: '#64748b', mb: 2, display: 'block' }}>

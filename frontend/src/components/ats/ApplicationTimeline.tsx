@@ -58,7 +58,7 @@ export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = () => {
                   By: {ev.user}
                 </Typography>
                 <Typography variant="body2" sx={{ fontSize: '0.85rem', mt: 0.8 }}>
-                  "{ev.note}"
+                  &quot;{ev.note}&quot;
                 </Typography>
               </Box>
             </Stack>

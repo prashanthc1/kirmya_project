@@ -20,6 +20,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	authMiddleware "kirmya/internal/auth/middleware"
 	"kirmya/internal/router"
 )
 
@@ -156,7 +157,15 @@ func compareRoutes(documented map[string]bool) []string {
 	gin.SetMode(gin.TestMode)
 	// Zero-value handlers: routes are registered by method value, never called.
 	// Swagger stays disabled so the UI's own routes are not treated as API.
-	engine := router.New(router.Handlers{}, router.SwaggerConfig{})
+	//
+	// The auth middleware is the exception. Modules that take one — company,
+	// onboarding, auth — refuse to mount their protected routes when it is nil,
+	// so leaving it out would hide the authenticated half of the API from this
+	// check and report every documented one as unregistered. The value here
+	// carries no auth service, which is safe because no handler ever runs.
+	engine := router.New(router.Handlers{
+		AuthMiddleware: authMiddleware.NewAuthMiddleware(nil),
+	}, router.SwaggerConfig{})
 
 	var problems []string
 	registered := map[string]bool{}

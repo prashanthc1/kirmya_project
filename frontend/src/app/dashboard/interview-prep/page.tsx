@@ -137,7 +137,7 @@ export default function InterviewPrepDashboardPage() {
                 {sessions.length === 0 && !loading && (
                   <Grid item xs={12}>
                     <Typography variant="body2" sx={{ color: '#64748B' }}>
-                      No mock sessions started yet. Click 'Start AI Mock Interview' to practice.
+                      No mock sessions started yet. Click &apos;Start AI Mock Interview&apos; to practice.
                     </Typography>
                   </Grid>
                 )}

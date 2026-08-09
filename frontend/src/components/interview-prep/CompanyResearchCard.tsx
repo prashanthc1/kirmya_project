@@ -43,9 +43,9 @@ export const CompanyResearchCard: React.FC<CompanyResearchCardProps> = ({ compan
             MOST FREQUENT INTERVIEW PROMPTS
           </Typography>
           <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
-            • "Tell me about a time you handled conflicting technical priorities under tight deadlines."
+            • &quot;Tell me about a time you handled conflicting technical priorities under tight deadlines.&quot;
             <br />
-            • "How do you ensure zero-downtime microservices deployments?"
+            • &quot;How do you ensure zero-downtime microservices deployments?&quot;
           </Typography>
         </Box>
 
@@ -54,9 +54,9 @@ export const CompanyResearchCard: React.FC<CompanyResearchCardProps> = ({ compan
             RECOMMENDED QUESTIONS TO ASK INTERVIEWERS
           </Typography>
           <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
-            1. "How does the engineering team evaluate technical debt vs feature delivery speed?"
+            1. &quot;How does the engineering team evaluate technical debt vs feature delivery speed?&quot;
             <br />
-            2. "What are the key technical milestones for this team over the next 2 quarters?"
+            2. &quot;What are the key technical milestones for this team over the next 2 quarters?&quot;
           </Typography>
         </Box>
       </Stack>

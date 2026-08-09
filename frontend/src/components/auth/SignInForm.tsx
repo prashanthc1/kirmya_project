@@ -194,7 +194,7 @@ export const SignInForm: React.FC = () => {
 
       <Box sx={{ mt: 3, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
-          Don't have an account yet?{' '}
+          Don&apos;t have an account yet?{' '}
           <MuiLink
             component="button"
             type="button"

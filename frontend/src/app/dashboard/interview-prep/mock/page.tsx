@@ -151,7 +151,7 @@ function MockInterviewRoomContent() {
                 AI INTERVIEWER QUESTION PROMPT
               </Typography>
               <Typography variant="h6" fontWeight={600} sx={{ color: '#F8FAFC' }}>
-                "{currentQuestionText}"
+                &quot;{currentQuestionText}&quot;
               </Typography>
             </Box>
 

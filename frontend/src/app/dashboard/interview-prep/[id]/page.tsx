@@ -192,7 +192,7 @@ export default function WorkspaceDetailPage() {
 
                 {questions.length === 0 && !loading && (
                   <Typography variant="body2" sx={{ color: '#64748B', textAlign: 'center', py: 3 }}>
-                    No target questions generated yet. Click 'Generate AI Questions' above.
+                    No target questions generated yet. Click &apos;Generate AI Questions&apos; above.
                   </Typography>
                 )}
               </Stack>

@@ -200,6 +200,34 @@ import (
 	persistencePkg "kirmya/internal/shared/persistence"
 )
 
+// The block below is the document-level half of the OpenAPI contract: the title,
+// version and security scheme that every per-module annotation hangs off. swag
+// reads it from this file because it is the `-g` entry point (see the Makefile);
+// the operations themselves live in each module's delivery/http/swagger.go.
+//
+// Host and basePath are the development defaults. A deployment overrides them
+// from SWAGGER_HOST and SWAGGER_BASE_PATH at startup, in router.registerSwagger.
+//
+// @title                       Kirmya API
+// @version                     1.0
+// @description                 HTTP API for Kirmya, an AI-assisted professional networking and hiring platform. Every route is mounted under /api/v1. Endpoints marked with a padlock require a Bearer access token from POST /api/v1/auth/login; the rest are open to anonymous callers. Requests are rate limited per client IP, and company, recruiter and organization endpoints apply their own per-company permission checks on top of authentication.
+// @termsOfService              https://kirmya.com/terms
+//
+// @contact.name                Kirmya Engineering
+// @contact.url                 https://kirmya.com/support
+// @contact.email               support@kirmya.com
+//
+// @license.name                Proprietary
+// @license.url                 https://kirmya.com/terms
+//
+// @host                        localhost:8080
+// @BasePath                    /
+// @schemes                     http https
+//
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 Access token issued by the auth module, sent as "Bearer {token}".
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,

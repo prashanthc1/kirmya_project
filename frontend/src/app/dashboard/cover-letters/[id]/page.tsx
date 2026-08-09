@@ -81,7 +81,7 @@ export default function CoverLetterDetailPage() {
             Cover Letter Summary
           </Typography>
           <Typography variant="body1" paragraph sx={{ fontStyle: 'italic', background: 'rgba(0,0,0,0.2)', p: 2, borderRadius: 2 }}>
-            "{letter.introduction}"
+            &quot;{letter.introduction}&quot;
           </Typography>
           <Stack direction="row" spacing={4} mt={2}>
             <Typography variant="body2" color="text.secondary">Template: <strong>{letter.templateName}</strong></Typography>

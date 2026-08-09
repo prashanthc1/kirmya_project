@@ -67,7 +67,7 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
               <br />
               2. Pause 2-3 seconds after each prompt to structure your answer into STAR framework.
               <br />
-              3. Highlight your direct contribution using strong action verbs ('I designed', 'I led', 'I refactored').
+              3. Highlight your direct contribution using strong action verbs (&apos;I designed&apos;, &apos;I led&apos;, &apos;I refactored&apos;).
             </Typography>
           </Box>
 
@@ -95,9 +95,9 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
               ❓ Essential Questions to Ask Your Interviewer
             </Typography>
             <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
-              1. "What does success look like in the first 90 days for this {jobTitle} position?"
+              1. &quot;What does success look like in the first 90 days for this {jobTitle} position?&quot;
               <br />
-              2. "What are the biggest technical or team growth priorities for {companyName} right now?"
+              2. &quot;What are the biggest technical or team growth priorities for {companyName} right now?&quot;
             </Typography>
           </Box>
         </Stack>
@@ -115,7 +115,7 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
             px: 4,
           }}
         >
-          I'm Ready! Good Luck 🚀
+          I&apos;m Ready! Good Luck 🚀
         </Button>
       </DialogActions>
     </Dialog>

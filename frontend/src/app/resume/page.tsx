@@ -550,7 +550,7 @@ export default function ResumePage() {
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Your Resume Vault</Typography>
                   
                   {resumes.length === 0 ? (
-                    <Alert severity="info">No resumes created yet. Click 'Create Resume' to scaffold your first resume.</Alert>
+                    <Alert severity="info">No resumes created yet. Click &apos;Create Resume&apos; to scaffold your first resume.</Alert>
                   ) : (
                     <Grid container spacing={2}>
                       {resumes.map((res) => (

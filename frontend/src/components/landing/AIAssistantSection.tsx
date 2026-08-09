@@ -126,7 +126,7 @@ export const AIAssistantSection: React.FC = () => {
                     ✨ AI Suggested Bullet:
                   </Typography>
                   <Typography variant="body2" sx={{ fontStyle: 'italic', lineHeight: 1.6 }}>
-                    "Managed 18+ vendor SLA contracts valued at $4.2M, improving service uptime to 99.4% and cutting annual procurement costs by 14%."
+                    &quot;Managed 18+ vendor SLA contracts valued at $4.2M, improving service uptime to 99.4% and cutting annual procurement costs by 14%.&quot;
                   </Typography>
                 </Paper>
               </Stack>

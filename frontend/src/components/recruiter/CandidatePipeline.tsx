@@ -122,7 +122,7 @@ export const CandidatePipeline: React.FC<CandidatePipelineProps> = ({ pipeline, 
 
                     {item.notes && (
                       <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', display: 'block', mb: 1 }}>
-                        "{item.notes}"
+                        &quot;{item.notes}&quot;
                       </Typography>
                     )}
 

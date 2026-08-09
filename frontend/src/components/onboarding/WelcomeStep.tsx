@@ -43,7 +43,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
         </Typography>
 
         <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 580, mx: 'auto', mb: 4, lineHeight: 1.65, fontSize: '1.05rem' }}>
-          Let's build your complete professional profile so we can recommend better jobs, recruiters, communities, and authentic employee connections.
+          Let&apos;s build your complete professional profile so we can recommend better jobs, recruiters, communities, and authentic employee connections.
         </Typography>
 
         {/* Feature Badges Grid */}
@@ -90,7 +90,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
             boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
           }}
         >
-          Let's Get Started
+          Let&apos;s Get Started
         </Button>
       </GlassCard>
     </motion.div>

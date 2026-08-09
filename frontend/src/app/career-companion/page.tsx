@@ -421,7 +421,7 @@ export default function CareerCompanionPage() {
               <CardContent sx={{ p: 3 }}>
                 <Chip label="INTERVIEW QUESTION 1" size="small" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold', mb: 1.5 }} />
                 <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
-                  "Tell me about a complex architectural decision where you had to balance low latency database performance against cost."
+                  &quot;Tell me about a complex architectural decision where you had to balance low latency database performance against cost.&quot;
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#94a3b8' }}>
                   Target Competency: System Architecture & PostgreSQL Optimization

@@ -309,39 +309,10 @@ func swaggerUnsaveCompany() {}
 // @Router       /api/v1/companies/{id}/report [post]
 func swaggerReportCompany() {}
 
-// swaggerRequestVerification documents POST /api/v1/companies/{id}/verify.
-//
-// @Summary      Request verification
-// @Description  Request verification via the Kirmya company directory module. Requires a valid Bearer access token.
-// @Tags         Organizations
-// @Accept       json
-// @Produce      json
-// @Param        id  path  string  true  "Id"
-// @Param        request  body  object  false  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/companies/{id}/verify [post]
-func swaggerRequestVerification() {}
-
-// swaggerUpdateVerificationStatus documents PUT /api/v1/companies/verify/{requestId}.
-//
-// @Summary      Update verification status
-// @Description  Updates verification status via the Kirmya company directory module. Requires a valid Bearer access token.
-// @Tags         Organizations
-// @Accept       json
-// @Produce      json
-// @Param        requestId  path  string  true  "Request id"
-// @Param        request  body  object  false  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/companies/verify/{requestId} [put]
-func swaggerUpdateVerificationStatus() {}
+// Verification is documented in swagger_management.go, against the routes that
+// actually serve it: POST /api/v1/companies/{id}/verification to submit, and
+// PUT /api/v1/admin/company-verifications/{verificationId} for the
+// administrator's decision. The company itself never sets its own badge.
 
 // swaggerGetByHandle2 documents GET /api/v1/company/{slug}.
 //

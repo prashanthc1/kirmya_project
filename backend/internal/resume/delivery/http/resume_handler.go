@@ -67,12 +67,19 @@ func (h *ResumeHandler) GetResume(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// CreateResumeRequest is the body of POST /api/v1/resumes.
+//
+// Both fields are optional: an empty body creates a resume called
+// "My Resume" from the classic template. The templates the service ships
+// with are classic, modern and minimal, but any name is stored as given.
+type CreateResumeRequest struct {
+	Title        string `json:"title"`
+	TemplateName string `json:"templateName"`
+}
+
 func (h *ResumeHandler) CreateResume(c *gin.Context) {
 	userID := h.getUserID(c)
-	var req struct {
-		Title        string `json:"title"`
-		TemplateName string `json:"templateName"`
-	}
+	var req CreateResumeRequest
 	_ = c.ShouldBindJSON(&req)
 	if req.Title == "" {
 		req.Title = "My Resume"
@@ -89,6 +96,12 @@ func (h *ResumeHandler) CreateResume(c *gin.Context) {
 	c.JSON(http.StatusCreated, res)
 }
 
+// UpdateSectionsRequest is the body of PUT /api/v1/resumes/{id}. The sections
+// given replace the resume's current ones.
+type UpdateSectionsRequest struct {
+	Sections []models.ResumeSection `json:"sections"`
+}
+
 func (h *ResumeHandler) UpdateResumeSections(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -97,9 +110,7 @@ func (h *ResumeHandler) UpdateResumeSections(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Sections []models.ResumeSection `json:"sections"`
-	}
+	var req UpdateSectionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

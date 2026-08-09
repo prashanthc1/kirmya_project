@@ -257,7 +257,7 @@ export const HeroSection: React.FC = () => {
                     ⚡ AI Resume Optimization Insight:
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    "Added 4 high-impact keywords for ATS screening approval."
+                    &quot;Added 4 high-impact keywords for ATS screening approval.&quot;
                   </Typography>
                 </Box>
               </GlassCard>

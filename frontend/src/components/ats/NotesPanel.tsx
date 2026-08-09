@@ -138,7 +138,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
             </Stack>
 
             <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
-              "{n.text}"
+              &quot;{n.text}&quot;
             </Typography>
           </Paper>
         ))}

@@ -12,6 +12,24 @@ definitions:
     - resume_text
     - target_job_title
     type: object
+  domain.AssociationType:
+    enum:
+    - current_employee
+    - former_employee
+    - contractor
+    - recruiter
+    - hiring_manager
+    - executive
+    - intern
+    type: string
+    x-enum-varnames:
+    - AssociationCurrentEmployee
+    - AssociationFormerEmployee
+    - AssociationContractor
+    - AssociationRecruiter
+    - AssociationHiringManager
+    - AssociationExecutive
+    - AssociationIntern
   domain.CareerPreferences:
     properties:
       desired_job_titles:
@@ -347,6 +365,20 @@ definitions:
     required:
     - target_role
     type: object
+  domain.InvitationStatus:
+    enum:
+    - pending
+    - accepted
+    - declined
+    - expired
+    - revoked
+    type: string
+    x-enum-varnames:
+    - InvitationPending
+    - InvitationAccepted
+    - InvitationDeclined
+    - InvitationExpired
+    - InvitationRevoked
   domain.InviteMemberPayload:
     properties:
       role:
@@ -369,6 +401,20 @@ definitions:
     required:
     - target_role
     type: object
+  domain.MembershipStatus:
+    enum:
+    - pending
+    - approved
+    - rejected
+    - removed
+    - suspended
+    type: string
+    x-enum-varnames:
+    - MembershipPending
+    - MembershipApproved
+    - MembershipRejected
+    - MembershipRemoved
+    - MembershipSuspended
   domain.ModerationActionPayload:
     properties:
       action:
@@ -418,6 +464,70 @@ definitions:
     - candidate_id
     - job_id
     type: object
+  domain.Permission:
+    enum:
+    - company:view
+    - company:edit
+    - company:delete
+    - branding:edit
+    - settings:edit
+    - verification:view
+    - verification:submit
+    - team:view
+    - team:invite
+    - team:manage
+    - people:approve
+    - permission:edit
+    - recruiter:view
+    - recruiter:invite
+    - recruiter:manage
+    - job:view
+    - job:create
+    - job:edit
+    - job:publish
+    - job:close
+    - application:view
+    - analytics:view
+    - analytics:job:view
+    - audit:view
+    - ai:insights
+    - update:create
+    - update:publish
+    - update:delete
+    - review:respond
+    - review:moderate
+    type: string
+    x-enum-varnames:
+    - PermCompanyView
+    - PermCompanyEdit
+    - PermCompanyDelete
+    - PermBrandingEdit
+    - PermSettingsEdit
+    - PermVerificationView
+    - PermVerificationSubmit
+    - PermTeamView
+    - PermTeamInvite
+    - PermTeamManage
+    - PermPeopleApprove
+    - PermPermissionEdit
+    - PermRecruiterView
+    - PermRecruiterInvite
+    - PermRecruiterManage
+    - PermJobView
+    - PermJobCreate
+    - PermJobEdit
+    - PermJobPublish
+    - PermJobClose
+    - PermApplicationView
+    - PermAnalyticsView
+    - PermJobAnalyticsView
+    - PermAuditView
+    - PermAIInsights
+    - PermUpdateCreate
+    - PermUpdatePublish
+    - PermUpdateDelete
+    - PermReviewRespond
+    - PermReviewModerate
   domain.PortfolioItem:
     properties:
       title:
@@ -507,6 +617,18 @@ definitions:
     required:
     - resume_text
     type: object
+  domain.ReviewEmploymentType:
+    enum:
+    - current_employee
+    - former_employee
+    - contractor
+    - intern
+    type: string
+    x-enum-varnames:
+    - ReviewCurrentEmployee
+    - ReviewFormerEmployee
+    - ReviewContractor
+    - ReviewIntern
   domain.SaveProfilePayload:
     properties:
       hourly_rate:
@@ -764,6 +886,36 @@ definitions:
     required:
     - status
     type: object
+  domain.UpdateStatus:
+    enum:
+    - draft
+    - scheduled
+    - published
+    - archived
+    type: string
+    x-enum-varnames:
+    - UpdateDraft
+    - UpdateScheduled
+    - UpdatePublished
+    - UpdateArchived
+  domain.UpdateType:
+    enum:
+    - text
+    - image
+    - link
+    - job_announcement
+    - hiring_announcement
+    - news
+    - event
+    type: string
+    x-enum-varnames:
+    - UpdateTypeText
+    - UpdateTypeImage
+    - UpdateTypeLink
+    - UpdateTypeJob
+    - UpdateTypeHiring
+    - UpdateTypeNews
+    - UpdateTypeEventNotice
   domain.UserAnswerSubmission:
     properties:
       practical_response:
@@ -970,6 +1122,12 @@ definitions:
     required:
     - token
     type: object
+  http.AcceptedInvitationResponse:
+    properties:
+      companyId:
+        example: 6f1f8f3a-6d1e-4a6e-9c53-2f1b8b0f0c11
+        type: string
+    type: object
   http.AddAchievementRequest:
     properties:
       dateAchieved:
@@ -1061,6 +1219,13 @@ definitions:
     - name
     - proficiencyLevel
     type: object
+  http.ApplicationAnalyticsResponse:
+    properties:
+      analytics:
+        $ref: '#/definitions/models.CareerAnalyticsDTO'
+      stats:
+        $ref: '#/definitions/models.ApplicationStatsDTO'
+    type: object
   http.ApproveMemberPayload:
     properties:
       approve:
@@ -1083,6 +1248,34 @@ definitions:
     required:
     - roleName
     - targetUserId
+    type: object
+  http.AssociationDecisionBody:
+    properties:
+      decision:
+        description: Decision is either "approve" or "reject". Nothing else is accepted.
+        enum:
+        - approve
+        - reject
+        example: approve
+        type: string
+    required:
+    - decision
+    type: object
+  http.AuditLogPage:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.AuditEntry'
+        type: array
+      limit:
+        example: 50
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 124
+        type: integer
     type: object
   http.BlockUserPayload:
     properties:
@@ -1121,16 +1314,9 @@ definitions:
   http.CreateResumeRequest:
     properties:
       templateName:
-        enum:
-        - classic
-        - modern
-        - minimal
         type: string
       title:
         type: string
-    required:
-    - templateName
-    - title
     type: object
   http.FeedbackRequest:
     properties:
@@ -1145,6 +1331,47 @@ definitions:
     required:
     - feedbackType
     type: object
+  http.InvitationPreviewResponse:
+    properties:
+      company:
+        $ref: '#/definitions/models.CompanySummary'
+      invitation:
+        $ref: '#/definitions/models.CompanyInvitation'
+    type: object
+  http.MemberPermissionsBody:
+    properties:
+      permissions:
+        example:
+        - recruiter:view
+        - recruiter:manage
+        items:
+          type: string
+        type: array
+    type: object
+  http.PendingVerificationsPage:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CompanyVerification'
+        type: array
+      limit:
+        example: 20
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 7
+        type: integer
+    type: object
+  http.RecruiterSuspensionBody:
+    properties:
+      suspended:
+        description: Suspended true withdraws the recruiter's access; false restores
+          it.
+        example: true
+        type: boolean
+    type: object
   http.ReportPostPayload:
     properties:
       postId:
@@ -1154,6 +1381,23 @@ definitions:
     required:
     - postId
     - reason
+    type: object
+  http.ResumePreviewResponse:
+    properties:
+      previewUrl:
+        example: /preview/6f1f8f3a-6d1e-4a6e-9c53-2f1b8b0f0c11
+        type: string
+      resume:
+        $ref: '#/definitions/models.Resume'
+    type: object
+  http.SaveJobBody:
+    properties:
+      notes:
+        description: |-
+          Notes is the candidate's private reminder about the job. It is never
+          shown to the employer.
+        example: Ask about the remote policy
+        type: string
     type: object
   http.SendMessagePayload:
     properties:
@@ -1172,6 +1416,13 @@ definitions:
         type: string
     required:
     - receiverId
+    type: object
+  http.ShareResumeBody:
+    properties:
+      privacyLevel:
+        description: PrivacyLevel defaults to "Public" when empty.
+        example: Public
+        type: string
     type: object
   http.StartConversationPayload:
     properties:
@@ -1218,8 +1469,32 @@ definitions:
         items:
           $ref: '#/definitions/models.ResumeSection'
         type: array
-    required:
-    - sections
+    type: object
+  http.UploadDocumentBody:
+    properties:
+      document_type:
+        example: resume
+        type: string
+      file_url:
+        description: FileURL points at the object already placed in storage.
+        example: https://files.kirmya.com/candidates/cv.pdf
+        type: string
+      is_default:
+        description: IsDefault attaches this document to applications unless another
+          is chosen.
+        example: true
+        type: boolean
+      title:
+        example: Senior Backend Engineer CV
+        type: string
+    type: object
+  http.VerificationStateResponse:
+    properties:
+      status:
+        example: pending
+        type: string
+      verification:
+        $ref: '#/definitions/models.CompanyVerification'
     type: object
   kirmya_internal_analytics_domain.TrackEventPayload:
     properties:
@@ -1232,6 +1507,108 @@ definitions:
         type: object
     required:
     - event_name
+    type: object
+  kirmya_internal_applications_models.JobOfferDTO:
+    properties:
+      application_id:
+        type: string
+      benefits:
+        type: string
+      contract_type:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      joining_date:
+        type: string
+      position_title:
+        type: string
+      salary:
+        type: string
+      status:
+        type: string
+    type: object
+  kirmya_internal_company_domain.Role:
+    enum:
+    - company_owner
+    - org_admin
+    - recruiter_admin
+    - hiring_manager
+    - recruiter
+    - employee
+    - viewer
+    type: string
+    x-enum-varnames:
+    - RoleCompanyOwner
+    - RoleOrgAdmin
+    - RoleRecruiterAdmin
+    - RoleHiringManager
+    - RoleRecruiter
+    - RoleEmployee
+    - RoleViewer
+  kirmya_internal_company_domain.VerificationStatus:
+    enum:
+    - not_verified
+    - pending
+    - verified
+    - rejected
+    - expired
+    type: string
+    x-enum-varnames:
+    - VerificationNotVerified
+    - VerificationPending
+    - VerificationVerified
+    - VerificationRejected
+    - VerificationExpired
+  kirmya_internal_job_alerts_models.JobRecommendation:
+    properties:
+      application_deadline:
+        type: string
+      application_difficulty:
+        type: string
+      company_logo:
+        type: string
+      company_name:
+        type: string
+      company_verified:
+        type: boolean
+      created_at:
+        type: string
+      employment_type:
+        type: string
+      experience_required:
+        type: string
+      id:
+        type: string
+      is_applied:
+        type: boolean
+      is_saved:
+        type: boolean
+      job_id:
+        type: string
+      location:
+        type: string
+      recruiter_activity:
+        type: string
+      remote_compatibility:
+        type: string
+      salary_comparison:
+        type: string
+      salary_range:
+        type: string
+      score:
+        $ref: '#/definitions/models.JobMatchScore'
+      section_tag:
+        description: Recommended For You, High Match Jobs, Remote Jobs, Jobs Near
+          You, Based On Your Skills, etc.
+        type: string
+      title:
+        type: string
     type: object
   kirmya_internal_profile_delivery_http.UpdatePrefRequest:
     properties:
@@ -1283,6 +1660,67 @@ definitions:
     - item_id
     - item_type
     type: object
+  kirmya_internal_resume_models.TailorJobResponse:
+    properties:
+      matchScore:
+        type: integer
+      missingKeywords:
+        items:
+          type: string
+        type: array
+      missingSkills:
+        items:
+          type: string
+        type: array
+      recommendedChanges:
+        items:
+          type: string
+        type: array
+      tailoredResumeId:
+        type: string
+    type: object
+  models.AIApplicationInsightsDTO:
+    properties:
+      application_success_rate:
+        type: number
+      improvement_suggestions:
+        items:
+          type: string
+        type: array
+      missing_skills:
+        items:
+          type: string
+        type: array
+      profile_match_score:
+        type: integer
+      recommended_jobs:
+        items:
+          type: string
+        type: array
+      resume_match_score:
+        type: integer
+    type: object
+  models.ATSAnalysis:
+    properties:
+      experienceScore:
+        type: integer
+      formattingScore:
+        type: integer
+      keywordScore:
+        type: integer
+      overallScore:
+        type: integer
+      parsingIssues:
+        items:
+          type: string
+        type: array
+      recommendations:
+        items:
+          type: string
+        type: array
+      skillsScore:
+        type: integer
+    type: object
   models.ATSBulkActionPayload:
     properties:
       action:
@@ -1312,6 +1750,358 @@ definitions:
     - candidateId
     - notes
     type: object
+  models.AlertDeliveryHistory:
+    properties:
+      alert_id:
+        type: string
+      alert_title:
+        type: string
+      applications_submitted:
+        type: integer
+      candidate_id:
+        type: string
+      delivery_channel:
+        type: string
+      delivery_status:
+        type: string
+      id:
+        type: string
+      jobs_clicked:
+        type: integer
+      jobs_included:
+        type: integer
+      jobs_opened:
+        type: integer
+      sent_at:
+        type: string
+    type: object
+  models.AnalyticsPoint:
+    properties:
+      applications:
+        type: integer
+      date:
+        type: string
+      followers:
+        type: integer
+      jobViews:
+        type: integer
+      profileViews:
+        type: integer
+      uniqueVisitors:
+        type: integer
+    type: object
+  models.ApplicationDetail:
+    properties:
+      interviews:
+        items:
+          $ref: '#/definitions/models.CandidateInterview'
+        type: array
+      job_description:
+        type: string
+      notes:
+        items:
+          $ref: '#/definitions/models.ApplicationNote'
+        type: array
+      offer:
+        $ref: '#/definitions/kirmya_internal_applications_models.JobOfferDTO'
+      requirements:
+        items:
+          type: string
+        type: array
+      skills:
+        items:
+          type: string
+        type: array
+      submitted_cover_letter:
+        $ref: '#/definitions/models.CandidateDocument'
+      submitted_resume:
+        $ref: '#/definitions/models.CandidateDocument'
+      summary:
+        $ref: '#/definitions/models.ApplicationSummary'
+      timeline:
+        items:
+          $ref: '#/definitions/models.ApplicationTimelineItem'
+        type: array
+    type: object
+  models.ApplicationNote:
+    properties:
+      application_id:
+        type: string
+      candidate_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      note_text:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.ApplicationStage:
+    enum:
+    - Applied
+    - Viewed
+    - Shortlisted
+    - Interview
+    - Offer
+    - Accepted
+    - Rejected
+    type: string
+    x-enum-varnames:
+    - StageApplied
+    - StageViewed
+    - StageShortlisted
+    - StageInterview
+    - StageOffer
+    - StageAccepted
+    - StageRejected
+  models.ApplicationStatsDTO:
+    properties:
+      active_applications:
+        type: integer
+      interviews_scheduled:
+        type: integer
+      offers_received:
+        type: integer
+      rejected_applications:
+        type: integer
+      response_rate:
+        type: number
+      total_applications:
+        type: integer
+    type: object
+  models.ApplicationSummary:
+    properties:
+      applied_at:
+        type: string
+      company_id:
+        type: string
+      company_logo:
+        type: string
+      company_name:
+        type: string
+      current_status:
+        $ref: '#/definitions/models.ApplicationStage'
+      employment_type:
+        type: string
+      id:
+        type: string
+      is_saved:
+        type: boolean
+      job_id:
+        type: string
+      job_title:
+        type: string
+      last_update:
+        type: string
+      location:
+        type: string
+      next_interview_date:
+        type: string
+      notes_count:
+        type: integer
+      recruiter_avatar:
+        type: string
+      recruiter_email:
+        type: string
+      recruiter_id:
+        type: string
+      recruiter_name:
+        type: string
+      salary_range:
+        type: string
+    type: object
+  models.ApplicationTimelineItem:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      moved_by:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  models.AssociationRequestPayload:
+    properties:
+      associationType:
+        type: string
+      departmentId:
+        type: string
+      isPublic:
+        type: boolean
+      jobTitle:
+        type: string
+      location:
+        type: string
+    required:
+    - associationType
+    - jobTitle
+    type: object
+  models.AuditEntry:
+    properties:
+      action:
+        type: string
+      actorId:
+        type: string
+      actorName:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      resourceId:
+        type: string
+      resourceType:
+        type: string
+    type: object
+  models.BrandAsset:
+    properties:
+      label:
+        type: string
+      mimeType:
+        type: string
+      url:
+        type: string
+    type: object
+  models.CandidateDocument:
+    properties:
+      candidate_id:
+        type: string
+      document_type:
+        description: '''Resume'', ''Cover Letter'', ''Certificate'', ''Portfolio'''
+        type: string
+      file_type:
+        type: string
+      file_url:
+        type: string
+      id:
+        type: string
+      is_default:
+        type: boolean
+      size_bytes:
+        type: integer
+      title:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  models.CandidateInterview:
+    properties:
+      application_id:
+        type: string
+      company_logo:
+        type: string
+      company_name:
+        type: string
+      id:
+        type: string
+      interviewer:
+        type: string
+      job_title:
+        type: string
+      location_type:
+        type: string
+      meeting_link:
+        type: string
+      notes:
+        type: string
+      scheduled_end:
+        type: string
+      scheduled_start:
+        type: string
+      status:
+        description: '''scheduled'', ''completed'', ''cancelled'''
+        type: string
+      title:
+        type: string
+    type: object
+  models.CareerAnalyticsDTO:
+    properties:
+      application_trend:
+        items:
+          $ref: '#/definitions/models.MonthlyCountDTO'
+        type: array
+      applications_sent:
+        type: integer
+      interview_rate:
+        type: number
+      most_applied_companies:
+        items:
+          $ref: '#/definitions/models.CategoryCount'
+        type: array
+      most_applied_roles:
+        items:
+          $ref: '#/definitions/models.CategoryCount'
+        type: array
+      response_rate:
+        type: number
+      status_funnel:
+        items:
+          $ref: '#/definitions/models.FunnelStageDTO'
+        type: array
+      time_to_response_days:
+        type: number
+    type: object
+  models.CareerInsights:
+    properties:
+      career_progress_suggestions:
+        items:
+          type: string
+        type: array
+      emerging_roles:
+        items:
+          $ref: '#/definitions/models.NameCount'
+        type: array
+      hiring_trends:
+        items:
+          $ref: '#/definitions/models.NameCount'
+        type: array
+      industry_growth:
+        items:
+          $ref: '#/definitions/models.NameCount'
+        type: array
+      location_demand:
+        items:
+          $ref: '#/definitions/models.NameCount'
+        type: array
+      missing_skills:
+        items:
+          type: string
+        type: array
+      most_demanded_skills:
+        items:
+          $ref: '#/definitions/models.NameCount'
+        type: array
+      recommended_certifications:
+        items:
+          type: string
+        type: array
+      recommended_communities:
+        items:
+          type: string
+        type: array
+      recommended_connections:
+        items:
+          type: string
+        type: array
+      recommended_learning_paths:
+        items:
+          type: string
+        type: array
+      salary_trends:
+        items:
+          $ref: '#/definitions/models.SalaryTrendPoint'
+        type: array
+    type: object
   models.CareerSuggestionsRequest:
     properties:
       interests:
@@ -1325,6 +2115,808 @@ definitions:
     required:
     - interests
     - skills
+    type: object
+  models.CategoryCount:
+    properties:
+      count:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.CompanyAnalytics:
+    properties:
+      applicationConversion:
+        type: number
+      applications:
+        type: integer
+      candidateSources:
+        additionalProperties:
+          type: integer
+        type: object
+      followerGrowth:
+        type: integer
+      followers:
+        type: integer
+      from:
+        type: string
+      hireRate:
+        type: number
+      hires:
+        type: integer
+      interviewRate:
+        type: number
+      interviews:
+        description: |-
+          The funnel counts behind the rates below. They are reported alongside the
+          rates so a client never has to multiply a rate back out into a headcount
+          and present the rounding as a measurement.
+        type: integer
+      jobViews:
+        type: integer
+      offerRate:
+        type: number
+      offers:
+        type: integer
+      profileViews:
+        type: integer
+      recruiterActivity:
+        items:
+          $ref: '#/definitions/models.RecruiterActivityItem'
+        type: array
+      series:
+        items:
+          $ref: '#/definitions/models.AnalyticsPoint'
+        type: array
+      to:
+        type: string
+      uniqueVisitors:
+        type: integer
+    type: object
+  models.CompanyCreatePayload:
+    properties:
+      companySize:
+        type: string
+      companyType:
+        type: string
+      contactEmail:
+        type: string
+      description:
+        type: string
+      foundedYear:
+        type: integer
+      headquarters:
+        type: string
+      industry:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      slug:
+        maxLength: 100
+        minLength: 2
+        type: string
+      tagline:
+        maxLength: 255
+        type: string
+      website:
+        type: string
+    required:
+    - industry
+    - name
+    - slug
+    type: object
+  models.CompanyDashboard:
+    properties:
+      activeJobs:
+        type: integer
+      applications:
+        type: integer
+      candidates:
+        type: integer
+      company:
+        $ref: '#/definitions/models.CompanySummary'
+      followers:
+        type: integer
+      hires:
+        type: integer
+      interviews:
+        type: integer
+      jobViews:
+        type: integer
+      pendingApprovals:
+        type: integer
+      profileCompletion:
+        type: integer
+      profileViews:
+        type: integer
+      recruiterActivity:
+        items:
+          $ref: '#/definitions/models.RecruiterActivityItem'
+        type: array
+      verificationStatus:
+        $ref: '#/definitions/kirmya_internal_company_domain.VerificationStatus'
+    type: object
+  models.CompanyDepartment:
+    properties:
+      description:
+        type: string
+      employeeCount:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      openJobs:
+        type: integer
+    type: object
+  models.CompanyDetail:
+    properties:
+      awards:
+        items:
+          type: string
+        type: array
+      benefits:
+        items:
+          type: string
+        type: array
+      brandAssets:
+        items:
+          $ref: '#/definitions/models.BrandAsset'
+        type: array
+      careerInfo:
+        type: string
+      certifications:
+        items:
+          type: string
+        type: array
+      companySize:
+        type: string
+      companyType:
+        type: string
+      contactEmail:
+        type: string
+      contactPhone:
+        type: string
+      coverUrl:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      employeesCount:
+        type: integer
+      followersCount:
+        type: integer
+      foundedYear:
+        type: integer
+      headquarters:
+        type: string
+      history:
+        type: string
+      id:
+        type: string
+      industries:
+        items:
+          type: string
+        type: array
+      industry:
+        type: string
+      isFollowing:
+        type: boolean
+      isHiring:
+        type: boolean
+      isVerified:
+        description: |-
+          IsVerified is the only signal the UI should use to render a badge; it is
+          true only for a completed, unexpired verification.
+        type: boolean
+      logoUrl:
+        type: string
+      mission:
+        type: string
+      name:
+        type: string
+      openJobsCount:
+        type: integer
+      operatingCountries:
+        items:
+          type: string
+        type: array
+      products:
+        items:
+          type: string
+        type: array
+      profileCompletion:
+        type: integer
+      rating:
+        type: number
+      reviewCount:
+        type: integer
+      services:
+        items:
+          type: string
+        type: array
+      slug:
+        type: string
+      socialLinks:
+        additionalProperties:
+          type: string
+        type: object
+      specialties:
+        items:
+          type: string
+        type: array
+      tagline:
+        type: string
+      technology:
+        items:
+          type: string
+        type: array
+      updatedAt:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
+      verificationStatus:
+        $ref: '#/definitions/kirmya_internal_company_domain.VerificationStatus'
+      viewer:
+        allOf:
+        - $ref: '#/definitions/models.ViewerContext'
+        description: |-
+          Viewer describes what the requesting user may do here. It is empty for
+          anonymous and unaffiliated callers.
+      vision:
+        type: string
+      website:
+        type: string
+      workCulture:
+        type: string
+    type: object
+  models.CompanyDiscovery:
+    properties:
+      fastGrowing:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      followedByConnections:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      hiring:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      hiringForYourSkills:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      hiringNearYou:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      topEmployers:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      trending:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+    type: object
+  models.CompanyInsight:
+    properties:
+      actions:
+        items:
+          type: string
+        type: array
+      category:
+        type: string
+      detail:
+        type: string
+      evidence:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      severity:
+        $ref: '#/definitions/models.InsightSeverity'
+      title:
+        type: string
+    type: object
+  models.CompanyInsightsReport:
+    properties:
+      companyId:
+        type: string
+      from:
+        type: string
+      generatedAt:
+        type: string
+      insights:
+        items:
+          $ref: '#/definitions/models.CompanyInsight'
+        type: array
+      suggestedSkills:
+        description: |-
+          SuggestedSkills are the skills the company's own open jobs ask for most
+          often. They are counted, never guessed.
+        items:
+          type: string
+        type: array
+      summary:
+        type: string
+      to:
+        type: string
+    type: object
+  models.CompanyInvitation:
+    properties:
+      associationType:
+        $ref: '#/definitions/domain.AssociationType'
+      channel:
+        type: string
+      companyId:
+        type: string
+      createdAt:
+        type: string
+      email:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      invitedBy:
+        type: string
+      jobTitle:
+        type: string
+      message:
+        type: string
+      role:
+        $ref: '#/definitions/kirmya_internal_company_domain.Role'
+      status:
+        $ref: '#/definitions/domain.InvitationStatus'
+    type: object
+  models.CompanyJob:
+    properties:
+      applicationsCount:
+        type: integer
+      createdAt:
+        type: string
+      department:
+        type: string
+      employmentType:
+        type: string
+      experienceLevel:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      isFeatured:
+        type: boolean
+      location:
+        type: string
+      publishedAt:
+        type: string
+      salaryRange:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      title:
+        type: string
+      viewsCount:
+        type: integer
+      workMode:
+        type: string
+    type: object
+  models.CompanyJobsPage:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CompanyJob'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  models.CompanyListPage:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CompanySummary'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  models.CompanyMembership:
+    properties:
+      company:
+        $ref: '#/definitions/models.CompanySummary'
+      permissions:
+        items:
+          $ref: '#/definitions/domain.Permission'
+        type: array
+      roles:
+        items:
+          $ref: '#/definitions/kirmya_internal_company_domain.Role'
+        type: array
+    type: object
+  models.CompanyPeoplePage:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CompanyPerson'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  models.CompanyPerson:
+    properties:
+      associationType:
+        $ref: '#/definitions/domain.AssociationType'
+      department:
+        type: string
+      departmentId:
+        type: string
+      email:
+        description: |-
+          Email is populated only for callers holding team:view; it is the main
+          piece of employee contact data this module can leak.
+        type: string
+      endedAt:
+        type: string
+      extraPermissions:
+        description: |-
+          ExtraPermissions are the permissions granted to this member individually,
+          on top of whatever their role carries. It is populated only for callers
+          holding permission:edit, because it is what the permissions editor has to
+          read before it writes: SetMemberPermissions replaces the list outright, so
+          an editor that could not see the current value would silently erase it.
+        items:
+          $ref: '#/definitions/domain.Permission'
+        type: array
+      id:
+        type: string
+      isPublic:
+        type: boolean
+      jobTitle:
+        type: string
+      joinedAt:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      photoUrl:
+        type: string
+      role:
+        $ref: '#/definitions/kirmya_internal_company_domain.Role'
+      roles:
+        items:
+          $ref: '#/definitions/kirmya_internal_company_domain.Role'
+        type: array
+      startedAt:
+        type: string
+      status:
+        $ref: '#/definitions/domain.MembershipStatus'
+      userId:
+        type: string
+    type: object
+  models.CompanyReview:
+    properties:
+      authorName:
+        type: string
+      authorPhotoUrl:
+        type: string
+      careerGrowthRating:
+        type: integer
+      companyId:
+        type: string
+      companyResponse:
+        type: string
+      companyResponseAt:
+        type: string
+      compensationRating:
+        type: integer
+      cons:
+        type: string
+      createdAt:
+        type: string
+      cultureRating:
+        type: integer
+      employmentPeriod:
+        type: string
+      employmentType:
+        $ref: '#/definitions/domain.ReviewEmploymentType'
+      id:
+        type: string
+      isAnonymous:
+        type: boolean
+      isOwnReview:
+        type: boolean
+      jobTitle:
+        type: string
+      managementRating:
+        type: integer
+      overallRating:
+        type: integer
+      pros:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+      workLifeBalance:
+        type: integer
+    type: object
+  models.CompanyReviewsPage:
+    properties:
+      averageRating:
+        type: number
+      canReview:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/models.CompanyReview'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      ratingBreakdown:
+        additionalProperties:
+          type: integer
+        type: object
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  models.CompanySummary:
+    properties:
+      companySize:
+        type: string
+      companyType:
+        type: string
+      coverUrl:
+        type: string
+      employeesCount:
+        type: integer
+      followersCount:
+        type: integer
+      headquarters:
+        type: string
+      id:
+        type: string
+      industry:
+        type: string
+      isFollowing:
+        type: boolean
+      isHiring:
+        type: boolean
+      isVerified:
+        description: |-
+          IsVerified is the only signal the UI should use to render a badge; it is
+          true only for a completed, unexpired verification.
+        type: boolean
+      logoUrl:
+        type: string
+      name:
+        type: string
+      openJobsCount:
+        type: integer
+      rating:
+        type: number
+      reviewCount:
+        type: integer
+      slug:
+        type: string
+      tagline:
+        type: string
+      verificationStatus:
+        $ref: '#/definitions/kirmya_internal_company_domain.VerificationStatus'
+    type: object
+  models.CompanyUpdate:
+    properties:
+      authorId:
+        type: string
+      authorName:
+        type: string
+      body:
+        type: string
+      commentsCount:
+        type: integer
+      companyId:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      jobId:
+        type: string
+      links:
+        items:
+          type: string
+        type: array
+      media:
+        items:
+          type: string
+        type: array
+      publishedAt:
+        type: string
+      reactionsCount:
+        type: integer
+      scheduledAt:
+        type: string
+      status:
+        $ref: '#/definitions/domain.UpdateStatus'
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/domain.UpdateType'
+      updatedAt:
+        type: string
+      viewsCount:
+        type: integer
+    type: object
+  models.CompanyUpdatePayload:
+    properties:
+      awards:
+        items:
+          type: string
+        type: array
+      benefits:
+        items:
+          type: string
+        type: array
+      brandAssets:
+        items:
+          $ref: '#/definitions/models.BrandAsset'
+        type: array
+      careerInfo:
+        type: string
+      certifications:
+        items:
+          type: string
+        type: array
+      companySize:
+        type: string
+      companyType:
+        type: string
+      contactEmail:
+        type: string
+      contactPhone:
+        type: string
+      coverUrl:
+        type: string
+      description:
+        type: string
+      foundedYear:
+        type: integer
+      headquarters:
+        type: string
+      history:
+        type: string
+      industries:
+        items:
+          type: string
+        type: array
+      industry:
+        type: string
+      isHiring:
+        type: boolean
+      logoUrl:
+        type: string
+      mission:
+        type: string
+      name:
+        type: string
+      operatingCountries:
+        items:
+          type: string
+        type: array
+      products:
+        items:
+          type: string
+        type: array
+      services:
+        items:
+          type: string
+        type: array
+      socialLinks:
+        additionalProperties:
+          type: string
+        type: object
+      specialties:
+        items:
+          type: string
+        type: array
+      tagline:
+        type: string
+      technology:
+        items:
+          type: string
+        type: array
+      values:
+        items:
+          type: string
+        type: array
+      vision:
+        type: string
+      website:
+        type: string
+      workCulture:
+        type: string
+    type: object
+  models.CompanyUpdatesPage:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CompanyUpdate'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  models.CompanyVerification:
+    properties:
+      companyId:
+        type: string
+      contactEmail:
+        type: string
+      documents:
+        items:
+          $ref: '#/definitions/models.VerificationDocument'
+        type: array
+      expiresAt:
+        type: string
+      id:
+        type: string
+      legalName:
+        type: string
+      registrationCountry:
+        type: string
+      registrationNumber:
+        type: string
+      rejectionReason:
+        type: string
+      reviewedAt:
+        type: string
+      status:
+        $ref: '#/definitions/kirmya_internal_company_domain.VerificationStatus'
+      submittedAt:
+        type: string
+      submittedBy:
+        type: string
     type: object
   models.ContactCandidatePayload:
     properties:
@@ -1362,6 +2954,41 @@ definitions:
     - salaryRange
     - title
     type: object
+  models.FollowPayload:
+    properties:
+      notifyJobs:
+        type: boolean
+      notifyUpdates:
+        type: boolean
+    type: object
+  models.FunnelStageDTO:
+    properties:
+      count:
+        type: integer
+      stage:
+        type: string
+    type: object
+  models.ImportResumeRequest:
+    properties:
+      fileData:
+        description: Base64 encoded or content text
+        type: string
+      fileName:
+        type: string
+      fileType:
+        description: pdf, docx, txt
+        type: string
+    type: object
+  models.InsightSeverity:
+    enum:
+    - info
+    - suggestion
+    - warning
+    type: string
+    x-enum-varnames:
+    - InsightInfo
+    - InsightSuggestion
+    - InsightWarning
   models.InterviewFeedbackPayload:
     properties:
       application_id:
@@ -1397,6 +3024,158 @@ definitions:
     required:
     - experienceLevel
     - targetRole
+    type: object
+  models.InvitationIssued:
+    properties:
+      acceptUrl:
+        type: string
+      invitation:
+        $ref: '#/definitions/models.CompanyInvitation'
+    type: object
+  models.JobAlert:
+    properties:
+      candidate_id:
+        type: string
+      channel_email:
+        type: boolean
+      channel_in_app:
+        type: boolean
+      channel_push:
+        type: boolean
+      channel_sms:
+        type: boolean
+      channel_webhook:
+        type: boolean
+      city:
+        type: string
+      company_size:
+        type: string
+      company_type:
+        type: string
+      country:
+        type: string
+      created_at:
+        type: string
+      custom_schedule:
+        type: string
+      departments:
+        items:
+          type: string
+        type: array
+      education_level:
+        type: string
+      employment_type:
+        type: string
+      exclude_keywords:
+        type: string
+      experience_level:
+        type: string
+      expiry_date:
+        type: string
+      frequency:
+        description: Immediately, Every Hour, Daily, Weekly, Custom
+        type: string
+      id:
+        type: string
+      industry:
+        type: string
+      is_active:
+        type: boolean
+      job_titles:
+        items:
+          type: string
+        type: array
+      keywords:
+        type: string
+      languages:
+        items:
+          type: string
+        type: array
+      location:
+        type: string
+      remote_preference:
+        type: string
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      skills:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      visa_sponsorship:
+        type: boolean
+      work_authorization:
+        type: string
+    type: object
+  models.JobAnalytics:
+    properties:
+      applications:
+        type: integer
+      avgTimeToHireHours:
+        type: number
+      avgTimeToReviewHours:
+        type: number
+      conversionRate:
+        type: number
+      hires:
+        type: integer
+      interviews:
+        type: integer
+      jobId:
+        type: string
+      offers:
+        type: integer
+      qualifiedApplications:
+        type: integer
+      shortlisted:
+        type: integer
+      title:
+        type: string
+      uniqueViews:
+        type: integer
+      views:
+        type: integer
+    type: object
+  models.JobMatchScore:
+    properties:
+      company_fit_score:
+        type: integer
+      confidence_score:
+        type: integer
+      education_match:
+        type: integer
+      experience_match:
+        type: integer
+      growth_score:
+        type: integer
+      industry_match:
+        type: integer
+      location_match:
+        type: integer
+      match_reasons:
+        items:
+          type: string
+        type: array
+      matching_skills:
+        items:
+          type: string
+        type: array
+      missing_skills:
+        items:
+          type: string
+        type: array
+      overall_score:
+        description: 0-100
+        type: integer
+      salary_match:
+        type: integer
+      skills_match:
+        type: integer
     type: object
   models.JobMatchingRequest:
     properties:
@@ -1450,6 +3229,48 @@ definitions:
       messageId:
         type: string
     type: object
+  models.MonthlyCountDTO:
+    properties:
+      count:
+        type: integer
+      month:
+        type: string
+    type: object
+  models.NameCount:
+    properties:
+      count:
+        type: integer
+      name:
+        type: string
+    type: object
+  models.RecommendationFeedbackRequest:
+    properties:
+      action_type:
+        description: interested, not_interested, hide_company, hide_role, already_applied,
+          too_senior, too_junior, wrong_location, wrong_salary
+        type: string
+      feedback_reason:
+        type: string
+      job_id:
+        type: string
+      recommendation_id:
+        type: string
+    type: object
+  models.RecruiterActivityItem:
+    properties:
+      applicationsReviewed:
+        type: integer
+      hires:
+        type: integer
+      interviews:
+        type: integer
+      jobsPosted:
+        type: integer
+      name:
+        type: string
+      userId:
+        type: string
+    type: object
   models.RegisterCompanyPayload:
     properties:
       companySize:
@@ -1484,12 +3305,78 @@ definitions:
     required:
     - reason
     type: object
+  models.Resume:
+    properties:
+      aiSuggestions:
+        description: Serialized JSON suggestions
+        type: string
+      applicationCount:
+        type: integer
+      atsScore:
+        type: integer
+      completionPercentage:
+        type: integer
+      createdAt:
+        type: string
+      downloadCount:
+        type: integer
+      fontFamily:
+        type: string
+      fontSize:
+        type: string
+      id:
+        type: string
+      isDefault:
+        type: boolean
+      lineSpacing:
+        type: string
+      pageMargins:
+        type: string
+      paperSize:
+        type: string
+      primaryColor:
+        type: string
+      sections:
+        items:
+          $ref: '#/definitions/models.ResumeSection'
+        type: array
+      templateName:
+        description: classic, modern, minimal, executive, technical, creative
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      viewCount:
+        type: integer
+    type: object
   models.ResumeAnalysisRequest:
     properties:
       resumeText:
         type: string
     required:
     - resumeText
+    type: object
+  models.ResumeAnalytics:
+    properties:
+      applicationsUsedCount:
+        type: integer
+      avgMatchScore:
+        type: number
+      recruiterViews:
+        type: integer
+      resumeId:
+        type: string
+      totalDownloads:
+        type: integer
+      totalViews:
+        type: integer
+      updatedAt:
+        type: string
+      userId:
+        type: string
     type: object
   models.ResumeSection:
     properties:
@@ -1502,10 +3389,128 @@ definitions:
         type: string
       sectionType:
         description: personal_info, summary, experience, education, skills, certs,
-          projects, achievements, languages
+          projects, achievements, languages, custom
         type: string
       sortOrder:
         type: integer
+    type: object
+  models.ResumeShare:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      privacyLevel:
+        type: string
+      qrCodeUrl:
+        type: string
+      resumeId:
+        type: string
+      shareToken:
+        type: string
+      shareUrl:
+        type: string
+      userId:
+        type: string
+    type: object
+  models.ResumeTemplate:
+    properties:
+      atsCompatibility:
+        type: integer
+      category:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      recommendedFor:
+        type: string
+      thumbnailUrl:
+        type: string
+    type: object
+  models.ReviewPayload:
+    properties:
+      careerGrowthRating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      compensationRating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      cons:
+        type: string
+      cultureRating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      employmentEndedOn:
+        type: string
+      employmentStartedOn:
+        type: string
+      employmentType:
+        type: string
+      isAnonymous:
+        type: boolean
+      jobTitle:
+        type: string
+      managementRating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      overallRating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      pros:
+        type: string
+      summary:
+        minLength: 40
+        type: string
+      title:
+        maxLength: 255
+        type: string
+      workLifeBalance:
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - employmentType
+    - overallRating
+    - summary
+    - title
+    type: object
+  models.ReviewReportPayload:
+    properties:
+      details:
+        type: string
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
+  models.ReviewResponsePayload:
+    properties:
+      response:
+        minLength: 10
+        type: string
+    required:
+    - response
+    type: object
+  models.SalaryTrendPoint:
+    properties:
+      avg_salary:
+        type: integer
+      growth_pct:
+        type: number
+      role:
+        type: string
     type: object
   models.SaveCandidatePayload:
     properties:
@@ -1515,6 +3520,57 @@ definitions:
         type: string
     required:
     - candidateId
+    type: object
+  models.SavedJobDTO:
+    properties:
+      candidate_id:
+        type: string
+      collection_id:
+        type: string
+      collection_name:
+        type: string
+      company_logo:
+        type: string
+      company_name:
+        type: string
+      employment_type:
+        type: string
+      id:
+        type: string
+      job_id:
+        type: string
+      job_title:
+        type: string
+      location:
+        type: string
+      notes:
+        type: string
+      salary_range:
+        type: string
+      saved_at:
+        type: string
+    type: object
+  models.SavedSearch:
+    properties:
+      alert_id:
+        type: string
+      auto_alert:
+        type: boolean
+      created_at:
+        type: string
+      filters:
+        additionalProperties: true
+        type: object
+      id:
+        type: string
+      name:
+        type: string
+      query_text:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
     type: object
   models.ScheduleInterviewPayload:
     properties:
@@ -1589,6 +3645,73 @@ definitions:
     - targetRole
     - userSkills
     type: object
+  models.TailorJobRequest:
+    properties:
+      jobDescription:
+        type: string
+      jobId:
+        type: string
+    type: object
+  models.TeamInvitePayload:
+    properties:
+      associationType:
+        type: string
+      channel:
+        type: string
+      departmentId:
+        type: string
+      email:
+        type: string
+      jobTitle:
+        type: string
+      message:
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - role
+    type: object
+  models.TeamMemberUpdatePayload:
+    properties:
+      departmentId:
+        type: string
+      jobTitle:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+    type: object
+  models.UpdatePayload:
+    properties:
+      body:
+        minLength: 1
+        type: string
+      jobId:
+        type: string
+      links:
+        items:
+          type: string
+        type: array
+      media:
+        items:
+          type: string
+        type: array
+      scheduledAt:
+        type: string
+      status:
+        type: string
+      title:
+        maxLength: 255
+        type: string
+      type:
+        type: string
+    required:
+    - body
+    - status
+    - type
+    type: object
   models.UpdatePreferencePayload:
     properties:
       emailEnabled:
@@ -1635,6 +3758,88 @@ definitions:
         type: string
     required:
     - stage
+    type: object
+  models.VerificationDecisionPayload:
+    properties:
+      rejectionReason:
+        type: string
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  models.VerificationDocument:
+    properties:
+      checksum:
+        type: string
+      createdAt:
+        type: string
+      documentType:
+        type: string
+      fileName:
+        type: string
+      fileSize:
+        minimum: 0
+        type: integer
+      fileUrl:
+        type: string
+      id:
+        type: string
+      mimeType:
+        type: string
+    required:
+    - documentType
+    - fileName
+    - fileUrl
+    - mimeType
+    type: object
+  models.VerificationSubmitPayload:
+    properties:
+      contactEmail:
+        type: string
+      documents:
+        items:
+          $ref: '#/definitions/models.VerificationDocument'
+        minItems: 1
+        type: array
+      legalName:
+        type: string
+      registrationCountry:
+        type: string
+      registrationNumber:
+        type: string
+    required:
+    - contactEmail
+    - documents
+    - legalName
+    - registrationCountry
+    - registrationNumber
+    type: object
+  models.ViewerContext:
+    properties:
+      isFollowing:
+        type: boolean
+      isMember:
+        type: boolean
+      permissions:
+        items:
+          $ref: '#/definitions/domain.Permission'
+        type: array
+      roles:
+        items:
+          $ref: '#/definitions/kirmya_internal_company_domain.Role'
+        type: array
+    type: object
+  service.RoleDescriptor:
+    properties:
+      permissions:
+        items:
+          $ref: '#/definitions/domain.Permission'
+        type: array
+      rank:
+        type: integer
+      role:
+        $ref: '#/definitions/kirmya_internal_company_domain.Role'
     type: object
   swagger.ErrorResponse:
     properties:
@@ -1766,19 +3971,113 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: engineering@kirmya.com
-    name: Kirmya Engineering Team
+    email: support@kirmya.com
+    name: Kirmya Engineering
     url: https://kirmya.com/support
-  description: |-
-    Kirmya is a professional networking and employment platform helping professionals recover from job loss, build connections, find opportunities, improve skills, and accelerate career growth.
-
-    All endpoints are versioned under /api/v1. Authenticated endpoints expect an `Authorization: Bearer <access_token>` header; obtain a token from POST /api/v1/auth/login and paste it into the Authorize dialog above.
+  description: HTTP API for Kirmya, an AI-assisted professional networking and hiring
+    platform. Every route is mounted under /api/v1. Endpoints marked with a padlock
+    require a Bearer access token from POST /api/v1/auth/login; the rest are open
+    to anonymous callers. Requests are rate limited per client IP, and company, recruiter
+    and organization endpoints apply their own per-company permission checks on top
+    of authentication.
   license:
-    name: Kirmya API License
-    url: https://kirmya.com/legal/api-license
-  title: Kirmya API Documentation
+    name: Proprietary
+    url: https://kirmya.com/terms
+  termsOfService: https://kirmya.com/terms
+  title: Kirmya API
   version: "1.0"
 paths:
+  /api/v1/admin/company-verifications:
+    get:
+      description: The administrator's queue of pending company verification submissions.
+        Restricted to Kirmya platform administrators; the platform role is checked
+        by the service as well as by the route, so neither alone is load-bearing.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.PendingVerificationsPage'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Not a platform administrator
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List company verifications awaiting review
+      tags:
+      - Admin
+  /api/v1/admin/company-verifications/{verificationId}:
+    put:
+      consumes:
+      - application/json
+      description: Approves or rejects a pending submission. This is the only way
+        a company becomes verified, and it is restricted to Kirmya platform administrators.
+        A rejection carries a reason back to the company.
+      parameters:
+      - description: Verification id
+        in: path
+        name: verificationId
+        required: true
+        type: string
+      - description: Decision and reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerificationDecisionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"status\": \"verified\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Not a platform administrator
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such submission
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Decide a company verification
+      tags:
+      - Admin
   /api/v1/ai/career-suggestions:
     post:
       consumes:
@@ -2176,6 +4475,198 @@ paths:
       summary: Get user analytics
       tags:
       - Admin
+  /api/v1/applications:
+    get:
+      description: Returns the applications the signed-in candidate has submitted,
+        most recent first, optionally narrowed by status or a free-text search over
+        the job title and company.
+      parameters:
+      - description: Filter by application status
+        in: query
+        name: status
+        type: string
+      - description: Free-text search over job title and company
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ApplicationSummary'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List the caller's applications
+      tags:
+      - Jobs
+  /api/v1/applications/{id}:
+    get:
+      description: Returns a single application in full, including its stage, any
+        offer attached to it and the notes the candidate has kept against it. Only
+        the candidate who made the application can read it.
+      parameters:
+      - description: Application id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ApplicationDetail'
+        "400":
+          description: Invalid application ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such application for this candidate
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get one application
+      tags:
+      - Jobs
+  /api/v1/applications/{id}/timeline:
+    get:
+      description: The dated sequence of what has happened to an application — submitted,
+        viewed, moved between stages, interviewed, decided.
+      parameters:
+      - description: Application id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ApplicationTimelineItem'
+            type: array
+        "400":
+          description: Invalid application ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Application timeline
+      tags:
+      - Jobs
+  /api/v1/applications/{id}/withdraw:
+    put:
+      description: Withdraws the candidate's application. The record is kept and marked
+        withdrawn rather than deleted, so the employer's audit trail stays intact.
+      parameters:
+      - description: Application id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Application withdrawn successfully\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid application ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Withdraw an application
+      tags:
+      - Jobs
+  /api/v1/applications/ai-insights:
+    get:
+      description: Observations drawn from the candidate's own application history
+        — which stages they stall at, which roles convert, what to try next. Everything
+        reported is derived from the candidate's real records; no application, employer
+        or outcome is invented.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AIApplicationInsightsDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: AI insights on the caller's applications
+      tags:
+      - Jobs
+  /api/v1/applications/analytics:
+    get:
+      description: 'The candidate''s own figures: how many applications are in each
+        stage, how they have moved month by month, and where the funnel narrows. Covers
+        this candidate only.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ApplicationAnalyticsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Application statistics
+      tags:
+      - Jobs
   /api/v1/assessments:
     get:
       description: Returns assessments via the Kirmya skill assessment module. Requires
@@ -3059,6 +5550,32 @@ paths:
       summary: Generate roadmap
       tags:
       - AI Matching
+  /api/v1/career-insights:
+    get:
+      description: 'Market context for the signed-in candidate: which of their skills
+        are in demand, how salaries for their roles are moving, and where their searches
+        are concentrated. Figures come from aggregated market data and the candidate''s
+        own activity, never from another named person''s record.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CareerInsights'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Career insights
+      tags:
+      - Jobs
   /api/v1/career-preferences:
     post:
       consumes:
@@ -3495,79 +6012,279 @@ paths:
     post:
       consumes:
       - application/json
-      description: Registers company via the Kirmya company directory module. Requires
-        a valid Bearer access token.
+      description: 'Registers a new company and makes the caller its owner. The company
+        starts unverified: a verification badge is only ever granted by a Kirmya administrator,
+        never by this call.'
       parameters:
-      - description: Request payload
+      - description: Company to create
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.RegisterCompanyPayload'
+          $ref: '#/definitions/models.CompanyCreatePayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
+            $ref: '#/definitions/models.CompanyDetail'
         "400":
-          description: Bad Request
+          description: Payload failed validation
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not signed in
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
+        "409":
+          description: Name or slug already taken
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Register company
+      summary: Create a company
       tags:
       - Organizations
   /api/v1/companies/{id}:
-    put:
-      consumes:
-      - application/json
-      description: Updates profile via the Kirmya company directory module. Requires
-        a valid Bearer access token.
+    get:
+      description: Returns the public company profile. The path segment accepts either
+        the company id or its slug. A signed-in caller also receives viewer state
+        — whether they follow the company and what they may manage — and the visit
+        is counted towards the company's profile views once the page is known to be
+        visible. Employment relationships are filtered by each person's own privacy
+        setting.
       parameters:
-      - description: Id
+      - description: Company id or slug
         in: path
         name: id
         required: true
         type: string
-      - description: Request payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.UpdateProfilePayload'
+      - description: Where the visit came from, recorded against profile views
+        in: query
+        name: source
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
+            $ref: '#/definitions/models.CompanyDetail'
         "400":
-          description: Bad Request
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Get a company
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Edits the company profile. Requires the company:edit permission
+        on this company. Verification state is not editable here.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to change
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CompanyUpdatePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyDetail'
+        "400":
+          description: Invalid id or payload
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not signed in
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "403":
-          description: Forbidden
+          description: Member without company:edit
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Update profile
+      summary: Update a company profile
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/analytics:
+    get:
+      description: 'Profile views, job views, applications, follower growth and the
+        hiring funnel over a date range, with a daily series. Requires analytics:view
+        on this company. Figures are aggregates: no individual visitor is identified.'
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Start of the range, YYYY-MM-DD
+        in: query
+        name: from
+        type: string
+      - description: End of the range, YYYY-MM-DD
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyAnalytics'
+        "400":
+          description: Invalid id, or from/to is not YYYY-MM-DD
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without analytics:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Company analytics
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/audit:
+    get:
+      description: The record of who changed what on this company — profile edits,
+        role and permission changes, invitations, verification submissions. Requires
+        audit:view on this company. Entries are append-only and cannot be edited or
+        deleted through the API.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 50
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.AuditLogPage'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without audit:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Company audit log
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/dashboard:
+    get:
+      description: 'The headline figures behind the company dashboard: open jobs,
+        applications in flight, team size and recent recruiter activity. Requires
+        dashboard:view on this company.'
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyDashboard'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without dashboard:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Company dashboard summary
       tags:
       - Organizations
   /api/v1/companies/{id}/departments:
@@ -3619,44 +6336,81 @@ paths:
       tags:
       - Organizations
   /api/v1/companies/{id}/follow:
-    post:
-      consumes:
-      - application/json
-      description: Follows company via the Kirmya company directory module. Requires
-        a valid Bearer access token.
+    delete:
+      description: Stops following the company. Unfollowing a company the caller does
+        not follow is not an error.
       parameters:
-      - description: Id
+      - description: Company id
         in: path
         name: id
         required: true
         type: string
-      - description: Request payload
-        in: body
-        name: request
-        schema:
-          type: object
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: '{\"following\": false}'
           schema:
             $ref: '#/definitions/swagger.SuccessResponse'
         "400":
-          description: Bad Request
+          description: Invalid id
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not signed in
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
+        "503":
+          description: Company data is unavailable
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Follow company
+      summary: Unfollow a company
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Follows the company on the caller's behalf. Following twice is
+        not an error.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Optional follow preferences
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/models.FollowPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"following\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Follow a company
       tags:
       - Organizations
   /api/v1/companies/{id}/gallery:
@@ -3683,6 +6437,155 @@ paths:
       summary: Get company gallery
       tags:
       - Organizations
+  /api/v1/companies/{id}/insights:
+    get:
+      description: Observations drawn from the company's own analytics over a date
+        range — where the funnel narrows, which sources convert, how the team's response
+        times are moving. Requires analytics:view on this company. Every insight is
+        derived from figures the company already holds; nothing about the company
+        is invented.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Start of the range, YYYY-MM-DD
+        in: query
+        name: from
+        type: string
+      - description: End of the range, YYYY-MM-DD
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyInsightsReport'
+        "400":
+          description: Invalid id, or from/to is not YYYY-MM-DD
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without analytics:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Company hiring insights
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/invitations:
+    get:
+      description: Returns the invitations issued for this company with their status
+        and expiry. Requires team:view on this company. The invitation tokens themselves
+        are not returned — they are shown once, when the invitation is issued.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Filter by status: pending, accepted, declined, revoked or expired'
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CompanyInvitation'
+            type: array
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without team:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List a company's invitations
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/invitations/{invitationId}:
+    delete:
+      description: Cancels an outstanding invitation so its token can no longer be
+        redeemed. Requires team:manage on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Invitation id
+        in: path
+        name: invitationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"revoked\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without team:manage
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or invitation
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke an invitation
+      tags:
+      - Organizations
   /api/v1/companies/{id}/jobs:
     get:
       description: Returns company jobs via the Kirmya company directory module. Public
@@ -3705,6 +6608,54 @@ paths:
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       summary: Get company jobs
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/jobs/{jobId}/analytics:
+    get:
+      description: Views, applications and funnel figures for a single job posting.
+        Requires analytics:view on this company, and the job must belong to it — a
+        job id from another company reads as not found.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Job id
+        in: path
+        name: jobId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JobAnalytics'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without analytics:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or job
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Analytics for one job
       tags:
       - Organizations
   /api/v1/companies/{id}/leaders:
@@ -3755,6 +6706,386 @@ paths:
       summary: Get company locations
       tags:
       - Organizations
+  /api/v1/companies/{id}/people:
+    get:
+      description: Returns approved employee associations. The path segment accepts
+        an id or a slug. Only people who have chosen to show their company association
+        publicly appear to an outside caller, and no employment detail beyond title
+        and department is exposed. Pending association requests are visible only to
+        a member holding people:manage.
+      parameters:
+      - description: Company id or slug
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Free-text name filter
+        in: query
+        name: q
+        type: string
+      - description: Department filter
+        in: query
+        name: department
+        type: string
+      - description: Association status filter
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyPeoplePage'
+        "400":
+          description: Invalid query
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: List the people at a company
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Asks to be listed as an employee of the company. The request is
+        recorded as pending and confers nothing until somebody holding people:manage
+        approves it, so this endpoint cannot be used to claim a company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Claimed role at the company
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssociationRequestPayload'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Recorded as pending
+          schema:
+            $ref: '#/definitions/models.CompanyPerson'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: A request or membership already exists
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Request an employee association
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/people/{memberId}:
+    put:
+      consumes:
+      - application/json
+      description: Decides a pending employee association. Requires people:manage
+        on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Membership id of the pending request
+        in: path
+        name: memberId
+        required: true
+        type: string
+      - description: approve or reject
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.AssociationDecisionBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"status\": \"approve\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id or decision
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without people:manage
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Approve or reject an association request
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/recruiters:
+    get:
+      description: Returns the company's recruiters and hiring managers with their
+        status. Requires recruiter:view on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Free-text name filter
+        in: query
+        name: q
+        type: string
+      - description: Department filter
+        in: query
+        name: department
+        type: string
+      - description: Status filter
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyPeoplePage'
+        "400":
+          description: Invalid id or query
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without recruiter:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List the recruiting team
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/recruiters/{recruiterId}:
+    delete:
+      description: Removes a recruiter from the company's recruiting team. Requires
+        recruiter:manage on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Membership id of the recruiter
+        in: path
+        name: recruiterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"removed\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without recruiter:manage
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or recruiter
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a recruiter
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Suspends a recruiter's access to the company's hiring surfaces,
+        or lifts a suspension. Requires recruiter:manage on this company. The membership
+        is kept, so the history of what the recruiter did is not lost.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Membership id of the recruiter
+        in: path
+        name: recruiterId
+        required: true
+        type: string
+      - description: Whether the recruiter is suspended
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.RecruiterSuspensionBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"suspended\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without recruiter:manage
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or recruiter
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Suspend or reinstate a recruiter
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/recruiters/invite:
+    post:
+      consumes:
+      - application/json
+      description: 'Issues a single-use, expiring invitation for a recruiting role.
+        This is the team invitation with a recruiting role attached: the permission
+        checked is the one that matches the role in the payload, so the route cannot
+        be used to grant a role the caller could not grant on the team page.'
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Who to invite and as what
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TeamInvitePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.InvitationIssued'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Caller may not grant that role
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Already invited or already a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Invite a recruiter
+      tags:
+      - Organizations
   /api/v1/companies/{id}/report:
     post:
       consumes:
@@ -3797,45 +7128,911 @@ paths:
       summary: Report company
       tags:
       - Organizations
-  /api/v1/companies/{id}/verify:
-    post:
-      consumes:
-      - application/json
-      description: Request verification via the Kirmya company directory module. Requires
-        a valid Bearer access token.
+  /api/v1/companies/{id}/reviews:
+    get:
+      description: 'Returns published reviews of the company with their rating breakdown.
+        The path segment accepts an id or a slug. Reviews are written by people, never
+        generated: no review in this response is machine-authored.'
       parameters:
-      - description: Id
+      - description: Company id or slug
         in: path
         name: id
         required: true
         type: string
-      - description: Request payload
-        in: body
-        name: request
-        schema:
-          type: object
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
+            $ref: '#/definitions/models.CompanyReviewsPage'
         "400":
-          description: Bad Request
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: List company reviews
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Publishes the signed-in caller's review of the company. One review
+        per person per company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The review
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReviewPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CompanyReview'
+        "400":
+          description: Invalid id or payload
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not signed in
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: The caller has already reviewed this company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Request verification
+      summary: Write a company review
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/reviews/{reviewId}:
+    delete:
+      description: Deletes a review. Its author may delete it; a company may not delete
+        a review of itself, only respond to it or report it.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review id
+        in: path
+        name: reviewId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"deleted\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Not the author
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or review
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a review
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Edits a review. Only its author may edit it — the company cannot
+        alter what was written about it.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review id
+        in: path
+        name: reviewId
+        required: true
+        type: string
+      - description: The revised review
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReviewPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyReview'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Not the author
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or review
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Edit a review
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/reviews/{reviewId}/report:
+    post:
+      consumes:
+      - application/json
+      description: Flags a review for moderation. The report is queued for a human
+        to look at; the review stays published in the meantime, so reporting cannot
+        be used to silence criticism.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review id
+        in: path
+        name: reviewId
+        required: true
+        type: string
+      - description: Why the review is being reported
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReviewReportPayload'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: '{\"reported\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or review
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Report a review
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/reviews/{reviewId}/response:
+    post:
+      consumes:
+      - application/json
+      description: Attaches the company's public reply to a review. Requires review:respond
+        on this company. The reply is added alongside the review; the review itself
+        is left untouched.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review id
+        in: path
+        name: reviewId
+        required: true
+        type: string
+      - description: The company's reply
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReviewResponsePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"responded\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without review:respond
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or review
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Respond to a review
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/team:
+    get:
+      description: Returns everyone holding a management role at the company, with
+        the roles and effective permissions each holds. Requires team:view on this
+        company; an outside caller gets 404 rather than a hint that the company exists.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Free-text name filter
+        in: query
+        name: q
+        type: string
+      - description: Department filter
+        in: query
+        name: department
+        type: string
+      - description: Membership status filter
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyPeoplePage'
+        "400":
+          description: Invalid id or query
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without team:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List the company team
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/team/{memberId}:
+    delete:
+      description: Removes somebody from the company team. Requires team:manage on
+        this company. The last owner cannot be removed, so a company can never be
+        left with nobody able to administer it.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Membership id
+        in: path
+        name: memberId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"removed\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without team:manage
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Removing the last owner
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a team member
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Changes the role or status of an existing team member. Requires
+        team:manage on this company, and the caller may not grant a role above their
+        own.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Membership id
+        in: path
+        name: memberId
+        required: true
+        type: string
+      - description: New role or status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TeamMemberUpdatePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"updated\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without team:manage, or role escalation refused
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Change a team member's role
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/team/{memberId}/permissions:
+    put:
+      consumes:
+      - application/json
+      description: Replaces the member's explicit permission grants. Requires team:manage
+        on this company. Permissions are named individually — there is no wildcard
+        and no implicit inheritance — and the caller cannot grant a permission they
+        do not themselves hold. Use GET /api/v1/companies/permissions for the vocabulary.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Membership id
+        in: path
+        name: memberId
+        required: true
+        type: string
+      - description: Permissions to grant
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.MemberPermissionsBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"updated\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id, payload or permission name
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without team:manage, or privilege escalation refused
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set a team member's permissions
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/team/invite:
+    post:
+      consumes:
+      - application/json
+      description: Issues a single-use invitation carrying the role named in the payload.
+        The invitation expires, and the token in the response is the only time it
+        is returned in full. The caller must hold the permission that matches the
+        role being granted, so an invitation cannot hand out authority the inviter
+        does not have.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Who to invite and as what
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TeamInvitePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.InvitationIssued'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Caller may not grant that role
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Already invited or already a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Invite someone to the company team
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/updates:
+    get:
+      description: Returns the company's posted updates, newest first. The path segment
+        accepts an id or a slug. Public.
+      parameters:
+      - description: Company id or slug
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyUpdatesPage'
+        "400":
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: List company updates
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Publishes an update on the company page. Requires update:publish
+        on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The update to publish
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CompanyUpdate'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without update:publish
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Post a company update
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/updates/{updateId}:
+    delete:
+      description: Removes a published update from the company page. Requires update:publish
+        on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update id
+        in: path
+        name: updateId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"deleted\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without update:publish
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or update
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a company update
+      tags:
+      - Organizations
+    put:
+      consumes:
+      - application/json
+      description: Revises a published update. Requires update:publish on this company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update id
+        in: path
+        name: updateId
+        required: true
+        type: string
+      - description: The revised update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyUpdate'
+        "400":
+          description: Invalid id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without update:publish
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company or update
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Edit a company update
+      tags:
+      - Organizations
+  /api/v1/companies/{id}/verification:
+    get:
+      description: Returns the company's verification status and, if one has been
+        made, its submission. Requires verification:view on this company. Supporting
+        documents are referenced, never inlined, and the references are only readable
+        by the reviewer and the submitting company.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.VerificationStateResponse'
+        "400":
+          description: Invalid id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without verification:view
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a company's verification state
+      tags:
+      - Organizations
+    post:
+      consumes:
+      - application/json
+      description: Files the company's registration details and supporting documents
+        for review. Requires verification:submit on this company. The result is always
+        a pending review — this call can never mark a company verified, and the badge
+        appears only after an administrator decides in the company's favour.
+      parameters:
+      - description: Company id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Registration details and documents
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerificationSubmitPayload'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Recorded as pending review
+          schema:
+            $ref: '#/definitions/models.CompanyVerification'
+        "400":
+          description: Invalid id, payload or document reference
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Member without verification:submit
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company, or the caller is not a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: A submission is already under review
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit a company for verification
+      tags:
+      - Organizations
+  /api/v1/companies/discovery:
+    get:
+      description: Returns the shelves the discovery page is built from — trending,
+        hiring now, and industries — each holding a short list of company summaries.
+        Open to anonymous callers; a signed-in caller's shelves are ordered against
+        their profile.
+      parameters:
+      - default: 8
+        description: Companies per shelf
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyDiscovery'
+        "500":
+          description: Something went wrong
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Company discovery shelves
       tags:
       - Organizations
   /api/v1/companies/featured:
@@ -3922,6 +8119,40 @@ paths:
       summary: Follow company
       tags:
       - Organizations
+  /api/v1/companies/following:
+    get:
+      description: Returns the companies the signed-in caller follows, newest first.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyListPage'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List followed companies
+      tags:
+      - Organizations
   /api/v1/companies/handle/{handle}:
     get:
       description: Returns by handle via the Kirmya company directory module. Public
@@ -3977,6 +8208,173 @@ paths:
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       summary: Get industries
+      tags:
+      - Organizations
+  /api/v1/companies/invitations/{token}:
+    get:
+      description: Names the company and the role behind an invitation token so the
+        accept screen can be rendered. It joins nobody to anything. A token that has
+        expired, been redeemed or been revoked reads as not found, so a guessed token
+        reveals nothing.
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.InvitationPreviewResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Token unknown, expired, revoked or already used
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Preview an invitation
+      tags:
+      - Organizations
+  /api/v1/companies/invitations/{token}/accept:
+    post:
+      description: Redeems the invitation and joins the signed-in caller to the company
+        with the role the invitation carries. The token is single use and is spent
+        by this call. An invitation addressed to a different email cannot be redeemed
+        by the caller.
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.AcceptedInvitationResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Invitation was addressed to somebody else
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Token unknown, expired, revoked or already used
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Caller is already a member
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Accept an invitation
+      tags:
+      - Organizations
+  /api/v1/companies/invitations/{token}/decline:
+    post:
+      description: Turns the invitation down and spends its token, so it cannot be
+        redeemed later.
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"declined\": true}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Not signed in
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Invitation was addressed to somebody else
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Token unknown, expired, revoked or already used
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Decline an invitation
+      tags:
+      - Organizations
+  /api/v1/companies/mine:
+    get:
+      description: Returns the companies the signed-in user owns or is an approved
+        member of, each with the roles and effective permissions that membership carries.
+        Companies where the caller holds nothing are omitted, and a pending association
+        request is not a membership.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CompanyMembership'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List the caller's companies
+      tags:
+      - Organizations
+  /api/v1/companies/permissions:
+    get:
+      description: Describes every company role and the permissions it carries, so
+        a settings screen does not have to keep its own copy that can drift from the
+        server's. Static reference data; no authentication required.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.RoleDescriptor'
+            type: array
+        "500":
+          description: Something went wrong
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Company role and permission catalogue
       tags:
       - Organizations
   /api/v1/companies/popular:
@@ -4113,47 +8511,6 @@ paths:
       summary: Search companies
       tags:
       - Organizations
-  /api/v1/companies/verify/{requestId}:
-    put:
-      consumes:
-      - application/json
-      description: Updates verification status via the Kirmya company directory module.
-        Requires a valid Bearer access token.
-      parameters:
-      - description: Request id
-        in: path
-        name: requestId
-        required: true
-        type: string
-      - description: Request payload
-        in: body
-        name: request
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update verification status
-      tags:
-      - Organizations
   /api/v1/company/{slug}:
     get:
       description: Returns by handle via the Kirmya company directory module. Public
@@ -4180,6 +8537,222 @@ paths:
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       summary: Get by handle
+      tags:
+      - Organizations
+  /api/v1/company/{slug}/departments:
+    get:
+      description: 'Returns the company''s departments with headcounts. Public: a
+        department carries a count, never the list of people behind it.'
+      parameters:
+      - description: Company slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CompanyDepartment'
+            type: array
+        "400":
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Departments at a company, by slug
+      tags:
+      - Organizations
+  /api/v1/company/{slug}/jobs:
+    get:
+      description: As GET /api/v1/companies/{id}/jobs, addressed by the company's
+        public slug. Only published jobs are returned to a caller who is not on the
+        company's team.
+      parameters:
+      - description: Company slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Filter by job status
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyJobsPage'
+        "400":
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Jobs at a company, by slug
+      tags:
+      - Organizations
+  /api/v1/company/{slug}/people:
+    get:
+      description: As GET /api/v1/companies/{id}/people, addressed by the company's
+        public slug. Only associations their owner has chosen to show publicly are
+        returned.
+      parameters:
+      - description: Company slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Free-text name filter
+        in: query
+        name: q
+        type: string
+      - description: Department filter
+        in: query
+        name: department
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyPeoplePage'
+        "400":
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: People at a company, by slug
+      tags:
+      - Organizations
+  /api/v1/company/{slug}/reviews:
+    get:
+      description: As GET /api/v1/companies/{id}/reviews, addressed by the company's
+        public slug.
+      parameters:
+      - description: Company slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyReviewsPage'
+        "400":
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Reviews of a company, by slug
+      tags:
+      - Organizations
+  /api/v1/company/{slug}/updates:
+    get:
+      description: As GET /api/v1/companies/{id}/updates, addressed by the company's
+        public slug.
+      parameters:
+      - description: Company slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CompanyUpdatesPage'
+        "400":
+          description: Company is required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: No such company
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Company data is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Updates from a company, by slug
       tags:
       - Organizations
   /api/v1/compliance/consent:
@@ -4352,6 +8925,106 @@ paths:
       summary: Get user data requests
       tags:
       - Admin
+  /api/v1/documents:
+    get:
+      description: Returns the résumés, cover letters and certificates the candidate
+        has stored for attaching to applications. The list is the candidate's own;
+        nobody else's documents are ever returned here.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CandidateDocument'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List the caller's documents
+      tags:
+      - Profiles
+  /api/v1/documents/{id}:
+    delete:
+      description: Removes a document from the candidate's profile. Only the candidate
+        who owns it can delete it.
+      parameters:
+      - description: Document id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Document deleted successfully\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid document ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a document
+      tags:
+      - Profiles
+  /api/v1/documents/upload:
+    post:
+      consumes:
+      - application/json
+      description: Records a document against the candidate's profile by reference.
+        The file itself is uploaded to storage separately and named here by URL; the
+        reference is private to the candidate and to the employers they attach it
+        to.
+      parameters:
+      - description: Document to register
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.UploadDocumentBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CandidateDocument'
+        "400":
+          description: Payload failed validation
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register an uploaded document
+      tags:
+      - Profiles
   /api/v1/education:
     post:
       consumes:
@@ -5986,6 +10659,414 @@ paths:
       summary: Update round status
       tags:
       - Applications
+  /api/v1/job-alerts:
+    get:
+      description: Returns the standing alerts the signed-in candidate has set up,
+        with their criteria, delivery schedule and whether each is currently active.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.JobAlert'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List job alerts
+      tags:
+      - Jobs
+    post:
+      consumes:
+      - application/json
+      description: Sets up a standing alert. New jobs matching its criteria are delivered
+        on the schedule the alert names.
+      parameters:
+      - description: The alert to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.JobAlert'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.JobAlert'
+        "400":
+          description: Payload failed validation
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a job alert
+      tags:
+      - Jobs
+  /api/v1/job-alerts/{id}:
+    delete:
+      description: Removes the alert and stops its deliveries.
+      parameters:
+      - description: Alert id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid alert id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a job alert
+      tags:
+      - Jobs
+    put:
+      consumes:
+      - application/json
+      description: Changes an alert's criteria or schedule. The id in the path decides
+        which alert is written, so an id in the body cannot redirect the write to
+        another alert.
+      parameters:
+      - description: Alert id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The revised alert
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.JobAlert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JobAlert'
+        "400":
+          description: Invalid alert id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a job alert
+      tags:
+      - Jobs
+  /api/v1/job-alerts/{id}/pause:
+    post:
+      description: Stops the alert delivering without deleting it or losing its criteria.
+      parameters:
+      - description: Alert id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"alert paused\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid alert id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pause a job alert
+      tags:
+      - Jobs
+  /api/v1/job-alerts/{id}/resume:
+    post:
+      description: Restarts a paused alert on its existing schedule.
+      parameters:
+      - description: Alert id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"alert resumed\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid alert id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Resume a job alert
+      tags:
+      - Jobs
+  /api/v1/job-alerts/history:
+    get:
+      description: What each of the candidate's alerts has delivered and when, so
+        a quiet alert can be told apart from a broken one.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AlertDeliveryHistory'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Alert delivery history
+      tags:
+      - Jobs
+  /api/v1/job-recommendations:
+    get:
+      description: Returns the jobs matched to the signed-in candidate's profile and
+        stated preferences, each with the score and the reasons behind it. Recommendations
+        point at real, open postings; none is fabricated.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/kirmya_internal_job_alerts_models.JobRecommendation'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List job recommendations
+      tags:
+      - Jobs
+  /api/v1/job-recommendations/{id}:
+    get:
+      description: 'Returns a single recommendation with its full match breakdown:
+        which of the candidate''s skills and experience the job asks for, and which
+        it asks for that the candidate has not evidenced.'
+      parameters:
+      - description: Recommendation id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/kirmya_internal_job_alerts_models.JobRecommendation'
+        "400":
+          description: Invalid recommendation id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get one recommendation
+      tags:
+      - Jobs
+  /api/v1/job-recommendations/{id}/feedback:
+    post:
+      consumes:
+      - application/json
+      description: Records whether a recommendation was useful, which tunes what the
+        candidate is shown next. The feedback is the candidate's own and is not shown
+        to the employer.
+      parameters:
+      - description: Recommendation id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The feedback
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RecommendationFeedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid recommendation id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Give feedback on a recommendation
+      tags:
+      - Jobs
+  /api/v1/jobs/{id}/save:
+    delete:
+      description: Takes a job off the candidate's saved list. Any application already
+        sent for that job is untouched.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Saved job removed successfully\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid job ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove a saved job
+      tags:
+      - Jobs
+    post:
+      consumes:
+      - application/json
+      description: Saves a job to the candidate's list, with an optional private note.
+        Saving a job twice is not an error, and saving is not applying.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Optional private note
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/http.SaveJobBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Job saved successfully\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid job ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save a job
+      tags:
+      - Jobs
   /api/v1/jobs/matches:
     get:
       description: Returns user matches via the Kirmya AI job matching module. Requires
@@ -6097,6 +11178,32 @@ paths:
       summary: Submit feedback
       tags:
       - AI Matching
+  /api/v1/jobs/saved:
+    get:
+      description: Returns the jobs the signed-in candidate has saved, grouped into
+        their collections.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SavedJobDTO'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List saved jobs
+      tags:
+      - Jobs
   /api/v1/landing/admin/featured-jobs:
     post:
       consumes:
@@ -6662,8 +11769,10 @@ paths:
       - Messaging
   /api/v1/metrics:
     get:
-      description: Exposes request, latency and runtime counters in Prometheus text
-        exposition format. Intended for the scraper, not for application clients.
+      description: 'Exposes request, latency and runtime counters in Prometheus text
+        exposition format. Restricted to the scraper: with METRICS_USERNAME and METRICS_PASSWORD
+        set it requires basic auth, otherwise it only answers callers on loopback
+        or private networks and returns 404 to everyone else.'
       produces:
       - text/plain
       responses:
@@ -6671,6 +11780,14 @@ paths:
           description: Prometheus exposition payload
           schema:
             type: string
+        "401":
+          description: Basic auth required
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Caller is not permitted to scrape metrics
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Collector unavailable
           schema:
@@ -10656,32 +15773,95 @@ paths:
       summary: Update resume sections
       tags:
       - Profiles
-  /api/v1/resumes/{id}/default:
-    put:
-      consumes:
-      - application/json
-      description: Sets default resume via the Kirmya resume module. Requires a valid
-        Bearer access token.
+  /api/v1/resumes/{id}/analytics:
+    get:
+      description: Views, downloads and shares recorded against the resume. Figures
+        are counts; individual viewers are not identified.
       parameters:
       - description: Id
         in: path
         name: id
         required: true
         type: string
-      - description: Request payload
-        in: body
-        name: request
-        schema:
-          type: object
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
+            $ref: '#/definitions/models.ResumeAnalytics'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Resume analytics
+      tags:
+      - Profiles
+  /api/v1/resumes/{id}/analyze:
+    post:
+      description: Scores the resume for applicant-tracking readability — parseability,
+        keyword coverage, section completeness — and lists what to change. The resume
+        itself is not modified.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ATSAnalysis'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Analyse a resume against ATS rules
+      tags:
+      - Profiles
+  /api/v1/resumes/{id}/default:
+    post:
+      description: Marks this resume as the one attached to applications by default.
+        Any resume the caller previously had as default stops being it, so exactly
+        one is default at a time. No request body is read.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Resume set as default\"}'
+          schema:
             $ref: '#/definitions/swagger.SuccessResponse'
         "400":
-          description: Bad Request
+          description: Invalid resume ID
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
@@ -10695,6 +15875,39 @@ paths:
       security:
       - BearerAuth: []
       summary: Set default resume
+      tags:
+      - Profiles
+  /api/v1/resumes/{id}/download:
+    get:
+      description: Serves the resume as a PDF attachment, named after its title.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: The resume as a PDF
+          schema:
+            type: file
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Resume not found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download a resume
       tags:
       - Profiles
   /api/v1/resumes/{id}/duplicate:
@@ -10738,6 +15951,193 @@ paths:
       summary: Duplicate resume
       tags:
       - Profiles
+  /api/v1/resumes/{id}/optimize:
+    post:
+      description: Rewrites the resume's wording for clarity and ATS readability and
+        returns the revised resume. Suggestions are drawn from what the resume already
+        says; no employment history, qualification or date is invented.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Resume'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Optimise a resume
+      tags:
+      - Profiles
+  /api/v1/resumes/{id}/preview:
+    post:
+      description: Returns the rendered resume together with the URL its preview is
+        served from.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.ResumePreviewResponse'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Resume not found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Preview a resume
+      tags:
+      - Profiles
+  /api/v1/resumes/{id}/share:
+    delete:
+      description: Withdraws the shareable link so the resume can no longer be opened
+        through it.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Share revoked\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke a resume share
+      tags:
+      - Profiles
+    post:
+      consumes:
+      - application/json
+      description: Creates a shareable link to the resume at the privacy level asked
+        for, defaulting to Public when none is given. The link can be withdrawn again
+        with DELETE on the same path.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Privacy level for the link
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/http.ShareResumeBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ResumeShare'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Share a resume
+      tags:
+      - Profiles
+  /api/v1/resumes/{id}/tailor:
+    post:
+      consumes:
+      - application/json
+      description: Reorders and rephrases the resume against a specific job description,
+        and reports which of the job's requirements the resume already evidences and
+        which it does not. A gap is reported as a gap rather than filled in.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The job to tailor against
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.TailorJobRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/kirmya_internal_resume_models.TailorJobResponse'
+        "400":
+          description: Invalid resume ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tailor a resume to a job
+      tags:
+      - Profiles
   /api/v1/resumes/{id}/versions:
     get:
       description: Returns a list of versions via the Kirmya resume module. Requires
@@ -10772,6 +16172,206 @@ paths:
       summary: List versions
       tags:
       - Profiles
+  /api/v1/resumes/import:
+    post:
+      consumes:
+      - application/json
+      description: Builds a new resume from an uploaded document or a pasted profile.
+        The import is parsed into sections the caller can then edit; nothing is published
+        anywhere by importing.
+      parameters:
+      - description: Source to import from
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ImportResumeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Resume'
+        "400":
+          description: The source could not be read
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Import a resume
+      tags:
+      - Profiles
+  /api/v1/resumes/templates:
+    get:
+      description: Returns the templates a resume can be created from, with the sections
+        each starts with.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ResumeTemplate'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List resume templates
+      tags:
+      - Profiles
+  /api/v1/saved-searches:
+    get:
+      description: Returns the job searches the signed-in candidate has kept, with
+        the filters each holds.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SavedSearch'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List saved searches
+      tags:
+      - Jobs
+    post:
+      consumes:
+      - application/json
+      description: Keeps a set of job search filters under a name so it can be re-run,
+        and optionally turned into an alert.
+      parameters:
+      - description: The search to save
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SavedSearch'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SavedSearch'
+        "400":
+          description: Payload failed validation
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Save a search
+      tags:
+      - Jobs
+  /api/v1/saved-searches/{id}:
+    delete:
+      description: Removes a saved search. Any alert built from it stops with it.
+      parameters:
+      - description: Saved search id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"saved search deleted\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid search id
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a saved search
+      tags:
+      - Jobs
+    put:
+      consumes:
+      - application/json
+      description: Changes a saved search's name or filters. The id in the path decides
+        which search is written.
+      parameters:
+      - description: Saved search id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: The revised search
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SavedSearch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SavedSearch'
+        "400":
+          description: Invalid search id or payload
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a saved search
+      tags:
+      - Jobs
   /api/v1/search/candidates:
     post:
       consumes:
@@ -11651,8 +17251,7 @@ schemes:
 - https
 securityDefinitions:
   BearerAuth:
-    description: 'JWT access token issued by /api/v1/auth/login. Paste it as: Bearer
-      {access_token}'
+    description: Access token issued by the auth module, sent as "Bearer {token}".
     in: header
     name: Authorization
     type: apiKey

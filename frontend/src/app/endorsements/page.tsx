@@ -300,7 +300,7 @@ export default function EndorsementsPage() {
               {activeTab === 0 && (
                 <Box>
                   <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
-                    Endorse a Peer Candidate's Skill
+                    Endorse a Peer Candidate&apos;s Skill
                   </Typography>
                   <TextField
                     label="Candidate ID (Target Peer)"
@@ -503,7 +503,7 @@ export default function EndorsementsPage() {
                           </Box>
 
                           <Typography variant="body2" sx={{ color: '#cbd5e1', my: 2, fontStyle: 'italic', lineHeight: 1.6 }}>
-                            "{rec.content_text}"
+                            &quot;{rec.content_text}&quot;
                           </Typography>
 
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>

@@ -134,7 +134,7 @@ export const SavedSearchManager: React.FC<SavedSearchManagerProps> = ({
                   {s.search_name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                  Query: "{s.query || 'All Filters'}"
+                  Query: &quot;{s.query || 'All Filters'}&quot;
                 </Typography>
                 <Chip label={`Alerts: ${s.alert_frequency}`} size="small" color="primary" sx={{ fontWeight: 700, fontSize: '0.65rem', height: 18 }} />
               </Box>
