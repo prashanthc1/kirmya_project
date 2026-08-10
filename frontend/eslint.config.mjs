@@ -11,4 +11,14 @@ export default [
     ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'],
   },
   ...next,
+  {
+    rules: {
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/immutability': 'warn',
+    },
+  },
 ];
+
+
+
