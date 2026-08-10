@@ -5,6 +5,9 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	"html"
+	"log/slog"
+	"net/url"
 	"time"
 
 	"kirmya/internal/auth/dto"
@@ -12,6 +15,7 @@ import (
 	"kirmya/internal/auth/repository"
 	"kirmya/internal/auth/validators"
 	configPkg "kirmya/internal/shared/config"
+	"kirmya/internal/shared/mailer"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -20,10 +24,23 @@ import (
 
 type AuthService struct {
 	repo *repository.AuthRepository
+
+	// mail is safe to leave unconfigured: with no SMTP_HOST it reports itself
+	// disabled and the verification token falls back to the API response, which
+	// is how local development and the test suite worked before mail existed.
+	mail       *mailer.Mailer
+	appBaseURL string
 }
 
+// ponytail: the mailer is resolved from the environment here rather than passed
+// in, so the existing call sites of NewAuthService stay untouched. Take it as a
+// parameter the day a caller needs to inject a different transport.
 func NewAuthService(repo *repository.AuthRepository) *AuthService {
-	return &AuthService{repo: repo}
+	return &AuthService{
+		repo:       repo,
+		mail:       mailer.FromEnv(),
+		appBaseURL: configPkg.AppBaseURL(),
+	}
 }
 
 // Register checks duplicate email, hashes password with bcrypt cost 12, creates user & verification token.
@@ -92,7 +109,52 @@ func (s *AuthService) Register(ctx context.Context, req *dto.RegisterRequest, ip
 		CreatedAt: time.Now(),
 	})
 
+	// A mail server that is down must not cost the user their account: the row
+	// is already committed, so a failed send is logged and the token is handed
+	// back through the response instead, exactly as it was before SMTP existed.
+	if s.sendVerificationEmail(u, verifyToken) {
+		verifyToken = ""
+	}
+
 	return u, verifyToken, nil
+}
+
+// sendVerificationEmail delivers the verification link and reports whether the
+// message actually left the building. A false return means the caller still has
+// to surface the token some other way.
+func (s *AuthService) sendVerificationEmail(u *models.User, token string) bool {
+	if !s.mail.Enabled() {
+		slog.Warn("SMTP is not configured; the email verification token is returned in the API response instead of being mailed",
+			slog.String("user_id", u.ID.String()))
+		return false
+	}
+
+	link := fmt.Sprintf("%s/auth/verify-email?token=%s", s.appBaseURL, url.QueryEscape(token))
+	name := u.FirstName
+	if name == "" {
+		name = "there"
+	}
+
+	body := fmt.Sprintf(`<!doctype html>
+<html>
+  <body style="font-family:Arial,Helvetica,sans-serif;color:#111;line-height:1.5">
+    <p>Hi %s,</p>
+    <p>Confirm this address to finish setting up your Kirmya account.</p>
+    <p><a href="%s" style="background:#1a56db;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">Verify my email</a></p>
+    <p>Or paste this link into your browser:<br><span>%s</span></p>
+    <p>The link expires in 24 hours. If you did not create this account you can ignore this message.</p>
+  </body>
+</html>`, html.EscapeString(name), link, html.EscapeString(link))
+
+	if err := s.mail.Send(u.Email, "Verify your Kirmya email address", body); err != nil {
+		slog.Error("Failed to send the email verification message",
+			slog.String("user_id", u.ID.String()),
+			slog.String("error", err.Error()))
+		return false
+	}
+
+	slog.Info("Email verification message sent", slog.String("user_id", u.ID.String()))
+	return true
 }
 
 // Legacy Register signature support for tests: Register(ctx, email, password)
@@ -302,6 +364,14 @@ func (s *AuthService) ResendVerification(ctx context.Context, email, ipAddress s
 		IPAddress: ipAddress,
 		CreatedAt: time.Now(),
 	})
+
+	// Resending is the whole point of this call, so unlike registration a failed
+	// delivery is reported rather than swallowed — otherwise the caller is told
+	// an email is on its way that nobody sent. With SMTP unconfigured the
+	// endpoint keeps its previous behaviour of just minting a fresh token.
+	if s.mail.Enabled() && !s.sendVerificationEmail(u, ev.Token) {
+		return errors.New("could not send the verification email. Please try again shortly")
+	}
 
 	return nil
 }

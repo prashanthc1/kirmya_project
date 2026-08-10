@@ -203,6 +203,13 @@ func resolveCORSOrigins(appEnv string) []string {
 	return []string{"http://localhost:3000", "http://127.0.0.1:3000"}
 }
 
+// AppBaseURL exposes the resolved public web client address to components that
+// build user-facing links without holding the whole Config — an email template,
+// for instance, which is constructed far from where LoadConfig runs.
+func AppBaseURL() string {
+	return resolveAppBaseURL()
+}
+
 // resolveAppBaseURL reads the public address of the web client. APP_BASE_URL
 // wins, then FRONTEND_URL, then the first configured CORS origin, since an
 // origin the deployment already trusts for browser traffic is the same host a

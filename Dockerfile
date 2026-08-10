@@ -1,5 +1,7 @@
 # 1. Builder Stage
-FROM golang:1.22-alpine AS builder
+# Same constraint as backend/Dockerfile: this has to satisfy the go directive in
+# backend/go.mod, or `go mod download` refuses the module before a line compiles.
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 

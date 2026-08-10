@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
@@ -30,15 +31,34 @@ func findMigrationsDir() (string, error) {
 	return "", os.ErrNotExist
 }
 
+// TestRunMigrations rebuilds the schema from scratch, so it drops everything in
+// the public schema first. That is destructive by design, which is why it runs
+// only against MIGRATION_TEST_DATABASE_URL and never against DATABASE_URL: the
+// same command that verifies the migrations must not be able to empty the
+// database a developer is working in, or the CI database of a live deployment.
+//
+//	MIGRATION_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/kirmya_migrationtest go test ./internal/shared/database/...
 func TestRunMigrations(t *testing.T) {
 	_ = godotenv.Load("../../../.env")
-	db, err := Connect()
+
+	dsn := strings.TrimSpace(os.Getenv("MIGRATION_TEST_DATABASE_URL"))
+	if dsn == "" {
+		t.Skip("MIGRATION_TEST_DATABASE_URL is not set; skipping the destructive migration rebuild test")
+	}
+
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer db.Close()
+	defer pool.Close()
 
-	ctx := context.Background()
+	if err := pool.Ping(ctx); err != nil {
+		t.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	db := &DBConnection{Pool: pool}
+
 	t.Log("Resetting database schema public...")
 	_, err = db.Pool.Exec(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
 	if err != nil {
