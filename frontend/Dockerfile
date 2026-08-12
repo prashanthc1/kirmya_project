@@ -15,6 +15,14 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
+# NEXT_PUBLIC_* values are inlined into the client bundle by `next build`, not
+# read at runtime, so they have to be present here. A platform host passes
+# service variables to the build only as build args, and an undeclared ARG is
+# silently dropped -- without these two lines the image ships the
+# http://localhost:8080 fallback baked in and every browser call fails.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 RUN npm run build
 
 # 3. Production Runner Stage
