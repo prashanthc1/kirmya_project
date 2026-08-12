@@ -366,7 +366,7 @@ export default function NotificationsPage() {
       </Box>
 
       {/* Main Split Interface */}
-      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
+      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
         <Grid container spacing={3} sx={{ height: '100%' }}>
           
           {/* Left Column: Preferences Configuration */}

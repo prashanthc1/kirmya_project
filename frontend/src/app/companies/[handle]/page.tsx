@@ -335,7 +335,7 @@ export default function CompanyDetailPage({ params }: PageProps) {
       </Box>
 
       {/* Main Console Layout */}
-      <Container component="main" maxWidth="md" sx={{ flexGrow: 1, py: 4 }}>
+      <Container maxWidth="md" sx={{ flexGrow: 1, py: 4 }}>
         <Stack spacing={3.5}>
           
           {/* Card: Logo and Cover Header Panel */}

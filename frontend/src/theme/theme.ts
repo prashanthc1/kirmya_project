@@ -37,6 +37,26 @@ export const getTheme = (mode: 'light' | 'dark') => {
       },
     },
     components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          // Single focus indicator for the whole app. Deliberately a high-contrast
+          // neutral rather than the brand indigo: primary CTAs are indigo gradients,
+          // and an indigo ring on an indigo button is invisible. The offset keeps the
+          // ring on the page background rather than on the control itself.
+          // Scoped under `body` on purpose: MUI's ButtonBase sets `outline: 0` at the
+          // same specificity as a bare `*:focus-visible` and wins on source order, so
+          // the ring silently vanished on exactly the controls that need it most.
+          // The extra type selector outranks it without resorting to !important.
+          'body *:focus-visible': {
+            outline: `2px solid ${mode === 'light' ? '#0f172a' : '#f8fafc'}`,
+            outlineOffset: '2px',
+          },
+          // Anchor targets sit below the sticky 1200-z navbar without this.
+          ':target': {
+            scrollMarginTop: '96px',
+          },
+        },
+      },
       MuiCard: {
         styleOverrides: {
           root: {

@@ -485,7 +485,7 @@ export default function MessagingPage() {
       </Box>
 
       {/* Main Split Interface */}
-      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, py: 3, display: 'flex', flexDirection: 'column' }}>
+      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 3, display: 'flex', flexDirection: 'column' }}>
         <Grid container sx={{ flexGrow: 1, height: '80vh', borderRadius: 2, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           
           {/* Left Column: Thread Lists */}

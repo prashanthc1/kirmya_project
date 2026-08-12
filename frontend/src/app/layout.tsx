@@ -79,7 +79,29 @@ export default function RootLayout({
   return (
     <html lang="en" className={jakarta.variable}>
       <body style={{ margin: 0, padding: 0 }}>
-        <Providers>{children}</Providers>
+        {/*
+          Inlined rather than themed: MUI's styles are injected on the client, so a
+          themed skip link would render unstyled — and therefore visible — during the
+          server paint. These rules ship with the HTML.
+        */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+.skip-link{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.skip-link:focus{position:fixed;top:12px;left:12px;width:auto;height:auto;margin:0;padding:12px 20px;clip:auto;clip-path:none;overflow:visible;z-index:1600;background:#4f46e5;color:#fff;font-family:var(--font-sans),sans-serif;font-size:.95rem;font-weight:600;text-decoration:none;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.35);outline:2px solid #f8fafc;outline-offset:2px}
+#main-content{scroll-margin-top:96px}
+#main-content:focus{outline:none}
+`.trim(),
+          }}
+        />
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
+        <Providers>
+          <main id="main-content" tabIndex={-1}>
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

@@ -503,7 +503,7 @@ export default function AdminDashboardPage() {
       </Box>
 
       {/* Main Console Workspace */}
-      <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
+      <Container maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
         {loading ? (
           <Box sx={{ p: 10, display: 'flex', justifyContent: 'center' }}>
             <CircularProgress size={40} />
