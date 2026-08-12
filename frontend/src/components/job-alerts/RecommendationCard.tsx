@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { surfaceTransition } from '../../theme/motion';
 import {
   Box,
   Paper,
@@ -72,7 +73,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
         background: 'rgba(255, 255, 255, 0.03)',
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
-        transition: 'all 0.25s ease',
+        transition: surfaceTransition(0.25),
         '&:hover': {
           borderColor: 'rgba(153, 51, 255, 0.4)',
           transform: 'translateY(-2px)',

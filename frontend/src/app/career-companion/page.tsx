@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { surfaceTransition } from '../../theme/motion';
 import {
   Box,
   Container,
@@ -134,7 +135,7 @@ export default function CareerCompanionPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: themeBg, minHeight: '100vh', color: textColor, py: 4, transition: 'all 0.3s ease' }}>
+    <Box sx={{ bgcolor: themeBg, minHeight: '100vh', color: textColor, py: 4, transition: surfaceTransition(0.3) }}>
       <Container maxWidth="xl">
         {/* Header Bar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>

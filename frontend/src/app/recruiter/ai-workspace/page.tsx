@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { surfaceTransition } from '../../../theme/motion';
 import {
   Box,
   Container,
@@ -194,7 +195,7 @@ export default function RecruiterAIWorkspacePage() {
                         border: `1px solid ${selectedCandidate?.id === cand.id ? '#a855f7' : '#334155'}`,
                         borderRadius: 2,
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease',
+                        transition: surfaceTransition(0.2),
                       }}
                     >
                       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>

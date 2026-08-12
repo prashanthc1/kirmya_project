@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardProps, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
-import { springs } from '../../theme/motion';
+import { springs, surfaceTransitionNoTransform } from '../../theme/motion';
 
 interface GlassCardProps extends CardProps {
   children: React.ReactNode;
@@ -35,7 +35,10 @@ export const GlassCard: React.FC<GlassCardProps> = ({
           boxShadow: isDark
             ? '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
             : '0 10px 30px rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-          transition: 'all 0.3s ease',
+          // No `transform` here on purpose: the motion.div above animates it,
+          // and running a 300ms CSS transition against Framer's 200ms spring on
+          // the same property meant two systems fought over every hover.
+          transition: surfaceTransitionNoTransform(0.3),
           '&:hover': {
             borderColor: isDark ? 'rgba(99, 102, 241, 0.4)' : 'rgba(99, 102, 241, 0.3)',
             boxShadow: `0 16px 40px ${glowColor}`,

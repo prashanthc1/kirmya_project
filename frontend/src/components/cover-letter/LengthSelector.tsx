@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Box, Typography, Stack, Card, Alert } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 
 export interface LengthSelectorProps {
   value: 'Short' | 'Standard' | 'Detailed';
@@ -37,7 +38,7 @@ export const LengthSelector: React.FC<LengthSelectorProps> = ({ value, currentWo
                 background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.03)',
                 border: isSelected ? '2px solid #6366f1' : '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: 3,
-                transition: 'all 0.2s ease',
+                transition: surfaceTransition(0.2),
               }}
             >
               <Typography variant="subtitle2" fontWeight={700} color={isSelected ? '#818cf8' : 'text.primary'}>

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { surfaceTransition } from '../../theme/motion';
 import {
   Card,
   CardContent,
@@ -58,7 +59,7 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
           display: 'flex',
           flexDirection: 'column',
           justify: 'space-between',
-          transition: 'all 0.3s ease',
+          transition: surfaceTransition(0.3),
           '&:hover': {
             borderColor: 'rgba(99, 102, 241, 0.4)',
             boxShadow: '0 8px 32px rgba(99, 102, 241, 0.15)',

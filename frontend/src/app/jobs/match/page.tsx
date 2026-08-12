@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { surfaceTransition } from '../../../theme/motion';
 import {
   Box,
   Container,
@@ -119,7 +120,7 @@ export default function AIJobMatchPage() {
                       border: `1px solid ${selectedMatch?.id === m.id ? '#38bdf8' : '#334155'}`,
                       borderRadius: 2,
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease',
+                      transition: surfaceTransition(0.2),
                       '&:hover': { borderColor: '#38bdf8' },
                     }}
                   >

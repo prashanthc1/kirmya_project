@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Container, Box, Typography, Grid, Paper, Button, TextField, Stack } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -99,7 +100,7 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onCreateResume }) 
                     background: isSelected ? 'rgba(0, 102, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
                     border: isSelected ? '2px solid #0066FF' : '1px solid rgba(255, 255, 255, 0.08)',
                     backdropFilter: 'blur(16px)',
-                    transition: 'all 0.2s ease',
+                    transition: surfaceTransition(0.2),
                     '&:hover': {
                       borderColor: 'primary.main',
                       transform: 'translateY(-2px)',

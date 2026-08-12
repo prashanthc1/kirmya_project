@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Box, Paper, Typography, Avatar, Chip, Button, IconButton, Tooltip, Stack } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MessageIcon from '@mui/icons-material/Message';
@@ -59,7 +60,7 @@ export const ApplicationCard: React.FC<ApplicationCardProps> = ({
         background: 'rgba(255, 255, 255, 0.03)',
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
-        transition: 'all 0.25s ease',
+        transition: surfaceTransition(0.25),
         '&:hover': {
           borderColor: 'rgba(0, 102, 255, 0.4)',
           transform: 'translateY(-2px)',

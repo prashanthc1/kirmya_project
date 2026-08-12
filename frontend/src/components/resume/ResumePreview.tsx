@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Box, Paper, Typography, Divider, Chip, Stack } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import { Resume } from '@/features/resume/types';
 
 interface ResumePreviewProps {
@@ -69,7 +70,7 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({
           fontFamily: resume.fontFamily || 'Inter, sans-serif',
           transform: `scale(${zoom})`,
           transformOrigin: 'top center',
-          transition: 'all 0.2s ease',
+          transition: surfaceTransition(0.2),
           boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
           borderRadius: 2,
         }}

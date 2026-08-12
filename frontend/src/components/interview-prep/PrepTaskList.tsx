@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Paper, Typography, Box, Stack, Checkbox, IconButton, Button } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import { Delete, Add, Event } from '@mui/icons-material';
 import { PreparationTask } from '@/features/interview-prep/types';
 
@@ -53,7 +54,7 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
               borderRadius: 2.5,
               bgcolor: 'rgba(15, 23, 42, 0.5)',
               border: '1px solid rgba(255, 255, 255, 0.05)',
-              transition: 'all 0.2s ease',
+              transition: surfaceTransition(0.2),
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" flex={1}>

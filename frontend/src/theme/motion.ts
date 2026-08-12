@@ -29,6 +29,31 @@ export const springs = {
 };
 
 /**
+ * CSS transition for hover and state changes on a surface.
+ *
+ * Names its properties instead of using `all`. `all` sweeps in every animatable
+ * property — width, height, padding, colour — so a hover that meant to move a
+ * card also animates anything else that happens to change, at layout cost the
+ * compositor cannot absorb. These four are what the hovers in this codebase
+ * actually change.
+ *
+ * Do not include `transform` here on an element that Framer Motion already
+ * animates; two systems driving one property is how GlassCard ended up running
+ * a 200ms JS animation against a 300ms CSS one.
+ */
+export const surfaceTransition = (seconds = 0.25, props = SURFACE_PROPS): string =>
+  props.map((p) => `${p} ${seconds}s ease`).join(', ');
+
+const SURFACE_PROPS = ['transform', 'border-color', 'background-color', 'box-shadow'];
+
+/** The same, minus transform — for elements whose transform belongs to Framer. */
+export const surfaceTransitionNoTransform = (seconds = 0.25): string =>
+  surfaceTransition(
+    seconds,
+    SURFACE_PROPS.filter((p) => p !== 'transform'),
+  );
+
+/**
  * Staggered entrance for a list. Keeps the spring and adds only the delay, so
  * items cascade rather than arriving as one block.
  */

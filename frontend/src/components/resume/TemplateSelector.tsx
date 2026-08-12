@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Grid, Paper, Box, Typography, Button, Chip, Stack } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { ResumeTemplate } from '@/features/resume/types';
@@ -33,7 +34,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 background: isSelected ? 'rgba(0, 102, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
                 border: isSelected ? '2px solid #0066FF' : '1px solid rgba(255, 255, 255, 0.08)',
                 backdropFilter: 'blur(16px)',
-                transition: 'all 0.2s ease',
+                transition: surfaceTransition(0.2),
                 position: 'relative',
                 '&:hover': {
                   borderColor: 'primary.main',

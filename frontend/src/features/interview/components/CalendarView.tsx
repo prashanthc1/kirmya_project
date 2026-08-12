@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { surfaceTransition } from '../../../theme/motion';
 import {
   Box,
   Paper,
@@ -182,7 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     borderRadius: 1,
                     p: 1,
                     border: isToday ? '2px solid #38bdf8' : '1px solid #1e293b',
-                    transition: 'all 0.2s',
+                    transition: surfaceTransition(0.2),
                     '&:hover': { bgcolor: '#1e293b' },
                   }}
                 >

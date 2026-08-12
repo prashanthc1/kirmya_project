@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { surfaceTransition } from '../../theme/motion';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Box,
@@ -90,7 +91,7 @@ export const Navbar: React.FC = () => {
         borderBottom: scrolled
           ? `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(99, 102, 241, 0.12)'}`
           : '1px solid transparent',
-        transition: 'all 0.3s ease',
+        transition: surfaceTransition(0.3),
         py: 1.5,
       }}
     >

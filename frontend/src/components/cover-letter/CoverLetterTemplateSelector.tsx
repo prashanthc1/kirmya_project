@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Grid, Card, CardContent, Typography, Box, Button, Chip } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import { CoverLetterTemplate } from '@/features/cover-letter/types';
 
 export interface CoverLetterTemplateSelectorProps {
@@ -31,7 +32,7 @@ export const CoverLetterTemplateSelector: React.FC<CoverLetterTemplateSelectorPr
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                transition: 'all 0.3s ease',
+                transition: surfaceTransition(0.3),
                 '&:hover': {
                   borderColor: '#6366f1',
                   boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',

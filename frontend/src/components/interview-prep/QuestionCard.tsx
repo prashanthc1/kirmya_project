@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, Typography, Box, Stack, Chip, Button, Collapse, IconButton } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import { ExpandMore, ExpandLess, CheckCircle, Edit, PlayArrow } from '@mui/icons-material';
 import { InterviewQuestion } from '@/features/interview-prep/types';
 import { STARAnswerBuilder } from './STARAnswerBuilder';
@@ -36,7 +37,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onUpdatePr
         backdropFilter: 'blur(12px)',
         border: question.is_practiced ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
         color: '#fff',
-        transition: 'all 0.2s ease',
+        transition: surfaceTransition(0.2),
       }}
     >
       <CardContent sx={{ p: 2.5 }}>

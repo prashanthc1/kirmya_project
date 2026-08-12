@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Box, Paper, Typography, Chip, Switch, IconButton, Stack, Tooltip } from '@mui/material';
+import { surfaceTransition } from '../../theme/motion';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import PauseCircleIcon from '@mui/icons-material/PauseCircle';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
@@ -29,7 +30,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onEdit, onDelete, o
         background: 'rgba(255, 255, 255, 0.03)',
         backdropFilter: 'blur(16px)',
         border: alert.is_active ? '1px solid rgba(0, 102, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
-        transition: 'all 0.25s ease',
+        transition: surfaceTransition(0.25),
         '&:hover': {
           transform: 'translateY(-2px)',
           borderColor: alert.is_active ? 'rgba(0, 102, 255, 0.6)' : 'rgba(255, 255, 255, 0.2)',
