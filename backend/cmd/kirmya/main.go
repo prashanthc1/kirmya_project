@@ -16,6 +16,9 @@ import (
 
 	jobMatchHttp "kirmya/internal/ai_job_match/delivery/http"
 	jobMatchRepo "kirmya/internal/ai_job_match/repository"
+	jobsHttp "kirmya/internal/jobs/delivery/http"
+	jobsRepo "kirmya/internal/jobs/repository"
+	jobsSvc "kirmya/internal/jobs/service"
 
 	jobMatchScoring "kirmya/internal/ai_job_match/scoring"
 	jobMatchSvc "kirmya/internal/ai_job_match/service"
@@ -441,6 +444,11 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	jobMatchService := jobMatchSvc.NewMatchingService(jobMatchRepository, jobMatchModel)
 	jobMatchHandler := jobMatchHttp.NewMatchingHandler(jobMatchService)
 
+	// Public platform-wide job board, backed by the real jobs table.
+	jobsRepository := jobsRepo.NewJobRepository(dbPool)
+	jobsService := jobsSvc.NewJobService(jobsRepository)
+	jobsHandler := jobsHttp.NewJobHandler(jobsService)
+
 	recruiterAIRepository := recruiterAIRepo.NewRecruiterAIRepository(dbPool)
 	recruiterAIService := recruiterAISvc.NewRecruiterAIService(recruiterAIRepository)
 	recruiterAIHandler := recruiterAIHttp.NewRecruiterAIHandler(recruiterAIService)
@@ -545,6 +553,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		OnboardingHandler:           onboardingHandler,
 		ApplicationsHandler:         appsHandler,
 		JobAlertsHandler:            jAlertsHandler,
+		JobsHandler:                 jobsHandler,
 		CoverLetterHandler:          coverLetterHandler,
 		InterviewPrepHandler:        interviewPrepHandler,
 	}

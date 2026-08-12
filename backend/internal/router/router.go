@@ -29,6 +29,7 @@ import (
 	interviewHttp "kirmya/internal/interview/delivery/http"
 	interviewPrepHttp "kirmya/internal/interview_prep/delivery/http"
 	jobAlertsHttp "kirmya/internal/job_alerts/delivery/http"
+	jobsHttp "kirmya/internal/jobs/delivery/http"
 	landingHttp "kirmya/internal/landing/delivery/http"
 	learningHttp "kirmya/internal/learning/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
@@ -112,6 +113,7 @@ type RouterDependencies struct {
 	OnboardingHandler           *onboardingHttp.OnboardingHandler
 	ApplicationsHandler         *applicationsHttp.ApplicationsHandler
 	JobAlertsHandler            *jobAlertsHttp.JobAlertsHandler
+	JobsHandler                 *jobsHttp.JobHandler
 	CoverLetterHandler          *coverLetterHttp.CoverLetterHandler
 	InterviewPrepHandler        *interviewPrepHttp.InterviewPrepHandler
 }
@@ -220,6 +222,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	notifyHttp.RegisterRoutes(api, deps.NotificationHandler)
 	applicationsHttp.RegisterRoutes(api, deps.ApplicationsHandler)
 	jobAlertsHttp.RegisterRoutes(api, deps.JobAlertsHandler)
+	jobsHttp.RegisterRoutes(api, deps.JobsHandler)
 	if deps.CoverLetterHandler != nil {
 		coverLetterHttp.RegisterRoutes(api, deps.CoverLetterHandler)
 	}

@@ -27,7 +27,9 @@ import ThemeToggle from './ThemeToggle';
 
 const navLinks = [
   { label: 'Home', href: '#' },
-  { label: 'Jobs', href: '#jobs' },
+  // A real route, not an anchor: there is no id="jobs" section on the landing
+  // page, so this scrolled nowhere. handleNavClick routes non-hash hrefs.
+  { label: 'Jobs', href: '/jobs' },
   { label: 'Companies', href: '#companies' },
   { label: 'Communities', href: '#communities' },
   { label: 'About', href: '#why-kirmya' },
