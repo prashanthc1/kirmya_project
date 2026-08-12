@@ -2,12 +2,12 @@
 
 import React from 'react';
 import RecruiterLayout from '../../../../components/recruiter/RecruiterLayout';
-import JobForm from '../../../../components/recruiter/JobForm';
+import JobEditor from '../../../../components/recruiter/JobEditor';
 
-export default function RecruiterJobCreatePage() {
+export default function CreateJobPage() {
   return (
     <RecruiterLayout>
-      <JobForm />
+      <JobEditor />
     </RecruiterLayout>
   );
 }

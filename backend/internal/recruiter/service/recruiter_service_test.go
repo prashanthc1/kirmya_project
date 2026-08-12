@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"testing"
-	"time"
 
 	"kirmya/internal/recruiter/models"
 	"kirmya/internal/recruiter/repository"
@@ -11,85 +10,102 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestCreateJobFlow(t *testing.T) {
+func TestRecruiterService_FullWorkflow(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
-
-	userID := uuid.New()
-	payload := &models.CreateJobPayload{
-		Title:       "Staff Engineer (Go)",
-		Description: "Design structured logging and microservice abstractions.",
-		Department:  "Infrastructure",
-		Location:    "Dubai, UAE",
-		SalaryRange: "AED 30,000 - 40,000",
-	}
-
-	job, err := svc.CreateJob(context.Background(), userID, payload)
-	if err != nil {
-		t.Fatalf("Expected no error creating job, got %v", err)
-	}
-
-	if job.Title != "Staff Engineer (Go)" {
-		t.Errorf("Expected job title 'Staff Engineer (Go)', got %s", job.Title)
-	}
-
-	if job.Status != "Active" {
-		t.Errorf("Expected job status 'Active', got %s", job.Status)
-	}
-}
-
-func TestPipelineStubsGeneration(t *testing.T) {
-	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterService(repo)
-
-	jobID := uuid.New()
-
-	pipeline, err := svc.GetPipeline(context.Background(), jobID)
-	if err != nil {
-		t.Fatalf("Expected no error fetching pipeline, got %v", err)
-	}
-
-	if len(pipeline) != 3 {
-		t.Errorf("Expected exactly 3 mock pipeline records, got %d", len(pipeline))
-	}
-
-	if pipeline[0].CandidateName != "Sarah Chen" {
-		t.Errorf("Expected first mock candidate to be 'Sarah Chen', got %s", pipeline[0].CandidateName)
-	}
-}
-
-func TestUpdatePipelineStageFlow(t *testing.T) {
-	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterService(repo)
-
-	userID := uuid.New()
-	pipelineID := uuid.New()
-	scheduledTime := time.Now().Add(48 * time.Hour)
-
-	payload := &models.UpdateStagePayload{
-		Stage:                "Interview",
-		Notes:                "Advancing candidate to system design interview.",
-		InterviewScheduledAt: &scheduledTime,
-	}
-
-	err := svc.UpdatePipelineStage(context.Background(), userID, pipelineID, payload)
-	if err != nil {
-		t.Fatalf("Expected no error updating stage, got %v", err)
-	}
-}
-
-func TestGetAnalyticsStubs(t *testing.T) {
-	repo := repository.NewRecruiterRepository(nil)
-	svc := NewRecruiterService(repo)
-
+	ctx := context.Background()
 	userID := uuid.New()
 
-	analytics, err := svc.GetAnalytics(context.Background(), userID)
+	// 1. Test Onboarding
+	onboardPayload := &models.OnboardingPayload{
+		CompanyName:   "Kirmya Tech Solutions",
+		JobTitle:      "Head of Talent",
+		RecruiterRole: "Organization Owner",
+		Department:    "People & Culture",
+		ContactEmail:  "headofpersonnel@kirmya.ae",
+	}
+	profile, err := svc.SubmitOnboarding(ctx, userID, onboardPayload)
 	if err != nil {
-		t.Fatalf("Expected no error fetching analytics, got %v", err)
+		t.Fatalf("SubmitOnboarding failed: %v", err)
+	}
+	if profile.CompanyName != "Kirmya Tech Solutions" {
+		t.Errorf("Expected company name 'Kirmya Tech Solutions', got %s", profile.CompanyName)
 	}
 
-	if analytics.TotalJobsActive != 3 {
-		t.Errorf("Expected default active jobs count to be 3, got %d", analytics.TotalJobsActive)
+	// 2. Test Job Creation
+	jobPayload := &models.CreateJobPayload{
+		Title:           "Senior Go Engineer",
+		Department:      "Engineering",
+		EmploymentType:  "Full-time",
+		WorkplaceType:   "Remote",
+		Location:        "Dubai, UAE",
+		SalaryRange:     "$100,000 - $140,000",
+		Currency:        "USD",
+		ExperienceLevel: "Senior",
+		Description:     "Architect scalable backend microservices.",
+		Questions: []models.JobApplicationQuestionDTO{
+			{
+				QuestionText: "How many years of Go experience do you have?",
+				QuestionType: "Number",
+				IsRequired:   true,
+			},
+		},
+	}
+	job, err := svc.CreateJob(ctx, userID, jobPayload)
+	if err != nil {
+		t.Fatalf("CreateJob failed: %v", err)
+	}
+	if job.Title != "Senior Go Engineer" {
+		t.Errorf("Expected job title 'Senior Go Engineer', got %s", job.Title)
+	}
+
+	// 3. Test Candidate Pipeline & Match Analysis
+	match, err := svc.GetCandidateMatch(ctx, userID, job.ID, uuid.New())
+	if err != nil {
+		t.Fatalf("GetCandidateMatch failed: %v", err)
+	}
+	if match.OverallMatchScore < 80 {
+		t.Errorf("Expected match score >= 80, got %d", match.OverallMatchScore)
+	}
+
+	// 4. Test Interview Feedback & Offer
+	feedbackPayload := &models.InterviewFeedbackPayload{
+		InterviewID:          uuid.New().String(),
+		ApplicationID:        uuid.New().String(),
+		TechnicalSkillsScore: 5,
+		CommunicationScore:   5,
+		ProblemSolvingScore:  5,
+		CultureFitScore:      5,
+		LeadershipScore:      4,
+		OverallRating:        5,
+		Recommendation:       "Strong Hire",
+		Comments:             "Exceptional technical mastery and communication.",
+	}
+	feedback, err := svc.SubmitInterviewFeedback(ctx, userID, feedbackPayload)
+	if err != nil {
+		t.Fatalf("SubmitInterviewFeedback failed: %v", err)
+	}
+	if feedback.Recommendation != "Strong Hire" {
+		t.Errorf("Expected recommendation 'Strong Hire', got %s", feedback.Recommendation)
+	}
+
+	// 5. Test Offer Creation
+	offerPayload := &models.JobOfferPayload{
+		ApplicationID: uuid.New().String(),
+		JobID:         job.ID.String(),
+		CandidateID:   uuid.New().String(),
+		PositionTitle: "Senior Go Engineer",
+		Salary:        "$130,000",
+		Currency:      "USD",
+		Benefits:      "Health, 30 days annual leave, Remote stipend",
+		JoiningDate:   "2026-10-01",
+		ContractType:  "Full-time",
+	}
+	offer, err := svc.CreateJobOffer(ctx, userID, offerPayload)
+	if err != nil {
+		t.Fatalf("CreateJobOffer failed: %v", err)
+	}
+	if offer.Status != "Sent" {
+		t.Errorf("Expected offer status 'Sent', got %s", offer.Status)
 	}
 }

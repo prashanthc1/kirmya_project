@@ -1,68 +1,34 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import ATSLayout from '../../../components/ats/ATSLayout';
-import FilterPanel from '../../../components/ats/FilterPanel';
-import CandidateCard from '../../../components/ats/CandidateCard';
-import BulkActions from '../../../components/ats/BulkActions';
-import ApplicationDetails from '../../../components/ats/ApplicationDetails';
-import OfferManager from '../../../components/ats/OfferManager';
-import { atsApi } from '../../../features/ats/api';
-import { JobApplicationDTO } from '../../../features/ats/types';
-import { Box, Stack } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
+import PipelineBoard from '../../../components/recruiter/PipelineBoard';
+import ApplicationDetails from '../../../components/recruiter/ApplicationDetails';
 
 export default function ApplicationsMainPage() {
-  const [applications, setApplications] = useState<JobApplicationDTO[]>([]);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedApp, setSelectedApp] = useState<JobApplicationDTO | null>(null);
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
 
-  const loadApplications = (filters?: any) => {
-    atsApi.getApplications(filters).then((res) => setApplications(res)).catch(() => {});
-  };
-
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  const handleSelectToggle = (id: string, selected: boolean) => {
-    if (selected) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
-      setSelectedIds(selectedIds.filter((i) => i !== id));
-    }
-  };
-
-  if (selectedApp) {
+  if (selectedAppId) {
     return (
-      <ATSLayout>
-        <ApplicationDetails applicationId={selectedApp.id} />
-      </ATSLayout>
+      <RecruiterLayout>
+        <ApplicationDetails applicationId={selectedAppId} />
+      </RecruiterLayout>
     );
   }
 
   return (
-    <ATSLayout>
-      <FilterPanel onFilterChange={(f) => loadApplications(f)} />
+    <RecruiterLayout>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
+          ATS Application Pipeline
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Track candidates across customizable stages, move applicants, and initiate interview scheduling.
+        </Typography>
+      </Box>
 
-      <Stack spacing={2}>
-        {applications.map((app) => (
-          <CandidateCard
-            key={app.id}
-            application={app}
-            onView={(a) => setSelectedApp(a)}
-            onSchedule={() => {}}
-            onReject={() => loadApplications()}
-            onSelectToggle={handleSelectToggle}
-            isSelected={selectedIds.includes(app.id)}
-          />
-        ))}
-      </Stack>
-
-      <BulkActions
-        selectedIds={selectedIds}
-        onClearSelection={() => setSelectedIds([])}
-        onRefresh={loadApplications}
-      />
-    </ATSLayout>
+      <PipelineBoard onSelectCandidate={(c) => setSelectedAppId(c.applicationId)} />
+    </RecruiterLayout>
   );
 }

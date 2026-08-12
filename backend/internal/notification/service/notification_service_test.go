@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"kirmya/internal/messaging/pubsub"
+	"kirmya/internal/notification/models"
 	"kirmya/internal/notification/repository"
 	"testing"
 
@@ -12,22 +13,17 @@ import (
 )
 
 func TestNotificationSendWithInAppEnabled(t *testing.T) {
-	// 1. Create a dummy in-memory pubsub broker
 	ps := pubsub.NewInMemoryPubSub()
-	
-	// Create repo stub (db is nil, meaning r.db = nil, so DB operations return gracefully)
 	repo := repository.NewNotificationRepository(nil)
 	svc := NewNotificationService(repo, ps)
 
 	userID := uuid.New()
 	nType := "connection_request"
 
-	// Subscribe to the user's event channel first to listen to pushed websocket payloads
 	sub, err := ps.Subscribe(context.Background(), "user:events:"+userID.String())
 	assert.NoError(t, err)
 	defer sub.Close()
 
-	// Send notification
 	notif, err := svc.Send(context.Background(), userID, nType, "New Connection", "You have a connection request")
 	assert.NoError(t, err)
 	assert.NotNil(t, notif)
@@ -35,14 +31,13 @@ func TestNotificationSendWithInAppEnabled(t *testing.T) {
 	assert.Equal(t, nType, notif.Type)
 	assert.Equal(t, "New Connection", notif.Title)
 
-	// Verify that the event is routed over Pub/Sub in real-time
 	select {
 	case msgBytes := <-sub.Channel():
 		var wsEvt map[string]interface{}
 		err := json.Unmarshal(msgBytes, &wsEvt)
 		assert.NoError(t, err)
 		assert.Equal(t, "notification", wsEvt["type"])
-		
+
 		payload := wsEvt["payload"].(map[string]interface{})
 		assert.Equal(t, notif.ID.String(), payload["id"])
 		assert.Equal(t, "connection_request", payload["type"])
@@ -52,17 +47,44 @@ func TestNotificationSendWithInAppEnabled(t *testing.T) {
 	}
 }
 
-func TestNotificationSendWithInAppDisabled(t *testing.T) {
+func TestProcessEventCentralized(t *testing.T) {
 	ps := pubsub.NewInMemoryPubSub()
 	repo := repository.NewNotificationRepository(nil)
 	svc := NewNotificationService(repo, ps)
 
-	userID := uuid.New()
-	nType := "connection_request"
+	targetUserID := uuid.New()
+	evt := models.NotificationEvent{
+		ID:           uuid.New(),
+		EventType:    "interview_scheduled",
+		TargetUserID: targetUserID,
+		Payload: map[string]interface{}{
+			"title":   "Technical Interview Scheduled",
+			"content": "Your interview with Emaar is set for tomorrow at 10:00 AM.",
+		},
+	}
 
-	// Since r.db is nil, repository methods GetPreference return defaults (all true).
-	// We will verify that sending runs cleanly without panic.
-	assert.NotPanics(t, func() {
-		_, _ = svc.Send(context.Background(), userID, nType, "Muted test", "Content")
-	})
+	notif, err := svc.ProcessEvent(context.Background(), evt)
+	assert.NoError(t, err)
+	assert.NotNil(t, notif)
+	assert.Equal(t, "Interviews", notif.Category)
+	assert.Equal(t, "High", notif.Priority)
+	assert.Equal(t, "Technical Interview Scheduled", notif.Title)
+}
+
+func TestAdminAnalyticsAndAnnouncements(t *testing.T) {
+	ps := pubsub.NewInMemoryPubSub()
+	repo := repository.NewNotificationRepository(nil)
+	svc := NewNotificationService(repo, ps)
+
+	analytics, err := svc.GetAnalytics(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, analytics)
+	assert.Greater(t, analytics.TotalCreated, int64(0))
+
+	adminID := uuid.New()
+	err = svc.SendAnnouncement(context.Background(), models.AdminAnnouncementRequest{
+		Title:   "System Upgrade Notice",
+		Content: "Platform scheduled maintenance tonight.",
+	}, adminID)
+	assert.NoError(t, err)
 }

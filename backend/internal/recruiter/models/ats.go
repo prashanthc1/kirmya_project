@@ -23,6 +23,8 @@ type JobApplicationDTO struct {
 	RecruiterID        uuid.UUID `json:"recruiterId"`
 	AssignedRecruiter  string    `json:"assignedRecruiter"`
 	Rating             int       `json:"rating"`
+	CoverLetter        string    `json:"coverLetter"`
+	ResumeURL          string    `json:"resumeUrl"`
 	AppliedAt          time.Time `json:"appliedAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -39,31 +41,33 @@ type ApplicationStageHistoryDTO struct {
 }
 
 type InterviewFeedbackPayload struct {
-	InterviewID        string `json:"interview_id" binding:"required"`
-	ApplicationID      string `json:"application_id" binding:"required"`
-	OverallRating      int    `json:"overall_rating"`
-	TechnicalScore     int    `json:"technical_score"`
-	CommunicationScore int    `json:"communication_score"`
-	ExperienceScore    int    `json:"experience_score"`
-	CultureFitScore    int    `json:"culture_fit_score"`
-	Recommendation     string `json:"recommendation" binding:"required"` // 'Strong Hire', 'Hire', 'Maybe', 'Reject'
-	Notes              string `json:"notes"`
+	InterviewID          string `json:"interview_id" binding:"required"`
+	ApplicationID        string `json:"application_id" binding:"required"`
+	TechnicalSkillsScore int    `json:"technical_skills_score"`
+	CommunicationScore   int    `json:"communication_score"`
+	ProblemSolvingScore  int    `json:"problem_solving_score"`
+	CultureFitScore      int    `json:"culture_fit_score"`
+	LeadershipScore      int    `json:"leadership_score"`
+	OverallRating        int    `json:"overall_rating"`
+	Recommendation       string `json:"recommendation" binding:"required"` // 'Strong Hire', 'Hire', 'Maybe', 'No Hire'
+	Comments             string `json:"comments"`
 }
 
 type InterviewFeedbackDTO struct {
-	ID                 uuid.UUID `json:"id"`
-	InterviewID        uuid.UUID `json:"interviewId"`
-	ApplicationID      uuid.UUID `json:"applicationId"`
-	InterviewerID      uuid.UUID `json:"interviewerId"`
-	InterviewerName    string    `json:"interviewerName"`
-	OverallRating      int       `json:"overallRating"`
-	TechnicalScore     int       `json:"technicalScore"`
-	CommunicationScore int       `json:"communicationScore"`
-	ExperienceScore    int       `json:"experienceScore"`
-	CultureFitScore    int       `json:"cultureFitScore"`
-	Recommendation     string    `json:"recommendation"`
-	Notes              string    `json:"notes"`
-	CreatedAt          time.Time `json:"createdAt"`
+	ID                   uuid.UUID `json:"id"`
+	InterviewID          uuid.UUID `json:"interviewId"`
+	ApplicationID        uuid.UUID `json:"applicationId"`
+	InterviewerID        uuid.UUID `json:"interviewerId"`
+	InterviewerName      string    `json:"interviewerName"`
+	TechnicalSkillsScore int       `json:"technicalSkillsScore"`
+	CommunicationScore   int       `json:"communicationScore"`
+	ProblemSolvingScore  int       `json:"problemSolvingScore"`
+	CultureFitScore      int       `json:"cultureFitScore"`
+	LeadershipScore      int       `json:"leadershipScore"`
+	OverallRating        int       `json:"overallRating"`
+	Recommendation       string    `json:"recommendation"`
+	Comments             string    `json:"comments"`
+	CreatedAt            time.Time `json:"createdAt"`
 }
 
 type JobOfferPayload struct {
@@ -91,27 +95,29 @@ type JobOfferDTO struct {
 	Benefits      string    `json:"benefits"`
 	JoiningDate   string    `json:"joiningDate"`
 	ContractType  string    `json:"contractType"`
-	Status        string    `json:"status"` // 'Draft', 'Approval', 'Sent', 'Accepted', 'Rejected', 'Expired'
+	Status        string    `json:"status"` // 'Draft', 'Prepared', 'Sent', 'Viewed', 'Accepted', 'Declined', 'Expired', 'Withdrawn'
 	CreatedAt     time.Time `json:"createdAt"`
 	ExpiresAt     time.Time `json:"expiresAt"`
 }
 
 type ATSBulkActionPayload struct {
 	ApplicationIDs []string `json:"application_ids" binding:"required"`
-	Action         string   `json:"action" binding:"required"` // 'move', 'reject', 'shortlist', 'assign'
+	Action         string   `json:"action" binding:"required"` // 'move', 'reject', 'shortlist', 'assign', 'tag', 'message'
 	TargetStage    string   `json:"target_stage"`
 	AssigneeID     string   `json:"assignee_id"`
+	TagID          string   `json:"tag_id"`
+	MessageText    string   `json:"message_text"`
 	Notes          string   `json:"notes"`
 }
 
 type AIEvaluationResponse struct {
-	ApplicationID     uuid.UUID `json:"applicationId"`
-	CandidateName     string    `json:"candidateName"`
-	OverallMatchScore int       `json:"overallMatchScore"`
-	Recommendation    string    `json:"recommendation"` // 'Hire', 'Consider', 'Reject'
-	SummaryOverview   string    `json:"summaryOverview"`
-	SkillGaps         []string  `json:"skillGaps"`
-	Strengths         []string  `json:"strengths"`
-	RiskFactors       []string  `json:"riskFactors"`
-	SuggestedQuestions []string `json:"suggestedQuestions"`
+	ApplicationID       uuid.UUID `json:"applicationId"`
+	CandidateName       string    `json:"candidateName"`
+	OverallMatchScore   int       `json:"overallMatchScore"`
+	Recommendation      string    `json:"recommendation"` // 'Hire', 'Consider', 'Reject'
+	SummaryOverview     string    `json:"summaryOverview"`
+	SkillGaps           []string  `json:"skillGaps"`
+	Strengths           []string  `json:"strengths"`
+	RiskFactors         []string  `json:"riskFactors"`
+	SuggestedQuestions  []string  `json:"suggestedQuestions"`
 }

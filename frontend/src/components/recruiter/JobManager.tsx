@@ -28,10 +28,41 @@ import GlassCard from '../landing/GlassCard';
 import { RecruiterJob } from '../../features/recruiter/types';
 
 interface JobManagerProps {
-  jobs: RecruiterJob[];
+  jobs?: RecruiterJob[];
 }
 
-export const JobManager: React.FC<JobManagerProps> = ({ jobs }) => {
+const mockJobs: RecruiterJob[] = [
+  {
+    id: '11111111-1111-1111-1111-111111111111',
+    title: 'Senior Go Backend Architect',
+    description: 'Lead high-scale microservices architecture.',
+    department: 'Engineering',
+    location: 'Dubai, UAE',
+    salaryRange: '$120,000 - $160,000',
+    employmentType: 'Full-time',
+    status: 'Active',
+    applicantsCount: 18,
+    viewsCount: 240,
+    deadline: '2026-09-01',
+    createdAt: '2026-08-01',
+  },
+  {
+    id: '22222222-2222-2222-2222-222222222222',
+    title: 'Facilities Operations Director',
+    description: 'Oversee commercial asset management and vendor SLAs.',
+    department: 'Operations',
+    location: 'Abu Dhabi, UAE',
+    salaryRange: '$140,000 - $180,000',
+    employmentType: 'Full-time',
+    status: 'Active',
+    applicantsCount: 12,
+    viewsCount: 190,
+    deadline: '2026-09-15',
+    createdAt: '2026-08-05',
+  },
+];
+
+export const JobManager: React.FC<JobManagerProps> = ({ jobs = mockJobs }) => {
   const router = useRouter();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';

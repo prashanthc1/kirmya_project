@@ -14,7 +14,6 @@ const nextConfig = {
   // the build context is this directory or the whole repository.
   outputFileTracingRoot: __dirname,
   reactStrictMode: true,
-  swcMinify: true,
   async headers() {
     return [
       {

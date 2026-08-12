@@ -33,6 +33,27 @@ func (h *RecruiterHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, p)
 }
 
+func (h *RecruiterHandler) SubmitOnboarding(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	var payload models.OnboardingPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	profile, err := h.service.SubmitOnboarding(c.Request.Context(), userID, &payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, profile)
+}
+
 func (h *RecruiterHandler) GetDashboardOverview(c *gin.Context) {
 	userID, err := h.getUserID(c)
 	if err != nil {
@@ -85,8 +106,97 @@ func (h *RecruiterHandler) GetJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
+func (h *RecruiterHandler) GetJobByID(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	jobIDStr := c.Param("id")
+	jobID, err := uuid.Parse(jobIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
+		return
+	}
+
+	job, err := h.service.GetJobByID(c.Request.Context(), userID, jobID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, job)
+}
+
+func (h *RecruiterHandler) PublishJob(c *gin.Context) {
+	h.updateJobStatusHelper(c, "Active")
+}
+
+func (h *RecruiterHandler) PauseJob(c *gin.Context) {
+	h.updateJobStatusHelper(c, "Paused")
+}
+
+func (h *RecruiterHandler) CloseJob(c *gin.Context) {
+	h.updateJobStatusHelper(c, "Closed")
+}
+
+func (h *RecruiterHandler) updateJobStatusHelper(c *gin.Context, status string) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	jobIDStr := c.Param("id")
+	jobID, err := uuid.Parse(jobIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
+		return
+	}
+
+	err = h.service.UpdateJobStatus(c.Request.Context(), userID, jobID, status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Job status updated", "status": status})
+}
+
+func (h *RecruiterHandler) GetJobMatches(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	jobIDStr := c.Param("id")
+	jobID, err := uuid.Parse(jobIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
+		return
+	}
+
+	candIDStr := c.Query("candidateId")
+	candID := uuid.MustParse("c1111111-1111-1111-1111-111111111111")
+	if candIDStr != "" {
+		if parsed, e := uuid.Parse(candIDStr); e == nil {
+			candID = parsed
+		}
+	}
+
+	match, err := h.service.GetCandidateMatch(c.Request.Context(), userID, jobID, candID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, match)
+}
+
 func (h *RecruiterHandler) GetPipeline(c *gin.Context) {
 	jobIDStr := c.Param("jobId")
+	if jobIDStr == "" {
+		jobIDStr = "11111111-1111-1111-1111-111111111111"
+	}
 	jobID, err := uuid.Parse(jobIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
@@ -219,7 +329,6 @@ func (h *RecruiterHandler) GetAnalytics(c *gin.Context) {
 	c.JSON(http.StatusOK, analytics)
 }
 
-// Enterprise ATS Handlers
 func (h *RecruiterHandler) GetApplications(c *gin.Context) {
 	userID, _ := h.getUserID(c)
 	jobIdStr := c.Query("jobId")
@@ -328,6 +437,26 @@ func (h *RecruiterHandler) GetAIEvaluation(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+func (h *RecruiterHandler) GetMessageTemplates(c *gin.Context) {
+	userID, _ := h.getUserID(c)
+	templates, err := h.service.GetMessageTemplates(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, templates)
+}
+
+func (h *RecruiterHandler) GetTeamMembers(c *gin.Context) {
+	userID, _ := h.getUserID(c)
+	team, err := h.service.GetTeamMembers(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, team)
 }
 
 // Helpers

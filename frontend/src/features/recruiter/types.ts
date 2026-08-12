@@ -7,7 +7,12 @@ export interface RecruiterJob {
   location: string;
   salaryRange: string;
   employmentType: string;
-  status: 'Active' | 'Paused' | 'Closed' | 'Draft';
+  workplaceType?: string;
+  currency?: string;
+  experienceLevel?: string;
+  requiredSkills?: string[];
+  preferredSkills?: string[];
+  status: 'Active' | 'Paused' | 'Closed' | 'Draft' | 'Archived';
   applicantsCount: number;
   viewsCount: number;
   deadline: string;
@@ -20,7 +25,8 @@ export interface CandidatePipelineItem {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
-  stage: 'Applied' | 'Screening' | 'Shortlisted' | 'Interview' | 'Technical Round' | 'Final Interview' | 'Offer' | 'Hired' | 'Rejected';
+  candidateAvatar?: string;
+  stage: string;
   notes: string;
   interviewScheduledAt?: string | null;
   updatedAt: string;
@@ -54,12 +60,16 @@ export interface InterviewItem {
 
 export interface RecruiterDashboardOverview {
   activeJobsCount: number;
+  draftJobsCount?: number;
   totalApplicantsCount: number;
   newCandidatesCount: number;
+  shortlistedCount?: number;
   interviewsScheduled: number;
   pendingReviewsCount: number;
   offersSentCount: number;
+  offersCount?: number;
   successfulHiresCount: number;
+  expiringJobsCount?: number;
   recentJobs: RecruiterJob[];
   upcomingInterviews: InterviewItem[];
   recentActivities: { id: string; activityType: string; description: string; createdAt: string }[];
@@ -69,7 +79,7 @@ export interface RecruiterAnalytics {
   totalJobsActive: number;
   totalCandidatesCount: number;
   stageDistribution: { [key: string]: number };
-  applicationTrends: { month: string; applications: number }[];
-  candidateSources: { source: string; percentage: number }[];
+  applicationTrends: { month?: string; date?: string; applications: number }[];
+  candidateSources: { source: string; percentage?: number; count?: number }[];
   timeToHireDays: number;
 }

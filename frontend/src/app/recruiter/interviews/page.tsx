@@ -1,25 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Box, Typography } from '@mui/material';
 import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
 import InterviewScheduler from '../../../components/recruiter/InterviewScheduler';
-import { recruiterApi } from '../../../features/recruiter/api';
-import { InterviewItem } from '../../../features/recruiter/types';
+import InterviewFeedback from '../../../components/recruiter/InterviewFeedback';
 
-export default function RecruiterInterviewsPage() {
-  const [interviews, setInterviews] = useState<InterviewItem[]>([]);
-
-  const loadInterviews = () => {
-    recruiterApi.getInterviews().then((res) => setInterviews(res)).catch(() => {});
-  };
-
-  useEffect(() => {
-    loadInterviews();
-  }, []);
-
+export default function InterviewsPage() {
   return (
     <RecruiterLayout>
-      <InterviewScheduler interviews={interviews} onScheduled={loadInterviews} />
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
+          Interview Management &amp; Scorecards
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Schedule candidate interviews, assign interviewers, send meeting links, and submit structured feedback scorecards.
+        </Typography>
+      </Box>
+
+      <InterviewScheduler />
+
+      <Box sx={{ mt: 4 }}>
+        <InterviewFeedback />
+      </Box>
     </RecruiterLayout>
   );
 }

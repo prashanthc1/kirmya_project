@@ -24,11 +24,25 @@ import { InterviewItem } from '../../features/recruiter/types';
 import { recruiterApi } from '../../features/recruiter/api';
 
 interface InterviewSchedulerProps {
-  interviews: InterviewItem[];
+  interviews?: InterviewItem[];
   onScheduled?: () => void;
 }
 
-export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ interviews, onScheduled }) => {
+const mockInterviews: InterviewItem[] = [
+  {
+    id: 'int_1',
+    jobId: '11111111-1111-1111-1111-111111111111',
+    candidateId: 'c1111111-1111-1111-1111-111111111111',
+    candidateName: 'Sarah Chen',
+    type: 'Video',
+    scheduledAt: '2026-08-15T10:00:00Z',
+    durationMinutes: 45,
+    meetingLink: 'https://meet.google.com/abc-defg-hij',
+    notes: 'Technical Systems Architecture Round',
+  },
+];
+
+export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ interviews = mockInterviews, onScheduled }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [openModal, setOpenModal] = useState(false);

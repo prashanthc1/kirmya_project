@@ -21,13 +21,38 @@ export const recruiterApi = {
     return res.data;
   },
 
+  submitOnboarding: async (payload: any): Promise<any> => {
+    const res = await apiClient.post('/recruiter/onboarding', payload);
+    return res.data;
+  },
+
   getJobs: async (): Promise<RecruiterJob[]> => {
     const res = await apiClient.get<RecruiterJob[]>('/recruiter/jobs');
     return res.data;
   },
 
+  getJobById: async (jobId: string): Promise<RecruiterJob> => {
+    const res = await apiClient.get<RecruiterJob>(`/recruiter/jobs/${jobId}`);
+    return res.data;
+  },
+
   createJob: async (jobData: Partial<RecruiterJob>): Promise<RecruiterJob> => {
     const res = await apiClient.post<RecruiterJob>('/recruiter/jobs', jobData);
+    return res.data;
+  },
+
+  publishJob: async (jobId: string): Promise<{ message: string }> => {
+    const res = await apiClient.post(`/recruiter/jobs/${jobId}/publish`);
+    return res.data;
+  },
+
+  pauseJob: async (jobId: string): Promise<{ message: string }> => {
+    const res = await apiClient.post(`/recruiter/jobs/${jobId}/pause`);
+    return res.data;
+  },
+
+  closeJob: async (jobId: string): Promise<{ message: string }> => {
+    const res = await apiClient.post(`/recruiter/jobs/${jobId}/close`);
     return res.data;
   },
 
@@ -37,7 +62,12 @@ export const recruiterApi = {
   },
 
   saveCandidate: async (candidateId: string): Promise<{ message: string }> => {
-    const res = await apiClient.post('/recruiter/candidates/save', { candidate_id: candidateId });
+    const res = await apiClient.post(`/recruiter/candidates/${candidateId}/save`, { candidate_id: candidateId });
+    return res.data;
+  },
+
+  getJobMatches: async (jobId: string, candidateId?: string): Promise<any> => {
+    const res = await apiClient.get(`/recruiter/jobs/${jobId}/matches`, { params: { candidateId } });
     return res.data;
   },
 
@@ -58,6 +88,26 @@ export const recruiterApi = {
 
   scheduleInterview: async (payload: any): Promise<InterviewItem> => {
     const res = await apiClient.post<InterviewItem>('/recruiter/interviews', payload);
+    return res.data;
+  },
+
+  submitInterviewFeedback: async (payload: any): Promise<any> => {
+    const res = await apiClient.post(`/recruiter/interviews/${payload.interview_id}/feedback`, payload);
+    return res.data;
+  },
+
+  createJobOffer: async (payload: any): Promise<any> => {
+    const res = await apiClient.post('/recruiter/offers', payload);
+    return res.data;
+  },
+
+  getMessageTemplates: async (): Promise<any[]> => {
+    const res = await apiClient.get('/recruiter/templates');
+    return res.data;
+  },
+
+  getTeamMembers: async (): Promise<any[]> => {
+    const res = await apiClient.get('/recruiter/team');
     return res.data;
   },
 

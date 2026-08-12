@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	adminHttp "kirmya/internal/admin/delivery/http"
 	aiHttp "kirmya/internal/ai/delivery/http"
 	jobMatchHttp "kirmya/internal/ai_job_match/delivery/http"
 	analyticsHttp "kirmya/internal/analytics/delivery/http"
@@ -49,6 +50,8 @@ import (
 	resumeAnalysisHttp "kirmya/internal/resume_analysis/delivery/http"
 	unifiedSearchHttp "kirmya/internal/search/delivery/http"
 	"kirmya/internal/shared/middleware"
+	legalHttp "kirmya/internal/legal/delivery/http"
+	billingHttp "kirmya/internal/billing/delivery/http"
 	trustHttp "kirmya/internal/trust_safety/delivery/http"
 	verificationHttp "kirmya/internal/verification/delivery/http"
 	intelligenceHttp "kirmya/internal/workforce_intelligence/delivery/http"
@@ -116,6 +119,11 @@ type RouterDependencies struct {
 	JobsHandler                 *jobsHttp.JobHandler
 	CoverLetterHandler          *coverLetterHttp.CoverLetterHandler
 	InterviewPrepHandler        *interviewPrepHttp.InterviewPrepHandler
+	AdminHandler                *adminHttp.AdminHandler
+	BillingHandler              *billingHttp.BillingHandler
+	AdminBillingHandler         *billingHttp.AdminBillingHandler
+	LegalHandler                *legalHttp.LegalHandler
+	AdminLegalHandler           *legalHttp.AdminLegalHandler
 }
 
 type Handlers = RouterDependencies
@@ -228,5 +236,20 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.InterviewPrepHandler != nil {
 		interviewPrepHttp.RegisterRoutes(api, deps.InterviewPrepHandler)
+	}
+	if deps.AdminHandler != nil {
+		adminHttp.RegisterRoutes(api, deps.AdminHandler, deps.AuthMiddleware)
+	}
+	if deps.BillingHandler != nil {
+		billingHttp.RegisterBillingRoutes(api, deps.BillingHandler)
+	}
+	if deps.AdminBillingHandler != nil {
+		billingHttp.RegisterAdminBillingRoutes(api, deps.AdminBillingHandler)
+	}
+	if deps.LegalHandler != nil {
+		legalHttp.RegisterLegalRoutes(api, deps.LegalHandler)
+	}
+	if deps.AdminLegalHandler != nil {
+		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler)
 	}
 }

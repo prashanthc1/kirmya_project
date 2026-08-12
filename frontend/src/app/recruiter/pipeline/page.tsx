@@ -1,42 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import ATSLayout from '../../../components/ats/ATSLayout';
-import PipelineBoard from '../../../components/ats/PipelineBoard';
-import ApplicationDetails from '../../../components/ats/ApplicationDetails';
-import FilterPanel from '../../../components/ats/FilterPanel';
-import { atsApi } from '../../../features/ats/api';
-import { JobApplicationDTO } from '../../../features/ats/types';
+import React from 'react';
+import { Box, Typography } from '@mui/material';
+import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
+import PipelineBoard from '../../../components/recruiter/PipelineBoard';
 
-export default function PipelineMainPage() {
-  const [applications, setApplications] = useState<JobApplicationDTO[]>([]);
-  const [selectedApp, setSelectedApp] = useState<JobApplicationDTO | null>(null);
-
-  const loadApps = (filters?: any) => {
-    atsApi.getApplications(filters).then((res) => setApplications(res)).catch(() => {});
-  };
-
-  useEffect(() => {
-    loadApps();
-  }, []);
-
-  if (selectedApp) {
-    return (
-      <ATSLayout>
-        <ApplicationDetails applicationId={selectedApp.id} />
-      </ATSLayout>
-    );
-  }
-
+export default function PipelinePage() {
   return (
-    <ATSLayout>
-      <FilterPanel onFilterChange={(f) => loadApps(f)} />
-      <PipelineBoard
-        applications={applications}
-        onView={(app) => setSelectedApp(app)}
-        onSchedule={() => {}}
-        onRefresh={loadApps}
-      />
-    </ATSLayout>
+    <RecruiterLayout>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
+          Customizable Hiring Pipeline
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Configure stage workflows, monitor candidate counts, and perform bulk pipeline stage movements.
+        </Typography>
+      </Box>
+
+      <PipelineBoard />
+    </RecruiterLayout>
   );
 }
