@@ -22,7 +22,7 @@ export const getTheme = (mode: 'light' | 'dark') => {
       },
     },
     typography: {
-      fontFamily: 'var(--font-inter), "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: 'var(--font-sans), sans-serif',
       h4: {
         fontWeight: 700,
         letterSpacing: '-0.02em',
