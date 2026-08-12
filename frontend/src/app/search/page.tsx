@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Box,
   Container,
@@ -40,8 +41,11 @@ import {
   SearchSuggestion,
 } from '../../features/search/types';
 
-export default function SearchPage() {
-  const [query, setQuery] = useState('');
+function SearchPageContent() {
+  const searchParams = useSearchParams();
+  // Seeded from the URL so links into search (the 404 page, shared results) arrive
+  // with the query already run — the mount effect below fetches with this value.
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [selectedCategory, setSelectedCategory] = useState<SearchCategory>('all');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
@@ -346,5 +350,15 @@ export default function SearchPage() {
         </Grid>
       </Container>
     </Box>
+  );
+}
+
+// useSearchParams() opts the subtree into client-side rendering, so it needs a
+// Suspense boundary to keep the route statically prerenderable.
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchPageContent />
+    </Suspense>
   );
 }
