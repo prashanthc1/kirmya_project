@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -43,7 +43,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     localStorage.setItem('kirmya-theme-mode', nextMode);
   };
 
-  const theme = getTheme(mode);
+  // createTheme is expensive and its result is an identity that MUI and Emotion
+  // key their style generation on. Rebuilding it on every render meant a theme
+  // toggle regenerated the entire stylesheet, stalling the main thread long
+  // enough that the switch could not paint intermediate frames.
+  const theme = useMemo(() => getTheme(mode), [mode]);
 
   return (
     <ColorModeContext.Provider value={{ mode, toggleColorMode }}>

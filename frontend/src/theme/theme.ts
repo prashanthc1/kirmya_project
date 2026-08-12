@@ -102,6 +102,27 @@ export const getTheme = (mode: 'light' | 'dark') => {
             scrollMarginTop: '96px',
           },
 
+          // Ease the dark/light switch. Toggling used to jump the full viewport
+          // from near-black to near-white in a single frame — measured as two
+          // background values with no intermediate ones. A large, abrupt
+          // brightness change is a comfort problem, especially at night.
+          //
+          // The reduced-motion rule above keeps background-color and color in
+          // the animatable set on purpose, so the fade is still configured
+          // there — a colour change is not vestibular motion, and easing it is
+          // gentler than cutting. In practice it is hard to perceive under that
+          // preference: the shortened 150ms duration is comparable to the
+          // ~140ms main-thread stall while Emotion regenerates the stylesheet,
+          // so it largely completes before a frame can paint. Switching the
+          // theme to MUI v6 CSS variables would remove that stall and is the
+          // real fix if the reduced-motion case matters.
+          body: {
+            transition: 'background-color 220ms ease, color 220ms ease',
+          },
+          '.MuiPaper-root': {
+            transition: 'background-color 220ms ease, color 220ms ease',
+          },
+
           // --- OS accessibility preferences -------------------------------
           // Reduced motion does not mean no feedback: it means no vestibular
           // motion. Rather than zeroing every transition, narrow the animatable
@@ -157,7 +178,7 @@ export const getTheme = (mode: 'light' | 'dark') => {
               ? '0 8px 32px 0 rgba(31, 38, 135, 0.04)' 
               : '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
             borderRadius: '16px',
-            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease, background-color 220ms ease, border-color 220ms ease',
             '&:hover': {
               transform: 'translateY(-2px)',
               boxShadow: mode === 'light' 
