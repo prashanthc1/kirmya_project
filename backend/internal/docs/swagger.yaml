@@ -3141,6 +3141,21 @@ definitions:
       views:
         type: integer
     type: object
+  models.JobListPage:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.JobSummary'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   models.JobMatchScore:
     properties:
       company_fit_score:
@@ -3213,6 +3228,49 @@ definitions:
     - job_id
     - position_title
     - salary
+    type: object
+  models.JobSummary:
+    properties:
+      company_handle:
+        type: string
+      company_id:
+        type: string
+      company_logo:
+        type: string
+      company_name:
+        type: string
+      created_at:
+        type: string
+      department:
+        type: string
+      employment_type:
+        type: string
+      experience_level:
+        type: string
+      id:
+        type: string
+      is_featured:
+        type: boolean
+      location:
+        type: string
+      published_at:
+        type: string
+      salary_currency:
+        type: string
+      salary_max:
+        type: number
+      salary_min:
+        type: number
+      salary_range:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      work_mode:
+        type: string
     type: object
   models.MessageAttachment:
     properties:
@@ -10997,6 +11055,87 @@ paths:
       security:
       - BearerAuth: []
       summary: Give feedback on a recommendation
+      tags:
+      - Jobs
+  /api/v1/jobs:
+    get:
+      description: Searches the platform-wide job board backed by the jobs table.
+        Only active, unexpired postings are returned; drafts, paused, closed and expired
+        roles are never exposed. Public endpoint; no authentication required, since
+        this backs the landing page call to action and the schema.org SearchAction.
+      parameters:
+      - description: Free text matched against title, description, department, company
+          name and skills
+        in: query
+        name: q
+        type: string
+      - description: Substring match on the posting location
+        in: query
+        name: location
+        type: string
+      - description: Work mode
+        enum:
+        - onsite
+        - hybrid
+        - remote
+        in: query
+        name: work_mode
+        type: string
+      - description: Employment type
+        enum:
+        - Full-time
+        - Part-time
+        - Contract
+        - Internship
+        - Temporary
+        in: query
+        name: employment_type
+        type: string
+      - description: Experience level
+        enum:
+        - Entry
+        - Mid
+        - Senior
+        - Lead
+        - Executive
+        in: query
+        name: experience_level
+        type: string
+      - description: Result ordering; defaults to featured first, then most recently
+          published
+        enum:
+        - newest
+        - title
+        - salary
+        in: query
+        name: sort
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JobListPage'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: The job listing store is unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Search open jobs
       tags:
       - Jobs
   /api/v1/jobs/{id}/save:
