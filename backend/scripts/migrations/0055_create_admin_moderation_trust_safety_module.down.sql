@@ -1,0 +1,19 @@
+-- Migration 0055 Down: Drop Admin, Moderation, Trust & Safety Module Tables
+DROP TABLE IF EXISTS admin_notifications;
+DROP TABLE IF EXISTS feature_flags;
+DROP TABLE IF EXISTS system_settings;
+DROP TABLE IF EXISTS security_events;
+DROP TABLE IF EXISTS verification_reviews;
+DROP TABLE IF EXISTS fraud_signals;
+DROP TABLE IF EXISTS risk_scores;
+DROP TABLE IF EXISTS risk_signals;
+DROP TABLE IF EXISTS account_flags;
+DROP TABLE IF EXISTS report_assignments;
+DROP TABLE IF EXISTS content_reports;
+DROP TABLE IF EXISTS moderation_actions;
+DROP TABLE IF EXISTS moderation_cases;
+DROP TABLE IF EXISTS admin_audit_logs;
+DROP TABLE IF EXISTS admin_user_roles;
+DROP TABLE IF EXISTS admin_role_permissions;
+DROP TABLE IF EXISTS admin_permissions;
+DROP TABLE IF EXISTS admin_roles;

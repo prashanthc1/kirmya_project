@@ -143,9 +143,9 @@ docker-data/
 
 # Ignore ad-hoc local SQL dumps, but preserve migration scripts
 *.sql
-!scripts/migrations/*.sql
-!backend/migrations/*.sql
-!migrations/*.sql
+# Unanchored so this also covers backend/scripts/migrations, which the
+# root-relative patterns missed - 0053-0057 went uncommitted that way.
+!**/migrations/*.sql
 
 # ------------------------------------------------------------------------------
 # 5. Docker & Container Cache

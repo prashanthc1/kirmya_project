@@ -1724,7 +1724,7 @@ definitions:
   models.ATSBulkActionPayload:
     properties:
       action:
-        description: '''move'', ''reject'', ''shortlist'', ''assign'''
+        description: '''move'', ''reject'', ''shortlist'', ''assign'', ''tag'', ''message'''
         type: string
       application_ids:
         items:
@@ -1732,7 +1732,11 @@ definitions:
         type: array
       assignee_id:
         type: string
+      message_text:
+        type: string
       notes:
+        type: string
+      tag_id:
         type: string
       target_stage:
         type: string
@@ -2933,25 +2937,59 @@ definitions:
     type: object
   models.CreateJobPayload:
     properties:
+      benefits:
+        type: string
+      certifications:
+        items:
+          type: string
+        type: array
+      currency:
+        type: string
       deadline:
         type: string
       department:
         type: string
       description:
         type: string
+      education:
+        type: string
       employmentType:
+        type: string
+      experienceLevel:
+        type: string
+      hiringManagerId:
         type: string
       location:
         type: string
+      openingsCount:
+        type: integer
+      preferredSkills:
+        items:
+          type: string
+        type: array
+      qualifications:
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/models.JobApplicationQuestionDTO'
+        type: array
+      requiredSkills:
+        items:
+          type: string
+        type: array
+      responsibilities:
+        type: string
       salaryRange:
+        type: string
+      status:
+        description: '''Active'', ''Draft'''
         type: string
       title:
         type: string
+      workplaceType:
+        type: string
     required:
-    - department
     - description
-    - location
-    - salaryRange
     - title
     type: object
   models.FollowPayload:
@@ -2993,22 +3031,24 @@ definitions:
     properties:
       application_id:
         type: string
+      comments:
+        type: string
       communication_score:
         type: integer
       culture_fit_score:
         type: integer
-      experience_score:
-        type: integer
       interview_id:
         type: string
-      notes:
-        type: string
+      leadership_score:
+        type: integer
       overall_rating:
         type: integer
+      problem_solving_score:
+        type: integer
       recommendation:
-        description: '''Strong Hire'', ''Hire'', ''Maybe'', ''Reject'''
+        description: '''Strong Hire'', ''Hire'', ''Maybe'', ''No Hire'''
         type: string
-      technical_score:
+      technical_skills_score:
         type: integer
     required:
     - application_id
@@ -3140,6 +3180,27 @@ definitions:
         type: integer
       views:
         type: integer
+    type: object
+  models.JobApplicationQuestionDTO:
+    properties:
+      displayOrder:
+        type: integer
+      id:
+        type: string
+      isRequired:
+        type: boolean
+      jobId:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      questionText:
+        type: string
+      questionType:
+        description: Text, LongText, SingleChoice, MultipleChoice, YesNo, Number,
+          Date, FileUpload
+        type: string
     type: object
   models.JobListPage:
     properties:
@@ -3638,6 +3699,12 @@ definitions:
         type: string
       duration_minutes:
         type: integer
+      instructions:
+        type: string
+      interviewer_ids:
+        items:
+          type: string
+        type: array
       job_id:
         type: string
       meeting_link:
@@ -3772,13 +3839,19 @@ definitions:
     type: object
   models.UpdatePreferencePayload:
     properties:
+      category:
+        type: string
       emailEnabled:
         type: boolean
+      frequency:
+        type: string
       inAppEnabled:
         type: boolean
       notificationType:
         type: string
       pushEnabled:
+        type: boolean
+      smsEnabled:
         type: boolean
     required:
     - notificationType
@@ -4142,6 +4215,221 @@ paths:
       summary: Decide a company verification
       tags:
       - Admin
+  /api/v1/admin/notifications:
+    get:
+      description: Returns notifications across users via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List notifications (admin)
+      tags:
+      - Notifications
+  /api/v1/admin/notifications/analytics:
+    get:
+      description: Returns delivery and engagement analytics via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get notification analytics
+      tags:
+      - Notifications
+  /api/v1/admin/notifications/announcement:
+    post:
+      consumes:
+      - application/json
+      description: Broadcasts an announcement notification via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Send announcement
+      tags:
+      - Notifications
+  /api/v1/admin/notifications/failures:
+    get:
+      description: Returns the failed notification deliveries via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List delivery failures
+      tags:
+      - Notifications
+  /api/v1/admin/notifications/templates:
+    get:
+      description: Returns the notification templates via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List notification templates
+      tags:
+      - Notifications
+    post:
+      consumes:
+      - application/json
+      description: Creates a notification template via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create notification template
+      tags:
+      - Notifications
   /api/v1/ai/career-suggestions:
     post:
       consumes:
@@ -12641,7 +12929,145 @@ paths:
       summary: List notifications
       tags:
       - Notifications
+  /api/v1/notifications/{id}:
+    delete:
+      description: Deletes one notification via the Kirmya notification module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Notification id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete notification
+      tags:
+      - Notifications
+    get:
+      description: Returns one notification via the Kirmya notification module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Notification id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get notification
+      tags:
+      - Notifications
+  /api/v1/notifications/{id}/archive:
+    post:
+      consumes:
+      - application/json
+      description: Archives one notification via the Kirmya notification module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Notification id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Archive notification
+      tags:
+      - Notifications
   /api/v1/notifications/{id}/read:
+    post:
+      consumes:
+      - application/json
+      description: Marks one notification read via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Notification id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark read
+      tags:
+      - Notifications
     put:
       consumes:
       - application/json
@@ -12680,6 +13106,195 @@ paths:
       security:
       - BearerAuth: []
       summary: Mark read
+      tags:
+      - Notifications
+  /api/v1/notifications/{id}/unread:
+    post:
+      consumes:
+      - application/json
+      description: Returns one notification to the unread state via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      parameters:
+      - description: Notification id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark unread
+      tags:
+      - Notifications
+  /api/v1/notifications/count:
+    get:
+      description: Returns the number of unread notifications via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get unread count
+      tags:
+      - Notifications
+  /api/v1/notifications/devices:
+    get:
+      description: Returns the registered push devices via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List push devices
+      tags:
+      - Notifications
+    post:
+      consumes:
+      - application/json
+      description: Registers a device for push delivery via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register push device
+      tags:
+      - Notifications
+  /api/v1/notifications/devices/{id}:
+    delete:
+      description: Removes a registered push device via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Device id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete push device
+      tags:
+      - Notifications
+  /api/v1/notifications/history:
+    get:
+      description: Returns the delivered notification history via the Kirmya notification
+        module. Requires a valid Bearer access token.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get notification history
       tags:
       - Notifications
   /api/v1/notifications/preferences:
@@ -12753,7 +13368,158 @@ paths:
       summary: Update preference
       tags:
       - Notifications
+  /api/v1/notifications/preferences/categories:
+    get:
+      description: Returns the per-category notification preferences via the Kirmya
+        notification module. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get category preferences
+      tags:
+      - Notifications
+  /api/v1/notifications/preferences/categories/{category}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the notification preference for one category via the Kirmya
+        notification module. Requires a valid Bearer access token.
+      parameters:
+      - description: Category
+        in: path
+        name: category
+        required: true
+        type: string
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePreferencePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update category preference
+      tags:
+      - Notifications
+  /api/v1/notifications/quiet-hours:
+    get:
+      description: Returns the quiet hours window via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get quiet hours
+      tags:
+      - Notifications
+    put:
+      consumes:
+      - application/json
+      description: Updates the quiet hours window via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update quiet hours
+      tags:
+      - Notifications
   /api/v1/notifications/read-all:
+    post:
+      consumes:
+      - application/json
+      description: Marks every notification read via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark all read
+      tags:
+      - Notifications
     put:
       consumes:
       - application/json
@@ -12783,6 +13549,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Mark all read
+      tags:
+      - Notifications
+  /api/v1/notifications/unread:
+    get:
+      description: Returns the unread notifications via the Kirmya notification module.
+        Requires a valid Bearer access token.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List unread notifications
       tags:
       - Notifications
   /api/v1/onboarding:
@@ -14966,6 +15767,192 @@ paths:
       summary: Create job
       tags:
       - Applications
+  /api/v1/recruiter/jobs/{id}:
+    get:
+      description: Returns one recruiter job via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get job
+      tags:
+      - Applications
+  /api/v1/recruiter/jobs/{id}/close:
+    post:
+      consumes:
+      - application/json
+      description: Closes a recruiter job via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Close job
+      tags:
+      - Applications
+  /api/v1/recruiter/jobs/{id}/matches:
+    get:
+      description: Returns the candidates matched to a job via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get job matches
+      tags:
+      - Applications
+  /api/v1/recruiter/jobs/{id}/pause:
+    post:
+      consumes:
+      - application/json
+      description: Pauses a recruiter job via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Pause job
+      tags:
+      - Applications
+  /api/v1/recruiter/jobs/{id}/publish:
+    post:
+      consumes:
+      - application/json
+      description: Publishes a recruiter job via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Publish job
+      tags:
+      - Applications
   /api/v1/recruiter/offers:
     post:
       consumes:
@@ -15042,6 +16029,78 @@ paths:
       security:
       - BearerAuth: []
       summary: Update job offer status
+      tags:
+      - Applications
+  /api/v1/recruiter/onboarding:
+    post:
+      consumes:
+      - application/json
+      description: Submits the recruiter onboarding details via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token.
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit recruiter onboarding
+      tags:
+      - Applications
+  /api/v1/recruiter/pipeline:
+    get:
+      description: Returns the hiring pipeline across jobs via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get pipeline
       tags:
       - Applications
   /api/v1/recruiter/pipeline/{id}:
@@ -15420,6 +16479,54 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove candidate from pool
+      tags:
+      - Applications
+  /api/v1/recruiter/team:
+    get:
+      description: Returns the hiring team members via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List team members
+      tags:
+      - Applications
+  /api/v1/recruiter/templates:
+    get:
+      description: Returns the recruiter outreach templates via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List message templates
       tags:
       - Applications
   /api/v1/referrals/{id}/status:

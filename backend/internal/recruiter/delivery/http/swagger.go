@@ -561,6 +561,143 @@ func swaggerGetAnalytics() {}
 // @Router       /api/v1/recruiter/analytics [get]
 func swaggerGetAnalytics2() {}
 
+// swaggerSubmitOnboarding documents POST /api/v1/recruiter/onboarding.
+//
+// @Summary      Submit recruiter onboarding
+// @Description  Submits the recruiter onboarding details via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Accept       json
+// @Produce      json
+// @Param        request  body  object  true  "Request payload"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/onboarding [post]
+func swaggerSubmitOnboarding() {}
+
+// swaggerGetJobByID documents GET /api/v1/recruiter/jobs/{id}.
+//
+// @Summary      Get job
+// @Description  Returns one recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Produce      json
+// @Param        id  path  string  true  "Job id"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/jobs/{id} [get]
+func swaggerGetJobByID() {}
+
+// swaggerPublishJob documents POST /api/v1/recruiter/jobs/{id}/publish.
+//
+// @Summary      Publish job
+// @Description  Publishes a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Job id"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/jobs/{id}/publish [post]
+func swaggerPublishJob() {}
+
+// swaggerPauseJob documents POST /api/v1/recruiter/jobs/{id}/pause.
+//
+// @Summary      Pause job
+// @Description  Pauses a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Job id"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/jobs/{id}/pause [post]
+func swaggerPauseJob() {}
+
+// swaggerCloseJob documents POST /api/v1/recruiter/jobs/{id}/close.
+//
+// @Summary      Close job
+// @Description  Closes a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Job id"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/jobs/{id}/close [post]
+func swaggerCloseJob() {}
+
+// swaggerGetJobMatches documents GET /api/v1/recruiter/jobs/{id}/matches.
+//
+// @Summary      Get job matches
+// @Description  Returns the candidates matched to a job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Produce      json
+// @Param        id     path   string  true   "Job id"
+// @Param        page   query  int     false  "Page number (1-based)"  default(1)
+// @Param        limit  query  int     false  "Items per page (max 100)"  default(20)
+// @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/jobs/{id}/matches [get]
+func swaggerGetJobMatches() {}
+
+// swaggerGetPipelineAll documents GET /api/v1/recruiter/pipeline.
+//
+// @Summary      Get pipeline
+// @Description  Returns the hiring pipeline across jobs via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Produce      json
+// @Param        page   query  int  false  "Page number (1-based)"  default(1)
+// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
+// @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/pipeline [get]
+func swaggerGetPipelineAll() {}
+
+// swaggerGetTeamMembers documents GET /api/v1/recruiter/team.
+//
+// @Summary      List team members
+// @Description  Returns the hiring team members via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Produce      json
+// @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/team [get]
+func swaggerGetTeamMembers() {}
+
+// swaggerGetMessageTemplates documents GET /api/v1/recruiter/templates.
+//
+// @Summary      List message templates
+// @Description  Returns the recruiter outreach templates via the Kirmya recruiter ATS module. Requires a valid Bearer access token.
+// @Tags         Applications
+// @Produce      json
+// @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/templates [get]
+func swaggerGetMessageTemplates() {}
+
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,
 // and package names such as `domain` and `models` are not unique across
