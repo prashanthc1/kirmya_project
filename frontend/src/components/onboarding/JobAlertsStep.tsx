@@ -18,6 +18,7 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import GlassCard from '../landing/GlassCard';
 
 interface StepProps {
@@ -41,7 +42,7 @@ export const JobAlertsStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 } }}>
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
           <NotificationsActiveIcon sx={{ color: 'primary.main', fontSize: 32 }} />

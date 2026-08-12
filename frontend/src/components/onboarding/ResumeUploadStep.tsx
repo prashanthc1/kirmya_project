@@ -18,6 +18,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import GlassCard from '../landing/GlassCard';
 import { ResumeParsedResult } from '../../features/onboarding/types';
 
@@ -100,7 +101,7 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 } }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
           Upload Resume / CV

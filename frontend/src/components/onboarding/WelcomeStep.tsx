@@ -8,6 +8,7 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import PeopleIcon from '@mui/icons-material/People';
 import WorkIcon from '@mui/icons-material/Work';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import GlassCard from '../landing/GlassCard';
 
 interface StepProps {
@@ -19,7 +20,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 }, textAlign: 'center' }}>
         <Box
           sx={{

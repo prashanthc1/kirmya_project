@@ -9,6 +9,7 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import CancelIcon from '@mui/icons-material/Cancel';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { motion } from 'framer-motion';
+import { stagger } from '../../theme/motion';
 import { ApplicationStatsDTO } from '@/features/applications/types';
 
 interface ApplicationStatsProps {
@@ -33,7 +34,7 @@ export const ApplicationStats: React.FC<ApplicationStatsProps> = ({ stats, isLoa
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.05 }}
+            transition={stagger(index, 0.05)}
           >
             <Paper
               elevation={0}

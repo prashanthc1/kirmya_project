@@ -10,6 +10,7 @@ import SendIcon from '@mui/icons-material/Send';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { motion } from 'framer-motion';
+import { stagger } from '../../theme/motion';
 import GlassCard from './GlassCard';
 
 export const JourneySection: React.FC = () => {
@@ -57,7 +58,7 @@ export const JourneySection: React.FC = () => {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                transition={stagger(idx, 0.1)}
               >
                 <GlassCard sx={{ height: '100%', p: 2.5, position: 'relative' }}>
                   <Typography

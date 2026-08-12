@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardProps, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 
 interface GlassCardProps extends CardProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <motion.div whileHover={{ y: -4, scale: hoverScale }} transition={{ duration: 0.2, ease: 'easeOut' }}>
+    <motion.div whileHover={{ y: -4, scale: hoverScale }} transition={springs.hover}>
       <Card
         elevation={0}
         sx={{

@@ -6,6 +6,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
 import { motion, AnimatePresence } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import GlassCard from './GlassCard';
 
 interface TestimonialItem {
@@ -126,7 +127,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              transition={springs.entrance}
             >
               <GlassCard sx={{ p: 3 }}>
                 <Stack spacing={2}>

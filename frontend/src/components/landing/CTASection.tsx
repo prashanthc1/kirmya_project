@@ -6,6 +6,7 @@ import { Box, Container, Typography, Button, Stack, useTheme } from '@mui/materi
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SearchIcon from '@mui/icons-material/Search';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 
 export const CTASection: React.FC = () => {
   const router = useRouter();
@@ -36,7 +37,7 @@ export const CTASection: React.FC = () => {
       />
 
       <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={springs.entrance}>
           <Typography
             variant="h2"
             sx={{

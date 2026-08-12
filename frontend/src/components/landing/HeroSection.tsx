@@ -20,6 +20,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import GlassCard from './GlassCard';
 
 export const HeroSection: React.FC = () => {
@@ -70,7 +71,7 @@ export const HeroSection: React.FC = () => {
         <Grid container spacing={6} alignItems="center">
           {/* Left Column: Headlines & CTAs */}
           <Grid item xs={12} md={7}>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
               <Chip
                 icon={<AutoAwesomeIcon sx={{ color: isDark ? '#a5b4fc !important' : '#4f46e5 !important' }} />}
                 label="AI-Powered Career Recovery & Growth Platform"
@@ -194,7 +195,7 @@ export const HeroSection: React.FC = () => {
 
           {/* Right Column: AI Interactive Glass Illustration & Dashboard Preview */}
           <Grid item xs={12} md={5}>
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.2 }}>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...springs.entrance, delay: 0.2 }}>
               <GlassCard sx={{ position: 'relative' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center">

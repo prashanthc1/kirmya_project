@@ -18,6 +18,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import GlassCard from '../landing/GlassCard';
 
 interface StepProps {
@@ -30,7 +31,7 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 }, textAlign: 'center' }}>
         <Box
           sx={{

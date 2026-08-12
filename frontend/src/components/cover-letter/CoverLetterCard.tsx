@@ -23,6 +23,7 @@ import {
   WorkOutline as JobIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import { CoverLetter } from '@/features/cover-letter/types';
 
 interface CoverLetterCardProps {
@@ -45,7 +46,7 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
   onDelete,
 }) => {
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+    <motion.div whileHover={{ y: -4 }} transition={springs.hover}>
       <Card
         sx={{
           background: 'rgba(255, 255, 255, 0.03)',
