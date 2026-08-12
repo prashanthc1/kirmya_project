@@ -31,6 +31,12 @@ RUN addgroup -S kirmya && adduser -S kirmya -G kirmya
 # Copy built binary from builder
 COPY --from=builder --chown=kirmya:kirmya /app/kirmya .
 
+# RunMigrations walks up from the working directory looking for
+# scripts/migrations and skips silently when it finds nothing, so leaving these
+# out of the image produces a deployment that starts, reports healthy and then
+# fails every query against an empty schema.
+COPY --from=builder --chown=kirmya:kirmya /app/scripts/migrations ./scripts/migrations
+
 # Use non-root user
 USER kirmya
 
