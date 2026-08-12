@@ -14,7 +14,11 @@ export const getTheme = (mode: 'light' | 'dark') => {
       },
       background: {
         default: mode === 'light' ? '#f8fafc' : '#0f172a',
-        paper: mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+        // Solid, not translucent. A translucent default composites against
+        // whatever happens to sit behind it, so text contrast on any Paper was
+        // unpredictable — and Paper nests inside Card constantly, which is how
+        // three layers of alpha ended up stacked in the hero.
+        paper: mode === 'light' ? '#ffffff' : '#1e293b',
       },
       text: {
         primary: mode === 'light' ? '#0f172a' : '#f8fafc',
@@ -94,12 +98,19 @@ export const getTheme = (mode: 'light' | 'dark') => {
           },
         },
       },
+      // Cards are solid by default. Blurring every card meant blur communicated
+      // no hierarchy — when every surface is glass, none of them reads as
+      // elevated — and it put a backdrop-filter compositing pass on dense views
+      // like the recruiter pipeline, which renders dozens of cards at once.
+      //
+      // Glass is now opt-in: components/landing/GlassCard and company/GlassPanel
+      // set their own translucency, and they are the outermost layer where they
+      // are used, never a surface stacked on another translucent surface.
       MuiCard: {
         styleOverrides: {
           root: {
-            backdropFilter: 'blur(16px) saturate(120%)',
-            backgroundColor: mode === 'light' ? 'rgba(255, 255, 255, 0.45)' : 'rgba(15, 23, 42, 0.45)',
-            border: mode === 'light' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
+            backgroundColor: mode === 'light' ? '#ffffff' : '#1e293b',
+            border: mode === 'light' ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
             boxShadow: mode === 'light' 
               ? '0 8px 32px 0 rgba(31, 38, 135, 0.04)' 
               : '0 8px 32px 0 rgba(0, 0, 0, 0.25)',

@@ -221,8 +221,11 @@ export const HeroSection: React.FC = () => {
                   sx={{
                     p: 2.5,
                     borderRadius: '16px',
-                    bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    // Solid: this sits inside GlassCard, which is already the
+                    // translucent layer. Stacking alpha on alpha makes the text
+                    // contrast here depend on whatever scrolls behind the hero.
+                    bgcolor: isDark ? '#1e293b' : '#f1f5f9',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.08)',
                     mb: 2.5,
                   }}
                 >
@@ -248,7 +251,8 @@ export const HeroSection: React.FC = () => {
                   sx={{
                     p: 1.8,
                     borderRadius: '14px',
-                    bgcolor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.95)',
+                    // Third layer of the same stack — also solid now.
+                    bgcolor: isDark ? '#0f172a' : '#ffffff',
                     border: '1px solid rgba(99, 102, 241, 0.2)',
                     boxShadow: '0 8px 20px rgba(0, 0, 0, 0.2)',
                     mb: 1.5,
