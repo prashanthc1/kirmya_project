@@ -300,8 +300,9 @@ func main() {
 	if cfg.SwaggerEnabled {
 		slog.Info("Swagger UI available", slog.String("url", "http://"+cfg.SwaggerHost+"/swagger/index.html"))
 	}
-	slog.Info("Kirmya API Monolith active on port :8080")
-	if err := r.Run(":8080"); err != nil {
+	addr := ":" + cfg.ServerPort
+	slog.Info("Kirmya API Monolith active", slog.String("addr", addr))
+	if err := r.Run(addr); err != nil {
 		slog.Error("Failed to run HTTP server", slog.String("error", err.Error()))
 		os.Exit(1)
 	}

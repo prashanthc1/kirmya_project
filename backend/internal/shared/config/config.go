@@ -115,7 +115,7 @@ func LoadConfig() (*Config, error) {
 		AppEnv:      getEnv("APP_ENV", "development"),
 		AppVersion:  getEnv("APP_VERSION", "2.1.0"),
 		ServerHost:  getEnv("SERVER_HOST", "0.0.0.0"),
-		ServerPort:  getEnv("SERVER_PORT", "8080"),
+		ServerPort:  resolveServerPort(),
 		DatabaseURL: getEnv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/kirmya?sslmode=disable"),
 		DBHost:      getEnv("DB_HOST", "localhost"),
 		DBPort:      getEnv("DB_PORT", "5432"),
@@ -243,6 +243,18 @@ func resolveTrustedProxies() []string {
 		}
 	}
 	return proxies
+}
+
+// resolveServerPort picks the port the HTTP server binds to. PORT comes first
+// because that is what a platform host (Railway, Heroku, Cloud Run) injects,
+// and it is assigned per deployment: ignoring it means the edge routes traffic
+// to a port nothing is listening on and every request 502s. SERVER_PORT stays
+// as the explicit override for operators who set it themselves.
+func resolveServerPort() string {
+	if port := getEnv("PORT", ""); port != "" {
+		return port
+	}
+	return getEnv("SERVER_PORT", "8080")
 }
 
 func splitAndTrim(raw string) []string {

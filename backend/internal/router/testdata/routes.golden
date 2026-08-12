@@ -199,6 +199,7 @@ GET /api/v1/unified-search/history
 GET /api/v1/unified-search/suggestions
 GET /api/v1/verifications/requests
 GET /api/v1/verifications/status
+GET /health
 POST /api/v1/ai/career-suggestions
 POST /api/v1/ai/interview-prep
 POST /api/v1/ai/job-matching
