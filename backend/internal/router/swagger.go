@@ -68,9 +68,9 @@ func registerSwagger(r *gin.Engine, cfg SwaggerConfig) {
 	})
 }
 
-// swaggerMetrics documents GET /api/v1/metrics, the only route this package
-// registers itself. Every other operation is annotated in its owning module's
-// delivery/http/swagger.go.
+// swaggerMetrics documents GET /api/v1/metrics. Along with GET /health below,
+// it is one of the two routes this package registers itself; every other
+// operation is annotated in its owning module's delivery/http/swagger.go.
 //
 // @Summary      Prometheus metrics
 // @Description  Exposes request, latency and runtime counters in Prometheus text exposition format. Restricted to the scraper: with METRICS_USERNAME and METRICS_PASSWORD set it requires basic auth, otherwise it only answers callers on loopback or private networks and returns 404 to everyone else.
@@ -82,3 +82,18 @@ func registerSwagger(r *gin.Engine, cfg SwaggerConfig) {
 // @Failure      500  {object}  swagger.ErrorResponse  "Collector unavailable"
 // @Router       /api/v1/metrics [get]
 func swaggerMetrics() {}
+
+// swaggerHealth documents GET /health, the liveness probe a platform host
+// polls to decide whether a deployment came up. It sits outside /api/v1 so the
+// API rate limiter cannot fail a healthy container, and it is deliberately
+// unauthenticated: a probe that had to hold a credential could not run before
+// the service is reachable.
+//
+// @Summary      Liveness probe
+// @Description  Reports that the process is up and serving HTTP. Discloses nothing about the deployment beyond that, so it is safe to leave open to the platform's health checker.
+// @Tags         Admin
+// @Produce      json
+// @Success      200  {object}  swagger.HealthResponse  "Process is serving"
+// @Failure      500  {object}  swagger.ErrorResponse   "Recovered panic in the middleware chain; the process is up but not serving correctly"
+// @Router       /health [get]
+func swaggerHealth() {}

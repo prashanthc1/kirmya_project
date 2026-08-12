@@ -2,6 +2,7 @@ package router
 
 import (
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -141,8 +142,22 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	engine.Use(middleware.SecurityHeaders())
 	engine.Use(middleware.CORS(deps.AllowedOrigins))
 	registerSwagger(engine, cfg)
+	registerHealthCheck(engine)
 	SetupRouter(engine, deps)
 	return engine
+}
+
+// registerHealthCheck exposes the liveness probe a platform host polls to
+// decide whether a deployment came up. It sits outside /api/v1 deliberately:
+// the API group is rate limited, and a probe that trips the limiter would mark
+// a healthy container as failed. /api/v1/metrics cannot serve this purpose
+// either — metricsGuard 404s any caller outside a private range, so the probe
+// would report the container as down whenever the host probes from elsewhere.
+// It reports only that the process is serving, and discloses nothing else.
+func registerHealthCheck(engine *gin.Engine) {
+	engine.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
 }
 
 func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
