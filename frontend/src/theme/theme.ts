@@ -55,6 +55,43 @@ export const getTheme = (mode: 'light' | 'dark') => {
           ':target': {
             scrollMarginTop: '96px',
           },
+
+          // --- OS accessibility preferences -------------------------------
+          // Reduced motion does not mean no feedback: it means no vestibular
+          // motion. Rather than zeroing every transition, narrow the animatable
+          // set to colour and opacity, so state changes still read while
+          // movement stops. Framer Motion's own animations are handled
+          // separately by <MotionConfig reducedMotion="user"> in providers.
+          '@media (prefers-reduced-motion: reduce)': {
+            '*, *::before, *::after': {
+              animationDuration: '0.01ms !important',
+              animationIterationCount: '1 !important',
+              transitionProperty:
+                'opacity, color, background-color, border-color, box-shadow, fill, stroke !important',
+              transitionDuration: '150ms !important',
+              scrollBehavior: 'auto !important',
+            },
+          },
+
+          // The design leans on translucency in 89 places. A user who has asked
+          // the OS to reduce it should get solid surfaces, not frosted ones.
+          '@media (prefers-reduced-transparency: reduce)': {
+            '*': { backdropFilter: 'none !important' },
+            '.MuiPaper-root, .MuiCard-root, .MuiAppBar-root': {
+              backgroundColor: `${mode === 'light' ? '#ffffff' : '#1e293b'} !important`,
+            },
+          },
+
+          // Layered alpha makes effective contrast unpredictable, so high
+          // contrast gets solid grounds and a defined edge on every surface.
+          '@media (prefers-contrast: more)': {
+            '*': { backdropFilter: 'none !important' },
+            '.MuiPaper-root, .MuiCard-root, .MuiAppBar-root': {
+              backgroundColor: `${mode === 'light' ? '#ffffff' : '#0b1220'} !important`,
+              borderColor: `${mode === 'light' ? '#0f172a' : '#f8fafc'} !important`,
+            },
+            'body *:focus-visible': { outlineWidth: '3px' },
+          },
         },
       },
       MuiCard: {

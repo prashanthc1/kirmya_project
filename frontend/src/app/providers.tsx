@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
+import { MotionConfig } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getTheme } from '../theme/theme';
 import { AuthProvider } from '../features/auth/context/authContext';
@@ -49,9 +50,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          {/*
+            Framer Motion animates inline styles from JS, so the CSS
+            prefers-reduced-motion block in the theme cannot reach it.
+            reducedMotion="user" makes every spring here drop its transform and
+            layout animation when the OS asks, while keeping opacity — the
+            cross-fade the guidance calls for, rather than no feedback at all.
+          */}
+          <MotionConfig reducedMotion="user">
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </MotionConfig>
         </ThemeProvider>
       </QueryClientProvider>
     </ColorModeContext.Provider>
