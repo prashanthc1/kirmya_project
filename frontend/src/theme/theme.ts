@@ -1,5 +1,35 @@
 import { createTheme } from '@mui/material/styles';
 
+/**
+ * Expands an element's touch area to at least 44x44 without changing its
+ * layout, by centring an invisible pseudo-element over it. Hit area and visual
+ * size are separate concerns: a 24px icon button should stay visually 24px and
+ * still be reliably tappable.
+ *
+ * Scoped to coarse pointers so dense mouse-driven views are untouched, and used
+ * for inline controls — icon buttons, text links — where a minimum height would
+ * disrupt the surrounding text flow.
+ */
+const touchHitArea = {
+  '@media (pointer: coarse)': {
+    position: 'relative' as const,
+    '&::after': {
+      content: '""',
+      position: 'absolute' as const,
+      top: '50%',
+      left: '50%',
+      width: 'max(100%, 44px)',
+      height: 'max(100%, 44px)',
+      transform: 'translate(-50%, -50%)',
+    },
+  },
+};
+
+/** For block controls, where growing the box is fine and simpler than a pseudo. */
+const touchMinHeight = {
+  '@media (pointer: coarse)': { minHeight: 44 },
+};
+
 export const getTheme = (mode: 'light' | 'dark') => {
   return createTheme({
     palette: {
@@ -159,6 +189,7 @@ export const getTheme = (mode: 'light' | 'dark') => {
             padding: '8px 16px',
             transition: 'transform 100ms ease-out',
             '&&:active': { transform: 'scale(0.97)' },
+            ...touchMinHeight,
           },
         },
       },
@@ -168,6 +199,7 @@ export const getTheme = (mode: 'light' | 'dark') => {
             transition: 'transform 100ms ease-out',
             // Small targets need a proportionally larger cue to register.
             '&&:active': { transform: 'scale(0.92)' },
+            ...touchHitArea,
           },
         },
       },
@@ -188,6 +220,29 @@ export const getTheme = (mode: 'light' | 'dark') => {
           },
         },
       },
+      // Links are frequently used as controls here — "Forgot password?" and
+      // "Create an Account" are both MuiLink with an onClick, and both measured
+      // 22px tall. A min-height would turn inline links inside prose into
+      // 44px blocks, so these get the pseudo-element instead.
+      MuiLink: {
+        styleOverrides: {
+          root: {
+            ...touchHitArea,
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            ...touchMinHeight,
+          },
+        },
+      },
+      // Selection controls render a small box inside a ButtonBase; the visible
+      // tick stays the size it is, the tappable region does not.
+      MuiCheckbox: { styleOverrides: { root: { ...touchHitArea } } },
+      MuiRadio: { styleOverrides: { root: { ...touchHitArea } } },
+      MuiSwitch: { styleOverrides: { root: { ...touchHitArea } } },
       MuiChip: {
         styleOverrides: {
           root: {
