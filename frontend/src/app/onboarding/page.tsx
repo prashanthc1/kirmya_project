@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box } from '@mui/material';
+import { AnimatePresence } from 'framer-motion';
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout';
 import ProgressStepper from '../../components/onboarding/ProgressStepper';
 import WelcomeStep from '../../components/onboarding/WelcomeStep';
@@ -114,7 +115,17 @@ export default function OnboardingPage() {
   return (
     <OnboardingLayout onSaveProgress={() => onboardingApi.saveProgress(currentStep)}>
       <ProgressStepper currentStep={currentStep} totalSteps={15} />
-      <Box sx={{ mt: 2 }}>{renderStepComponent()}</Box>
+      {/*
+        mode="wait" so the outgoing step finishes leaving before the next
+        arrives — two steps cross-fading through each other reads as a glitch.
+        The key is what tells AnimatePresence a step was replaced; each step's
+        own motion.div carries the mirrored exit.
+      */}
+      <AnimatePresence mode="wait">
+        <Box key={currentStep} sx={{ mt: 2 }}>
+          {renderStepComponent()}
+        </Box>
+      </AnimatePresence>
     </OnboardingLayout>
   );
 }

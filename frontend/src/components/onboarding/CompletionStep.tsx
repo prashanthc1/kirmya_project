@@ -31,7 +31,7 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={springs.entrance}>
+    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 }, textAlign: 'center' }}>
         <Box
           sx={{

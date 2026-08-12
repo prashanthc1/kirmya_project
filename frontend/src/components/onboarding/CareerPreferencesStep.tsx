@@ -62,7 +62,7 @@ export const CareerPreferencesStep: React.FC<StepProps> = ({ onNext, onPrev }) =
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 } }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
           Career Preferences

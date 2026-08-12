@@ -20,7 +20,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 }, textAlign: 'center' }}>
         <Box
           sx={{
