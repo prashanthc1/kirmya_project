@@ -77,6 +77,19 @@ export const getTheme = (mode: 'light' | 'dark') => {
           },
         },
       },
+      // Press feedback. MUI's ripple already fires on pointer-down, but it is
+      // faint and all but invisible on the indigo gradient CTAs, so the press
+      // read as unacknowledged on touch. A small scale is instant, physical and
+      // survives any background.
+      //
+      // Applied to the controls people actually press rather than to
+      // MuiButtonBase, which would also scale full-width menu rows and tabs —
+      // a whole row shrinking under the finger reads as a glitch, not a press.
+      //
+      // `&&` rather than `&`: 82 components set a hover transform through the
+      // sx prop, and sx is injected after theme overrides at equal specificity,
+      // so a plain `&:active` lost to them — pressing ThemeToggle scaled it UP
+      // to its hover value. Doubling the class beats sx without !important.
       MuiButton: {
         styleOverrides: {
           root: {
@@ -84,6 +97,34 @@ export const getTheme = (mode: 'light' | 'dark') => {
             textTransform: 'none',
             fontWeight: 600,
             padding: '8px 16px',
+            transition: 'transform 100ms ease-out',
+            '&&:active': { transform: 'scale(0.97)' },
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            transition: 'transform 100ms ease-out',
+            // Small targets need a proportionally larger cue to register.
+            '&&:active': { transform: 'scale(0.92)' },
+          },
+        },
+      },
+      MuiCardActionArea: {
+        styleOverrides: {
+          root: {
+            transition: 'transform 100ms ease-out',
+            // Large surfaces need the opposite: barely any, or it feels wobbly.
+            '&&:active': { transform: 'scale(0.995)' },
+          },
+        },
+      },
+      MuiToggleButton: {
+        styleOverrides: {
+          root: {
+            transition: 'transform 100ms ease-out',
+            '&&:active': { transform: 'scale(0.96)' },
           },
         },
       },
@@ -92,6 +133,12 @@ export const getTheme = (mode: 'light' | 'dark') => {
           root: {
             borderRadius: '8px',
             fontWeight: 500,
+            // Only chips that are actually interactive — a plain label chip
+            // shrinking under a stray tap would be feedback for nothing.
+            '&.MuiChip-clickable': {
+              transition: 'transform 100ms ease-out',
+              '&&:active': { transform: 'scale(0.96)' },
+            },
           },
         },
       },
