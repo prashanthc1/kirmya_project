@@ -15,6 +15,14 @@ type SuccessResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+// HealthResponse is the liveness probe's payload. It is deliberately not the
+// SuccessResponse envelope: the probe answers before the rest of the platform
+// is necessarily up, so it carries the one field it can always report and
+// nothing that would need a working dependency to populate.
+type HealthResponse struct {
+	Status string `json:"status" example:"ok"`
+}
+
 // ErrorResponse is returned for every non-2xx status. Handlers emit the bare
 // `error` field; `code` and `details` are populated where the module classifies
 // the failure.

@@ -20027,6 +20027,32 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/health": {
+            "get": {
+                "description": "Reports that the process is up and serving HTTP. Discloses nothing about the deployment beyond that, so it is safe to leave open to the platform's health checker.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Liveness probe",
+                "responses": {
+                    "200": {
+                        "description": "Process is serving",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.HealthResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Recovered panic in the middleware chain; the process is up but not serving correctly",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -25686,6 +25712,15 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "swagger.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "ok"
                 }
             }
         },
