@@ -25,20 +25,32 @@ export const getTheme = (mode: 'light' | 'dark') => {
         secondary: mode === 'light' ? '#475569' : '#cbd5e1',
       },
     },
+    // Tracking is size-specific by nature: letters read further apart as type
+    // grows, so display sizes need negative tracking and small text needs
+    // slightly positive. Leading moves inversely — tight on headings, looser on
+    // body. Previously only h4, h6 and body1 were tuned while h1, h2, h3 and h5
+    // were used 101 times untuned, which left the two largest display sizes —
+    // where tracking matters most — on browser defaults.
+    //
+    // fontSize is deliberately left to MUI's scale. Components override it
+    // inline in most places, and changing it here would reflow 101 call sites
+    // for no gain; the tracking, leading and weight are what was missing.
     typography: {
       fontFamily: 'var(--font-sans), sans-serif',
-      h4: {
-        fontWeight: 700,
-        letterSpacing: '-0.02em',
-      },
-      h6: {
-        fontWeight: 600,
-        letterSpacing: '-0.01em',
-      },
-      body1: {
-        fontSize: '0.95rem',
-        lineHeight: 1.6,
-      },
+      h1: { fontWeight: 800, lineHeight: 1.02, letterSpacing: '-0.035em' },
+      h2: { fontWeight: 800, lineHeight: 1.06, letterSpacing: '-0.03em' },
+      h3: { fontWeight: 700, lineHeight: 1.12, letterSpacing: '-0.025em' },
+      h4: { fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.02em' },
+      h5: { fontWeight: 600, lineHeight: 1.3, letterSpacing: '-0.015em' },
+      h6: { fontWeight: 600, lineHeight: 1.4, letterSpacing: '-0.01em' },
+      subtitle1: { lineHeight: 1.5, letterSpacing: '-0.005em' },
+      subtitle2: { lineHeight: 1.5, letterSpacing: '0em' },
+      body1: { fontSize: '0.95rem', lineHeight: 1.6, letterSpacing: '0em' },
+      body2: { lineHeight: 1.55, letterSpacing: '0em' },
+      // Small text is the one place tracking opens up rather than tightens.
+      caption: { lineHeight: 1.45, letterSpacing: '0.01em' },
+      overline: { lineHeight: 1.4, letterSpacing: '0.08em' },
+      button: { letterSpacing: '0em' },
     },
     components: {
       MuiCssBaseline: {
