@@ -25,12 +25,23 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandl
 		recruiterGroup.GET("/jobs/:id/matches", handler.GetJobMatches)
 
 		// Recruiter Candidate Search & Discovery
-		if searchHandler != nil {
-			recruiterGroup.GET("/candidates/search", searchHandler.SearchCandidates)
-			recruiterGroup.GET("/candidates/filters", searchHandler.GetFilterFacets)
-			recruiterGroup.GET("/candidates/saved", searchHandler.GetSavedCandidates)
-			recruiterGroup.GET("/candidates/recommendations", searchHandler.GetRecommendations)
-		}
+		recruiterGroup.GET("/candidates/search", searchHandler.SearchCandidates)
+		recruiterGroup.GET("/candidates/filters", searchHandler.GetFilterFacets)
+		recruiterGroup.GET("/candidates/saved", searchHandler.GetSavedCandidates)
+		recruiterGroup.GET("/candidates/recommendations", searchHandler.GetRecommendations)
+		recruiterGroup.POST("/candidates/compare", searchHandler.CompareCandidates)
+		recruiterGroup.GET("/candidates/:id", searchHandler.GetCandidateDetail)
+		recruiterGroup.DELETE("/candidates/:id/save", searchHandler.UnsaveCandidate)
+		recruiterGroup.POST("/candidates/:id/message", searchHandler.MessageCandidate)
+		recruiterGroup.POST("/candidates/:id/connect", searchHandler.ConnectCandidate)
+		recruiterGroup.GET("/saved-searches", searchHandler.GetSavedSearches)
+		recruiterGroup.POST("/saved-searches", searchHandler.CreateSavedSearch)
+		recruiterGroup.DELETE("/saved-searches/:id", searchHandler.DeleteSavedSearch)
+		recruiterGroup.GET("/talent-pools", searchHandler.GetTalentPools)
+		recruiterGroup.POST("/talent-pools", searchHandler.CreateTalentPool)
+		recruiterGroup.DELETE("/talent-pools/:id", searchHandler.DeleteTalentPool)
+		recruiterGroup.POST("/talent-pools/:id/candidates", searchHandler.AddCandidateToPool)
+		recruiterGroup.DELETE("/talent-pools/:id/candidates/:candidateId", searchHandler.RemoveCandidateFromPool)
 		recruiterGroup.GET("/candidates", handler.GetCandidates)
 		recruiterGroup.POST("/candidates/:id/save", handler.SaveCandidate)
 
