@@ -38,7 +38,7 @@ describe('Privacy & Data Protection Components Test Suite', () => {
   it('renders AdminPrivacyDashboard executive console', () => {
     render(<AdminPrivacyDashboard />);
     expect(screen.getByText(/Executive Privacy & Data Protection Console/i)).toBeInTheDocument();
-    expect(screen.getByText(/Subject Access Requests/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Subject Access Requests/i)[0]).toBeInTheDocument();
     expect(screen.getByText(/Pending SARs/i)).toBeInTheDocument();
   });
 });

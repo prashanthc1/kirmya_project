@@ -34,7 +34,7 @@ export const CookiePreferencesModal: React.FC<CookiePreferencesModalProps> = ({ 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth paperProps={{ style: { borderRadius: 24 } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ style: { borderRadius: 24 } }}>
       <DialogTitle sx={{ fontWeight: 900 }}>Cookie Preferences Manager</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2.5}>

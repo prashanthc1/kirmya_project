@@ -35,7 +35,7 @@ export const AccountDeletionModal: React.FC<AccountDeletionModalProps> = ({ open
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth paperProps={{ style: { borderRadius: 24 } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ style: { borderRadius: 24 } }}>
       <DialogTitle sx={{ fontWeight: 900, color: 'error.main', display: 'flex', alignItems: 'center', gap: 1 }}>
         <WarningAmberIcon color="error" /> Confirm Account Deletion
       </DialogTitle>
