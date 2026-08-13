@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"kirmya/internal/legal/models"
 	"kirmya/internal/legal/repository"
 )
 
@@ -38,6 +39,45 @@ func TestLegalService(t *testing.T) {
 		}
 		if req.Status != "grace_period" {
 			t.Errorf("expected status 'grace_period', got '%s'", req.Status)
+		}
+	})
+
+	t.Run("PrivacyPreferences lifecycle and defaults", func(t *testing.T) {
+		userID := uuid.New()
+		prefs, err := svc.GetPrivacyPreferences(ctx, userID)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if prefs.ProfileVisibility != "Public" {
+			t.Errorf("expected default profile visibility 'Public', got '%s'", prefs.ProfileVisibility)
+		}
+
+		updated, err := svc.UpdatePrivacyPreferences(ctx, userID, models.UpdatePrivacyPreferencesPayload{
+			ProfileVisibility: "Connections",
+		})
+		if err != nil {
+			t.Fatalf("unexpected update error: %v", err)
+		}
+		if updated.ProfileVisibility != "Connections" {
+			t.Errorf("expected updated profile visibility 'Connections', got '%s'", updated.ProfileVisibility)
+		}
+	})
+
+	t.Run("PrivacyDashboardSummary and RoPA Data Processing Records", func(t *testing.T) {
+		summary, err := svc.GetPrivacyDashboardSummary(ctx)
+		if err != nil {
+			t.Fatalf("unexpected summary error: %v", err)
+		}
+		if summary.TotalRequests < 0 {
+			t.Errorf("invalid total requests count: %d", summary.TotalRequests)
+		}
+
+		records, err := svc.GetDataProcessingRecords(ctx)
+		if err != nil {
+			t.Fatalf("unexpected RoPA error: %v", err)
+		}
+		if len(records) == 0 {
+			t.Errorf("expected RoPA data processing records, got 0")
 		}
 	})
 }

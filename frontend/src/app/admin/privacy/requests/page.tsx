@@ -3,6 +3,6 @@
 import React from 'react';
 import AdminPrivacyDashboard from '@/components/privacy/AdminPrivacyDashboard';
 
-export default function AdminPrivacyPage() {
+export default function AdminPrivacyRequestsPage() {
   return <AdminPrivacyDashboard />;
 }

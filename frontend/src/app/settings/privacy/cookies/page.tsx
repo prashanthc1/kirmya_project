@@ -3,6 +3,6 @@
 import React from 'react';
 import PrivacyCenter from '@/components/privacy/PrivacyCenter';
 
-export default function SettingsPrivacyPage() {
+export default function PrivacyCookiesPage() {
   return <PrivacyCenter />;
 }

@@ -84,6 +84,38 @@ type CookieConsent struct {
 	UserAgent   string     `json:"user_agent,omitempty" db:"user_agent"`
 }
 
+// PrivacyPreferences stores granular privacy controls.
+type PrivacyPreferences struct {
+	UserID                 uuid.UUID `json:"user_id" db:"user_id"`
+	ProfileVisibility      string    `json:"profile_visibility" db:"profile_visibility"` // Public, Registered, Connections, Recruiters, Private
+	DiscoverInSearch       bool      `json:"discover_in_search" db:"discover_in_search"`
+	RecruiterDiscoverable  bool      `json:"recruiter_discoverable" db:"recruiter_discoverable"`
+	RecruiterContactable   bool      `json:"recruiter_contactable" db:"recruiter_contactable"`
+	ShowResumeToRecruiters bool      `json:"show_resume_to_recruiters" db:"show_resume_to_recruiters"`
+	MessagingPermission    string    `json:"messaging_permission" db:"messaging_permission"` // Anyone, Connections, Recruiters, None
+	CommunityVisibility    string    `json:"community_visibility" db:"community_visibility"`
+	SearchPersonalization  bool      `json:"search_personalization" db:"search_personalization"`
+	AIDataUsage            bool      `json:"ai_data_usage" db:"ai_data_usage"`
+	AnalyticsConsent       bool      `json:"analytics_consent" db:"analytics_consent"`
+	MarketingConsent       bool      `json:"marketing_consent" db:"marketing_consent"`
+	UpdatedAt              time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// UpdatePrivacyPreferencesPayload payload for modifying privacy settings.
+type UpdatePrivacyPreferencesPayload struct {
+	ProfileVisibility      string `json:"profile_visibility,omitempty"`
+	DiscoverInSearch       *bool  `json:"discover_in_search,omitempty"`
+	RecruiterDiscoverable  *bool  `json:"recruiter_discoverable,omitempty"`
+	RecruiterContactable   *bool  `json:"recruiter_contactable,omitempty"`
+	ShowResumeToRecruiters *bool  `json:"show_resume_to_recruiters,omitempty"`
+	MessagingPermission    string `json:"messaging_permission,omitempty"`
+	CommunityVisibility    string `json:"community_visibility,omitempty"`
+	SearchPersonalization  *bool  `json:"search_personalization,omitempty"`
+	AIDataUsage            *bool  `json:"ai_data_usage,omitempty"`
+	AnalyticsConsent       *bool  `json:"analytics_consent,omitempty"`
+	MarketingConsent       *bool  `json:"marketing_consent,omitempty"`
+}
+
 // PrivacyRequest represents subject access request lifecycle.
 type PrivacyRequest struct {
 	ID              uuid.UUID  `json:"id" db:"id"`
@@ -112,7 +144,6 @@ type DataExportJob struct {
 }
 
 // DataDeletionRequest represents account deletion request.
-// Contains grace period and legal hold verification status.
 type DataDeletionRequest struct {
 	ID                   uuid.UUID  `json:"id" db:"id"`
 	UserID               uuid.UUID  `json:"user_id" db:"user_id"`
@@ -123,6 +154,17 @@ type DataDeletionRequest struct {
 	CompletedAt          *time.Time `json:"completed_at,omitempty" db:"completed_at"`
 	Reason               string     `json:"reason,omitempty" db:"reason"`
 	CreatedAt            time.Time  `json:"created_at" db:"created_at"`
+}
+
+// RetentionPolicy represents retention duration settings per category.
+type RetentionPolicy struct {
+	ID            uuid.UUID `json:"id" db:"id"`
+	DataCategory  string    `json:"data_category" db:"data_category"`
+	RetentionDays int       `json:"retention_days" db:"retention_days"`
+	ActionType    string    `json:"action_type" db:"action_type"` // delete, anonymize, archive
+	Description   string    `json:"description,omitempty" db:"description"`
+	IsActive      bool      `json:"is_active" db:"is_active"`
+	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // LegalHold represents lock against data deletion.
@@ -150,4 +192,39 @@ type ThirdPartyService struct {
 	TermsURL         string    `json:"terms_url,omitempty" db:"terms_url"`
 	IsEnabled        bool      `json:"is_enabled" db:"is_enabled"`
 	CreatedAt        time.Time `json:"created_at" db:"created_at"`
+}
+
+// DataProcessingRecord represents Record of Processing Activities (RoPA).
+type DataProcessingRecord struct {
+	ID              uuid.UUID `json:"id" db:"id"`
+	ActivityName    string    `json:"activity_name" db:"activity_name"`
+	Purpose         string    `json:"purpose" db:"purpose"`
+	DataCategory    string    `json:"data_category" db:"data_category"`
+	SubjectCategory string    `json:"subject_category" db:"subject_category"`
+	StorageLocation string    `json:"storage_location" db:"storage_location"`
+	RetentionPeriod string    `json:"retention_period" db:"retention_period"`
+	ThirdParties    string    `json:"third_parties,omitempty" db:"third_parties"`
+	LegalBasis      string    `json:"legal_basis" db:"legal_basis"`
+	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// PrivacyDashboardSummary represents high-level metrics for admin privacy console.
+type PrivacyDashboardSummary struct {
+	TotalRequests          int64            `json:"total_requests"`
+	PendingRequests        int64            `json:"pending_requests"`
+	CompletedRequests      int64            `json:"completed_requests"`
+	ActiveExportJobs       int64            `json:"active_export_jobs"`
+	AccountDeletionJobs    int64            `json:"account_deletion_jobs"`
+	ActiveLegalHolds       int64            `json:"active_legal_holds"`
+	ThirdPartySubProcessors int64           `json:"third_party_sub_processors"`
+	ConsentCountByDoc      map[string]int64 `json:"consent_count_by_doc"`
+}
+
+// ConsentHistoryItem represents historical consent entries.
+type ConsentHistoryItem struct {
+	ID         uuid.UUID `json:"id"`
+	Document   string    `json:"document"`
+	Version    string    `json:"version"`
+	AcceptedAt time.Time `json:"accepted_at"`
+	Source     string    `json:"source"`
 }

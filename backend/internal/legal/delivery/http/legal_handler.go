@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"kirmya/internal/legal/models"
 	"kirmya/internal/legal/service"
 )
 
@@ -14,6 +15,20 @@ type LegalHandler struct {
 
 func NewLegalHandler(legalService service.LegalService) *LegalHandler {
 	return &LegalHandler{legalService: legalService}
+}
+
+func getUserID(c *gin.Context) (uuid.UUID, bool) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
+		return uuid.Nil, false
+	}
+	userID, ok := val.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid context type"})
+		return uuid.Nil, false
+	}
+	return userID, true
 }
 
 // GetDocument returns a legal document by slug.
@@ -75,14 +90,128 @@ func (h *LegalHandler) SaveCookieConsent(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Cookie preferences saved successfully."})
 }
 
-// RequestDataExport creates an asynchronous data export job.
-func (h *LegalHandler) RequestDataExport(c *gin.Context) {
-	userIDVal, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+// GetPrivacyPreferences fetches user privacy controls.
+func (h *LegalHandler) GetPrivacyPreferences(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
 		return
 	}
-	userID := userIDVal.(uuid.UUID)
+
+	prefs, err := h.legalService.GetPrivacyPreferences(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, prefs)
+}
+
+// UpdatePrivacyPreferences updates fine-grained privacy controls.
+func (h *LegalHandler) UpdatePrivacyPreferences(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var payload models.UpdatePrivacyPreferencesPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	prefs, err := h.legalService.UpdatePrivacyPreferences(c.Request.Context(), userID, payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, prefs)
+}
+
+// GetConsentHistory returns user consent audit entries.
+func (h *LegalHandler) GetConsentHistory(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	history, err := h.legalService.GetConsentHistory(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, history)
+}
+
+// GetUserPrivacyRequests retrieves user SAR requests.
+func (h *LegalHandler) GetUserPrivacyRequests(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	reqs, err := h.legalService.GetUserPrivacyRequests(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, reqs)
+}
+
+// CreatePrivacyRequest files a new Subject Access Request (SAR).
+func (h *LegalHandler) CreatePrivacyRequest(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var body struct {
+		RequestType string `json:"request_type" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	req, err := h.legalService.CreatePrivacyRequest(c.Request.Context(), userID, body.RequestType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, req)
+}
+
+// GetPrivacyRequestByID fetches a specific user SAR request.
+func (h *LegalHandler) GetPrivacyRequestByID(c *gin.Context) {
+	_, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID format"})
+		return
+	}
+
+	req, err := h.legalService.GetPrivacyRequestByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Privacy request not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, req)
+}
+
+// RequestDataExport creates an asynchronous data export job.
+func (h *LegalHandler) RequestDataExport(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
 
 	job, err := h.legalService.RequestDataExport(c.Request.Context(), userID)
 	if err != nil {
@@ -90,17 +219,31 @@ func (h *LegalHandler) RequestDataExport(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": job})
+	c.JSON(http.StatusOK, job)
+}
+
+// GetDataExportJob returns current export status.
+func (h *LegalHandler) GetDataExportJob(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	job, err := h.legalService.GetDataExportJob(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, job)
 }
 
 // RequestAccountDeletion initiates account deletion request.
 func (h *LegalHandler) RequestAccountDeletion(c *gin.Context) {
-	userIDVal, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+	userID, ok := getUserID(c)
+	if !ok {
 		return
 	}
-	userID := userIDVal.(uuid.UUID)
 
 	var body struct {
 		Reason string `json:"reason"`
@@ -113,5 +256,32 @@ func (h *LegalHandler) RequestAccountDeletion(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": delReq})
+	c.JSON(http.StatusOK, delReq)
+}
+
+// CancelAccountDeletion cancels pending account deletion during grace period.
+func (h *LegalHandler) CancelAccountDeletion(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	err := h.legalService.CancelAccountDeletion(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Account deletion cancelled successfully."})
+}
+
+// GetRetentionPolicies returns active data retention durations.
+func (h *LegalHandler) GetRetentionPolicies(c *gin.Context) {
+	policies, err := h.legalService.GetRetentionPolicies(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, policies)
 }
