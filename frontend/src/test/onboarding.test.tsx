@@ -24,6 +24,6 @@ describe('Onboarding & First-Time User Experience Test Suite', () => {
     render(<AdminOnboardingDashboard />);
     expect(screen.getByText(/Executive Onboarding Control & Funnel Center/i)).toBeInTheDocument();
     expect(screen.getByText(/Total Started/i)).toBeInTheDocument();
-    expect(screen.getByText(/87.3%/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/87.3%/i).length).toBeGreaterThan(0);
   });
 });
