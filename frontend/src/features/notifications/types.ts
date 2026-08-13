@@ -11,7 +11,9 @@ export type NotificationCategory =
   | 'Resume'
   | 'Cover Letters'
   | 'AI'
-  | 'System';
+  | 'System'
+  | 'Support'
+  | 'Marketing';
 
 export type NotificationPriority = 'Critical' | 'High' | 'Normal' | 'Low';
 
@@ -65,6 +67,20 @@ export interface NotificationDeviceDTO {
   platform: 'web' | 'ios' | 'android';
   isActive: boolean;
   lastUsedAt: string;
+}
+
+export interface NotificationScheduleDTO {
+  id: string;
+  userId: string;
+  notificationType: string;
+  title: string;
+  content: string;
+  targetResourceType?: string;
+  targetResourceId?: string;
+  actionUrl?: string;
+  scheduledAt: string;
+  status: 'Scheduled' | 'Processing' | 'Sent' | 'Cancelled';
+  createdAt: string;
 }
 
 export interface NotificationDeliveryDTO {

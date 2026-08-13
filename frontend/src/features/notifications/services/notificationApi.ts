@@ -7,6 +7,7 @@ import {
   NotificationDeliveryDTO,
   NotificationTemplateDTO,
   NotificationAnalyticsDTO,
+  NotificationScheduleDTO,
 } from '../types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
@@ -91,6 +92,21 @@ export const notificationApi = {
 
   deleteDevice: async (id: string): Promise<{ message: string }> => {
     const res = await apiClient.delete(`/notifications/devices/${id}`);
+    return res.data;
+  },
+
+  getSchedules: async (): Promise<NotificationScheduleDTO[]> => {
+    const res = await apiClient.get<NotificationScheduleDTO[]>('/notifications/schedules');
+    return res.data;
+  },
+
+  createSchedule: async (payload: Partial<NotificationScheduleDTO>): Promise<NotificationScheduleDTO> => {
+    const res = await apiClient.post<NotificationScheduleDTO>('/notifications/schedules', payload);
+    return res.data;
+  },
+
+  deleteSchedule: async (id: string): Promise<{ message: string }> => {
+    const res = await apiClient.delete(`/notifications/schedules/${id}`);
     return res.data;
   },
 

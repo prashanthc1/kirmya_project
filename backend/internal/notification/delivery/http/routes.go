@@ -11,6 +11,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 	{
 		notifications.GET("", handler.ListNotifications)
 		notifications.GET("/unread", handler.ListNotifications)
+		notifications.GET("/unread-count", handler.GetUnreadCount)
 		notifications.GET("/count", handler.GetUnreadCount)
 		notifications.GET("/history", handler.GetHistory)
 		notifications.GET("/preferences", handler.GetPreferences)
@@ -25,6 +26,12 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 		notifications.POST("/read-all", handler.MarkAllRead)
 		notifications.PUT("/read-all", handler.MarkAllRead)
 
+		notifications.GET("/digests", handler.GetPreferences)
+		notifications.PUT("/digests", handler.UpdatePreference)
+		notifications.GET("/schedules", handler.GetSchedules)
+		notifications.POST("/schedules", handler.CreateSchedule)
+		notifications.DELETE("/schedules/:id", handler.DeleteSchedule)
+
 		notifications.GET("/:id", handler.GetByID)
 		notifications.POST("/:id/read", handler.MarkRead)
 		notifications.PUT("/:id/read", handler.MarkRead)
@@ -33,14 +40,34 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 		notifications.POST("/:id/archive", handler.ArchiveNotification)
 	}
 
+	settings := api.Group("/settings/notifications")
+	settings.Use(sharedMiddleware.AuthRequired())
+	{
+		settings.GET("", handler.GetPreferences)
+		settings.PUT("", handler.UpdatePreference)
+	}
+
 	admin := api.Group("/admin/notifications")
 	admin.Use(sharedMiddleware.AuthRequired())
 	{
 		admin.GET("", handler.ListNotifications)
 		admin.GET("/templates", handler.AdminGetTemplates)
 		admin.POST("/templates", handler.AdminCreateTemplate)
-		admin.GET("/analytics", handler.AdminGetAnalytics)
+		admin.GET("/templates/:id", handler.AdminGetTemplateByID)
+		admin.PUT("/templates/:id", handler.AdminUpdateTemplate)
+		admin.POST("/templates/:id/publish", handler.AdminPublishTemplate)
+		admin.POST("/templates/:id/archive", handler.AdminArchiveTemplate)
+		admin.POST("/templates/:id/test", handler.AdminTestSendTemplate)
+		admin.GET("/queue", handler.AdminGetQueue)
+		admin.GET("/failed", handler.AdminGetFailures)
 		admin.GET("/failures", handler.AdminGetFailures)
+		admin.GET("/providers", handler.AdminGetProviders)
+		admin.GET("/analytics", handler.AdminGetAnalytics)
 		admin.POST("/announcement", handler.AdminSendAnnouncement)
+	}
+
+	internal := api.Group("/internal/notifications")
+	{
+		internal.POST("/events", handler.IngestEvent)
 	}
 }

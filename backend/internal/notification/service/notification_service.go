@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"time"
+
 	"kirmya/internal/messaging/pubsub"
 	"kirmya/internal/notification/models"
 	"kirmya/internal/notification/repository"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -207,6 +208,34 @@ func (s *NotificationService) DeleteDevice(ctx context.Context, id uuid.UUID, us
 	return s.repo.DeleteDevice(ctx, id, userID)
 }
 
+func (s *NotificationService) CreateSchedule(ctx context.Context, userID uuid.UUID, req models.NotificationSchedulePayload) (*models.NotificationSchedule, error) {
+	sSched := &models.NotificationSchedule{
+		ID:                 uuid.New(),
+		UserID:             userID,
+		NotificationType:   req.NotificationType,
+		Title:              req.Title,
+		Content:            req.Content,
+		TargetResourceType: req.TargetResourceType,
+		TargetResourceID:   req.TargetResourceID,
+		ActionURL:          req.ActionURL,
+		ScheduledAt:        req.ScheduledAt,
+		Status:             "Scheduled",
+		CreatedAt:          time.Now(),
+	}
+	if err := s.repo.CreateSchedule(ctx, sSched); err != nil {
+		return nil, err
+	}
+	return sSched, nil
+}
+
+func (s *NotificationService) GetSchedules(ctx context.Context, userID uuid.UUID) ([]models.NotificationSchedule, error) {
+	return s.repo.GetSchedules(ctx, userID)
+}
+
+func (s *NotificationService) DeleteSchedule(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	return s.repo.DeleteSchedule(ctx, id, userID)
+}
+
 func (s *NotificationService) GetHistory(ctx context.Context, userID uuid.UUID) ([]models.NotificationDelivery, error) {
 	return s.repo.GetHistory(ctx, userID)
 }
@@ -215,11 +244,26 @@ func (s *NotificationService) GetTemplates(ctx context.Context) ([]models.Notifi
 	return s.repo.GetTemplates(ctx)
 }
 
-func (s *NotificationService) CreateTemplate(ctx context.Context, t *models.NotificationTemplate) error {
-	if t.ID == uuid.Nil {
-		t.ID = uuid.New()
+func (s *NotificationService) CreateTemplate(ctx context.Context, req models.NotificationTemplatePayload) (*models.NotificationTemplate, error) {
+	tmpl := &models.NotificationTemplate{
+		ID:                   uuid.New(),
+		Code:                 req.Code,
+		Category:             req.Category,
+		TitleTemplate:        req.TitleTemplate,
+		ContentTemplate:      req.ContentTemplate,
+		EmailSubjectTemplate: req.EmailSubjectTemplate,
+		EmailBodyTemplate:    req.EmailBodyTemplate,
+		PushTitleTemplate:    req.PushTitleTemplate,
+		PushBodyTemplate:     req.PushBodyTemplate,
+		Variables:            req.Variables,
+		IsActive:             true,
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
 	}
-	return s.repo.CreateTemplate(ctx, t)
+	if err := s.repo.CreateTemplate(ctx, tmpl); err != nil {
+		return nil, err
+	}
+	return tmpl, nil
 }
 
 func (s *NotificationService) GetFailures(ctx context.Context) ([]models.NotificationFailure, error) {

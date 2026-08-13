@@ -95,13 +95,13 @@ type NotificationDelivery struct {
 
 // NotificationDevice stores client mobile/browser push tokens.
 type NotificationDevice struct {
-	ID         uuid.UUID `json:"id"`
-	UserID     uuid.UUID `json:"userId"`
+	ID          uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"userId"`
 	DeviceToken string    `json:"deviceToken"`
-	Platform   string    `json:"platform"` // web, ios, android
-	IsActive   bool      `json:"isActive"`
-	LastUsedAt time.Time `json:"lastUsedAt"`
-	CreatedAt  time.Time `json:"createdAt"`
+	Platform    string    `json:"platform"` // web, ios, android
+	IsActive    bool      `json:"isActive"`
+	LastUsedAt  time.Time `json:"lastUsedAt"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 // NotificationTemplate stores admin message formatters.
@@ -147,25 +147,77 @@ type NotificationFailure struct {
 	CreatedAt      time.Time `json:"createdAt"`
 }
 
+// NotificationSchedule represents scheduled reminder or digest.
+type NotificationSchedule struct {
+	ID                 uuid.UUID `json:"id"`
+	UserID             uuid.UUID `json:"userId"`
+	NotificationType   string    `json:"notificationType"`
+	Title              string    `json:"title"`
+	Content            string    `json:"content"`
+	TargetResourceType string    `json:"targetResourceType,omitempty"`
+	TargetResourceID   string    `json:"targetResourceId,omitempty"`
+	ActionURL          string    `json:"actionUrl,omitempty"`
+	ScheduledAt        time.Time `json:"scheduledAt"`
+	Status             string    `json:"status"` // Scheduled, Processing, Sent, Cancelled
+	CreatedAt          time.Time `json:"createdAt"`
+}
+
+// NotificationEmailEvent tracks email delivery.
+type NotificationEmailEvent struct {
+	ID           uuid.UUID `json:"id"`
+	DeliveryID   uuid.UUID `json:"deliveryId"`
+	UserID       uuid.UUID `json:"userId"`
+	EmailAddress string    `json:"emailAddress"`
+	EmailSubject string    `json:"emailSubject"`
+	Provider     string    `json:"provider"`
+	Status       string    `json:"status"`
+	BounceReason string    `json:"bounceReason,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
+// NotificationSMSEvent tracks SMS delivery.
+type NotificationSMSEvent struct {
+	ID           uuid.UUID `json:"id"`
+	DeliveryID   uuid.UUID `json:"deliveryId"`
+	UserID       uuid.UUID `json:"userId"`
+	PhoneNumber  string    `json:"phoneNumber"`
+	Provider     string    `json:"provider"`
+	Status       string    `json:"status"`
+	ErrorMessage string    `json:"errorMessage,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
+// NotificationPushEvent tracks Push delivery.
+type NotificationPushEvent struct {
+	ID           uuid.UUID `json:"id"`
+	DeliveryID   uuid.UUID `json:"deliveryId"`
+	UserID       uuid.UUID `json:"userId"`
+	DeviceToken  string    `json:"deviceToken"`
+	Platform     string    `json:"platform"`
+	Status       string    `json:"status"`
+	ErrorMessage string    `json:"errorMessage,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
 // NotificationAnalytics defines metrics aggregated for system admins.
 type NotificationAnalytics struct {
-	TotalCreated     int64                  `json:"totalCreated"`
-	TotalSent        int64                  `json:"totalSent"`
-	DeliveryRate     float64                `json:"deliveryRate"`
-	FailureRate      float64                `json:"failureRate"`
-	ReadRate         float64                `json:"readRate"`
-	TopTypes         map[string]int64       `json:"topTypes"`
-	VolumeByChannel  map[string]int64       `json:"volumeByChannel"`
-	CategoryBreakdown map[string]int64      `json:"categoryBreakdown"`
+	TotalCreated      int64            `json:"totalCreated"`
+	TotalSent         int64            `json:"totalSent"`
+	DeliveryRate      float64          `json:"deliveryRate"`
+	FailureRate       float64          `json:"failureRate"`
+	ReadRate          float64          `json:"readRate"`
+	TopTypes          map[string]int64 `json:"topTypes"`
+	VolumeByChannel   map[string]int64 `json:"volumeByChannel"`
+	CategoryBreakdown map[string]int64 `json:"categoryBreakdown"`
 }
 
 // AdminAnnouncementRequest payload for platform announcements.
 type AdminAnnouncementRequest struct {
-	Title     string `json:"title" binding:"required"`
-	Content   string `json:"content" binding:"required"`
-	Category  string `json:"category"`
+	Title      string `json:"title" binding:"required"`
+	Content    string `json:"content" binding:"required"`
+	Category   string `json:"category"`
 	TargetRole string `json:"targetRole"` // All, Candidates, Recruiters, Admins
-	ActionURL string `json:"actionUrl"`
+	ActionURL  string `json:"actionUrl"`
 }
 
 // UpdatePreferencePayload is the payload struct for updating user preferences.
@@ -183,4 +235,35 @@ type UpdatePreferencePayload struct {
 type RegisterDevicePayload struct {
 	DeviceToken string `json:"deviceToken" binding:"required"`
 	Platform    string `json:"platform" binding:"required"`
+}
+
+// NotificationSchedulePayload holds creation request for reminders.
+type NotificationSchedulePayload struct {
+	NotificationType   string    `json:"notificationType" binding:"required"`
+	Title              string    `json:"title" binding:"required"`
+	Content            string    `json:"content" binding:"required"`
+	TargetResourceType string    `json:"targetResourceType,omitempty"`
+	TargetResourceID   string    `json:"targetResourceId,omitempty"`
+	ActionURL          string    `json:"actionUrl,omitempty"`
+	ScheduledAt        time.Time `json:"scheduledAt" binding:"required"`
+}
+
+// NotificationTemplatePayload holds admin template creation/update.
+type NotificationTemplatePayload struct {
+	Code                 string   `json:"code" binding:"required"`
+	Category             string   `json:"category" binding:"required"`
+	TitleTemplate        string   `json:"titleTemplate" binding:"required"`
+	ContentTemplate      string   `json:"contentTemplate" binding:"required"`
+	EmailSubjectTemplate string   `json:"emailSubjectTemplate,omitempty"`
+	EmailBodyTemplate    string   `json:"emailBodyTemplate,omitempty"`
+	PushTitleTemplate    string   `json:"pushTitleTemplate,omitempty"`
+	PushBodyTemplate     string   `json:"pushBodyTemplate,omitempty"`
+	Variables            []string `json:"variables,omitempty"`
+}
+
+// TestSendPayload holds admin test notification request.
+type TestSendPayload struct {
+	RecipientEmail string            `json:"recipientEmail" binding:"required"`
+	Channel        string            `json:"channel" binding:"required"`
+	Variables      map[string]string `json:"variables,omitempty"`
 }

@@ -13,6 +13,7 @@ DELETE /api/v1/jobs/:id/save
 DELETE /api/v1/networking/blocks/:userId
 DELETE /api/v1/notifications/:id
 DELETE /api/v1/notifications/devices/:id
+DELETE /api/v1/notifications/schedules/:id
 DELETE /api/v1/profiles/me/achievements/:id
 DELETE /api/v1/profiles/me/certifications/:id
 DELETE /api/v1/profiles/me/languages/:id
@@ -44,8 +45,12 @@ GET /api/v1/admin/analytics/users
 GET /api/v1/admin/company-verifications
 GET /api/v1/admin/notifications
 GET /api/v1/admin/notifications/analytics
+GET /api/v1/admin/notifications/failed
 GET /api/v1/admin/notifications/failures
+GET /api/v1/admin/notifications/providers
+GET /api/v1/admin/notifications/queue
 GET /api/v1/admin/notifications/templates
+GET /api/v1/admin/notifications/templates/:id
 GET /api/v1/admin/safety/analytics
 GET /api/v1/admin/safety/cases
 GET /api/v1/ai/preferences
@@ -178,11 +183,14 @@ GET /api/v1/notifications
 GET /api/v1/notifications/:id
 GET /api/v1/notifications/count
 GET /api/v1/notifications/devices
+GET /api/v1/notifications/digests
 GET /api/v1/notifications/history
 GET /api/v1/notifications/preferences
 GET /api/v1/notifications/preferences/categories
 GET /api/v1/notifications/quiet-hours
+GET /api/v1/notifications/schedules
 GET /api/v1/notifications/unread
+GET /api/v1/notifications/unread-count
 GET /api/v1/onboarding
 GET /api/v1/onboarding/communities
 GET /api/v1/onboarding/connections
@@ -240,6 +248,7 @@ GET /api/v1/saved-searches
 GET /api/v1/search/history
 GET /api/v1/search/notes/:candidateId
 GET /api/v1/search/saved
+GET /api/v1/settings/notifications
 GET /api/v1/unified-search
 GET /api/v1/unified-search/history
 GET /api/v1/unified-search/suggestions
@@ -249,6 +258,9 @@ GET /health
 POST /api/v1/admin/analytics/export
 POST /api/v1/admin/notifications/announcement
 POST /api/v1/admin/notifications/templates
+POST /api/v1/admin/notifications/templates/:id/archive
+POST /api/v1/admin/notifications/templates/:id/publish
+POST /api/v1/admin/notifications/templates/:id/test
 POST /api/v1/admin/safety/appeals/:id/resolve
 POST /api/v1/admin/safety/cases/:id/actions
 POST /api/v1/ai/career-suggestions
@@ -310,6 +322,7 @@ POST /api/v1/freelance/projects
 POST /api/v1/freelance/projects/:id/proposals
 POST /api/v1/freelance/proposals/:id/accept
 POST /api/v1/internal/analytics/events
+POST /api/v1/internal/notifications/events
 POST /api/v1/interviews
 POST /api/v1/interviews/:id/rounds
 POST /api/v1/interviews/availability
@@ -339,6 +352,7 @@ POST /api/v1/notifications/:id/read
 POST /api/v1/notifications/:id/unread
 POST /api/v1/notifications/devices
 POST /api/v1/notifications/read-all
+POST /api/v1/notifications/schedules
 POST /api/v1/onboarding/complete
 POST /api/v1/onboarding/start
 POST /api/v1/organizations
@@ -399,6 +413,7 @@ POST /api/v1/verifications/documents
 POST /api/v1/verifications/requests
 POST /api/v1/work-experience
 PUT /api/v1/admin/company-verifications/:verificationId
+PUT /api/v1/admin/notifications/templates/:id
 PUT /api/v1/ai/preferences
 PUT /api/v1/applications/:id/withdraw
 PUT /api/v1/communities/:id/memberships
@@ -416,6 +431,7 @@ PUT /api/v1/interviews/rounds/:roundId/status
 PUT /api/v1/job-alerts/:id
 PUT /api/v1/networking/requests/:id
 PUT /api/v1/notifications/:id/read
+PUT /api/v1/notifications/digests
 PUT /api/v1/notifications/preferences
 PUT /api/v1/notifications/preferences/categories/:category
 PUT /api/v1/notifications/quiet-hours
@@ -430,4 +446,5 @@ PUT /api/v1/recruiter/pipeline/:id
 PUT /api/v1/referrals/:id/status
 PUT /api/v1/resumes/:id
 PUT /api/v1/saved-searches/:id
+PUT /api/v1/settings/notifications
 PUT /api/v1/verifications/privacy

@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import NotificationCenter from '../../../components/notifications/NotificationCenter';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
-export default function NotificationsApplicationsPage() {
-  return <NotificationCenter initialCategory="applications" />;
+export default function ApplicationsNotificationsSubPage() {
+  return <NotificationCenter initialCategory="applications" initialUnreadOnly={false} />;
 }

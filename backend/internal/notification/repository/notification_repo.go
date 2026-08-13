@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+
 	"kirmya/internal/notification/models"
 
 	"github.com/google/uuid"
@@ -20,7 +21,7 @@ func NewNotificationRepository(db *pgxpool.Pool) *NotificationRepository {
 
 // Create stores a new notification in the database.
 func (r *NotificationRepository) Create(ctx context.Context, n *models.Notification) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	query := `INSERT INTO notifications 
@@ -35,7 +36,7 @@ func (r *NotificationRepository) Create(ctx context.Context, n *models.Notificat
 
 // List retrieves notifications for a user filtered by category or unread status.
 func (r *NotificationRepository) List(ctx context.Context, userID uuid.UUID, category string, unreadOnly bool, limit int, offset int) ([]models.Notification, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return []models.Notification{}, nil
 	}
 	if limit <= 0 {
@@ -85,7 +86,7 @@ func (r *NotificationRepository) List(ctx context.Context, userID uuid.UUID, cat
 
 // GetByID fetches a single notification owned by a user.
 func (r *NotificationRepository) GetByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.Notification, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil, errors.New("database pool not initialized")
 	}
 	query := `SELECT id, user_id, category, type, priority, title, content, actor_id, COALESCE(actor_name, ''), COALESCE(target_resource, ''), COALESCE(target_resource_type, ''), COALESCE(action_url, ''), COALESCE(icon, ''), metadata, is_read, is_archived, group_id, expires_at, created_at, updated_at
@@ -104,7 +105,7 @@ func (r *NotificationRepository) GetByID(ctx context.Context, id uuid.UUID, user
 
 // GetUnreadCount calculates the count of unread notifications for a user.
 func (r *NotificationRepository) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return 0, nil
 	}
 	var count int64
@@ -114,7 +115,7 @@ func (r *NotificationRepository) GetUnreadCount(ctx context.Context, userID uuid
 
 // MarkRead marks a single notification as read.
 func (r *NotificationRepository) MarkRead(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	_, err := r.db.Exec(ctx, "UPDATE notifications SET is_read = TRUE, updated_at = NOW() WHERE id = $1 AND user_id = $2", id, userID)
@@ -123,7 +124,7 @@ func (r *NotificationRepository) MarkRead(ctx context.Context, id uuid.UUID, use
 
 // MarkUnread marks a notification as unread.
 func (r *NotificationRepository) MarkUnread(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	_, err := r.db.Exec(ctx, "UPDATE notifications SET is_read = FALSE, updated_at = NOW() WHERE id = $1 AND user_id = $2", id, userID)
@@ -132,7 +133,7 @@ func (r *NotificationRepository) MarkUnread(ctx context.Context, id uuid.UUID, u
 
 // MarkAllRead marks all notifications as read for a user.
 func (r *NotificationRepository) MarkAllRead(ctx context.Context, userID uuid.UUID) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	_, err := r.db.Exec(ctx, "UPDATE notifications SET is_read = TRUE, updated_at = NOW() WHERE user_id = $1 AND is_read = FALSE", userID)
@@ -141,7 +142,7 @@ func (r *NotificationRepository) MarkAllRead(ctx context.Context, userID uuid.UU
 
 // Delete removes a notification for a user.
 func (r *NotificationRepository) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	_, err := r.db.Exec(ctx, "DELETE FROM notifications WHERE id = $1 AND user_id = $2", id, userID)
@@ -150,7 +151,7 @@ func (r *NotificationRepository) Delete(ctx context.Context, id uuid.UUID, userI
 
 // Archive marks a notification as archived.
 func (r *NotificationRepository) Archive(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	_, err := r.db.Exec(ctx, "UPDATE notifications SET is_archived = TRUE, updated_at = NOW() WHERE id = $1 AND user_id = $2", id, userID)
@@ -159,7 +160,7 @@ func (r *NotificationRepository) Archive(ctx context.Context, id uuid.UUID, user
 
 // GetPreferences fetches all preference settings for a user.
 func (r *NotificationRepository) GetPreferences(ctx context.Context, userID uuid.UUID) ([]models.NotificationPreference, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return []models.NotificationPreference{}, nil
 	}
 	query := `SELECT user_id, notification_type, category, email_enabled, push_enabled, in_app_enabled, sms_enabled, frequency, updated_at 
@@ -184,7 +185,7 @@ func (r *NotificationRepository) GetPreferences(ctx context.Context, userID uuid
 
 // GetPreference gets a single notification preference or returns a default fallback.
 func (r *NotificationRepository) GetPreference(ctx context.Context, userID uuid.UUID, nType string) (*models.NotificationPreference, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return &models.NotificationPreference{
 			UserID:           userID,
 			NotificationType: nType,
@@ -220,7 +221,7 @@ func (r *NotificationRepository) GetPreference(ctx context.Context, userID uuid.
 
 // UpsertPreference inserts or updates preference configs.
 func (r *NotificationRepository) UpsertPreference(ctx context.Context, p *models.NotificationPreference) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	query := `INSERT INTO notification_preferences (user_id, notification_type, category, email_enabled, push_enabled, in_app_enabled, sms_enabled, frequency, updated_at)
@@ -233,7 +234,7 @@ func (r *NotificationRepository) UpsertPreference(ctx context.Context, p *models
 
 // GetQuietHours fetches user quiet hours configuration.
 func (r *NotificationRepository) GetQuietHours(ctx context.Context, userID uuid.UUID) (*models.QuietHoursSettings, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return &models.QuietHoursSettings{
 			UserID:    userID,
 			Enabled:   false,
@@ -264,7 +265,7 @@ func (r *NotificationRepository) GetQuietHours(ctx context.Context, userID uuid.
 
 // UpsertQuietHours stores quiet hours configuration.
 func (r *NotificationRepository) UpsertQuietHours(ctx context.Context, qh *models.QuietHoursSettings) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	query := `INSERT INTO quiet_hours_settings (user_id, enabled, start_time, end_time, timezone, days, updated_at)
@@ -277,7 +278,7 @@ func (r *NotificationRepository) UpsertQuietHours(ctx context.Context, qh *model
 
 // RegisterDevice registers a push token for a user.
 func (r *NotificationRepository) RegisterDevice(ctx context.Context, d *models.NotificationDevice) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	query := `INSERT INTO notification_devices (id, user_id, device_token, platform, is_active, last_used_at, created_at)
@@ -290,7 +291,7 @@ func (r *NotificationRepository) RegisterDevice(ctx context.Context, d *models.N
 
 // GetDevices returns all active registered push devices for a user.
 func (r *NotificationRepository) GetDevices(ctx context.Context, userID uuid.UUID) ([]models.NotificationDevice, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return []models.NotificationDevice{}, nil
 	}
 	rows, err := r.db.Query(ctx, `SELECT id, user_id, device_token, platform, is_active, last_used_at, created_at FROM notification_devices WHERE user_id = $1 AND is_active = TRUE`, userID)
@@ -312,16 +313,58 @@ func (r *NotificationRepository) GetDevices(ctx context.Context, userID uuid.UUI
 
 // DeleteDevice unregisters a push device token.
 func (r *NotificationRepository) DeleteDevice(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	_, err := r.db.Exec(ctx, `DELETE FROM notification_devices WHERE id = $1 AND user_id = $2`, id, userID)
 	return err
 }
 
+// CreateSchedule stores a scheduled reminder or digest job.
+func (r *NotificationRepository) CreateSchedule(ctx context.Context, s *models.NotificationSchedule) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
+	query := `INSERT INTO notification_schedules (id, user_id, notification_type, title, content, target_resource_type, target_resource_id, action_url, scheduled_at, status, created_at, updated_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`
+	_, err := r.db.Exec(ctx, query, s.ID, s.UserID, s.NotificationType, s.Title, s.Content, s.TargetResourceType, s.TargetResourceID, s.ActionURL, s.ScheduledAt, s.Status)
+	return err
+}
+
+// GetSchedules retrieves pending schedules for a user.
+func (r *NotificationRepository) GetSchedules(ctx context.Context, userID uuid.UUID) ([]models.NotificationSchedule, error) {
+	if r == nil || r.db == nil {
+		return []models.NotificationSchedule{}, nil
+	}
+	rows, err := r.db.Query(ctx, `SELECT id, user_id, notification_type, title, content, COALESCE(target_resource_type, ''), COALESCE(target_resource_id, ''), COALESCE(action_url, ''), scheduled_at, status, created_at FROM notification_schedules WHERE user_id = $1 ORDER BY scheduled_at ASC`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.NotificationSchedule
+	for rows.Next() {
+		var s models.NotificationSchedule
+		if err := rows.Scan(&s.ID, &s.UserID, &s.NotificationType, &s.Title, &s.Content, &s.TargetResourceType, &s.TargetResourceID, &s.ActionURL, &s.ScheduledAt, &s.Status, &s.CreatedAt); err != nil {
+			return nil, err
+		}
+		list = append(list, s)
+	}
+	return list, nil
+}
+
+// DeleteSchedule cancels a scheduled reminder.
+func (r *NotificationRepository) DeleteSchedule(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
+	_, err := r.db.Exec(ctx, `DELETE FROM notification_schedules WHERE id = $1 AND user_id = $2`, id, userID)
+	return err
+}
+
 // GetHistory retrieves historical delivery status for a user.
 func (r *NotificationRepository) GetHistory(ctx context.Context, userID uuid.UUID) ([]models.NotificationDelivery, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return []models.NotificationDelivery{}, nil
 	}
 	rows, err := r.db.Query(ctx, `SELECT id, notification_id, user_id, channel, COALESCE(provider, ''), status, attempts, max_attempts, COALESCE(last_error, ''), scheduled_at, sent_at, delivered_at, opened_at, created_at 
@@ -344,7 +387,7 @@ func (r *NotificationRepository) GetHistory(ctx context.Context, userID uuid.UUI
 
 // GetTemplates retrieves admin notification templates.
 func (r *NotificationRepository) GetTemplates(ctx context.Context) ([]models.NotificationTemplate, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return []models.NotificationTemplate{}, nil
 	}
 	rows, err := r.db.Query(ctx, `SELECT id, code, category, title_template, content_template, COALESCE(email_subject_template, ''), COALESCE(email_body_template, ''), COALESCE(push_title_template, ''), COALESCE(push_body_template, ''), is_active, created_at, updated_at FROM notification_templates ORDER BY category, code`)
@@ -366,7 +409,7 @@ func (r *NotificationRepository) GetTemplates(ctx context.Context) ([]models.Not
 
 // CreateTemplate creates a new admin template.
 func (r *NotificationRepository) CreateTemplate(ctx context.Context, t *models.NotificationTemplate) error {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil
 	}
 	query := `INSERT INTO notification_templates (id, code, category, title_template, content_template, email_subject_template, email_body_template, push_title_template, push_body_template, is_active, created_at, updated_at)
@@ -377,7 +420,7 @@ func (r *NotificationRepository) CreateTemplate(ctx context.Context, t *models.N
 
 // GetFailures lists dead-letter failed deliveries for admin review.
 func (r *NotificationRepository) GetFailures(ctx context.Context) ([]models.NotificationFailure, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return []models.NotificationFailure{}, nil
 	}
 	rows, err := r.db.Query(ctx, `SELECT id, delivery_id, notification_id, user_id, channel, error_message, retry_count, is_dead_letter, created_at FROM notification_failures ORDER BY created_at DESC LIMIT 100`)
@@ -399,7 +442,7 @@ func (r *NotificationRepository) GetFailures(ctx context.Context) ([]models.Noti
 
 // GetAnalytics computes system admin metrics.
 func (r *NotificationRepository) GetAnalytics(ctx context.Context) (*models.NotificationAnalytics, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return &models.NotificationAnalytics{
 			TotalCreated: 1420,
 			TotalSent:    1380,
