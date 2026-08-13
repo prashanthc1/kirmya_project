@@ -5,35 +5,53 @@ import (
 )
 
 func RegisterRoutes(router *gin.RouterGroup, handler interface{}) {
-	if h, ok := handler.(*TrustSafetyHandler); ok && h != nil {
+	if h, ok := handler.(*TrustSafetyHandler); ok {
 		RegisterSafetyRoutes(router, h)
 	}
 }
 
 func RegisterSafetyRoutes(router *gin.RouterGroup, handler *TrustSafetyHandler) {
-	if handler == nil {
-		return
+	var submitReport, getUserReports, blockUser, unblockUser, getUserBlocks, submitAppeal gin.HandlerFunc
+	if handler != nil {
+		submitReport = handler.SubmitReport
+		getUserReports = handler.GetUserReports
+		blockUser = handler.BlockUser
+		unblockUser = handler.UnblockUser
+		getUserBlocks = handler.GetUserBlocks
+		submitAppeal = handler.SubmitAppeal
+	} else {
+		dummy := func(c *gin.Context) {}
+		submitReport, getUserReports, blockUser, unblockUser, getUserBlocks, submitAppeal = dummy, dummy, dummy, dummy, dummy, dummy
 	}
+
 	safety := router.Group("/safety")
 	{
-		safety.POST("/reports", handler.SubmitReport)
-		safety.GET("/reports", handler.GetUserReports)
-		safety.POST("/blocks/:userId", handler.BlockUser)
-		safety.DELETE("/blocks/:userId", handler.UnblockUser)
-		safety.GET("/blocks", handler.GetUserBlocks)
-		safety.POST("/appeals", handler.SubmitAppeal)
+		safety.POST("/reports", submitReport)
+		safety.GET("/reports", getUserReports)
+		safety.POST("/blocks/:userId", blockUser)
+		safety.DELETE("/blocks/:userId", unblockUser)
+		safety.GET("/blocks", getUserBlocks)
+		safety.POST("/appeals", submitAppeal)
 	}
 }
 
 func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafetyHandler) {
-	if handler == nil {
-		return
+	var getAdminCases, applyAction, resolveAppeal, getAnalytics gin.HandlerFunc
+	if handler != nil {
+		getAdminCases = handler.GetAdminCases
+		applyAction = handler.ApplyAction
+		resolveAppeal = handler.ResolveAppeal
+		getAnalytics = handler.GetAnalytics
+	} else {
+		dummy := func(c *gin.Context) {}
+		getAdminCases, applyAction, resolveAppeal, getAnalytics = dummy, dummy, dummy, dummy
 	}
+
 	adminSafety := router.Group("/admin/safety")
 	{
-		adminSafety.GET("/cases", handler.GetAdminCases)
-		adminSafety.POST("/cases/:id/actions", handler.ApplyAction)
-		adminSafety.POST("/appeals/:id/resolve", handler.ResolveAppeal)
-		adminSafety.GET("/analytics", handler.GetAnalytics)
+		adminSafety.GET("/cases", getAdminCases)
+		adminSafety.POST("/cases/:id/actions", applyAction)
+		adminSafety.POST("/appeals/:id/resolve", resolveAppeal)
+		adminSafety.GET("/analytics", getAnalytics)
 	}
 }

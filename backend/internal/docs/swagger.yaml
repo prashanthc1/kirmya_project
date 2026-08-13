@@ -4430,6 +4430,72 @@ paths:
       summary: Create notification template
       tags:
       - Notifications
+  /api/v1/admin/safety/analytics:
+    get:
+      description: Returns safety analytics via the Kirmya trust and safety module.
+        Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get safety analytics
+      tags:
+      - Trust & Safety
+  /api/v1/admin/safety/cases/{id}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Executes moderation action via the Kirmya trust and safety module.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ModerationActionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Execute moderation action
+      tags:
+      - Trust & Safety
   /api/v1/ai/career-suggestions:
     post:
       consumes:
@@ -17488,6 +17554,148 @@ paths:
       summary: List resume templates
       tags:
       - Profiles
+  /api/v1/safety/appeals:
+    post:
+      consumes:
+      - application/json
+      description: Submits enforcement appeal via the Kirmya trust and safety module.
+        Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit appeal
+      tags:
+      - Trust & Safety
+  /api/v1/safety/blocks/{userId}:
+    post:
+      consumes:
+      - application/json
+      description: Blocks user via the Kirmya trust and safety module. Requires a
+        valid Bearer access token.
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Request payload
+        in: body
+        name: request
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Block user
+      tags:
+      - Trust & Safety
+  /api/v1/safety/reports:
+    get:
+      description: Returns reports via the Kirmya trust and safety module. Requires
+        a valid Bearer access token.
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get reports
+      tags:
+      - Trust & Safety
+    post:
+      consumes:
+      - application/json
+      description: Submits report via the Kirmya trust and safety module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SubmitReportPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit report
+      tags:
+      - Trust & Safety
   /api/v1/saved-searches:
     get:
       description: Returns the job searches the signed-in candidate has kept, with
@@ -17931,225 +18139,6 @@ paths:
       summary: Save skills
       tags:
       - Users
-  /api/v1/trust/fraud-logs:
-    get:
-      description: Returns fraud logs via the Kirmya trust and safety module. Requires
-        a valid Bearer access token.
-      parameters:
-      - default: 1
-        description: Page number (1-based)
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: Items per page (max 100)
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/swagger.PaginationResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get fraud logs
-      tags:
-      - Trust & Safety
-  /api/v1/trust/reports:
-    get:
-      description: Returns reports via the Kirmya trust and safety module. Requires
-        a valid Bearer access token.
-      parameters:
-      - default: 1
-        description: Page number (1-based)
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: Items per page (max 100)
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/swagger.PaginationResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get reports
-      tags:
-      - Trust & Safety
-    post:
-      consumes:
-      - application/json
-      description: Submits report via the Kirmya trust and safety module. Requires
-        a valid Bearer access token.
-      parameters:
-      - description: Request payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/domain.SubmitReportPayload'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Submit report
-      tags:
-      - Trust & Safety
-  /api/v1/trust/reports/{id}/action:
-    post:
-      consumes:
-      - application/json
-      description: Executes moderation action via the Kirmya trust and safety module.
-        Requires a valid Bearer access token.
-      parameters:
-      - description: Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Request payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/domain.ModerationActionPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Execute moderation action
-      tags:
-      - Trust & Safety
-  /api/v1/trust/users/block:
-    post:
-      consumes:
-      - application/json
-      description: Blocks user via the Kirmya trust and safety module. Requires a
-        valid Bearer access token.
-      parameters:
-      - description: Request payload
-        in: body
-        name: request
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/swagger.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Block user
-      tags:
-      - Trust & Safety
-  /api/v1/trust/verification:
-    get:
-      description: Returns badges via the Kirmya trust and safety module. Requires
-        a valid Bearer access token.
-      parameters:
-      - default: 1
-        description: Page number (1-based)
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: Items per page (max 100)
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/swagger.PaginationResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/swagger.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get badges
-      tags:
-      - Trust & Safety
   /api/v1/unified-search:
     get:
       description: Searches via the Kirmya unified search module. Requires a valid
