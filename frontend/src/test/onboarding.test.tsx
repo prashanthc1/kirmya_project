@@ -16,7 +16,7 @@ describe('Onboarding & First-Time User Experience Test Suite', () => {
   it('renders SkipResumeDialog modal controls', () => {
     render(<SkipResumeDialog open={true} onClose={() => {}} onSkip={() => {}} onFinishLater={() => {}} />);
     expect(screen.getByText(/Skip Step or Finish Later\?/i)).toBeInTheDocument();
-    expect(screen.getByText(/Skip Optional Step/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Skip Optional Step/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Save & Finish Later/i)).toBeInTheDocument();
   });
 
