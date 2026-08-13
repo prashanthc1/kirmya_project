@@ -6,9 +6,6 @@ import (
 )
 
 // This file carries the OpenAPI (swagger) contract for the trust and safety module.
-// The functions below have no runtime role: swaggo reads their annotations
-// to build internal/docs. Keeping them out of the handlers leaves the
-// delivery layer readable and lets the contract be reviewed on its own.
 
 // swaggerSubmitReport documents POST /api/v1/safety/reports.
 //
@@ -74,6 +71,63 @@ func swaggerExecuteModerationAction() {}
 // @Security     BearerAuth
 // @Router       /api/v1/safety/blocks/{userId} [post]
 func swaggerBlockUser() {}
+
+// swaggerUnblockUser documents DELETE /api/v1/safety/blocks/{userId}.
+//
+// @Summary      Unblock user
+// @Description  Unblocks user via the Kirmya trust and safety module. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Param        userId  path  string  true  "User ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/safety/blocks/{userId} [delete]
+func swaggerUnblockUser() {}
+
+// swaggerGetUserBlocks documents GET /api/v1/safety/blocks.
+//
+// @Summary      Get user blocks
+// @Description  Returns user blocks via the Kirmya trust and safety module. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/safety/blocks [get]
+func swaggerGetUserBlocks() {}
+
+// swaggerGetAdminCases documents GET /api/v1/admin/safety/cases.
+//
+// @Summary      Get admin safety cases
+// @Description  Returns admin safety cases via the Kirmya trust and safety module. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/safety/cases [get]
+func swaggerGetAdminCases() {}
+
+// swaggerResolveAppeal documents POST /api/v1/admin/safety/appeals/{id}/resolve.
+//
+// @Summary      Resolve appeal
+// @Description  Resolves appeal via the Kirmya trust and safety module. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Appeal ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/safety/appeals/{id}/resolve [post]
+func swaggerResolveAppeal() {}
 
 // swaggerGetAnalytics documents GET /api/v1/admin/safety/analytics.
 //
