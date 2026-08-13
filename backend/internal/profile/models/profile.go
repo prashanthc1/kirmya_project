@@ -6,27 +6,84 @@ import (
 	"github.com/google/uuid"
 )
 
-// UserProfile represents the header and meta-data details of a user CV profile.
+// UserProfile represents the complete candidate identity, header, and portfolio.
 type UserProfile struct {
 	ID                         uuid.UUID            `json:"id"`
 	UserID                     uuid.UUID            `json:"userId"`
+	Username                   string               `json:"username"`
+	FirstName                  string               `json:"firstName,omitempty"`
+	LastName                   string               `json:"lastName,omitempty"`
+	AvatarURL                  string               `json:"avatarUrl"`
+	CoverURL                   string               `json:"coverUrl"`
 	Headline                   string               `json:"headline"`
 	Summary                    string               `json:"summary"`
+	Location                   string               `json:"location"`
+	Country                    string               `json:"country"`
+	Industry                   string               `json:"industry"`
+	CurrentPosition            string               `json:"currentPosition"`
 	AvailabilityStatus         string               `json:"availabilityStatus"` // open_to_work, available_for_freelance, looking_for_networking, hiring
+	OpenToWork                 bool                 `json:"openToWork"`
+	OpenToRecruiters           bool                 `json:"openToRecruiters"`
+	TargetRoles                []string             `json:"targetRoles"`
+	PreferredLocations         []string             `json:"preferredLocations"`
 	ProfileCompletedPercentage int                  `json:"profileCompletedPercentage"`
 	Volunteering               string               `json:"volunteering"`
 	Publications               string               `json:"publications"`
 	Licenses                   string               `json:"licenses"`
+	VerificationStatus         string               `json:"verificationStatus"` // unverified, pending, verified, rejected
+	VerificationNotes          string               `json:"verificationNotes,omitempty"`
+	IsRestricted               bool                 `json:"isRestricted"`
+	IsPrivate                  bool                 `json:"isPrivate"`
+	ProfileViewsCount          int                  `json:"profileViewsCount"`
+	SearchAppearancesCount     int                  `json:"searchAppearancesCount"`
 	CreatedAt                  time.Time            `json:"createdAt"`
 	UpdatedAt                  time.Time            `json:"updatedAt"`
-	Skills                     []UserSkill          `json:"skills,omitempty"`
-	Certifications             []UserCertification  `json:"certifications,omitempty"`
-	Projects                   []UserProject        `json:"projects,omitempty"`
-	Languages                  []UserLanguage       `json:"languages,omitempty"`
-	Achievements               []UserAchievement    `json:"achievements,omitempty"`
+
+	WorkExperiences []UserWorkExperience `json:"workExperiences,omitempty"`
+	Educations      []UserEducation      `json:"educations,omitempty"`
+	Skills          []UserSkill          `json:"skills,omitempty"`
+	Certifications  []UserCertification  `json:"certifications,omitempty"`
+	Projects        []UserProject        `json:"projects,omitempty"`
+	Languages       []UserLanguage       `json:"languages,omitempty"`
+	Achievements    []UserAchievement    `json:"achievements,omitempty"`
 }
 
-// UserSkill represents a specific technical or professional capability.
+// UserWorkExperience represents employment history.
+type UserWorkExperience struct {
+	ID               uuid.UUID  `json:"id"`
+	ProfileID        uuid.UUID  `json:"profileId"`
+	Company          string     `json:"company"`
+	JobTitle         string     `json:"jobTitle"`
+	EmploymentType   string     `json:"employmentType"`
+	Location         string     `json:"location"`
+	StartDate        time.Time  `json:"startDate"`
+	EndDate          *time.Time `json:"endDate,omitempty"`
+	IsCurrentJob     bool       `json:"isCurrentJob"`
+	Description      string     `json:"description"`
+	SkillsUsed       []string   `json:"skillsUsed"`
+	Achievements     string     `json:"achievements"`
+	SortOrder        int        `json:"sortOrder"`
+	CreatedAt        time.Time  `json:"createdAt"`
+	UpdatedAt        time.Time  `json:"updatedAt"`
+}
+
+// UserEducation represents academic degrees and credentials.
+type UserEducation struct {
+	ID           uuid.UUID  `json:"id"`
+	ProfileID    uuid.UUID  `json:"profileId"`
+	Institution  string     `json:"institution"`
+	Degree       string     `json:"degree"`
+	FieldOfStudy string     `json:"fieldOfStudy"`
+	StartDate    *time.Time `json:"startDate,omitempty"`
+	EndDate      *time.Time `json:"endDate,omitempty"`
+	Grade        string     `json:"grade"`
+	Description  string     `json:"description"`
+	SortOrder    int        `json:"sortOrder"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
+}
+
+// UserSkill represents a technical or professional capability.
 type UserSkill struct {
 	ID               uuid.UUID `json:"id"`
 	ProfileID        uuid.UUID `json:"profileId"`
@@ -34,7 +91,7 @@ type UserSkill struct {
 	ProficiencyLevel string    `json:"proficiencyLevel"` // Beginner, Intermediate, Expert
 }
 
-// UserCertification represents a validated certification badge or license.
+// UserCertification represents a professional license or certificate.
 type UserCertification struct {
 	ID                  uuid.UUID  `json:"id"`
 	ProfileID           uuid.UUID  `json:"profileId"`
@@ -46,7 +103,7 @@ type UserCertification struct {
 	CredentialURL       string     `json:"credentialUrl"`
 }
 
-// UserProject represents a portfolio project item.
+// UserProject represents portfolio projects.
 type UserProject struct {
 	ID          uuid.UUID  `json:"id"`
 	ProfileID   uuid.UUID  `json:"profileId"`
@@ -57,15 +114,15 @@ type UserProject struct {
 	EndDate     *time.Time `json:"endDate"`
 }
 
-// UserLanguage represents languages spoken by the candidate.
+// UserLanguage represents spoken/written languages.
 type UserLanguage struct {
 	ID          uuid.UUID `json:"id"`
 	ProfileID   uuid.UUID `json:"profileId"`
 	Name        string    `json:"name"`
-	Proficiency string    `json:"proficiency"` // Native, Bilingual, Professional
+	Proficiency string    `json:"proficiency"`
 }
 
-// UserAchievement represents awards, patents, and general professional milestones.
+// UserAchievement represents milestones, patents, and awards.
 type UserAchievement struct {
 	ID           uuid.UUID  `json:"id"`
 	ProfileID    uuid.UUID  `json:"profileId"`
@@ -74,11 +131,68 @@ type UserAchievement struct {
 	DateAchieved *time.Time `json:"dateAchieved"`
 }
 
-// UserPreference represents public visibility settings.
+// UserPreference represents profile privacy settings.
 type UserPreference struct {
 	ID                uuid.UUID `json:"id"`
 	UserID            uuid.UUID `json:"userId"`
 	ProfileVisibility string    `json:"profileVisibility"` // public, connections_only, private
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
+}
+
+// DTOs for REST API requests
+type UpdateProfileDTO struct {
+	Username           string   `json:"username"`
+	Headline           string   `json:"headline"`
+	Summary            string   `json:"summary"`
+	Location           string   `json:"location"`
+	Country            string   `json:"country"`
+	Industry           string   `json:"industry"`
+	CurrentPosition    string   `json:"currentPosition"`
+	AvailabilityStatus string   `json:"availabilityStatus"`
+	OpenToWork         bool     `json:"openToWork"`
+	OpenToRecruiters   bool     `json:"openToRecruiters"`
+	TargetRoles        []string `json:"targetRoles"`
+	PreferredLocations []string `json:"preferredLocations"`
+	Volunteering       string   `json:"volunteering"`
+	Publications       string   `json:"publications"`
+	Licenses           string   `json:"licenses"`
+}
+
+type WorkExperienceDTO struct {
+	Company        string   `json:"company" binding:"required"`
+	JobTitle       string   `json:"jobTitle" binding:"required"`
+	EmploymentType string   `json:"employmentType"`
+	Location       string   `json:"location"`
+	StartDate      string   `json:"startDate" binding:"required"`
+	EndDate        string   `json:"endDate"`
+	IsCurrentJob   bool     `json:"isCurrentJob"`
+	Description    string   `json:"description"`
+	SkillsUsed     []string `json:"skillsUsed"`
+	Achievements   string   `json:"achievements"`
+}
+
+type EducationDTO struct {
+	Institution  string `json:"institution" binding:"required"`
+	Degree       string `json:"degree" binding:"required"`
+	FieldOfStudy string `json:"fieldOfStudy"`
+	StartDate    string `json:"startDate"`
+	EndDate      string `json:"endDate"`
+	Grade        string `json:"grade"`
+	Description  string `json:"description"`
+}
+
+type ProfileReportDTO struct {
+	Reason      string `json:"reason" binding:"required"`
+	Description string `json:"description"`
+}
+
+type AdminVerificationDTO struct {
+	Status string `json:"status" binding:"required"` // verified, rejected, pending, unverified
+	Notes  string `json:"notes"`
+}
+
+type AdminRestrictionDTO struct {
+	IsRestricted bool   `json:"isRestricted"`
+	Reason       string `json:"reason"`
 }

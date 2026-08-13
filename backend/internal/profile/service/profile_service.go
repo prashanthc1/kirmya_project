@@ -2,13 +2,30 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"regexp"
+	"strings"
+	"time"
+
 	"kirmya/internal/profile/models"
 	"kirmya/internal/profile/repository"
 	"kirmya/internal/shared/cache"
-	"time"
 
 	"github.com/google/uuid"
 )
+
+var (
+	ErrInvalidDates    = errors.New("end date cannot precede start date")
+	ErrReservedName    = errors.New("this username is reserved by the platform")
+	ErrInvalidUsername = errors.New("username must be 3-30 alphanumeric characters or underscores")
+)
+
+var reservedUsernames = map[string]bool{
+	"admin": true, "administrator": true, "support": true, "help": true, "api": true,
+	"settings": true, "login": true, "signup": true, "root": true, "kirmya": true,
+	"security": true, "privacy": true, "jobs": true, "companies": true,
+}
 
 type ProfileService struct {
 	repo  *repository.ProfileRepository
@@ -25,53 +42,54 @@ func (s *ProfileService) SetCache(c cache.Cache) {
 	}
 }
 
-// GetOrCreateProfile retrieves the profile for a user, or creates a default one if none exists.
 func (s *ProfileService) GetOrCreateProfile(ctx context.Context, userID uuid.UUID) (*models.UserProfile, error) {
-	fetchFunc := func() (interface{}, error) {
-		p, err := s.repo.GetByUserID(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-
-		if p == nil {
-			p = &models.UserProfile{
-				ID:                         uuid.New(),
-				UserID:                     userID,
-				Headline:                   "Professional at Kirmya",
-				Summary:                    "",
-				AvailabilityStatus:         "looking_for_networking",
-				ProfileCompletedPercentage: 25,
-				Volunteering:               "",
-				Publications:               "",
-				Licenses:                   "",
-				CreatedAt:                  time.Now(),
-				UpdatedAt:                  time.Now(),
-			}
-			if err := s.repo.Create(ctx, p); err != nil {
-				return nil, err
-			}
-		}
-		return p, nil
-	}
-
-	if s.cache == nil {
-		res, err := fetchFunc()
-		if err != nil {
-			return nil, err
-		}
-		return res.(*models.UserProfile), nil
-	}
-
-	cacheKey := cache.UserProfileKey(userID)
-	var prof models.UserProfile
-	err := s.cache.GetOrFetch(ctx, cacheKey, 15*time.Minute, fetchFunc, &prof)
+	p, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	return &prof, nil
+
+	if p == nil {
+		defaultUsername := fmt.Sprintf("user_%s", userID.String()[:8])
+		p = &models.UserProfile{
+			ID:                         uuid.New(),
+			UserID:                     userID,
+			Username:                   defaultUsername,
+			Headline:                   "Professional at Kirmya",
+			Summary:                    "",
+			AvailabilityStatus:         "looking_for_networking",
+			OpenToWork:                 true,
+			OpenToRecruiters:           true,
+			TargetRoles:                []string{},
+			PreferredLocations:         []string{},
+			ProfileCompletedPercentage: 25,
+			VerificationStatus:         "unverified",
+			CreatedAt:                  time.Now(),
+			UpdatedAt:                  time.Now(),
+		}
+		if err := s.repo.Create(ctx, p); err != nil {
+			return nil, err
+		}
+	}
+	return p, nil
 }
 
-// CalculateAndUpdateCompletion scores profile progress and saves updates.
+func (s *ProfileService) GetProfileByUsername(ctx context.Context, username string) (*models.UserProfile, error) {
+	p, err := s.repo.GetByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if p == nil {
+		return nil, errors.New("profile not found")
+	}
+	if p.IsPrivate || p.IsRestricted {
+		// Filter sensitive fields for restricted/private view
+		p.Volunteering = ""
+		p.Licenses = ""
+		p.Publications = ""
+	}
+	return p, nil
+}
+
 func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profileID uuid.UUID, userID uuid.UUID) (int, error) {
 	p, err := s.repo.GetByUserID(ctx, userID)
 	if err != nil {
@@ -85,20 +103,23 @@ func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profi
 	if p.Summary != "" {
 		score += 15
 	}
-	if len(p.Skills) > 0 {
+	if len(p.WorkExperiences) > 0 {
 		score += 20
 	}
+	if len(p.Educations) > 0 {
+		score += 15
+	}
+	if len(p.Skills) > 0 {
+		score += 15
+	}
 	if len(p.Certifications) > 0 {
-		score += 15
-	}
-	if len(p.Projects) > 0 {
-		score += 15
-	}
-	if len(p.Languages) > 0 {
 		score += 10
 	}
-	if p.AvailabilityStatus != "" {
-		score += 15
+	if len(p.Projects) > 0 {
+		score += 10
+	}
+	if len(p.Languages) > 0 {
+		score += 5
 	}
 
 	if score > 100 {
@@ -107,37 +128,265 @@ func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profi
 
 	if score != p.ProfileCompletedPercentage {
 		p.ProfileCompletedPercentage = score
-		if err := s.repo.Update(ctx, p); err != nil {
-			return 0, err
-		}
+		_ = s.repo.Update(ctx, p)
 	}
 
 	return score, nil
 }
 
-func (s *ProfileService) UpdateProfile(ctx context.Context, userID uuid.UUID, headline, summary, availability, volunteering, publications, licenses string) (*models.UserProfile, error) {
+func (s *ProfileService) UpdateProfile(ctx context.Context, userID uuid.UUID, dto *models.UpdateProfileDTO) (*models.UserProfile, error) {
 	p, err := s.GetOrCreateProfile(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	p.Headline = headline
-	p.Summary = summary
-	p.AvailabilityStatus = availability
-	p.Volunteering = volunteering
-	p.Publications = publications
-	p.Licenses = licenses
+	if dto.Username != "" && dto.Username != p.Username {
+		cleanUser := strings.ToLower(strings.TrimSpace(dto.Username))
+		if reservedUsernames[cleanUser] {
+			return nil, ErrReservedName
+		}
+		if match, _ := regexp.MatchString(`^[a-z0-9_]{3,30}$`, cleanUser); !match {
+			return nil, ErrInvalidUsername
+		}
+		p.Username = cleanUser
+	}
+
+	p.Headline = dto.Headline
+	p.Summary = dto.Summary
+	p.Location = dto.Location
+	p.Country = dto.Country
+	p.Industry = dto.Industry
+	p.CurrentPosition = dto.CurrentPosition
+	p.AvailabilityStatus = dto.AvailabilityStatus
+	p.OpenToWork = dto.OpenToWork
+	p.OpenToRecruiters = dto.OpenToRecruiters
+	p.TargetRoles = dto.TargetRoles
+	p.PreferredLocations = dto.PreferredLocations
+	p.Volunteering = dto.Volunteering
+	p.Publications = dto.Publications
+	p.Licenses = dto.Licenses
 
 	if err := s.repo.Update(ctx, p); err != nil {
 		return nil, err
 	}
 
-	_, err = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return s.repo.GetByUserID(ctx, userID)
+}
+
+func (s *ProfileService) UpdateProfileAbout(ctx context.Context, userID uuid.UUID, summary string) (*models.UserProfile, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	p.Summary = summary
+	if err := s.repo.Update(ctx, p); err != nil {
+		return nil, err
+	}
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return s.repo.GetByUserID(ctx, userID)
+}
+
+func (s *ProfileService) UpdateProfileHeadline(ctx context.Context, userID uuid.UUID, headline string) (*models.UserProfile, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	p.Headline = headline
+	if err := s.repo.Update(ctx, p); err != nil {
+		return nil, err
+	}
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return s.repo.GetByUserID(ctx, userID)
+}
+
+// Work Experience CRUD
+func (s *ProfileService) AddWorkExperience(ctx context.Context, userID uuid.UUID, dto *models.WorkExperienceDTO) ([]models.UserWorkExperience, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.repo.GetByUserID(ctx, userID)
+	start, err := time.Parse("2006-01-02", dto.StartDate)
+	if err != nil {
+		start = time.Now()
+	}
+	var end *time.Time
+	if dto.EndDate != "" && !dto.IsCurrentJob {
+		if parsedEnd, err := time.Parse("2006-01-02", dto.EndDate); err == nil {
+			if parsedEnd.Before(start) {
+				return nil, ErrInvalidDates
+			}
+			end = &parsedEnd
+		}
+	}
+
+	exp := &models.UserWorkExperience{
+		ID:             uuid.New(),
+		ProfileID:      p.ID,
+		Company:        dto.Company,
+		JobTitle:       dto.JobTitle,
+		EmploymentType: dto.EmploymentType,
+		Location:       dto.Location,
+		StartDate:      start,
+		EndDate:        end,
+		IsCurrentJob:   dto.IsCurrentJob,
+		Description:    dto.Description,
+		SkillsUsed:     dto.SkillsUsed,
+		Achievements:   dto.Achievements,
+	}
+
+	if err := s.repo.AddWorkExperience(ctx, exp); err != nil {
+		return nil, err
+	}
+
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return s.repo.GetWorkExperiences(ctx, p.ID)
+}
+
+func (s *ProfileService) UpdateWorkExperience(ctx context.Context, userID uuid.UUID, id uuid.UUID, dto *models.WorkExperienceDTO) ([]models.UserWorkExperience, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	start, _ := time.Parse("2006-01-02", dto.StartDate)
+	var end *time.Time
+	if dto.EndDate != "" && !dto.IsCurrentJob {
+		if parsedEnd, err := time.Parse("2006-01-02", dto.EndDate); err == nil {
+			if parsedEnd.Before(start) {
+				return nil, ErrInvalidDates
+			}
+			end = &parsedEnd
+		}
+	}
+
+	exp := &models.UserWorkExperience{
+		ID:             id,
+		ProfileID:      p.ID,
+		Company:        dto.Company,
+		JobTitle:       dto.JobTitle,
+		EmploymentType: dto.EmploymentType,
+		Location:       dto.Location,
+		StartDate:      start,
+		EndDate:        end,
+		IsCurrentJob:   dto.IsCurrentJob,
+		Description:    dto.Description,
+		SkillsUsed:     dto.SkillsUsed,
+		Achievements:   dto.Achievements,
+	}
+
+	if err := s.repo.UpdateWorkExperience(ctx, exp); err != nil {
+		return nil, err
+	}
+
+	return s.repo.GetWorkExperiences(ctx, p.ID)
+}
+
+func (s *ProfileService) DeleteWorkExperience(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if err := s.repo.DeleteWorkExperience(ctx, p.ID, id); err != nil {
+		return err
+	}
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return nil
+}
+
+// Education CRUD
+func (s *ProfileService) AddEducation(ctx context.Context, userID uuid.UUID, dto *models.EducationDTO) ([]models.UserEducation, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var start, end *time.Time
+	if dto.StartDate != "" {
+		if t, err := time.Parse("2006-01-02", dto.StartDate); err == nil {
+			start = &t
+		}
+	}
+	if dto.EndDate != "" {
+		if t, err := time.Parse("2006-01-02", dto.EndDate); err == nil {
+			if start != nil && t.Before(*start) {
+				return nil, ErrInvalidDates
+			}
+			end = &t
+		}
+	}
+
+	edu := &models.UserEducation{
+		ID:           uuid.New(),
+		ProfileID:    p.ID,
+		Institution:  dto.Institution,
+		Degree:       dto.Degree,
+		FieldOfStudy: dto.FieldOfStudy,
+		StartDate:    start,
+		EndDate:      end,
+		Grade:        dto.Grade,
+		Description:  dto.Description,
+	}
+
+	if err := s.repo.AddEducation(ctx, edu); err != nil {
+		return nil, err
+	}
+
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return s.repo.GetEducations(ctx, p.ID)
+}
+
+func (s *ProfileService) UpdateEducation(ctx context.Context, userID uuid.UUID, id uuid.UUID, dto *models.EducationDTO) ([]models.UserEducation, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var start, end *time.Time
+	if dto.StartDate != "" {
+		if t, err := time.Parse("2006-01-02", dto.StartDate); err == nil {
+			start = &t
+		}
+	}
+	if dto.EndDate != "" {
+		if t, err := time.Parse("2006-01-02", dto.EndDate); err == nil {
+			if start != nil && t.Before(*start) {
+				return nil, ErrInvalidDates
+			}
+			end = &t
+		}
+	}
+
+	edu := &models.UserEducation{
+		ID:           id,
+		ProfileID:    p.ID,
+		Institution:  dto.Institution,
+		Degree:       dto.Degree,
+		FieldOfStudy: dto.FieldOfStudy,
+		StartDate:    start,
+		EndDate:      end,
+		Grade:        dto.Grade,
+		Description:  dto.Description,
+	}
+
+	if err := s.repo.UpdateEducation(ctx, edu); err != nil {
+		return nil, err
+	}
+
+	return s.repo.GetEducations(ctx, p.ID)
+}
+
+func (s *ProfileService) DeleteEducation(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if err := s.repo.DeleteEducation(ctx, p.ID, id); err != nil {
+		return err
+	}
+	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	return nil
 }
 
 // Skills CRUD
@@ -357,4 +606,24 @@ func (s *ProfileService) UpdatePreferences(ctx context.Context, userID uuid.UUID
 	}
 
 	return s.repo.GetPreferences(ctx, userID)
+}
+
+func (s *ProfileService) UpdatePhoto(ctx context.Context, userID uuid.UUID, avatarURL string) error {
+	return s.repo.UpdatePhoto(ctx, userID, avatarURL)
+}
+
+func (s *ProfileService) UpdateCover(ctx context.Context, userID uuid.UUID, coverURL string) error {
+	return s.repo.UpdateCover(ctx, userID, coverURL)
+}
+
+func (s *ProfileService) ReportProfile(ctx context.Context, reporterID, reportedUserID uuid.UUID, reason, desc string) error {
+	return s.repo.CreateReport(ctx, reporterID, reportedUserID, reason, desc)
+}
+
+func (s *ProfileService) AdminVerifyProfile(ctx context.Context, userID uuid.UUID, status, notes string) error {
+	return s.repo.AdminUpdateVerification(ctx, userID, status, notes)
+}
+
+func (s *ProfileService) AdminRestrictProfile(ctx context.Context, userID uuid.UUID, isRestricted bool) error {
+	return s.repo.AdminUpdateRestriction(ctx, userID, isRestricted)
 }

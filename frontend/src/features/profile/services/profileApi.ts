@@ -1,123 +1,233 @@
-import axios from 'axios';
+import { authApiClient } from '../../../services/authService';
 
-// Local dev Gin backend API address
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const client = authApiClient;
 
-// Default mock UUID for sandbox profiles testing
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
+export interface WorkExperienceItem {
+  id?: string;
+  company: string;
+  jobTitle: string;
+  employmentType?: string;
+  location?: string;
+  startDate: string;
+  endDate?: string;
+  isCurrentJob?: boolean;
+  description?: string;
+  skillsUsed?: string[];
+  achievements?: string;
+}
 
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export interface EducationItem {
+  id?: string;
+  institution: string;
+  degree: string;
+  fieldOfStudy?: string;
+  startDate?: string;
+  endDate?: string;
+  grade?: string;
+  description?: string;
+}
 
-// Auto-inject Authorization token
-client.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  return config;
-});
+export interface ProfileData {
+  id: string;
+  userId: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl: string;
+  coverUrl: string;
+  headline: string;
+  summary: string;
+  location: string;
+  country: string;
+  industry: string;
+  currentPosition: string;
+  availabilityStatus: string;
+  openToWork: boolean;
+  openToRecruiters: boolean;
+  targetRoles: string[];
+  preferredLocations: string[];
+  profileCompletedPercentage: number;
+  volunteering: string;
+  publications: string;
+  licenses: string;
+  verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
+  verificationNotes?: string;
+  isRestricted: boolean;
+  isPrivate: boolean;
+  profileViewsCount: number;
+  searchAppearancesCount: number;
+  workExperiences?: WorkExperienceItem[];
+  educations?: EducationItem[];
+  skills?: any[];
+  certifications?: any[];
+  projects?: any[];
+  languages?: any[];
+  achievements?: any[];
+}
 
 export const profileApi = {
-  getMockUserId: () => MOCK_USER_ID,
-
-  getMyProfile: async () => {
-    const response = await client.get('/profiles/me');
-    return response.data;
+  getMyProfile: async (): Promise<ProfileData> => {
+    const res = await client.get<ProfileData>('/profile/me');
+    return res.data;
   },
 
-  getPublicProfile: async (userId: string) => {
-    const response = await client.get(`/profiles/${userId}`);
-    return response.data;
+  getPublicProfile: async (identifier: string): Promise<ProfileData> => {
+    const res = await client.get<ProfileData>(`/profile/${identifier}`);
+    return res.data;
   },
 
-  updateProfile: async (data: {
-    headline: string;
-    summary: string;
-    availabilityStatus: string;
-    volunteering: string;
-    publications: string;
-    licenses: string;
-  }) => {
-    const response = await client.put('/profiles/me', data);
-    return response.data;
+  getProfilePreview: async (view: string = 'public'): Promise<{ viewMode: string; profile: ProfileData }> => {
+    const res = await client.get<{ viewMode: string; profile: ProfileData }>(`/profile/me/preview?view=${view}`);
+    return res.data;
   },
 
-  addSkill: async (name: string, proficiencyLevel: string) => {
-    const response = await client.post('/profiles/me/skills', { name, proficiencyLevel });
-    return response.data;
+  updateProfile: async (data: Partial<ProfileData>): Promise<ProfileData> => {
+    const res = await client.put<ProfileData>('/profile/me', data);
+    return res.data;
   },
 
-  deleteSkill: async (id: string) => {
-    const response = await client.delete(`/profiles/me/skills/${id}`);
-    return response.data;
+  updateAbout: async (summary: string): Promise<ProfileData> => {
+    const res = await client.put<ProfileData>('/profile/me/about', { summary });
+    return res.data;
   },
 
-  addCertification: async (data: {
-    name: string;
-    issuingOrganization: string;
-    issueDate?: string;
-    expirationDate?: string;
-    credentialId?: string;
-    credentialUrl?: string;
-  }) => {
-    const response = await client.post('/profiles/me/certifications', data);
-    return response.data;
+  updateHeadline: async (headline: string): Promise<ProfileData> => {
+    const res = await client.put<ProfileData>('/profile/me/headline', { headline });
+    return res.data;
   },
 
-  deleteCertification: async (id: string) => {
-    const response = await client.delete(`/profiles/me/certifications/${id}`);
-    return response.data;
+  // Work Experience
+  addExperience: async (exp: WorkExperienceItem): Promise<WorkExperienceItem[]> => {
+    const res = await client.post<WorkExperienceItem[]>('/profile/me/experience', exp);
+    return res.data;
   },
 
-  addProject: async (data: {
-    title: string;
-    description?: string;
-    url?: string;
-    startDate?: string;
-    endDate?: string;
-  }) => {
-    const response = await client.post('/profiles/me/projects', data);
-    return response.data;
+  updateExperience: async (id: string, exp: WorkExperienceItem): Promise<WorkExperienceItem[]> => {
+    const res = await client.put<WorkExperienceItem[]>(`/profile/me/experience/${id}`, exp);
+    return res.data;
   },
 
-  deleteProject: async (id: string) => {
-    const response = await client.delete(`/profiles/me/projects/${id}`);
-    return response.data;
+  deleteExperience: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/experience/${id}`);
+    return res.data;
   },
 
-  addLanguage: async (name: string, proficiency: string) => {
-    const response = await client.post('/profiles/me/languages', { name, proficiency });
-    return response.data;
+  // Education
+  addEducation: async (edu: EducationItem): Promise<EducationItem[]> => {
+    const res = await client.post<EducationItem[]>('/profile/me/education', edu);
+    return res.data;
   },
 
-  deleteLanguage: async (id: string) => {
-    const response = await client.delete(`/profiles/me/languages/${id}`);
-    return response.data;
+  updateEducation: async (id: string, edu: EducationItem): Promise<EducationItem[]> => {
+    const res = await client.put<EducationItem[]>(`/profile/me/education/${id}`, edu);
+    return res.data;
   },
 
-  addAchievement: async (data: {
-    title: string;
-    description?: string;
-    dateAchieved?: string;
-  }) => {
-    const response = await client.post('/profiles/me/achievements', data);
-    return response.data;
+  deleteEducation: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/education/${id}`);
+    return res.data;
   },
 
-  deleteAchievement: async (id: string) => {
-    const response = await client.delete(`/profiles/me/achievements/${id}`);
-    return response.data;
+  // Skills
+  addSkill: async (name: string, proficiencyLevel: string): Promise<any[]> => {
+    const res = await client.post('/profile/me/skills', { name, proficiencyLevel });
+    return res.data;
   },
 
-  getPreferences: async () => {
-    const response = await client.get('/profiles/me/preferences');
-    return response.data;
+  deleteSkill: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/skills/${id}`);
+    return res.data;
   },
 
-  updatePreferences: async (profileVisibility: string) => {
-    const response = await client.put('/profiles/me/preferences', { profileVisibility });
-    return response.data;
+  // Certifications
+  addCertification: async (cert: any): Promise<any[]> => {
+    const res = await client.post('/profile/me/certifications', cert);
+    return res.data;
+  },
+
+  deleteCertification: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/certifications/${id}`);
+    return res.data;
+  },
+
+  // Projects
+  addProject: async (proj: any): Promise<any[]> => {
+    const res = await client.post('/profile/me/projects', proj);
+    return res.data;
+  },
+
+  deleteProject: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/projects/${id}`);
+    return res.data;
+  },
+
+  // Languages & Achievements
+  addLanguage: async (name: string, proficiency: string): Promise<any[]> => {
+    const res = await client.post('/profile/me/languages', { name, proficiency });
+    return res.data;
+  },
+
+  deleteLanguage: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/languages/${id}`);
+    return res.data;
+  },
+
+  addAchievement: async (ach: any): Promise<any[]> => {
+    const res = await client.post('/profile/me/achievements', ach);
+    return res.data;
+  },
+
+  deleteAchievement: async (id: string): Promise<{ message: string }> => {
+    const res = await client.delete(`/profile/me/achievements/${id}`);
+    return res.data;
+  },
+
+  // Media & Privacy
+  uploadPhoto: async (formData: FormData): Promise<{ message: string; photo_url: string }> => {
+    const res = await client.post('/profile/me/photo', formData, {
+      headers: { 'Content-Type': null },
+    });
+    return res.data;
+  },
+
+  deletePhoto: async (): Promise<{ message: string }> => {
+    const res = await client.delete('/profile/me/photo');
+    return res.data;
+  },
+
+  getPreferences: async (): Promise<any> => {
+    const res = await client.get('/profiles/me/preferences');
+    return res.data;
+  },
+
+  updatePrivacy: async (profileVisibility: string): Promise<any> => {
+    const res = await client.put('/profile/me/privacy', { profileVisibility });
+    return res.data;
+  },
+
+  reportProfile: async (username: string, reason: string, description: string): Promise<{ message: string }> => {
+    const res = await client.post(`/profile/${username}/report`, { reason, description });
+    return res.data;
+  },
+
+  // Admin APIs
+  adminGetProfile: async (userId: string): Promise<ProfileData> => {
+    const res = await client.get<ProfileData>(`/admin/users/${userId}/profile`);
+    return res.data;
+  },
+
+  adminUpdateProfile: async (userId: string, data: Partial<ProfileData>): Promise<ProfileData> => {
+    const res = await client.put<ProfileData>(`/admin/users/${userId}/profile`, data);
+    return res.data;
+  },
+
+  adminVerifyProfile: async (userId: string, status: string, notes: string): Promise<{ message: string }> => {
+    const res = await client.post(`/admin/users/${userId}/profile/verify`, { status, notes });
+    return res.data;
+  },
+
+  adminRestrictProfile: async (userId: string, isRestricted: boolean, reason?: string): Promise<{ message: string }> => {
+    const res = await client.post(`/admin/users/${userId}/profile/restrict`, { isRestricted, reason });
+    return res.data;
   },
 };
