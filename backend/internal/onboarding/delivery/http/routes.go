@@ -7,17 +7,22 @@ import (
 )
 
 func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
-	// Onboarding starts before a user necessarily has a session, so the routes
-	// run under OptionalAuth: a bearer token binds the request to the real user,
-	// and anything anonymous falls back to the demo user in the handler.
 	group := api.Group("", authMiddleware.OptionalAuth())
 
 	onboardingGroup := group.Group("/onboarding")
 	{
 		onboardingGroup.GET("", handler.GetProgress)
 		onboardingGroup.POST("/start", handler.StartOnboarding)
+		onboardingGroup.GET("/progress", handler.GetProgress)
+		onboardingGroup.PUT("/progress", handler.SaveProgress)
 		onboardingGroup.PUT("/save", handler.SaveProgress)
+		onboardingGroup.POST("/steps/:stepId/complete", handler.CompleteStep)
+		onboardingGroup.POST("/steps/:stepId/skip", handler.SkipStep)
+		onboardingGroup.POST("/resume", handler.ResumeOnboarding)
+		onboardingGroup.POST("/finish", handler.CompleteOnboarding)
 		onboardingGroup.POST("/complete", handler.CompleteOnboarding)
+		onboardingGroup.POST("/recruiter", handler.SaveRecruiterOnboarding)
+		onboardingGroup.POST("/employer", handler.SaveEmployerOnboarding)
 		onboardingGroup.GET("/communities", handler.GetCommunities)
 		onboardingGroup.GET("/connections", handler.GetConnections)
 	}
@@ -30,4 +35,13 @@ func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddle
 	group.POST("/education", handler.SaveEducation)
 	group.POST("/certifications", handler.SaveCertifications)
 	group.POST("/career-preferences", handler.SaveCareerPreferences)
+
+	// Admin endpoints
+	adminGroup := api.Group("/admin/onboarding")
+	{
+		adminGroup.GET("", handler.GetAnalyticsSummary)
+		adminGroup.GET("/analytics", handler.GetAnalyticsSummary)
+		adminGroup.GET("/config", handler.GetStepConfigs)
+		adminGroup.PUT("/config", handler.UpdateStepConfigs)
+	}
 }

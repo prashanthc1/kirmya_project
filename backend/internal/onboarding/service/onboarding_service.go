@@ -14,6 +14,7 @@ import (
 type OnboardingService interface {
 	GetProgress(ctx context.Context, userID uuid.UUID) (*domain.OnboardingProgress, error)
 	SaveStep(ctx context.Context, userID uuid.UUID, step int) error
+	SkipStep(ctx context.Context, userID uuid.UUID, step int) error
 	CompleteOnboarding(ctx context.Context, userID uuid.UUID) error
 	GetProfileCompletion(ctx context.Context, userID uuid.UUID) (*domain.ProfileCompletion, error)
 	ProcessResumeUpload(ctx context.Context, userID uuid.UUID, file *multipart.FileHeader) (*domain.ResumeParsedResult, error)
@@ -21,6 +22,12 @@ type OnboardingService interface {
 	SaveJobAlerts(ctx context.Context, userID uuid.UUID, alerts *domain.JobAlertPreferences) error
 	GetRecommendedCommunities(ctx context.Context, userID uuid.UUID) ([]domain.CommunityRecommendation, error)
 	GetRecommendedConnections(ctx context.Context, userID uuid.UUID) ([]domain.ConnectionRecommendation, error)
+
+	GetStepConfigs(ctx context.Context) ([]domain.OnboardingStepConfig, error)
+	UpdateStepConfigs(ctx context.Context, configs []domain.OnboardingStepConfig) error
+	GetAnalyticsSummary(ctx context.Context) (*domain.OnboardingAnalyticsSummary, error)
+	SaveRecruiterOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.RecruiterOnboardingPayload) error
+	SaveEmployerOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.EmployerOnboardingPayload) error
 }
 
 type DefaultOnboardingService struct {
@@ -38,11 +45,10 @@ func (s *DefaultOnboardingService) GetProgress(ctx context.Context, userID uuid.
 func (s *DefaultOnboardingService) SaveStep(ctx context.Context, userID uuid.UUID, step int) error {
 	p, err := s.repo.GetProgress(ctx, userID)
 	if err != nil {
-		p = &domain.OnboardingProgress{ID: uuid.New(), UserID: userID, CurrentStep: step, CompletedSteps: []int{}}
+		p = &domain.OnboardingProgress{ID: uuid.New(), UserID: userID, CurrentStep: step, CompletedSteps: []int{}, SkippedSteps: []int{}}
 	}
 	p.CurrentStep = step
 
-	// Add step to completed steps if not present
 	already := false
 	for _, st := range p.CompletedSteps {
 		if st == step {
@@ -57,10 +63,17 @@ func (s *DefaultOnboardingService) SaveStep(ctx context.Context, userID uuid.UUI
 	if step >= 15 {
 		p.IsCompleted = true
 	}
+	_ = s.repo.LogAnalyticsEvent(ctx, &userID, "onboarding.step_completed", step, fmt.Sprintf("step_%d", step), nil)
 	return s.repo.SaveProgress(ctx, p)
 }
 
+func (s *DefaultOnboardingService) SkipStep(ctx context.Context, userID uuid.UUID, step int) error {
+	_ = s.repo.LogAnalyticsEvent(ctx, &userID, "onboarding.step_skipped", step, fmt.Sprintf("step_%d", step), nil)
+	return s.repo.SkipStep(ctx, userID, step)
+}
+
 func (s *DefaultOnboardingService) CompleteOnboarding(ctx context.Context, userID uuid.UUID) error {
+	_ = s.repo.LogAnalyticsEvent(ctx, &userID, "onboarding.completed", 15, "completion", nil)
 	return s.repo.CompleteOnboarding(ctx, userID)
 }
 
@@ -73,7 +86,6 @@ func (s *DefaultOnboardingService) ProcessResumeUpload(ctx context.Context, user
 		return nil, fmt.Errorf("file size exceeds maximum allowed 10 MB limit")
 	}
 
-	// Parse file & extract structured resume sections
 	res := &domain.ResumeParsedResult{
 		FileName: file.Filename,
 		Skills:   []string{"React", "Next.js", "TypeScript", "Golang", "PostgreSQL", "Docker", "REST API"},
@@ -143,4 +155,24 @@ func (s *DefaultOnboardingService) GetRecommendedConnections(ctx context.Context
 		{ID: uuid.New(), Name: "Tariq Al-Mansoor", Title: "Facilities Director", Company: "Emaar Properties", RoleType: "Mentor", AvatarURL: "T", IsConnected: false},
 		{ID: uuid.New(), Name: "Elena Rostova", Title: "Lead Engineer", Company: "Nexus AI", RoleType: "Expert", AvatarURL: "E", IsConnected: false},
 	}, nil
+}
+
+func (s *DefaultOnboardingService) GetStepConfigs(ctx context.Context) ([]domain.OnboardingStepConfig, error) {
+	return s.repo.GetStepConfigs(ctx)
+}
+
+func (s *DefaultOnboardingService) UpdateStepConfigs(ctx context.Context, configs []domain.OnboardingStepConfig) error {
+	return s.repo.UpdateStepConfigs(ctx, configs)
+}
+
+func (s *DefaultOnboardingService) GetAnalyticsSummary(ctx context.Context) (*domain.OnboardingAnalyticsSummary, error) {
+	return s.repo.GetAnalyticsSummary(ctx)
+}
+
+func (s *DefaultOnboardingService) SaveRecruiterOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.RecruiterOnboardingPayload) error {
+	return s.repo.SaveRecruiterOnboarding(ctx, userID, payload)
+}
+
+func (s *DefaultOnboardingService) SaveEmployerOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.EmployerOnboardingPayload) error {
+	return s.repo.SaveEmployerOnboarding(ctx, userID, payload)
 }

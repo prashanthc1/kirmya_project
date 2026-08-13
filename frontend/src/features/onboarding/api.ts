@@ -15,9 +15,6 @@ import {
 } from './types';
 import { authApiClient } from '../../services/authService';
 
-// Share the auth client so onboarding requests carry the bearer access token and
-// go through the 401 refresh retry. Without a token the backend stores progress
-// under its demo user, which keeps the flow usable before sign-in.
 const apiClient = authApiClient;
 
 export const onboardingApi = {
@@ -36,6 +33,21 @@ export const onboardingApi = {
     return res.data;
   },
 
+  skipStep: async (stepId: number): Promise<{ message: string; skipped_step: number; next_step: number }> => {
+    const res = await apiClient.post(`/onboarding/steps/${stepId}/skip`);
+    return res.data;
+  },
+
+  completeStep: async (stepId: number): Promise<{ message: string; step: number }> => {
+    const res = await apiClient.post(`/onboarding/steps/${stepId}/complete`);
+    return res.data;
+  },
+
+  resumeOnboarding: async (): Promise<{ message: string; progress: OnboardingProgress }> => {
+    const res = await apiClient.post('/onboarding/resume');
+    return res.data;
+  },
+
   completeOnboarding: async (): Promise<{ message: string; redirect: string }> => {
     const res = await apiClient.post('/onboarding/complete');
     return res.data;
@@ -46,9 +58,6 @@ export const onboardingApi = {
     return res.data;
   },
 
-  // Content-Type is cleared so the browser sets multipart/form-data with the
-  // boundary; the client default (application/json) would otherwise make axios
-  // serialise the FormData and the server reject the upload.
   uploadPhoto: async (formData: FormData): Promise<{ message: string; photo_url: string }> => {
     const res = await apiClient.post('/profile/photo', formData, {
       headers: { 'Content-Type': null },
@@ -88,6 +97,16 @@ export const onboardingApi = {
     return res.data;
   },
 
+  saveRecruiterOnboarding: async (payload: any): Promise<{ message: string }> => {
+    const res = await apiClient.post('/onboarding/recruiter', payload);
+    return res.data;
+  },
+
+  saveEmployerOnboarding: async (payload: any): Promise<{ message: string }> => {
+    const res = await apiClient.post('/onboarding/employer', payload);
+    return res.data;
+  },
+
   getRecommendedCommunities: async (): Promise<CommunityRecommendation[]> => {
     const res = await apiClient.get<CommunityRecommendation[]>('/onboarding/communities');
     return res.data;
@@ -95,6 +114,22 @@ export const onboardingApi = {
 
   getRecommendedConnections: async (): Promise<ConnectionRecommendation[]> => {
     const res = await apiClient.get<ConnectionRecommendation[]>('/onboarding/connections');
+    return res.data;
+  },
+
+  // Admin APIs
+  getStepConfigs: async (): Promise<any[]> => {
+    const res = await apiClient.get('/admin/onboarding/config');
+    return res.data;
+  },
+
+  updateStepConfigs: async (configs: any[]): Promise<{ message: string }> => {
+    const res = await apiClient.put('/admin/onboarding/config', { configs });
+    return res.data;
+  },
+
+  getAnalyticsSummary: async (): Promise<any> => {
+    const res = await apiClient.get('/admin/onboarding/analytics');
     return res.data;
   },
 };

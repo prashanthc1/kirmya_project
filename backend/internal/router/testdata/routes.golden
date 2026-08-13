@@ -50,6 +50,9 @@ GET /api/v1/admin/notifications/providers
 GET /api/v1/admin/notifications/queue
 GET /api/v1/admin/notifications/templates
 GET /api/v1/admin/notifications/templates/:id
+GET /api/v1/admin/onboarding
+GET /api/v1/admin/onboarding/analytics
+GET /api/v1/admin/onboarding/config
 GET /api/v1/ai/preferences
 GET /api/v1/analytics/applications
 GET /api/v1/analytics/career
@@ -191,6 +194,7 @@ GET /api/v1/notifications/unread-count
 GET /api/v1/onboarding
 GET /api/v1/onboarding/communities
 GET /api/v1/onboarding/connections
+GET /api/v1/onboarding/progress
 GET /api/v1/organizations
 GET /api/v1/organizations/:id/members
 GET /api/v1/organizations/permissions
@@ -347,7 +351,13 @@ POST /api/v1/notifications/devices
 POST /api/v1/notifications/read-all
 POST /api/v1/notifications/schedules
 POST /api/v1/onboarding/complete
+POST /api/v1/onboarding/employer
+POST /api/v1/onboarding/finish
+POST /api/v1/onboarding/recruiter
+POST /api/v1/onboarding/resume
 POST /api/v1/onboarding/start
+POST /api/v1/onboarding/steps/:stepId/complete
+POST /api/v1/onboarding/steps/:stepId/skip
 POST /api/v1/organizations
 POST /api/v1/organizations/:id/members
 POST /api/v1/profile/photo
@@ -404,6 +414,7 @@ POST /api/v1/verifications/requests
 POST /api/v1/work-experience
 PUT /api/v1/admin/company-verifications/:verificationId
 PUT /api/v1/admin/notifications/templates/:id
+PUT /api/v1/admin/onboarding/config
 PUT /api/v1/ai/preferences
 PUT /api/v1/applications/:id/withdraw
 PUT /api/v1/communities/:id/memberships
@@ -426,6 +437,7 @@ PUT /api/v1/notifications/preferences
 PUT /api/v1/notifications/preferences/categories/:category
 PUT /api/v1/notifications/quiet-hours
 PUT /api/v1/notifications/read-all
+PUT /api/v1/onboarding/progress
 PUT /api/v1/onboarding/save
 PUT /api/v1/profiles/me
 PUT /api/v1/profiles/me/preferences

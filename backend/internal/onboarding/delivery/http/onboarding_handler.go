@@ -15,15 +15,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// DemoUserID owns everything written by callers that reach onboarding without a
-// session. It is a shared identity: demo progress is not private per visitor.
 var DemoUserID = uuid.MustParse("00000000-0000-0000-0000-000000000001")
 
 type OnboardingHandler struct {
-	svc service.OnboardingService
-
-	// allowDemoUser keeps the write path open for anonymous callers. Set
-	// ONBOARDING_ALLOW_DEMO_USER=false to require a real session instead.
+	svc           service.OnboardingService
 	allowDemoUser bool
 }
 
@@ -36,9 +31,6 @@ func NewOnboardingHandler(svc service.OnboardingService) *OnboardingHandler {
 	return &OnboardingHandler{svc: svc, allowDemoUser: allowDemo}
 }
 
-// demoUserAllowed reports whether anonymous onboarding writes are accepted. The
-// fallback stays on unless explicitly switched off, so the flow keeps working
-// for visitors who have not signed in yet.
 func demoUserAllowed() bool {
 	raw, ok := os.LookupEnv("ONBOARDING_ALLOW_DEMO_USER")
 	if !ok || strings.TrimSpace(raw) == "" {
@@ -51,9 +43,6 @@ func demoUserAllowed() bool {
 	return allowed
 }
 
-// resolveUserID returns the authenticated user from the OptionalAuth context, or
-// the demo user when the request is anonymous and the fallback is enabled. It
-// writes the 401 response itself when neither identity is available.
 func (h *OnboardingHandler) resolveUserID(c *gin.Context) (uuid.UUID, bool) {
 	if val, ok := c.Get("userID"); ok {
 		switch uid := val.(type) {
@@ -122,6 +111,57 @@ func (h *OnboardingHandler) SaveProgress(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Progress saved", "step": body.Step})
+}
+
+func (h *OnboardingHandler) SkipStep(c *gin.Context) {
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
+	stepStr := c.Param("stepId")
+	step, err := strconv.Atoi(stepStr)
+	if err != nil {
+		step = 1
+	}
+
+	err = h.svc.SkipStep(c.Request.Context(), userID, step)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Step skipped", "skipped_step": step, "next_step": step + 1})
+}
+
+func (h *OnboardingHandler) CompleteStep(c *gin.Context) {
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
+	stepStr := c.Param("stepId")
+	step, err := strconv.Atoi(stepStr)
+	if err != nil {
+		step = 1
+	}
+
+	err = h.svc.SaveStep(c.Request.Context(), userID, step)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Step completed", "step": step})
+}
+
+func (h *OnboardingHandler) ResumeOnboarding(c *gin.Context) {
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
+	p, err := h.svc.GetProgress(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Resumed onboarding", "progress": p})
 }
 
 func (h *OnboardingHandler) CompleteOnboarding(c *gin.Context) {
@@ -281,6 +321,40 @@ func (h *OnboardingHandler) SaveCareerPreferences(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Career preferences saved successfully"})
 }
 
+func (h *OnboardingHandler) SaveRecruiterOnboarding(c *gin.Context) {
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
+	var payload domain.RecruiterOnboardingPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid recruiter onboarding payload"})
+		return
+	}
+	if err := h.svc.SaveRecruiterOnboarding(c.Request.Context(), userID, &payload); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Recruiter hiring preferences configured."})
+}
+
+func (h *OnboardingHandler) SaveEmployerOnboarding(c *gin.Context) {
+	userID, ok := h.resolveUserID(c)
+	if !ok {
+		return
+	}
+	var payload domain.EmployerOnboardingPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid employer onboarding payload"})
+		return
+	}
+	if err := h.svc.SaveEmployerOnboarding(c.Request.Context(), userID, &payload); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Employer company profile configured."})
+}
+
 func (h *OnboardingHandler) GetCommunities(c *gin.Context) {
 	userID, ok := h.resolveUserID(c)
 	if !ok {
@@ -305,4 +379,38 @@ func (h *OnboardingHandler) GetConnections(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, conns)
+}
+
+// Admin Handlers
+func (h *OnboardingHandler) GetStepConfigs(c *gin.Context) {
+	configs, err := h.svc.GetStepConfigs(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, configs)
+}
+
+func (h *OnboardingHandler) UpdateStepConfigs(c *gin.Context) {
+	var body struct {
+		Configs []domain.OnboardingStepConfig `json:"configs"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.svc.UpdateStepConfigs(c.Request.Context(), body.Configs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Onboarding step configuration updated."})
+}
+
+func (h *OnboardingHandler) GetAnalyticsSummary(c *gin.Context) {
+	summary, err := h.svc.GetAnalyticsSummary(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, summary)
 }

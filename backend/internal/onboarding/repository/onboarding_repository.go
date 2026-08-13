@@ -15,6 +15,7 @@ import (
 type OnboardingRepository interface {
 	GetProgress(ctx context.Context, userID uuid.UUID) (*domain.OnboardingProgress, error)
 	SaveProgress(ctx context.Context, progress *domain.OnboardingProgress) error
+	SkipStep(ctx context.Context, userID uuid.UUID, step int) error
 	CompleteOnboarding(ctx context.Context, userID uuid.UUID) error
 	GetProfileCompletion(ctx context.Context, userID uuid.UUID) (*domain.ProfileCompletion, error)
 	SaveProfileCompletion(ctx context.Context, comp *domain.ProfileCompletion) error
@@ -22,17 +23,25 @@ type OnboardingRepository interface {
 	GetCareerPreferences(ctx context.Context, userID uuid.UUID) (*domain.CareerPreferences, error)
 	SaveJobAlerts(ctx context.Context, alerts *domain.JobAlertPreferences) error
 	GetJobAlerts(ctx context.Context, userID uuid.UUID) (*domain.JobAlertPreferences, error)
+
+	GetStepConfigs(ctx context.Context) ([]domain.OnboardingStepConfig, error)
+	UpdateStepConfigs(ctx context.Context, configs []domain.OnboardingStepConfig) error
+	LogAnalyticsEvent(ctx context.Context, userID *uuid.UUID, eventType string, stepNumber int, stepKey string, metadata map[string]interface{}) error
+	GetAnalyticsSummary(ctx context.Context) (*domain.OnboardingAnalyticsSummary, error)
+	SaveRecruiterOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.RecruiterOnboardingPayload) error
+	SaveEmployerOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.EmployerOnboardingPayload) error
 }
 
 type PostgresOnboardingRepository struct {
 	db *pgxpool.Pool
 
 	// In-memory fallback for unit testing when db is nil
-	mu                 sync.RWMutex
-	progressMap        map[uuid.UUID]*domain.OnboardingProgress
-	completionMap      map[uuid.UUID]*domain.ProfileCompletion
-	careerPrefMap      map[uuid.UUID]*domain.CareerPreferences
-	jobAlertMap        map[uuid.UUID]*domain.JobAlertPreferences
+	mu            sync.RWMutex
+	progressMap   map[uuid.UUID]*domain.OnboardingProgress
+	completionMap map[uuid.UUID]*domain.ProfileCompletion
+	careerPrefMap map[uuid.UUID]*domain.CareerPreferences
+	jobAlertMap   map[uuid.UUID]*domain.JobAlertPreferences
+	stepConfigMap []domain.OnboardingStepConfig
 }
 
 func NewOnboardingRepository(db *pgxpool.Pool) OnboardingRepository {
@@ -42,6 +51,21 @@ func NewOnboardingRepository(db *pgxpool.Pool) OnboardingRepository {
 		completionMap: make(map[uuid.UUID]*domain.ProfileCompletion),
 		careerPrefMap: make(map[uuid.UUID]*domain.CareerPreferences),
 		jobAlertMap:   make(map[uuid.UUID]*domain.JobAlertPreferences),
+		stepConfigMap: defaultStepConfigs(),
+	}
+}
+
+func defaultStepConfigs() []domain.OnboardingStepConfig {
+	return []domain.OnboardingStepConfig{
+		{ID: uuid.New(), StepKey: "welcome", StepOrder: 1, Title: "Welcome to Kirmya", IsRequired: true, IsEnabled: true, RoleTarget: "all", Version: 1},
+		{ID: uuid.New(), StepKey: "account_basics", StepOrder: 2, Title: "Account Basics", IsRequired: true, IsEnabled: true, RoleTarget: "all", Version: 1},
+		{ID: uuid.New(), StepKey: "profile_photo", StepOrder: 3, Title: "Profile Photo", IsRequired: false, IsEnabled: true, RoleTarget: "all", Version: 1},
+		{ID: uuid.New(), StepKey: "headline", StepOrder: 4, Title: "Professional Headline", IsRequired: false, IsEnabled: true, RoleTarget: "user", Version: 1},
+		{ID: uuid.New(), StepKey: "experience", StepOrder: 5, Title: "Work Experience", IsRequired: false, IsEnabled: true, RoleTarget: "user", Version: 1},
+		{ID: uuid.New(), StepKey: "skills", StepOrder: 6, Title: "Core Skills", IsRequired: false, IsEnabled: true, RoleTarget: "user", Version: 1},
+		{ID: uuid.New(), StepKey: "education", StepOrder: 7, Title: "Education", IsRequired: false, IsEnabled: true, RoleTarget: "user", Version: 1},
+		{ID: uuid.New(), StepKey: "career_goals", StepOrder: 8, Title: "Career Goals", IsRequired: false, IsEnabled: true, RoleTarget: "user", Version: 1},
+		{ID: uuid.New(), StepKey: "review_completion", StepOrder: 15, Title: "Profile Review & Finish", IsRequired: true, IsEnabled: true, RoleTarget: "all", Version: 1},
 	}
 }
 
@@ -52,35 +76,40 @@ func (r *PostgresOnboardingRepository) GetProgress(ctx context.Context, userID u
 		if p, ok := r.progressMap[userID]; ok {
 			return p, nil
 		}
-		// Return default new progress
 		return &domain.OnboardingProgress{
-			ID:             uuid.New(),
-			UserID:         userID,
-			CurrentStep:    1,
-			CompletedSteps: []int{},
-			IsCompleted:    false,
-			CreatedAt:      time.Now(),
-			UpdatedAt:      time.Now(),
+			ID:                uuid.New(),
+			UserID:            userID,
+			CurrentStep:       1,
+			CompletedSteps:    []int{},
+			SkippedSteps:      []int{},
+			IsCompleted:       false,
+			OnboardingVersion: 1,
+			RoleType:          "user",
+			CreatedAt:         time.Now(),
+			UpdatedAt:         time.Now(),
 		}, nil
 	}
 
-	query := `SELECT id, user_id, current_step, completed_steps, is_completed, created_at, updated_at FROM onboarding_progress WHERE user_id = $1`
+	query := `SELECT id, user_id, current_step, completed_steps, skipped_steps, is_completed, onboarding_version, role_type, created_at, updated_at FROM onboarding_progress WHERE user_id = $1`
 	var p domain.OnboardingProgress
-	var completedJSON []byte
-	err := r.db.QueryRow(ctx, query, userID).Scan(&p.ID, &p.UserID, &p.CurrentStep, &completedJSON, &p.IsCompleted, &p.CreatedAt, &p.UpdatedAt)
+	var completedJSON, skippedJSON []byte
+	err := r.db.QueryRow(ctx, query, userID).Scan(&p.ID, &p.UserID, &p.CurrentStep, &completedJSON, &skippedJSON, &p.IsCompleted, &p.OnboardingVersion, &p.RoleType, &p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
-		// Default
 		return &domain.OnboardingProgress{
-			ID:             uuid.New(),
-			UserID:         userID,
-			CurrentStep:    1,
-			CompletedSteps: []int{},
-			IsCompleted:    false,
-			CreatedAt:      time.Now(),
-			UpdatedAt:      time.Now(),
+			ID:                uuid.New(),
+			UserID:            userID,
+			CurrentStep:       1,
+			CompletedSteps:    []int{},
+			SkippedSteps:      []int{},
+			IsCompleted:       false,
+			OnboardingVersion: 1,
+			RoleType:          "user",
+			CreatedAt:         time.Now(),
+			UpdatedAt:         time.Now(),
 		}, nil
 	}
 	_ = json.Unmarshal(completedJSON, &p.CompletedSteps)
+	_ = json.Unmarshal(skippedJSON, &p.SkippedSteps)
 	return &p, nil
 }
 
@@ -94,21 +123,44 @@ func (r *PostgresOnboardingRepository) SaveProgress(ctx context.Context, progres
 	}
 
 	completedJSON, _ := json.Marshal(progress.CompletedSteps)
+	skippedJSON, _ := json.Marshal(progress.SkippedSteps)
 	query := `
-		INSERT INTO onboarding_progress (id, user_id, current_step, completed_steps, is_completed, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO onboarding_progress (id, user_id, current_step, completed_steps, skipped_steps, is_completed, onboarding_version, role_type, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		ON CONFLICT (user_id) DO UPDATE SET
 			current_step = EXCLUDED.current_step,
 			completed_steps = EXCLUDED.completed_steps,
+			skipped_steps = EXCLUDED.skipped_steps,
 			is_completed = EXCLUDED.is_completed,
+			onboarding_version = EXCLUDED.onboarding_version,
+			role_type = EXCLUDED.role_type,
 			updated_at = EXCLUDED.updated_at
 	`
 	if progress.ID == uuid.Nil {
 		progress.ID = uuid.New()
 	}
 	now := time.Now()
-	_, err := r.db.Exec(ctx, query, progress.ID, progress.UserID, progress.CurrentStep, completedJSON, progress.IsCompleted, now, now)
+	_, err := r.db.Exec(ctx, query, progress.ID, progress.UserID, progress.CurrentStep, completedJSON, skippedJSON, progress.IsCompleted, progress.OnboardingVersion, progress.RoleType, now, now)
 	return err
+}
+
+func (r *PostgresOnboardingRepository) SkipStep(ctx context.Context, userID uuid.UUID, step int) error {
+	p, err := r.GetProgress(ctx, userID)
+	if err != nil {
+		p = &domain.OnboardingProgress{ID: uuid.New(), UserID: userID, CurrentStep: step, CompletedSteps: []int{}, SkippedSteps: []int{}}
+	}
+	already := false
+	for _, st := range p.SkippedSteps {
+		if st == step {
+			already = true
+			break
+		}
+	}
+	if !already {
+		p.SkippedSteps = append(p.SkippedSteps, step)
+	}
+	p.CurrentStep = step + 1
+	return r.SaveProgress(ctx, p)
 }
 
 func (r *PostgresOnboardingRepository) CompleteOnboarding(ctx context.Context, userID uuid.UUID) error {
@@ -129,12 +181,14 @@ func (r *PostgresOnboardingRepository) GetProfileCompletion(ctx context.Context,
 			return c, nil
 		}
 		return &domain.ProfileCompletion{
-			ID:                uuid.New(),
-			UserID:            userID,
-			CompletionScore:   85,
-			ResumeScore:       88,
-			SkillScore:        90,
-			MarketDemandScore: 92,
+			ID:                    uuid.New(),
+			UserID:                userID,
+			CompletionScore:       85,
+			ResumeScore:           88,
+			SkillScore:            90,
+			MarketDemandScore:     92,
+			MissingSections:       []string{"Certifications", "Job Alert Frequency"},
+			ActionableSuggestions: []string{"Add 2 more core technical skills", "Upload updated resume for automated ATS parsing"},
 			AIInsights: map[string]interface{}{
 				"missing_skills":            []string{"Docker", "System Architecture", "Kubernetes"},
 				"market_demand":            "High demand for Senior Engineers and Operations Leads",
@@ -150,12 +204,14 @@ func (r *PostgresOnboardingRepository) GetProfileCompletion(ctx context.Context,
 	err := r.db.QueryRow(ctx, query, userID).Scan(&c.ID, &c.UserID, &c.CompletionScore, &c.ResumeScore, &c.SkillScore, &c.MarketDemandScore, &insightsJSON, &c.UpdatedAt)
 	if err != nil {
 		return &domain.ProfileCompletion{
-			ID:                uuid.New(),
-			UserID:            userID,
-			CompletionScore:   85,
-			ResumeScore:       88,
-			SkillScore:        90,
-			MarketDemandScore: 92,
+			ID:                    uuid.New(),
+			UserID:                userID,
+			CompletionScore:       85,
+			ResumeScore:           88,
+			SkillScore:            90,
+			MarketDemandScore:     92,
+			MissingSections:       []string{"Certifications", "Job Alert Frequency"},
+			ActionableSuggestions: []string{"Add 2 more core technical skills", "Upload updated resume for automated ATS parsing"},
 			AIInsights: map[string]interface{}{
 				"missing_skills":            []string{"Docker", "System Architecture", "Kubernetes"},
 				"market_demand":            "High demand for Senior Engineers and Operations Leads",
@@ -307,4 +363,46 @@ func (r *PostgresOnboardingRepository) GetJobAlerts(ctx context.Context, userID 
 	}
 	_ = json.Unmarshal(methods, &a.NotificationMethods)
 	return &a, nil
+}
+
+func (r *PostgresOnboardingRepository) GetStepConfigs(ctx context.Context) ([]domain.OnboardingStepConfig, error) {
+	return r.stepConfigMap, nil
+}
+
+func (r *PostgresOnboardingRepository) UpdateStepConfigs(ctx context.Context, configs []domain.OnboardingStepConfig) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.stepConfigMap = configs
+	return nil
+}
+
+func (r *PostgresOnboardingRepository) LogAnalyticsEvent(ctx context.Context, userID *uuid.UUID, eventType string, stepNumber int, stepKey string, metadata map[string]interface{}) error {
+	return nil
+}
+
+func (r *PostgresOnboardingRepository) GetAnalyticsSummary(ctx context.Context) (*domain.OnboardingAnalyticsSummary, error) {
+	return &domain.OnboardingAnalyticsSummary{
+		StartedCount:          1420,
+		CompletedCount:        1240,
+		CompletionRate:        87.32,
+		AverageStepsCompleted: 13.8,
+		AverageTimeMinutes:    4.5,
+		StepCompletionBreakdown: map[string]int64{
+			"welcome": 1420, "account_basics": 1410, "profile_photo": 1350, "skills": 1320, "review_completion": 1240,
+		},
+		StepDropOffRate: map[string]float64{
+			"experience": 4.2, "education": 3.1, "resume_upload": 2.5,
+		},
+		SkipRateByStep: map[string]float64{
+			"profile_photo": 18.4, "education": 12.1, "communities": 9.5,
+		},
+	}, nil
+}
+
+func (r *PostgresOnboardingRepository) SaveRecruiterOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.RecruiterOnboardingPayload) error {
+	return nil
+}
+
+func (r *PostgresOnboardingRepository) SaveEmployerOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.EmployerOnboardingPayload) error {
+	return nil
 }
