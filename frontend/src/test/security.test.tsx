@@ -17,7 +17,7 @@ describe('Security & Identity Protection Components Test Suite', () => {
   it('renders SessionManagerView with active sessions', () => {
     render(<SessionManagerView />);
     expect(screen.getByText(/Active Authentication Sessions/i)).toBeInTheDocument();
-    expect(screen.getByText(/Chrome 120 / Windows 11/i)).toBeInTheDocument();
+    expect(screen.getByText(/Chrome 120 \/ Windows 11/i)).toBeInTheDocument();
   });
 
   it('renders DeviceManagerView with registered trusted devices', () => {
