@@ -3,7 +3,10 @@ export interface OnboardingProgress {
   user_id: string;
   current_step: number;
   completed_steps: number[];
+  skipped_steps?: number[];
   is_completed: boolean;
+  onboarding_version?: number;
+  role_type?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -15,6 +18,8 @@ export interface ProfileCompletion {
   resume_score: number;
   skill_score: number;
   market_demand_score: number;
+  missing_sections?: string[];
+  actionable_suggestions?: string[];
   ai_insights: {
     missing_skills?: string[];
     market_demand?: string;

@@ -58,7 +58,7 @@ export const ProfileCompletionCard: React.FC<{ completion?: ProfileCompletion }>
         Recommended Profile Improvements:
       </Typography>
       <Stack spacing={1.5} sx={{ mb: 3 }}>
-        {suggestions.map((s, idx) => (
+        {suggestions.map((s: string, idx: number) => (
           <Stack direction="row" spacing={1} alignItems="center" key={idx}>
             <CheckCircleIcon color="primary" sx={{ fontSize: 18 }} />
             <Typography variant="body2">{s}</Typography>
