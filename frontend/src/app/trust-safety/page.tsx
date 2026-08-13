@@ -205,7 +205,7 @@ export default function TrustSafetyPage() {
                         Detection Triggers Signal Analysis:
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {log.triggers.map((trig, idx) => (
+                        {log.triggers.map((trig: string, idx: number) => (
                           <Chip key={idx} label={trig} size="small" sx={{ bgcolor: '#881337', color: '#fecdd3', fontWeight: 'bold' }} />
                         ))}
                       </Box>

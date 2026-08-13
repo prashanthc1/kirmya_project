@@ -124,6 +124,8 @@ type RouterDependencies struct {
 	AdminBillingHandler         *billingHttp.AdminBillingHandler
 	LegalHandler                *legalHttp.LegalHandler
 	AdminLegalHandler           *legalHttp.AdminLegalHandler
+	TrustSafetyHandler          *trustHttp.TrustSafetyHandler
+	AdminTrustSafetyHandler     *trustHttp.AdminTrustSafetyHandler
 }
 
 type Handlers = RouterDependencies
@@ -251,5 +253,11 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.AdminLegalHandler != nil {
 		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler)
+	}
+	if deps.TrustSafetyHandler != nil {
+		trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
+	}
+	if deps.AdminTrustSafetyHandler != nil {
+		trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler)
 	}
 }

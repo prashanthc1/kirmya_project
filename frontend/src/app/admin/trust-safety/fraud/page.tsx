@@ -3,6 +3,6 @@
 import React from 'react';
 import ModerationDashboard from '@/components/safety/ModerationDashboard';
 
-export default function AdminTrustSafetyPage() {
+export default function AdminTrustSafetyFraudPage() {
   return <ModerationDashboard />;
 }

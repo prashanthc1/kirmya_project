@@ -210,9 +210,6 @@ GET /api/v1/saved-searches
 GET /api/v1/search/history
 GET /api/v1/search/notes/:candidateId
 GET /api/v1/search/saved
-GET /api/v1/trust/fraud-logs
-GET /api/v1/trust/reports
-GET /api/v1/trust/verification
 GET /api/v1/unified-search
 GET /api/v1/unified-search/history
 GET /api/v1/unified-search/suggestions
@@ -361,9 +358,6 @@ POST /api/v1/search/contact
 POST /api/v1/search/notes
 POST /api/v1/search/saved
 POST /api/v1/skills
-POST /api/v1/trust/reports
-POST /api/v1/trust/reports/:id/action
-POST /api/v1/trust/users/block
 POST /api/v1/unified-search/preferences
 POST /api/v1/verifications/documents
 POST /api/v1/verifications/requests
