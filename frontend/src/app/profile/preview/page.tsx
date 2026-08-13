@@ -25,12 +25,12 @@ export default function ProfilePreviewPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Box direction="row" display="flex" alignItems="center" gap={1}>
+        <Stack direction="row" alignItems="center" spacing={1}>
           <VisibilityIcon color="primary" />
           <Typography variant="h5" sx={{ fontWeight: 900 }}>
             Profile Privacy & Viewer Preview Mode
           </Typography>
-        </Box>
+        </Stack>
         <Stack direction="row" spacing={1}>
           <Button
             variant={viewMode === 'public' ? 'contained' : 'outlined'}
