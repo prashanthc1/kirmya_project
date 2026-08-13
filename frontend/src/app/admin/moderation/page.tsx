@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import JobModeration from '@/components/admin/JobModeration';
+import AdminTrustSafetyDashboard from '@/components/admin/trust-safety/AdminTrustSafetyDashboard';
 
 export default function AdminModerationPage() {
-  return <JobModeration />;
+  return <AdminTrustSafetyDashboard />;
 }

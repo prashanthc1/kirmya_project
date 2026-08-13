@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import ModerationDashboard from '@/components/safety/ModerationDashboard';
+import AdminTrustSafetyDashboard from '@/components/admin/trust-safety/AdminTrustSafetyDashboard';
 
 export default function AdminTrustSafetyRulesPage() {
-  return <ModerationDashboard />;
+  return <AdminTrustSafetyDashboard />;
 }

@@ -15,15 +15,34 @@ import (
 type TrustSafetyService interface {
 	SubmitReport(ctx context.Context, reporterID uuid.UUID, targetType string, targetID uuid.UUID, title string, category string, description string, evidence []string) (*models.SafetyReport, error)
 	GetUserReports(ctx context.Context, userID uuid.UUID) ([]models.SafetyReport, error)
+	GetAdminReports(ctx context.Context, status string) ([]models.SafetyReport, error)
+	GetReportByID(ctx context.Context, id uuid.UUID) (*models.SafetyReport, error)
+	UpdateReportStatus(ctx context.Context, reportID uuid.UUID, status string, notes string, adminID *uuid.UUID) error
+
 	BlockUser(ctx context.Context, blockerID uuid.UUID, blockedType string, blockedID uuid.UUID, reason string) error
 	UnblockUser(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) error
 	GetUserBlocks(ctx context.Context, blockerID uuid.UUID) ([]models.UserBlock, error)
 	IsBlocked(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) (bool, error)
+
+	MuteEntity(ctx context.Context, userID uuid.UUID, mutedType string, mutedID uuid.UUID, durationDays int) error
+	UnmuteEntity(ctx context.Context, userID uuid.UUID, mutedID uuid.UUID) error
+	GetUserMutes(ctx context.Context, userID uuid.UUID) ([]models.UserMute, error)
+	IsMuted(ctx context.Context, userID uuid.UUID, mutedID uuid.UUID) (bool, error)
+
 	GetAdminCases(ctx context.Context, status string) ([]models.SafetyCase, error)
+	GetCaseByID(ctx context.Context, id uuid.UUID) (*models.SafetyCase, error)
 	ApplyModerationAction(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, actionType string, level string, reason string, durationDays int) (*models.ModerationDecision, error)
+
 	SubmitAppeal(ctx context.Context, decisionID uuid.UUID, userID uuid.UUID, reason string, explanation string, evidence []string) (*models.SafetyAppeal, error)
+	GetUserAppeals(ctx context.Context, userID uuid.UUID) ([]models.SafetyAppeal, error)
+	GetAdminAppeals(ctx context.Context, status string) ([]models.SafetyAppeal, error)
+	GetAppealByID(ctx context.Context, id uuid.UUID) (*models.SafetyAppeal, error)
 	ResolveAppeal(ctx context.Context, appealID uuid.UUID, adminID uuid.UUID, status string, notes string) error
+
 	EvaluateJobScamRisk(ctx context.Context, jobTitle string, jobDescription string, salaryRange string) (float64, string)
+	GetSafetyMetricsSummary(ctx context.Context) (*models.SafetyMetricsSummary, error)
+	GetSafetyRules(ctx context.Context) ([]models.SafetyRule, error)
+	UpdateSafetyRule(ctx context.Context, rule *models.SafetyRule) error
 }
 
 type trustSafetyService struct {
@@ -36,7 +55,7 @@ func NewTrustSafetyService(repo repository.TrustSafetyRepository) TrustSafetySer
 
 func (s *trustSafetyService) SubmitReport(ctx context.Context, reporterID uuid.UUID, targetType string, targetID uuid.UUID, title string, category string, description string, evidence []string) (*models.SafetyReport, error) {
 	priority := "normal"
-	if category == "threat" || category == "scam" || category == "phishing" {
+	if category == "threat" || category == "scam" || category == "phishing" || category == "fake_job" {
 		priority = "high"
 	}
 
@@ -59,7 +78,6 @@ func (s *trustSafetyService) SubmitReport(ctx context.Context, reporterID uuid.U
 		return nil, err
 	}
 
-	// Create linked moderation case
 	caseObj := &models.SafetyCase{
 		ID:               uuid.New(),
 		CaseNumber:       fmt.Sprintf("CASE-%d", time.Now().UnixNano()%1000000),
@@ -87,6 +105,18 @@ func (s *trustSafetyService) GetUserReports(ctx context.Context, userID uuid.UUI
 	return s.repo.GetUserReports(ctx, userID)
 }
 
+func (s *trustSafetyService) GetAdminReports(ctx context.Context, status string) ([]models.SafetyReport, error) {
+	return s.repo.GetAdminReports(ctx, status)
+}
+
+func (s *trustSafetyService) GetReportByID(ctx context.Context, id uuid.UUID) (*models.SafetyReport, error) {
+	return s.repo.GetReportByID(ctx, id)
+}
+
+func (s *trustSafetyService) UpdateReportStatus(ctx context.Context, reportID uuid.UUID, status string, notes string, adminID *uuid.UUID) error {
+	return s.repo.UpdateReportStatus(ctx, reportID, status, notes, adminID)
+}
+
 func (s *trustSafetyService) BlockUser(ctx context.Context, blockerID uuid.UUID, blockedType string, blockedID uuid.UUID, reason string) error {
 	block := &models.UserBlock{
 		ID:          uuid.New(),
@@ -112,12 +142,45 @@ func (s *trustSafetyService) IsBlocked(ctx context.Context, blockerID uuid.UUID,
 	return s.repo.IsBlocked(ctx, blockerID, blockedID)
 }
 
+func (s *trustSafetyService) MuteEntity(ctx context.Context, userID uuid.UUID, mutedType string, mutedID uuid.UUID, durationDays int) error {
+	var expiresAt *time.Time
+	if durationDays > 0 {
+		t := time.Now().AddDate(0, 0, durationDays)
+		expiresAt = &t
+	}
+
+	mute := &models.UserMute{
+		ID:        uuid.New(),
+		UserID:    userID,
+		MutedType: mutedType,
+		MutedID:   mutedID,
+		ExpiresAt: expiresAt,
+		CreatedAt: time.Now(),
+	}
+	return s.repo.MuteEntity(ctx, mute)
+}
+
+func (s *trustSafetyService) UnmuteEntity(ctx context.Context, userID uuid.UUID, mutedID uuid.UUID) error {
+	return s.repo.UnmuteEntity(ctx, userID, mutedID)
+}
+
+func (s *trustSafetyService) GetUserMutes(ctx context.Context, userID uuid.UUID) ([]models.UserMute, error) {
+	return s.repo.GetUserMutes(ctx, userID)
+}
+
+func (s *trustSafetyService) IsMuted(ctx context.Context, userID uuid.UUID, mutedID uuid.UUID) (bool, error) {
+	return s.repo.IsMuted(ctx, userID, mutedID)
+}
+
 func (s *trustSafetyService) GetAdminCases(ctx context.Context, status string) ([]models.SafetyCase, error) {
 	return s.repo.GetAdminCases(ctx, status)
 }
 
+func (s *trustSafetyService) GetCaseByID(ctx context.Context, id uuid.UUID) (*models.SafetyCase, error) {
+	return s.repo.GetCaseByID(ctx, id)
+}
+
 func (s *trustSafetyService) ApplyModerationAction(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, actionType string, level string, reason string, durationDays int) (*models.ModerationDecision, error) {
-	// Require human decision confirmation: AI cannot auto permanently ban
 	if actionType == "permanent_suspension" && adminID == uuid.Nil {
 		return nil, errors.New("HUMAN_OVERVIEW_REQUIRED: Permanent suspension requires explicit human moderator authorization.")
 	}
@@ -149,7 +212,6 @@ func (s *trustSafetyService) ApplyModerationAction(ctx context.Context, caseID u
 		return nil, err
 	}
 
-	// Create active restriction record if temporary
 	if actionType == "messaging_restriction" || actionType == "job_posting_restriction" || actionType == "application_restriction" {
 		restriction := &models.UserRestriction{
 			ID:               uuid.New(),
@@ -186,6 +248,18 @@ func (s *trustSafetyService) SubmitAppeal(ctx context.Context, decisionID uuid.U
 	return appeal, nil
 }
 
+func (s *trustSafetyService) GetUserAppeals(ctx context.Context, userID uuid.UUID) ([]models.SafetyAppeal, error) {
+	return s.repo.GetUserAppeals(ctx, userID)
+}
+
+func (s *trustSafetyService) GetAdminAppeals(ctx context.Context, status string) ([]models.SafetyAppeal, error) {
+	return s.repo.GetAdminAppeals(ctx, status)
+}
+
+func (s *trustSafetyService) GetAppealByID(ctx context.Context, id uuid.UUID) (*models.SafetyAppeal, error) {
+	return s.repo.GetAppealByID(ctx, id)
+}
+
 func (s *trustSafetyService) ResolveAppeal(ctx context.Context, appealID uuid.UUID, adminID uuid.UUID, status string, notes string) error {
 	return s.repo.ResolveAppeal(ctx, appealID, status, notes, adminID)
 }
@@ -208,4 +282,16 @@ func (s *trustSafetyService) EvaluateJobScamRisk(ctx context.Context, jobTitle s
 		score = 100.0
 	}
 	return score, strings.Join(triggers, ", ")
+}
+
+func (s *trustSafetyService) GetSafetyMetricsSummary(ctx context.Context) (*models.SafetyMetricsSummary, error) {
+	return s.repo.GetSafetyMetricsSummary(ctx)
+}
+
+func (s *trustSafetyService) GetSafetyRules(ctx context.Context) ([]models.SafetyRule, error) {
+	return s.repo.GetSafetyRules(ctx)
+}
+
+func (s *trustSafetyService) UpdateSafetyRule(ctx context.Context, rule *models.SafetyRule) error {
+	return s.repo.UpdateSafetyRule(ctx, rule)
 }

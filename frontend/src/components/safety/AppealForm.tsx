@@ -1,77 +1,76 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, Card, TextField, Button, Stack, Alert, useTheme } from '@mui/material';
+import {
+  Card,
+  Typography,
+  TextField,
+  Button,
+  Stack,
+  Alert,
+} from '@mui/material';
 import GavelIcon from '@mui/icons-material/Gavel';
+import { safetyApi } from '../../features/trust_safety/api';
 
 export const AppealForm: React.FC = () => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-
-  const [reason, setReason] = useState('Incorrect Flagging');
+  const [decisionId, setDecisionId] = useState('dec-001');
+  const [reason, setReason] = useState('False Flag');
   const [explanation, setExplanation] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (!explanation) {
+      setStatus('Please provide an explanation for your appeal.');
+      return;
+    }
+    await safetyApi.submitAppeal({
+      decision_id: decisionId,
+      reason,
+      explanation,
+    });
+    setStatus('Appeal submitted successfully. A moderator will review your evidence.');
+    setExplanation('');
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800, mx: 'auto' }}>
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-        <GavelIcon sx={{ color: '#6366f1', fontSize: 36 }} />
-        <Typography variant="h4" sx={{ fontWeight: 900 }}>
-          Submit Enforcement Appeal
-        </Typography>
+    <Card sx={{ borderRadius: '24px', p: 3, maxWidth: 650 }}>
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+        <GavelIcon color="primary" />
+        <Typography variant="h6" sx={{ fontWeight: 800 }}>Submit Moderation Decision Appeal</Typography>
       </Stack>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        If your account or content was restricted by mistake, submit an appeal for human review.
-      </Typography>
 
-      {submitted ? (
-        <Alert severity="success" sx={{ borderRadius: '12px' }}>
-          Appeal submitted successfully. Your case has been queued for human reviewer re-evaluation.
-        </Alert>
-      ) : (
-        <Card
-          sx={{
-            p: 4,
-            borderRadius: '24px',
-            bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-          }}
-        >
-          <Stack spacing={3}>
-            <TextField
-              label="Reason for Appeal"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              fullWidth
-            />
+      <Stack spacing={2.5}>
+        {status && <Alert severity={status.includes('successfully') ? 'success' : 'error'} sx={{ borderRadius: '12px' }}>{status}</Alert>}
 
-            <TextField
-              label="Detailed Explanation &amp; Verification Evidence"
-              multiline
-              rows={5}
-              value={explanation}
-              onChange={(e) => setExplanation(e.target.value)}
-              placeholder="Provide context and explain why the enforcement action should be reversed..."
-              fullWidth
-            />
+        <TextField
+          label="Enforcement Decision Reference ID"
+          value={decisionId}
+          onChange={(e) => setDecisionId(e.target.value)}
+          fullWidth
+        />
 
-            <Button
-              variant="contained"
-              disabled={!explanation}
-              onClick={handleSubmit}
-              sx={{ borderRadius: '12px', fontWeight: 800, py: 1.2 }}
-            >
-              Submit Appeal
-            </Button>
-          </Stack>
-        </Card>
-      )}
-    </Box>
+        <TextField
+          label="Primary Appeal Reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          fullWidth
+        />
+
+        <TextField
+          label="Detailed Explanation & Verification Context"
+          multiline
+          rows={4}
+          value={explanation}
+          onChange={(e) => setExplanation(e.target.value)}
+          placeholder="Provide evidence or context demonstrating compliance with Kirmya platform policies..."
+          fullWidth
+        />
+
+        <Button variant="contained" onClick={handleSubmit} sx={{ borderRadius: '12px', fontWeight: 800, py: 1.2 }}>
+          Submit Formal Appeal
+        </Button>
+      </Stack>
+    </Card>
   );
 };
 

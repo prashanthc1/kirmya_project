@@ -28,7 +28,7 @@ func TestTrustSafetyService(t *testing.T) {
 		if score < 50.0 {
 			t.Errorf("expected high risk score, got %f", score)
 		}
-		if !testing.Short() && len(triggers) == 0 {
+		if triggers == "" {
 			t.Errorf("expected scam triggers to be populated")
 		}
 	})
@@ -37,6 +37,33 @@ func TestTrustSafetyService(t *testing.T) {
 		_, err := svc.ApplyModerationAction(ctx, uuid.New(), uuid.Nil, "permanent_suspension", "Permanent Suspension", "Severe violation", 0)
 		if err == nil {
 			t.Fatalf("expected error when adminID is nil for permanent suspension, got nil")
+		}
+	})
+
+	t.Run("MuteEntity records mute duration", func(t *testing.T) {
+		err := svc.MuteEntity(ctx, uuid.New(), "user", uuid.New(), 7)
+		if err != nil {
+			t.Fatalf("unexpected error muting user: %v", err)
+		}
+	})
+
+	t.Run("SubmitAppeal creates appeal record", func(t *testing.T) {
+		appeal, err := svc.SubmitAppeal(ctx, uuid.New(), uuid.New(), "False Flag", "Documentation provided", nil)
+		if err != nil {
+			t.Fatalf("unexpected error submitting appeal: %v", err)
+		}
+		if appeal.Status != "submitted" {
+			t.Errorf("expected status 'submitted', got '%s'", appeal.Status)
+		}
+	})
+
+	t.Run("GetSafetyMetricsSummary returns aggregate summary", func(t *testing.T) {
+		summary, err := svc.GetSafetyMetricsSummary(ctx)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if summary.OpenReports < 0 {
+			t.Errorf("invalid open reports count: %d", summary.OpenReports)
 		}
 	})
 }

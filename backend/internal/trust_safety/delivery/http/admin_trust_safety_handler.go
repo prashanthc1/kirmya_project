@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"kirmya/internal/trust_safety/models"
 	"kirmya/internal/trust_safety/service"
 )
 
@@ -16,6 +17,85 @@ func NewAdminTrustSafetyHandler(safetyService service.TrustSafetyService) *Admin
 	return &AdminTrustSafetyHandler{safetyService: safetyService}
 }
 
+func getAdminID(c *gin.Context) (uuid.UUID, bool) {
+	val, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
+		return uuid.Nil, false
+	}
+	adminID, ok := val.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid context type"})
+		return uuid.Nil, false
+	}
+	return adminID, true
+}
+
+func (h *AdminTrustSafetyHandler) GetAdminSummary(c *gin.Context) {
+	summary, err := h.safetyService.GetSafetyMetricsSummary(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, summary)
+}
+
+func (h *AdminTrustSafetyHandler) GetAdminReports(c *gin.Context) {
+	status := c.Query("status")
+	reports, err := h.safetyService.GetAdminReports(c.Request.Context(), status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, reports)
+}
+
+func (h *AdminTrustSafetyHandler) GetReportByID(c *gin.Context) {
+	reportID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid report ID"})
+		return
+	}
+
+	report, err := h.safetyService.GetReportByID(c.Request.Context(), reportID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Report not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, report)
+}
+
+func (h *AdminTrustSafetyHandler) UpdateReportStatus(c *gin.Context) {
+	adminID, ok := getAdminID(c)
+	if !ok {
+		return
+	}
+
+	reportID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid report ID"})
+		return
+	}
+
+	var body struct {
+		Status string `json:"status" binding:"required"`
+		Notes  string `json:"notes"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = h.safetyService.UpdateReportStatus(c.Request.Context(), reportID, body.Status, body.Notes, &adminID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Report status updated successfully."})
+}
+
 func (h *AdminTrustSafetyHandler) GetAdminCases(c *gin.Context) {
 	status := c.Query("status")
 	cases, err := h.safetyService.GetAdminCases(c.Request.Context(), status)
@@ -23,16 +103,14 @@ func (h *AdminTrustSafetyHandler) GetAdminCases(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": cases})
+	c.JSON(http.StatusOK, cases)
 }
 
 func (h *AdminTrustSafetyHandler) ApplyAction(c *gin.Context) {
-	adminIDVal, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+	adminID, ok := getAdminID(c)
+	if !ok {
 		return
 	}
-	adminID := adminIDVal.(uuid.UUID)
 
 	caseIDStr := c.Param("id")
 	caseUUID, err := uuid.Parse(caseIDStr)
@@ -41,33 +119,52 @@ func (h *AdminTrustSafetyHandler) ApplyAction(c *gin.Context) {
 		return
 	}
 
-	var body struct {
-		ActionType   string `json:"action_type" binding:"required"`
-		Level        string `json:"level" binding:"required"`
-		Reason       string `json:"reason" binding:"required"`
-		DurationDays int    `json:"duration_days"`
-	}
+	var body models.ModerationActionPayload
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	decision, err := h.safetyService.ApplyModerationAction(c.Request.Context(), caseUUID, adminID, body.ActionType, body.Level, body.Reason, body.DurationDays)
+	decision, err := h.safetyService.ApplyModerationAction(c.Request.Context(), caseUUID, adminID, body.ActionType, body.EnforcementLevel, body.Reason, body.DurationDays)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": decision})
+	c.JSON(http.StatusOK, decision)
+}
+
+func (h *AdminTrustSafetyHandler) GetAdminAppeals(c *gin.Context) {
+	status := c.Query("status")
+	appeals, err := h.safetyService.GetAdminAppeals(c.Request.Context(), status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, appeals)
+}
+
+func (h *AdminTrustSafetyHandler) GetAppealByID(c *gin.Context) {
+	appealID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appeal ID"})
+		return
+	}
+
+	appeal, err := h.safetyService.GetAppealByID(c.Request.Context(), appealID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Appeal not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, appeal)
 }
 
 func (h *AdminTrustSafetyHandler) ResolveAppeal(c *gin.Context) {
-	adminIDVal, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "UNAUTHORIZED"})
+	adminID, ok := getAdminID(c)
+	if !ok {
 		return
 	}
-	adminID := adminIDVal.(uuid.UUID)
 
 	appealIDStr := c.Param("id")
 	appealUUID, err := uuid.Parse(appealIDStr)
@@ -77,7 +174,7 @@ func (h *AdminTrustSafetyHandler) ResolveAppeal(c *gin.Context) {
 	}
 
 	var body struct {
-		Status string `json:"status" binding:"required"` // upheld, reversed
+		Status string `json:"status" binding:"required"` // approved, denied, partially_approved
 		Notes  string `json:"notes"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -91,22 +188,39 @@ func (h *AdminTrustSafetyHandler) ResolveAppeal(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Appeal resolved successfully."})
+	c.JSON(http.StatusOK, gin.H{"message": "Appeal resolved successfully."})
+}
+
+func (h *AdminTrustSafetyHandler) GetSafetyRules(c *gin.Context) {
+	rules, err := h.safetyService.GetSafetyRules(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rules)
+}
+
+func (h *AdminTrustSafetyHandler) UpdateSafetyRule(c *gin.Context) {
+	var rule models.SafetyRule
+	if err := c.ShouldBindJSON(&rule); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.safetyService.UpdateSafetyRule(c.Request.Context(), &rule)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Safety policy rule updated successfully."})
 }
 
 func (h *AdminTrustSafetyHandler) GetAnalytics(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data": gin.H{
-			"reports_today":         42,
-			"open_reports":          12,
-			"resolved_reports":      128,
-			"avg_review_time_hours": 3.4,
-			"fake_job_reports":      8,
-			"fraud_reports":         5,
-			"suspended_accounts":    2,
-			"appeals_total":         6,
-			"appeal_success_rate":   0.33,
-		},
-	})
+	summary, err := h.safetyService.GetSafetyMetricsSummary(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, summary)
 }

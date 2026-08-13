@@ -25,7 +25,6 @@ DELETE /api/v1/recruiter/talent-pools/:id
 DELETE /api/v1/recruiter/talent-pools/:id/candidates/:candidateId
 DELETE /api/v1/resumes/:id
 DELETE /api/v1/resumes/:id/share
-DELETE /api/v1/safety/blocks/:userId
 DELETE /api/v1/saved-searches/:id
 DELETE /api/v1/search/saved/:id
 GET /api/v1/admin/analytics/ai
@@ -51,8 +50,6 @@ GET /api/v1/admin/notifications/providers
 GET /api/v1/admin/notifications/queue
 GET /api/v1/admin/notifications/templates
 GET /api/v1/admin/notifications/templates/:id
-GET /api/v1/admin/safety/analytics
-GET /api/v1/admin/safety/cases
 GET /api/v1/ai/preferences
 GET /api/v1/analytics/applications
 GET /api/v1/analytics/career
@@ -242,8 +239,6 @@ GET /api/v1/resumes/:id/analytics
 GET /api/v1/resumes/:id/download
 GET /api/v1/resumes/:id/versions
 GET /api/v1/resumes/templates
-GET /api/v1/safety/blocks
-GET /api/v1/safety/reports
 GET /api/v1/saved-searches
 GET /api/v1/search/history
 GET /api/v1/search/notes/:candidateId
@@ -261,8 +256,6 @@ POST /api/v1/admin/notifications/templates
 POST /api/v1/admin/notifications/templates/:id/archive
 POST /api/v1/admin/notifications/templates/:id/publish
 POST /api/v1/admin/notifications/templates/:id/test
-POST /api/v1/admin/safety/appeals/:id/resolve
-POST /api/v1/admin/safety/cases/:id/actions
 POST /api/v1/ai/career-suggestions
 POST /api/v1/ai/interview-prep
 POST /api/v1/ai/job-matching
@@ -399,9 +392,6 @@ POST /api/v1/resumes/:id/preview
 POST /api/v1/resumes/:id/share
 POST /api/v1/resumes/:id/tailor
 POST /api/v1/resumes/import
-POST /api/v1/safety/appeals
-POST /api/v1/safety/blocks/:userId
-POST /api/v1/safety/reports
 POST /api/v1/saved-searches
 POST /api/v1/search/candidates
 POST /api/v1/search/contact

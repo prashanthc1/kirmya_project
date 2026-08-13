@@ -6,97 +6,107 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  MenuItem,
   Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Stack,
   Alert,
+  Typography,
 } from '@mui/material';
+import { safetyApi } from '../../features/trust_safety/api';
 
 interface ReportDialogProps {
   open: boolean;
   onClose: () => void;
-  targetType?: string;
-  targetId?: string;
-  targetTitle?: string;
+  defaultTargetType?: string;
+  defaultTargetId?: string;
 }
 
 export const ReportDialog: React.FC<ReportDialogProps> = ({
   open,
   onClose,
-  targetType = 'job',
-  targetId = 'target-123',
-  targetTitle = 'Job Position',
+  defaultTargetType = 'job',
+  defaultTargetId = 'target-001',
 }) => {
+  const [targetType, setTargetType] = useState(defaultTargetType);
+  const [targetId, setTargetId] = useState(defaultTargetId);
   const [category, setCategory] = useState('fake_job');
   const [description, setDescription] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
-  const categories = [
-    { value: 'spam', label: 'Spam' },
-    { value: 'scam', label: 'Scam' },
-    { value: 'fraud', label: 'Financial Fraud' },
-    { value: 'fake_job', label: 'Fake Job Posting' },
-    { value: 'fake_recruiter', label: 'Fake Recruiter / Impersonation' },
-    { value: 'harassment', label: 'Harassment or Threats' },
-    { value: 'hate_abuse', label: 'Hate or Discriminatory Abuse' },
-    { value: 'phishing', label: 'Phishing / Malicious Content' },
-    { value: 'other', label: 'Other' },
-  ];
-
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (!description) {
+      setStatus('Please provide a description of the safety violation.');
+      return;
+    }
+    await safetyApi.submitReport({
+      target_type: targetType,
+      target_id: targetId,
+      category,
+      description,
+    });
+    setStatus('Report submitted successfully. Confirmation ID generated.');
     setTimeout(() => {
       onClose();
-      setSubmitted(false);
+      setStatus(null);
       setDescription('');
-    }, 1200);
+    }, 1500);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}>
-      <DialogTitle sx={{ fontWeight: 900 }}>Report Content or Account</DialogTitle>
-      <DialogContent>
-        {submitted ? (
-          <Alert severity="success" sx={{ mt: 1, borderRadius: '12px' }}>
-            Report submitted successfully. Reporter details are strictly protected and confidential.
-          </Alert>
-        ) : (
-          <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField
-              select
-              label="Report Category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              fullWidth
-            >
-              {categories.map((c) => (
-                <MenuItem key={c.value} value={c.value}>{c.label}</MenuItem>
-              ))}
-            </TextField>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ style: { borderRadius: 24 } }}>
+      <DialogTitle sx={{ fontWeight: 900 }}>Submit Confidential Safety Report</DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={2.5}>
+          <Typography variant="body2" color="text.secondary">
+            Reporters remain completely anonymous. Our Trust & Safety team will review your report in accordance with platform policies.
+          </Typography>
 
-            <TextField
-              label="Description & Context"
-              multiline
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the issue or evidence..."
-              fullWidth
-            />
-          </Stack>
-        )}
+          <FormControl fullWidth>
+            <InputLabel>Target Entity Type</InputLabel>
+            <Select value={targetType} label="Target Entity Type" onChange={(e) => setTargetType(e.target.value)}>
+              <MenuItem value="job">Job Posting</MenuItem>
+              <MenuItem value="user">User Profile</MenuItem>
+              <MenuItem value="recruiter">Recruiter Account</MenuItem>
+              <MenuItem value="company">Company</MenuItem>
+              <MenuItem value="community">Community / Group</MenuItem>
+              <MenuItem value="message">Message / Chat</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel>Report Category / Reason</InputLabel>
+            <Select value={category} label="Report Category / Reason" onChange={(e) => setCategory(e.target.value)}>
+              <MenuItem value="fake_job">Fake Job / Recruitment Scam</MenuItem>
+              <MenuItem value="spam">Spam / Unsolicited Promotion</MenuItem>
+              <MenuItem value="impersonation">Identity Impersonation</MenuItem>
+              <MenuItem value="harassment">Harassment or Bullying</MenuItem>
+              <MenuItem value="phishing">Phishing / Malicious Links</MenuItem>
+              <MenuItem value="privacy_violation">Privacy Violation</MenuItem>
+              <MenuItem value="other">Other Violation</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Detailed Description & Evidence Context"
+            multiline
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe what occurred, including any advance fee payment requests or off-platform contacts..."
+            fullWidth
+          />
+
+          {status && <Alert severity={status.includes('successfully') ? 'success' : 'error'} sx={{ borderRadius: '12px' }}>{status}</Alert>}
+        </Stack>
       </DialogContent>
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
-          color="error"
-          disabled={!description || submitted}
-          onClick={handleSubmit}
-          sx={{ borderRadius: '12px', fontWeight: 800 }}
-        >
-          Submit Report
+      <DialogActions sx={{ p: 2.5 }}>
+        <Button onClick={onClose} sx={{ fontWeight: 800 }}>Cancel</Button>
+        <Button variant="contained" color="error" onClick={handleSubmit} sx={{ borderRadius: '12px', fontWeight: 800 }}>
+          Submit Confidential Report
         </Button>
       </DialogActions>
     </Dialog>

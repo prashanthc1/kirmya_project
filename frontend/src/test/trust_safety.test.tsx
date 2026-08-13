@@ -1,81 +1,41 @@
-import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import SafetyCenter from '../components/safety/SafetyCenter';
-import SafetyGuidelines from '../components/safety/SafetyGuidelines';
-import ReportDialog from '../components/safety/ReportDialog';
-import BlockList from '../components/safety/BlockList';
+import ReportList from '../components/safety/ReportList';
+import BlockedUsers from '../components/safety/BlockedUsers';
 import AppealForm from '../components/safety/AppealForm';
-import ModerationDashboard from '../components/safety/ModerationDashboard';
-import { ThemeProvider, createTheme } from '@mui/material';
+import AdminTrustSafetyDashboard from '../components/admin/trust-safety/AdminTrustSafetyDashboard';
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    prefetch: vi.fn(),
-  }),
-  usePathname: () => '/safety',
-}));
-
-const theme = createTheme();
-
-describe('Trust & Safety Subsystem Tests', () => {
-  it('renders Safety Center hub', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <SafetyCenter />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Kirmya Safety & Trust Operations Center/i)).toBeInTheDocument();
-    expect(screen.getByText(/Community Guidelines/i)).toBeInTheDocument();
+describe('Trust & Safety Control Module Test Suite', () => {
+  it('renders SafetyCenter public trust hub', () => {
+    render(<SafetyCenter />);
+    expect(screen.getByText(/Kirmya Trust & Safety Center/i)).toBeInTheDocument();
+    expect(screen.getByText(/Proactive Fraud Prevention/i)).toBeInTheDocument();
+    expect(screen.getByText(/Server-Side Blocking/i)).toBeInTheDocument();
   });
 
-  it('renders Safety Guidelines', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <SafetyGuidelines />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Community & Safety Guidelines/i)).toBeInTheDocument();
-    expect(screen.getByText(/Job Scams & Financial Fraud/i)).toBeInTheDocument();
+  it('renders ReportList user reports tracker', () => {
+    render(<ReportList />);
+    expect(screen.getByText(/My Submitted Reports/i)).toBeInTheDocument();
+    expect(screen.getByText(/Remote Senior Data Engineer/i)).toBeInTheDocument();
   });
 
-  it('renders Report Dialog modal', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <ReportDialog open={true} onClose={() => {}} />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Report Content or Account/i)).toBeInTheDocument();
+  it('renders BlockedUsers blocked accounts manager', () => {
+    render(<BlockedUsers />);
+    expect(screen.getByText(/Blocked Accounts & Entities/i)).toBeInTheDocument();
+    expect(screen.getByText(/Suspicious Recruiter Account/i)).toBeInTheDocument();
   });
 
-  it('renders Block List component', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <BlockList />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Blocked Accounts/i)).toBeInTheDocument();
-    expect(screen.getByText(/Apex Recruiters Agency/i)).toBeInTheDocument();
+  it('renders AppealForm moderation appeal form', () => {
+    render(<AppealForm />);
+    expect(screen.getByText(/Submit Moderation Decision Appeal/i)).toBeInTheDocument();
   });
 
-  it('renders Appeal Form', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <AppealForm />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Submit Enforcement Appeal/i)).toBeInTheDocument();
-  });
-
-  it('renders Admin Moderation Dashboard', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <ModerationDashboard />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Trust & Safety Moderation Center/i)).toBeInTheDocument();
-    expect(screen.getByText(/Reports Today/i)).toBeInTheDocument();
+  it('renders AdminTrustSafetyDashboard executive console', () => {
+    render(<AdminTrustSafetyDashboard />);
+    expect(screen.getByText(/Executive Trust & Safety Control Center/i)).toBeInTheDocument();
+    expect(screen.getByText(/Open Reports/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pending Appeals/i)).toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 func RegisterRoutes(router *gin.RouterGroup, handler interface{}) {
@@ -11,47 +12,66 @@ func RegisterRoutes(router *gin.RouterGroup, handler interface{}) {
 }
 
 func RegisterSafetyRoutes(router *gin.RouterGroup, handler *TrustSafetyHandler) {
-	var submitReport, getUserReports, blockUser, unblockUser, getUserBlocks, submitAppeal gin.HandlerFunc
-	if handler != nil {
-		submitReport = handler.SubmitReport
-		getUserReports = handler.GetUserReports
-		blockUser = handler.BlockUser
-		unblockUser = handler.UnblockUser
-		getUserBlocks = handler.GetUserBlocks
-		submitAppeal = handler.SubmitAppeal
-	} else {
-		dummy := func(c *gin.Context) {}
-		submitReport, getUserReports, blockUser, unblockUser, getUserBlocks, submitAppeal = dummy, dummy, dummy, dummy, dummy, dummy
+	if handler == nil {
+		return
 	}
 
 	safety := router.Group("/safety")
+	safety.Use(sharedMiddleware.AuthRequired())
 	{
-		safety.POST("/reports", submitReport)
-		safety.GET("/reports", getUserReports)
-		safety.POST("/blocks/:userId", blockUser)
-		safety.DELETE("/blocks/:userId", unblockUser)
-		safety.GET("/blocks", getUserBlocks)
-		safety.POST("/appeals", submitAppeal)
+		safety.POST("/reports", handler.SubmitReport)
+		safety.GET("/reports", handler.GetUserReports)
+		safety.GET("/reports/:id", handler.GetReportByID)
+
+		safety.POST("/blocks", handler.BlockUser)
+		safety.POST("/blocks/:userId", handler.BlockUser)
+		safety.DELETE("/blocks/:userId", handler.UnblockUser)
+		safety.GET("/blocks", handler.GetUserBlocks)
+
+		safety.POST("/mutes", handler.MuteEntity)
+		safety.DELETE("/mutes/:id", handler.UnmuteEntity)
+		safety.GET("/mutes", handler.GetUserMutes)
+
+		safety.GET("/appeals", handler.GetUserAppeals)
+		safety.POST("/appeals", handler.SubmitAppeal)
+		safety.GET("/appeals/:id", handler.GetAppealByID)
 	}
 }
 
 func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafetyHandler) {
-	var getAdminCases, applyAction, resolveAppeal, getAnalytics gin.HandlerFunc
-	if handler != nil {
-		getAdminCases = handler.GetAdminCases
-		applyAction = handler.ApplyAction
-		resolveAppeal = handler.ResolveAppeal
-		getAnalytics = handler.GetAnalytics
-	} else {
-		dummy := func(c *gin.Context) {}
-		getAdminCases, applyAction, resolveAppeal, getAnalytics = dummy, dummy, dummy, dummy
+	if handler == nil {
+		return
 	}
 
-	adminSafety := router.Group("/admin/safety")
+	adminTrustSafety := router.Group("/admin/trust-safety")
+	adminTrustSafety.Use(sharedMiddleware.AuthRequired())
 	{
-		adminSafety.GET("/cases", getAdminCases)
-		adminSafety.POST("/cases/:id/actions", applyAction)
-		adminSafety.POST("/appeals/:id/resolve", resolveAppeal)
-		adminSafety.GET("/analytics", getAnalytics)
+		adminTrustSafety.GET("", handler.GetAdminSummary)
+		adminTrustSafety.GET("/reports", handler.GetAdminReports)
+		adminTrustSafety.GET("/reports/:id", handler.GetReportByID)
+		adminTrustSafety.PUT("/reports/:id", handler.UpdateReportStatus)
+		adminTrustSafety.POST("/reports/:id/actions", handler.ApplyAction)
+
+		adminTrustSafety.GET("/cases", handler.GetAdminCases)
+		adminTrustSafety.POST("/cases/:id/actions", handler.ApplyAction)
+
+		adminTrustSafety.GET("/appeals", handler.GetAdminAppeals)
+		adminTrustSafety.GET("/appeals/:id", handler.GetAppealByID)
+		adminTrustSafety.PUT("/appeals/:id", handler.ResolveAppeal)
+		adminTrustSafety.POST("/appeals/:id/resolve", handler.ResolveAppeal)
+
+		adminTrustSafety.GET("/incidents", handler.GetAdminCases)
+		adminTrustSafety.GET("/rules", handler.GetSafetyRules)
+		adminTrustSafety.PUT("/rules", handler.UpdateSafetyRule)
+		adminTrustSafety.GET("/analytics", handler.GetAnalytics)
+	}
+
+	adminSafetyLegacy := router.Group("/admin/safety")
+	adminSafetyLegacy.Use(sharedMiddleware.AuthRequired())
+	{
+		adminSafetyLegacy.GET("/cases", handler.GetAdminCases)
+		adminSafetyLegacy.POST("/cases/:id/actions", handler.ApplyAction)
+		adminSafetyLegacy.POST("/appeals/:id/resolve", handler.ResolveAppeal)
+		adminSafetyLegacy.GET("/analytics", handler.GetAnalytics)
 	}
 }
