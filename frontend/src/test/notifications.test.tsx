@@ -59,12 +59,12 @@ describe('Notification & Communication Module Component Tests', () => {
     expect(screen.getByText(/Security Exception:/i)).toBeInTheDocument();
   });
 
-  it('renders Admin Notification Control Center', () => {
+  it('renders Admin Notification Control Console', () => {
     render(
       <ThemeProvider theme={theme}>
         <AdminNotificationCenter />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Admin Notification & Communication Control Center/i)).toBeInTheDocument();
+    expect(screen.getByText(/Admin Notification Control Console/i)).toBeInTheDocument();
   });
 });
