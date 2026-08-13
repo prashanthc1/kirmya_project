@@ -4,7 +4,7 @@ export interface SupportArticleCategory {
   name: string;
   description?: string;
   display_order: number;
-  is_active: bool;
+  is_active: boolean;
 }
 
 export interface SupportArticle {

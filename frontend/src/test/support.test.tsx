@@ -34,7 +34,7 @@ describe('Help Center & Support Module Test Suite', () => {
 
   it('renders FeedbackForm feature request & bug report form', () => {
     render(<FeedbackForm />);
-    expect(screen.getByText(/Submit Feature Request/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Submit Feature Request/i })).toBeInTheDocument();
   });
 
   it('renders AdminSupportDashboard executive console', () => {
