@@ -4454,6 +4454,66 @@ paths:
       summary: Get safety analytics
       tags:
       - Trust & Safety
+  /api/v1/admin/safety/appeals/{id}/resolve:
+    post:
+      consumes:
+      - application/json
+      description: Resolves appeal via the Kirmya trust and safety module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Appeal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Resolve appeal
+      tags:
+      - Trust & Safety
+  /api/v1/admin/safety/cases:
+    get:
+      description: Returns admin safety cases via the Kirmya trust and safety module.
+        Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get admin safety cases
+      tags:
+      - Trust & Safety
   /api/v1/admin/safety/cases/{id}/actions:
     post:
       consumes:
@@ -17584,7 +17644,64 @@ paths:
       summary: Submit appeal
       tags:
       - Trust & Safety
+  /api/v1/safety/blocks:
+    get:
+      description: Returns user blocks via the Kirmya trust and safety module. Requires
+        a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user blocks
+      tags:
+      - Trust & Safety
   /api/v1/safety/blocks/{userId}:
+    delete:
+      description: Unblocks user via the Kirmya trust and safety module. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unblock user
+      tags:
+      - Trust & Safety
     post:
       consumes:
       - application/json

@@ -3,103 +3,100 @@ package http
 import (
 	"net/http"
 
-	"kirmya/internal/analytics/domain"
-	"kirmya/internal/analytics/service"
-	"kirmya/internal/shared/middleware"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"kirmya/internal/analytics/models"
+	"kirmya/internal/analytics/service"
 )
 
 type AnalyticsHandler struct {
-	svc service.AnalyticsService
+	svc *service.AnalyticsService
 }
 
-func NewAnalyticsHandler(svc service.AnalyticsService) *AnalyticsHandler {
+func NewAnalyticsHandler(svc *service.AnalyticsService) *AnalyticsHandler {
 	return &AnalyticsHandler{svc: svc}
 }
 
-// TrackEvent handles POST /analytics/events
-func (h *AnalyticsHandler) TrackEvent(c *gin.Context) {
-	var payload domain.TrackEventPayload
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid analytics payload", "details": err.Error()})
+// IngestEvent handles POST /api/v1/internal/analytics/events
+func (h *AnalyticsHandler) IngestEvent(c *gin.Context) {
+	var req models.IngestEventRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
 		return
 	}
 
-	tenantIDStr := middleware.GetTenantID(c)
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil || tenantID == uuid.Nil {
-		tenantID = uuid.MustParse(middleware.DefaultTenantID)
-	}
-
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
-	}
-
-	if err := h.svc.TrackEvent(c.Request.Context(), tenantID, userID, payload); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "Analytics event tracked successfully"})
-}
-
-// GetAdminAnalytics handles GET /analytics/admin
-func (h *AnalyticsHandler) GetAdminAnalytics(c *gin.Context) {
-	tenantIDStr := middleware.GetTenantID(c)
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil || tenantID == uuid.Nil {
-		tenantID = uuid.MustParse(middleware.DefaultTenantID)
-	}
-
-	res, err := h.svc.GetAdminAnalytics(c.Request.Context(), tenantID)
+	event, err := h.svc.IngestEvent(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Event ingested successfully",
+		"event":   event,
+	})
 }
 
-// GetRecruiterAnalytics handles GET /analytics/recruiter
-func (h *AnalyticsHandler) GetRecruiterAnalytics(c *gin.Context) {
-	tenantIDStr := middleware.GetTenantID(c)
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil || tenantID == uuid.Nil {
-		tenantID = uuid.MustParse(middleware.DefaultTenantID)
-	}
-
-	res, err := h.svc.GetRecruiterAnalytics(c.Request.Context(), tenantID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
-}
-
-// GetUserAnalytics handles GET /analytics/user
+// GetUserAnalytics handles GET /api/v1/analytics/profile
 func (h *AnalyticsHandler) GetUserAnalytics(c *gin.Context) {
-	tenantIDStr := middleware.GetTenantID(c)
-	tenantID, err := uuid.Parse(tenantIDStr)
-	if err != nil || tenantID == uuid.Nil {
-		tenantID = uuid.MustParse(middleware.DefaultTenantID)
-	}
-
 	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	if userIDStr == "" {
+		userIDStr = "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d" // Default dev fallback
 	}
 
-	res, err := h.svc.GetUserAnalytics(c.Request.Context(), tenantID, userID)
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		userID = uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	}
+
+	analytics, err := h.svc.GetUserAnalytics(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, analytics)
+}
+
+// GetRecruiterAnalytics handles GET /api/v1/recruiter/analytics
+func (h *AnalyticsHandler) GetRecruiterAnalytics(c *gin.Context) {
+	orgIDStr := c.Query("organization_id")
+	if orgIDStr == "" {
+		orgIDStr = "e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c" // Default dev fallback
+	}
+
+	orgID, err := uuid.Parse(orgIDStr)
+	if err != nil {
+		orgID = uuid.MustParse("e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c")
+	}
+
+	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	analytics, err := h.svc.GetRecruiterAnalytics(c.Request.Context(), orgID, userID)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, analytics)
+}
+
+// GetCompanyAnalytics handles GET /api/v1/company/analytics
+func (h *AnalyticsHandler) GetCompanyAnalytics(c *gin.Context) {
+	companyIDStr := c.Query("company_id")
+	if companyIDStr == "" {
+		companyIDStr = "e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c"
+	}
+
+	companyID, err := uuid.Parse(companyIDStr)
+	if err != nil {
+		companyID = uuid.MustParse("e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c")
+	}
+
+	analytics, err := h.svc.GetCompanyAnalytics(c.Request.Context(), companyID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, analytics)
 }

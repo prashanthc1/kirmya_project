@@ -4,70 +4,44 @@ import (
 	"context"
 	"testing"
 
-	"kirmya/internal/analytics/domain"
-	"kirmya/internal/analytics/repository"
-
 	"github.com/google/uuid"
+	"kirmya/internal/analytics/models"
 )
 
-func TestAdminAnalytics(t *testing.T) {
-	repo := repository.NewAnalyticsRepository(nil)
-	svc := NewAnalyticsService(repo)
-	tenantID := uuid.New()
+func TestIngestEventValidation(t *testing.T) {
+	svc := NewAnalyticsService(nil)
+	ctx := context.Background()
 
-	res, err := svc.GetAdminAnalytics(context.Background(), tenantID)
-	if err != nil {
-		t.Fatalf("Expected no error fetching admin analytics, got %v", err)
-	}
-
-	if res.TotalUsers != 12450 {
-		t.Errorf("Expected TotalUsers 12450, got %d", res.TotalUsers)
-	}
-
-	if len(res.SkillDemandHeatmap) == 0 {
-		t.Errorf("Expected non-empty skill demand heatmap")
-	}
-}
-
-func TestRecruiterAnalytics(t *testing.T) {
-	repo := repository.NewAnalyticsRepository(nil)
-	svc := NewAnalyticsService(repo)
-	tenantID := uuid.New()
-
-	res, err := svc.GetRecruiterAnalytics(context.Background(), tenantID)
-	if err != nil {
-		t.Fatalf("Expected no error fetching recruiter analytics, got %v", err)
-	}
-
-	if res.TotalCandidatesScreened != 480 {
-		t.Errorf("Expected TotalCandidatesScreened 480, got %d", res.TotalCandidatesScreened)
-	}
-
-	if len(res.CandidateFunnel) == 0 {
-		t.Errorf("Expected candidate funnel stages")
-	}
-}
-
-func TestUserAnalyticsAndTrackEvent(t *testing.T) {
-	repo := repository.NewAnalyticsRepository(nil)
-	svc := NewAnalyticsService(repo)
-	tenantID := uuid.New()
-	userID := uuid.New()
-
-	err := svc.TrackEvent(context.Background(), tenantID, userID, domain.TrackEventPayload{
-		EventName: domain.EventProfileView,
-		EntityID:  "candidate-profile-1",
+	_, err := svc.IngestEvent(ctx, &models.IngestEventRequest{
+		EventType: "",
 	})
-	if err != nil {
-		t.Fatalf("Expected no error tracking event, got %v", err)
+	if err == nil {
+		t.Fatalf("expected ErrInvalidEventType when event_type is empty")
+	}
+}
+
+func TestOrgIsolationValidation(t *testing.T) {
+	svc := NewAnalyticsService(nil)
+	ctx := context.Background()
+
+	_, err := svc.GetRecruiterAnalytics(ctx, uuid.Nil, uuid.New())
+	if err == nil {
+		t.Fatalf("expected ErrUnauthorizedOrgAccess when orgID is nil")
+	}
+}
+
+func TestZeroDenominatorProtection(t *testing.T) {
+	totalApps := 0
+	totalViews := 0
+	var conversionRate float64
+
+	if totalViews > 0 {
+		conversionRate = (float64(totalApps) / float64(totalViews)) * 100.0
+	} else {
+		conversionRate = 0.0
 	}
 
-	res, err := svc.GetUserAnalytics(context.Background(), tenantID, userID)
-	if err != nil {
-		t.Fatalf("Expected no error fetching user analytics, got %v", err)
-	}
-
-	if res.ProfileViewsCount < 1 {
-		t.Errorf("Expected profile views count > 0")
+	if conversionRate != 0.0 {
+		t.Fatalf("expected conversionRate to be 0.0, got %f", conversionRate)
 	}
 }

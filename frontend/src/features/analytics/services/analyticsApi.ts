@@ -1,33 +1,57 @@
 import axios from 'axios';
+import {
+  AdminAnalyticsOverview,
+  AnalyticsExportJob,
+  CompanyOverviewAnalytics,
+  IngestEventRequest,
+  RecruiterHiringAnalytics,
+  UserPersonalAnalytics,
+} from '../types';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
+const API_BASE = 'http://localhost:8080/api/v1';
 
 const client = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
+    Authorization: 'Bearer 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
   },
-});
-
-client.interceptors.request.use((config: any) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  return config;
 });
 
 export const analyticsApi = {
-  getOverview: async () => {
-    const response = await client.get('/analytics/overview');
-    return response.data;
+  ingestEvent: async (payload: IngestEventRequest): Promise<{ message: string; event: any }> => {
+    const res = await client.post('/internal/analytics/events', payload);
+    return res.data;
   },
 
-  getTrends: async (days: number = 7) => {
-    const response = await client.get(`/analytics/trends?days=${days}`);
-    return response.data;
+  getUserAnalytics: async (): Promise<UserPersonalAnalytics> => {
+    const res = await client.get('/analytics/profile');
+    return res.data;
   },
 
-  trackEvent: async (eventType: string, eventMetadata: Record<string, any> = {}) => {
-    const response = await client.post('/analytics/track', { eventType, eventMetadata });
-    return response.data;
+  getRecruiterAnalytics: async (orgID?: string): Promise<RecruiterHiringAnalytics> => {
+    const res = await client.get('/recruiter/analytics/overview', {
+      params: { organization_id: orgID },
+    });
+    return res.data;
+  },
+
+  getCompanyAnalytics: async (companyID?: string): Promise<CompanyOverviewAnalytics> => {
+    const res = await client.get('/company/analytics/overview', {
+      params: { company_id: companyID },
+    });
+    return res.data;
+  },
+
+  getAdminOverview: async (): Promise<AdminAnalyticsOverview> => {
+    const res = await client.get('/admin/analytics/overview');
+    return res.data;
+  },
+
+  requestExport: async (format: string = 'csv'): Promise<{ message: string; export: AnalyticsExportJob }> => {
+    const res = await client.post('/admin/analytics/export', { format });
+    return res.data;
   },
 };
+
+export default analyticsApi;

@@ -1,42 +1,93 @@
-export interface SkillDemandItem {
-  skill: string;
-  count: number;
-  share: number;
+export interface IngestEventRequest {
+  event_type: string;
+  event_version?: string;
+  user_id?: string;
+  organization_id?: string;
+  entity_type?: string;
+  entity_id?: string;
+  session_id?: string;
+  source?: string;
+  platform?: string;
+  metadata?: Record<string, any>;
+  idempotency_key?: string;
 }
 
-export interface AdminAnalytics {
-  total_users: number;
-  active_users: number;
-  user_growth_rate: number;
-  total_job_openings: number;
-  hiring_velocity_days: number;
-  skill_demand_heatmap: SkillDemandItem[];
-  market_trend_summary: string;
+export interface UserPersonalAnalytics {
+  profile_views_count: number;
+  search_appearances_count: number;
+  applications_count: number;
+  applications_this_week: number;
+  applications_this_month: number;
+  saved_jobs_count: number;
+  interview_invitation_rate: number;
+  offer_rate: number;
+  profile_completeness: number;
 }
 
-export interface ConversionStage {
+export interface FunnelStageItem {
   stage: string;
   count: number;
   percentage: number;
 }
 
-export interface RecruiterAnalytics {
-  total_candidates_screened: number;
-  avg_time_to_hire_days: number;
-  application_to_offer_rate: number;
-  candidate_funnel: ConversionStage[];
-  top_performing_job: string;
-  job_views_count: number;
+export interface RecruiterHiringAnalytics {
+  jobs_posted_count: number;
+  applications_count: number;
+  candidates_viewed_count: number;
+  interviews_count: number;
+  offers_count: number;
+  hires_count: number;
+  avg_time_to_review_hours: number;
+  application_funnel: FunnelStageItem[];
 }
 
-export interface UserAnalytics {
-  profile_views_count: number;
-  search_appearances_count: number;
-  applications_count: number;
-  interview_invitation_rate: number;
-  profile_completeness: number;
-  top_searching_companies: string[];
+export interface CompanyOverviewAnalytics {
+  company_profile_views_count: number;
+  active_jobs_count: number;
+  total_job_views_count: number;
+  total_applications_count: number;
+  followers_count: number;
+  candidate_conversion_rate: number;
 }
+
+export interface CohortItem {
+  cohort_date: string;
+  period_offset: number;
+  user_count: number;
+  retained_count: number;
+  retention_rate: number;
+}
+
+export interface AdminAnalyticsOverview {
+  total_users: number;
+  active_users_dau: number;
+  active_users_mau: number;
+  new_users_today: number;
+  verified_users: number;
+  total_jobs: number;
+  total_applications: number;
+  total_connections: number;
+  total_messages: number;
+  total_ai_requests: number;
+  total_safety_reports: number;
+  event_processing_latency_ms: number;
+  data_freshness_timestamp: string;
+}
+
+export interface AnalyticsExportJob {
+  id: string;
+  admin_id: string;
+  export_format: string;
+  status: string;
+  download_url?: string;
+  expires_at: string;
+  created_at: string;
+}
+
+// Legacy Type Exports for Backward Compatibility
+export type AdminAnalytics = AdminAnalyticsOverview;
+export type RecruiterAnalytics = RecruiterHiringAnalytics;
+export type UserAnalytics = UserPersonalAnalytics;
 
 export interface TrackEventPayload {
   event_name: string;

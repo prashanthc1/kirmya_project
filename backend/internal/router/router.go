@@ -126,6 +126,7 @@ type RouterDependencies struct {
 	AdminLegalHandler           *legalHttp.AdminLegalHandler
 	TrustSafetyHandler          *trustHttp.TrustSafetyHandler
 	AdminTrustSafetyHandler     *trustHttp.AdminTrustSafetyHandler
+	AdminAnalyticsHandler      *analyticsHttp.AdminAnalyticsHandler
 }
 
 type Handlers = RouterDependencies
