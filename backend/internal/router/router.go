@@ -53,6 +53,7 @@ import (
 	unifiedSearchHttp "kirmya/internal/search/delivery/http"
 	securityHttp "kirmya/internal/security/delivery/http"
 	"kirmya/internal/shared/middleware"
+	supportHttp "kirmya/internal/support/delivery/http"
 	trustHttp "kirmya/internal/trust_safety/delivery/http"
 	verificationHttp "kirmya/internal/verification/delivery/http"
 	intelligenceHttp "kirmya/internal/workforce_intelligence/delivery/http"
@@ -119,6 +120,8 @@ type RouterDependencies struct {
 	AdminAnalyticsHandler       *analyticsHttp.AdminAnalyticsHandler
 	SecurityHandler             *securityHttp.SecurityHandler
 	AdminSecurityHandler        *securityHttp.AdminSecurityHandler
+	SupportHandler              *supportHttp.SupportHandler
+	AdminSupportHandler         *supportHttp.AdminSupportHandler
 }
 
 type Handlers = RouterDependencies
@@ -230,6 +233,13 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.AdminSecurityHandler != nil {
 		securityHttp.RegisterAdminSecurityRoutes(api, deps.AdminSecurityHandler)
+	}
+	if deps.SupportHandler != nil {
+		supportHttp.RegisterPublicHelpRoutes(api, deps.SupportHandler)
+		supportHttp.RegisterSupportRoutes(api, deps.SupportHandler)
+	}
+	if deps.AdminSupportHandler != nil {
+		supportHttp.RegisterAdminSupportRoutes(api, deps.AdminSupportHandler)
 	}
 	trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
 	trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler)
