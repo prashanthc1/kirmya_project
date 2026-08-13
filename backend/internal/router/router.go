@@ -15,6 +15,7 @@ import (
 	assessmentHttp "kirmya/internal/assessment/delivery/http"
 	authHttp "kirmya/internal/auth/delivery/http"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
+	billingHttp "kirmya/internal/billing/delivery/http"
 	candidateSearchHttp "kirmya/internal/candidate_search/delivery/http"
 	careerAIHttp "kirmya/internal/career_ai/delivery/http"
 	companionHttp "kirmya/internal/career_companion/delivery/http"
@@ -33,6 +34,7 @@ import (
 	jobsHttp "kirmya/internal/jobs/delivery/http"
 	landingHttp "kirmya/internal/landing/delivery/http"
 	learningHttp "kirmya/internal/learning/delivery/http"
+	legalHttp "kirmya/internal/legal/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
 	mobileHttp "kirmya/internal/mobile/delivery/http"
 	nativeMobileHttp "kirmya/internal/native_mobile/delivery/http"
@@ -49,30 +51,18 @@ import (
 	resumeHttp "kirmya/internal/resume/delivery/http"
 	resumeAnalysisHttp "kirmya/internal/resume_analysis/delivery/http"
 	unifiedSearchHttp "kirmya/internal/search/delivery/http"
+	securityHttp "kirmya/internal/security/delivery/http"
 	"kirmya/internal/shared/middleware"
-	legalHttp "kirmya/internal/legal/delivery/http"
-	billingHttp "kirmya/internal/billing/delivery/http"
 	trustHttp "kirmya/internal/trust_safety/delivery/http"
 	verificationHttp "kirmya/internal/verification/delivery/http"
 	intelligenceHttp "kirmya/internal/workforce_intelligence/delivery/http"
 )
 
 type RouterDependencies struct {
-	// AllowedOrigins are the browser origins that may call the API with
-	// credentials, from config.CORSAllowedOrigins. Empty allows none.
 	AllowedOrigins []string
-
-	// TrustedProxies are the proxy addresses whose X-Forwarded-For header may
-	// be believed. Empty trusts none, so the rate limiter keys on the real peer
-	// address instead of one the caller can forge.
 	TrustedProxies []string
-
-	// RateLimit caps requests per client IP across the whole API. A zero
-	// RequestsPerMinute disables it.
-	RateLimit RateLimitConfig
-
-	// Metrics gates the Prometheus exposition endpoint.
-	Metrics MetricsConfig
+	RateLimit      RateLimitConfig
+	Metrics        MetricsConfig
 
 	AuthMiddleware              *authMiddlewarePkg.AuthMiddleware
 	AuthHandler                 *authHttp.AuthHandler
@@ -126,15 +116,13 @@ type RouterDependencies struct {
 	AdminLegalHandler           *legalHttp.AdminLegalHandler
 	TrustSafetyHandler          *trustHttp.TrustSafetyHandler
 	AdminTrustSafetyHandler     *trustHttp.AdminTrustSafetyHandler
-	AdminAnalyticsHandler      *analyticsHttp.AdminAnalyticsHandler
+	AdminAnalyticsHandler       *analyticsHttp.AdminAnalyticsHandler
+	SecurityHandler             *securityHttp.SecurityHandler
+	AdminSecurityHandler        *securityHttp.AdminSecurityHandler
 }
 
 type Handlers = RouterDependencies
 
-// RateLimitConfig describes the per-client-IP budget applied to every API
-// route. Burst is the number of requests allowed back to back before the
-// sustained rate takes over, which has to cover the parallel calls a single
-// page load fires.
 type RateLimitConfig struct {
 	RequestsPerMinute float64
 	Burst             float64
@@ -142,16 +130,10 @@ type RateLimitConfig struct {
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	engine := gin.Default()
-	// Gin trusts every proxy by default, which would let any caller set
-	// X-Forwarded-For and appear as a new client to the rate limiter. Trust
-	// only the addresses the operator names.
 	if err := engine.SetTrustedProxies(deps.TrustedProxies); err != nil {
 		slog.Error("Invalid TRUSTED_PROXIES entry; trusting no proxy", slog.String("error", err.Error()))
 		_ = engine.SetTrustedProxies(nil)
 	}
-	// Engine-level so they also cover /swagger and the 404 chain, and so CORS
-	// preflights on paths with no OPTIONS handler are answered instead of
-	// falling through to a 404 the browser reports as a CORS failure.
 	engine.Use(middleware.SecurityHeaders())
 	engine.Use(middleware.CORS(deps.AllowedOrigins))
 	registerSwagger(engine, cfg)
@@ -160,13 +142,6 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	return engine
 }
 
-// registerHealthCheck exposes the liveness probe a platform host polls to
-// decide whether a deployment came up. It sits outside /api/v1 deliberately:
-// the API group is rate limited, and a probe that trips the limiter would mark
-// a healthy container as failed. /api/v1/metrics cannot serve this purpose
-// either — metricsGuard 404s any caller outside a private range, so the probe
-// would report the container as down whenever the host probes from elsewhere.
-// It reports only that the process is serving, and discloses nothing else.
 func registerHealthCheck(engine *gin.Engine) {
 	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -175,9 +150,6 @@ func registerHealthCheck(engine *gin.Engine) {
 
 func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	api := engine.Group("/api/v1")
-	// Ahead of the rest of the chain so a flood is rejected before it costs a
-	// database round trip. The stricter per-route limiter on /auth still
-	// applies on top of this one.
 	api.Use(middleware.RateLimiter(deps.RateLimit.RequestsPerMinute/60.0, deps.RateLimit.Burst))
 	api.Use(middleware.TenantIsolationMiddleware())
 	api.Use(middleware.MobileDeviceMiddleware())
@@ -185,10 +157,8 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	api.Use(middleware.GzipCompressionMiddleware())
 	api.Use(middleware.TimeoutMiddleware(5 * time.Second))
 
-	// Prometheus Metrics Exposition Endpoint, closed to the public internet.
 	api.GET("/metrics", metricsGuard(deps.Metrics), metricsHandler())
 
-	// Module-based Route Registration
 	authHttp.RegisterRoutes(api, deps.AuthHandler, deps.AuthMiddleware)
 	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler)
 	aiHttp.RegisterRoutes(api, deps.AIHandler)
@@ -254,6 +224,12 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.AdminLegalHandler != nil {
 		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler)
+	}
+	if deps.SecurityHandler != nil {
+		securityHttp.RegisterSecurityRoutes(api, deps.SecurityHandler)
+	}
+	if deps.AdminSecurityHandler != nil {
+		securityHttp.RegisterAdminSecurityRoutes(api, deps.AdminSecurityHandler)
 	}
 	trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
 	trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler)
