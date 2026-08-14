@@ -3,6 +3,6 @@
 import React from 'react';
 import ReportHistory from '@/components/safety/ReportHistory';
 
-export default function SafetyReportsHistoryPage() {
+export default function SafetyReportsPage() {
   return <ReportHistory />;
 }

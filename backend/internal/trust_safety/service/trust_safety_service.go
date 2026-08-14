@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -31,7 +32,11 @@ type TrustSafetyService interface {
 
 	GetAdminCases(ctx context.Context, status string) ([]models.SafetyCase, error)
 	GetCaseByID(ctx context.Context, id uuid.UUID) (*models.SafetyCase, error)
+	ClaimCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID) error
+	AssignCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, team string) error
 	ApplyModerationAction(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, actionType string, level string, reason string, durationDays int) (*models.ModerationDecision, error)
+
+	GetUserActiveRestrictions(ctx context.Context, userID uuid.UUID) ([]models.UserRestriction, error)
 
 	SubmitAppeal(ctx context.Context, decisionID uuid.UUID, userID uuid.UUID, reason string, explanation string, evidence []string) (*models.SafetyAppeal, error)
 	GetUserAppeals(ctx context.Context, userID uuid.UUID) ([]models.SafetyAppeal, error)
@@ -39,6 +44,7 @@ type TrustSafetyService interface {
 	GetAppealByID(ctx context.Context, id uuid.UUID) (*models.SafetyAppeal, error)
 	ResolveAppeal(ctx context.Context, appealID uuid.UUID, adminID uuid.UUID, status string, notes string) error
 
+	SanitizeDescription(description string) string
 	EvaluateJobScamRisk(ctx context.Context, jobTitle string, jobDescription string, salaryRange string) (float64, string)
 	GetSafetyMetricsSummary(ctx context.Context) (*models.SafetyMetricsSummary, error)
 	GetSafetyRules(ctx context.Context) ([]models.SafetyRule, error)
@@ -54,6 +60,16 @@ func NewTrustSafetyService(repo repository.TrustSafetyRepository) TrustSafetySer
 }
 
 func (s *trustSafetyService) SubmitReport(ctx context.Context, reporterID uuid.UUID, targetType string, targetID uuid.UUID, title string, category string, description string, evidence []string) (*models.SafetyReport, error) {
+	description = s.SanitizeDescription(description)
+
+	isDuplicate, err := s.repo.CheckReportDeduplication(ctx, reporterID, targetType, targetID, category)
+	if err != nil {
+		return nil, err
+	}
+	if isDuplicate {
+		return nil, errors.New("DUPLICATE_REPORT: A report for this target and category has already been submitted.")
+	}
+
 	priority := "normal"
 	if category == "threat" || category == "scam" || category == "phishing" || category == "fake_job" {
 		priority = "high"
@@ -180,6 +196,29 @@ func (s *trustSafetyService) GetCaseByID(ctx context.Context, id uuid.UUID) (*mo
 	return s.repo.GetCaseByID(ctx, id)
 }
 
+func (s *trustSafetyService) ClaimCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID) error {
+	return s.repo.ClaimCase(ctx, caseID, adminID)
+}
+
+func (s *trustSafetyService) AssignCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, team string) error {
+	return s.repo.AssignCase(ctx, caseID, adminID, team)
+}
+
+func (s *trustSafetyService) GetUserActiveRestrictions(ctx context.Context, userID uuid.UUID) ([]models.UserRestriction, error) {
+	return s.repo.GetUserActiveRestrictions(ctx, userID)
+}
+
+func (s *trustSafetyService) SanitizeDescription(description string) string {
+	re := regexp.MustCompile("<[^>]*>")
+	cleaned := re.ReplaceAllString(description, "")
+	cleaned = strings.TrimSpace(cleaned)
+	runes := []rune(cleaned)
+	if len(runes) > 4000 {
+		return string(runes[:4000])
+	}
+	return cleaned
+}
+
 func (s *trustSafetyService) ApplyModerationAction(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, actionType string, level string, reason string, durationDays int) (*models.ModerationDecision, error) {
 	if actionType == "permanent_suspension" && adminID == uuid.Nil {
 		return nil, errors.New("HUMAN_OVERVIEW_REQUIRED: Permanent suspension requires explicit human moderator authorization.")
@@ -261,7 +300,21 @@ func (s *trustSafetyService) GetAppealByID(ctx context.Context, id uuid.UUID) (*
 }
 
 func (s *trustSafetyService) ResolveAppeal(ctx context.Context, appealID uuid.UUID, adminID uuid.UUID, status string, notes string) error {
-	return s.repo.ResolveAppeal(ctx, appealID, status, notes, adminID)
+	if err := s.repo.ResolveAppeal(ctx, appealID, status, notes, adminID); err != nil {
+		return err
+	}
+	if status == "approved" {
+		appeal, err := s.repo.GetAppealByID(ctx, appealID)
+		if err == nil && appeal != nil {
+			restrictions, err := s.repo.GetUserActiveRestrictions(ctx, appeal.UserID)
+			if err == nil {
+				for _, restriction := range restrictions {
+					_ = s.repo.DeactivateRestriction(ctx, restriction.ID)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (s *trustSafetyService) EvaluateJobScamRisk(ctx context.Context, jobTitle string, jobDescription string, salaryRange string) (float64, string) {

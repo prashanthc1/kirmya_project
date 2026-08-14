@@ -163,6 +163,31 @@ type AppealSubmitPayload struct {
 	EvidenceURLs []string `json:"evidence_urls"`
 }
 
+// ClaimCasePayload payload for claiming a moderation case.
+type ClaimCasePayload struct {
+	CaseID string `json:"case_id" binding:"required"`
+}
+
+// AssignCasePayload payload for assigning a case to an admin or team.
+type AssignCasePayload struct {
+	CaseID  string `json:"case_id" binding:"required"`
+	AdminID string `json:"admin_id"`
+	Team    string `json:"team"`
+}
+
+// ResolveAppealPayload payload for resolving an appeal.
+type ResolveAppealPayload struct {
+	AppealID        string `json:"appeal_id" binding:"required"`
+	Status          string `json:"status" binding:"required"` // approved, denied, partially_approved
+	ResolutionNotes string `json:"resolution_notes" binding:"required"`
+}
+
+// UpdateReportStatusPayload payload for updating report status.
+type UpdateReportStatusPayload struct {
+	Status string `json:"status" binding:"required"`
+	Notes  string `json:"notes"`
+}
+
 // ModeratorNote represents an internal audit note on a case or report.
 type ModeratorNote struct {
 	ID        uuid.UUID  `json:"id" db:"id"`

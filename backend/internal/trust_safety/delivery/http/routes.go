@@ -35,6 +35,7 @@ func RegisterSafetyRoutes(router *gin.RouterGroup, handler *TrustSafetyHandler) 
 		safety.GET("/appeals", handler.GetUserAppeals)
 		safety.POST("/appeals", handler.SubmitAppeal)
 		safety.GET("/appeals/:id", handler.GetAppealByID)
+		safety.GET("/restrictions", handler.GetUserRestrictions)
 	}
 }
 
@@ -53,6 +54,8 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 		adminTrustSafety.POST("/reports/:id/actions", handler.ApplyAction)
 
 		adminTrustSafety.GET("/cases", handler.GetAdminCases)
+		adminTrustSafety.POST("/cases/:id/claim", handler.ClaimCase)
+		adminTrustSafety.POST("/cases/:id/assign", handler.AssignCase)
 		adminTrustSafety.POST("/cases/:id/actions", handler.ApplyAction)
 
 		adminTrustSafety.GET("/appeals", handler.GetAdminAppeals)

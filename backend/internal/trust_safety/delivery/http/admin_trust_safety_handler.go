@@ -106,6 +106,80 @@ func (h *AdminTrustSafetyHandler) GetAdminCases(c *gin.Context) {
 	c.JSON(http.StatusOK, cases)
 }
 
+func (h *AdminTrustSafetyHandler) ClaimCase(c *gin.Context) {
+	adminID, ok := getAdminID(c)
+	if !ok {
+		return
+	}
+
+	caseIDStr := c.Param("id")
+	var caseUUID uuid.UUID
+	var err error
+
+	if caseIDStr != "" {
+		caseUUID, err = uuid.Parse(caseIDStr)
+	}
+
+	if caseIDStr == "" || err != nil {
+		var body models.ClaimCasePayload
+		if bindErr := c.ShouldBindJSON(&body); bindErr == nil && body.CaseID != "" {
+			caseUUID, err = uuid.Parse(body.CaseID)
+		}
+	}
+
+	if err != nil || caseUUID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid case ID format"})
+		return
+	}
+
+	err = h.safetyService.ClaimCase(c.Request.Context(), caseUUID, adminID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Case claimed successfully."})
+}
+
+func (h *AdminTrustSafetyHandler) AssignCase(c *gin.Context) {
+	_, ok := getAdminID(c)
+	if !ok {
+		return
+	}
+
+	caseIDStr := c.Param("id")
+	var caseUUID uuid.UUID
+	var err error
+
+	var body models.AssignCasePayload
+	_ = c.ShouldBindJSON(&body)
+
+	if caseIDStr != "" {
+		caseUUID, err = uuid.Parse(caseIDStr)
+	}
+	if (caseIDStr == "" || err != nil) && body.CaseID != "" {
+		caseUUID, err = uuid.Parse(body.CaseID)
+	}
+
+	if err != nil || caseUUID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid case ID format"})
+		return
+	}
+
+	var assignAdminUUID uuid.UUID
+	if body.AdminID != "" {
+		assignAdminUUID, _ = uuid.Parse(body.AdminID)
+	}
+
+	err = h.safetyService.AssignCase(c.Request.Context(), caseUUID, assignAdminUUID, body.Team)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Case assigned successfully."})
+}
+
 func (h *AdminTrustSafetyHandler) ApplyAction(c *gin.Context) {
 	adminID, ok := getAdminID(c)
 	if !ok {

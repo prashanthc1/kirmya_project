@@ -29,10 +29,14 @@ type TrustSafetyRepository interface {
 	CreateCase(ctx context.Context, caseObj *models.SafetyCase) error
 	GetCaseByID(ctx context.Context, id uuid.UUID) (*models.SafetyCase, error)
 	GetAdminCases(ctx context.Context, status string) ([]models.SafetyCase, error)
+	ClaimCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID) error
+	AssignCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, team string) error
+	CheckReportDeduplication(ctx context.Context, reporterID uuid.UUID, targetType string, targetID uuid.UUID, category string) (bool, error)
 
 	CreateModerationDecision(ctx context.Context, decision *models.ModerationDecision) error
 	CreateRestriction(ctx context.Context, restriction *models.UserRestriction) error
 	GetUserActiveRestrictions(ctx context.Context, userID uuid.UUID) ([]models.UserRestriction, error)
+	DeactivateRestriction(ctx context.Context, restrictionID uuid.UUID) error
 
 	CreateAppeal(ctx context.Context, appeal *models.SafetyAppeal) error
 	GetUserAppeals(ctx context.Context, userID uuid.UUID) ([]models.SafetyAppeal, error)
@@ -184,6 +188,18 @@ func (r *trustSafetyRepository) GetAdminCases(ctx context.Context, status string
 	return []models.SafetyCase{}, nil
 }
 
+func (r *trustSafetyRepository) ClaimCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID) error {
+	return nil
+}
+
+func (r *trustSafetyRepository) AssignCase(ctx context.Context, caseID uuid.UUID, adminID uuid.UUID, team string) error {
+	return nil
+}
+
+func (r *trustSafetyRepository) CheckReportDeduplication(ctx context.Context, reporterID uuid.UUID, targetType string, targetID uuid.UUID, category string) (bool, error) {
+	return false, nil
+}
+
 func (r *trustSafetyRepository) CreateModerationDecision(ctx context.Context, decision *models.ModerationDecision) error {
 	return nil
 }
@@ -194,6 +210,10 @@ func (r *trustSafetyRepository) CreateRestriction(ctx context.Context, restricti
 
 func (r *trustSafetyRepository) GetUserActiveRestrictions(ctx context.Context, userID uuid.UUID) ([]models.UserRestriction, error) {
 	return []models.UserRestriction{}, nil
+}
+
+func (r *trustSafetyRepository) DeactivateRestriction(ctx context.Context, restrictionID uuid.UUID) error {
+	return nil
 }
 
 func (r *trustSafetyRepository) CreateAppeal(ctx context.Context, appeal *models.SafetyAppeal) error {

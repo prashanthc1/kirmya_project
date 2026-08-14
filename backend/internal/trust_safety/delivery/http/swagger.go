@@ -3,9 +3,56 @@ package http
 import (
 	"kirmya/internal/common/swagger"
 	"kirmya/internal/trust_safety/domain"
+	"kirmya/internal/trust_safety/models"
 )
 
 // This file carries the OpenAPI (swagger) contract for the trust and safety module.
+
+// swaggerClaimCase documents POST /api/v1/admin/trust-safety/cases/{id}/claim.
+//
+// @Summary      Claim moderation case
+// @Description  Claims a moderation case for the authenticated admin. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Case ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/trust-safety/cases/{id}/claim [post]
+func swaggerClaimCase() {}
+
+// swaggerAssignCase documents POST /api/v1/admin/trust-safety/cases/{id}/assign.
+//
+// @Summary      Assign moderation case
+// @Description  Assigns a moderation case to an admin or team. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Accept       json
+// @Produce      json
+// @Param        id  path  string  true  "Case ID"
+// @Param        request  body  models.AssignCasePayload  true  "Request payload"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/trust-safety/cases/{id}/assign [post]
+func swaggerAssignCase() {}
+
+// swaggerGetUserRestrictions documents GET /api/v1/safety/restrictions.
+//
+// @Summary      Get user active restrictions
+// @Description  Returns active restrictions for the authenticated user. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/safety/restrictions [get]
+func swaggerGetUserRestrictions() {}
 
 // swaggerSubmitReport documents POST /api/v1/safety/reports.
 //
@@ -160,4 +207,8 @@ func swaggerSubmitAppeal() {}
 var (
 	_ domain.ModerationActionPayload
 	_ swagger.ErrorResponse
+	_ models.ClaimCasePayload
+	_ models.AssignCasePayload
+	_ models.ResolveAppealPayload
+	_ models.UpdateReportStatusPayload
 )
