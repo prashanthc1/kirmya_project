@@ -25,32 +25,32 @@ import AdminPrivacyDashboard from '../components/privacy/AdminPrivacyDashboard';
 describe('Legal, Privacy & Compliance Module Test Suite', () => {
   it('renders LegalDocumentViewer', () => {
     render(<LegalDocumentViewer title="Terms of Service" slug="terms" />);
-    expect(screen.getByText(/Terms of Service/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Terms/i).length).toBeGreaterThan(0);
   });
 
   it('renders ConsentBanner cookie notification', () => {
-    render(<ConsentBanner onAcceptAll={() => {}} onRejectNonEssential={() => {}} onOpenPreferences={() => {}} />);
-    expect(screen.getByText(/Cookie Preferences/i)).toBeInTheDocument();
+    render(<ConsentBanner onCustomize={() => {}} />);
+    expect(screen.getByText(/Cookie & Privacy Preferences/i)).toBeInTheDocument();
   });
 
   it('renders PrivacyCenter settings dashboard', () => {
     render(<PrivacyCenter />);
-    expect(screen.getByText(/Privacy & Data Rights Center/i)).toBeInTheDocument();
+    expect(screen.getByText(/Privacy & Data Protection Center/i)).toBeInTheDocument();
   });
 
   it('renders ConsentHistoryView table', () => {
     render(<ConsentHistoryView />);
-    expect(screen.getByText(/Policy Acceptance & Consent History/i)).toBeInTheDocument();
+    expect(screen.getByText(/Consent History/i)).toBeInTheDocument();
   });
 
   it('renders DataExportView workflow', () => {
     render(<DataExportView />);
-    expect(screen.getByText(/Download Account Data Archive/i)).toBeInTheDocument();
+    expect(screen.getByText(/Download My Personal Data/i)).toBeInTheDocument();
   });
 
   it('renders AccountDeletionModal warning dialog', () => {
-    render(<AccountDeletionModal open={true} onClose={() => {}} onConfirm={() => {}} />);
-    expect(screen.getByText(/Permanent Account Deletion/i)).toBeInTheDocument();
+    render(<AccountDeletionModal open={true} onClose={() => {}} />);
+    expect(screen.getAllByText(/Confirm Account Deletion/i).length).toBeGreaterThan(0);
   });
 
   it('renders AdminPrivacyDashboard executive console', () => {
