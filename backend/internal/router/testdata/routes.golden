@@ -10,6 +10,8 @@ DELETE /api/v1/companies/save
 DELETE /api/v1/documents/:id
 DELETE /api/v1/job-alerts/:id
 DELETE /api/v1/jobs/:id/save
+DELETE /api/v1/network/connections/:id
+DELETE /api/v1/network/follow/:userId
 DELETE /api/v1/networking/blocks/:userId
 DELETE /api/v1/notifications/:id
 DELETE /api/v1/notifications/devices/:id
@@ -50,6 +52,8 @@ GET /api/v1/admin/analytics/support
 GET /api/v1/admin/analytics/system
 GET /api/v1/admin/analytics/users
 GET /api/v1/admin/company-verifications
+GET /api/v1/admin/network/analytics
+GET /api/v1/admin/network/reports
 GET /api/v1/admin/notifications
 GET /api/v1/admin/notifications/analytics
 GET /api/v1/admin/notifications/failed
@@ -185,6 +189,11 @@ GET /api/v1/mobile/user/jobs
 GET /api/v1/mobile/user/messages
 GET /api/v1/mobile/user/notifications
 GET /api/v1/mobile/user/profile
+GET /api/v1/network
+GET /api/v1/network/connections
+GET /api/v1/network/mutual/:userId
+GET /api/v1/network/requests
+GET /api/v1/network/requests/sent
 GET /api/v1/networking/connections
 GET /api/v1/networking/recommendations
 GET /api/v1/networking/requests
@@ -207,6 +216,9 @@ GET /api/v1/onboarding/progress
 GET /api/v1/organizations
 GET /api/v1/organizations/:id/members
 GET /api/v1/organizations/permissions
+GET /api/v1/people
+GET /api/v1/people/search
+GET /api/v1/people/suggestions
 GET /api/v1/profile/:username
 GET /api/v1/profile/completion
 GET /api/v1/profile/me
@@ -356,6 +368,13 @@ POST /api/v1/mobile/devices
 POST /api/v1/mobile/devices/register
 POST /api/v1/mobile/push/send
 POST /api/v1/mobile/uploads/presign
+POST /api/v1/network/follow/:userId
+POST /api/v1/network/recommendations/:userId/dismiss
+POST /api/v1/network/report/:userId
+POST /api/v1/network/requests
+POST /api/v1/network/requests/:id/accept
+POST /api/v1/network/requests/:id/decline
+POST /api/v1/network/requests/:id/withdraw
 POST /api/v1/networking/blocks
 POST /api/v1/networking/requests
 POST /api/v1/notifications/:id/archive

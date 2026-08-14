@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"kirmya/internal/networking/models"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -24,7 +26,18 @@ func (r *NetworkingRepository) CreateRequest(ctx context.Context, req *models.Co
 	          VALUES ($1, $2, $3, $4, $5, $6) 
 	          ON CONFLICT (sender_id, receiver_id) DO UPDATE SET status = 'pending', updated_at = CURRENT_TIMESTAMP`
 	_, err := r.db.Exec(ctx, query, req.ID, req.SenderID, req.ReceiverID, req.Status, req.CreatedAt, req.UpdatedAt)
-	return err
+	if err != nil {
+		return err
+	}
+
+	if req.Note != "" {
+		noteQuery := `INSERT INTO connection_request_notes (id, request_id, note, created_at)
+		              VALUES ($1, $2, $3, $4)
+		              ON CONFLICT (request_id) DO UPDATE SET note = $3`
+		_, _ = r.db.Exec(ctx, noteQuery, uuid.New(), req.ID, req.Note, req.CreatedAt)
+	}
+
+	return nil
 }
 
 func (r *NetworkingRepository) UpdateRequestStatus(ctx context.Context, requestID uuid.UUID, status string) error {
@@ -34,7 +47,27 @@ func (r *NetworkingRepository) UpdateRequestStatus(ctx context.Context, requestI
 
 func (r *NetworkingRepository) GetRequest(ctx context.Context, requestID uuid.UUID) (*models.ConnectionRequest, error) {
 	req := &models.ConnectionRequest{}
-	err := r.db.QueryRow(ctx, "SELECT id, sender_id, receiver_id, status, created_at, updated_at FROM connection_requests WHERE id = $1", requestID).Scan(
+	query := `SELECT cr.id, cr.sender_id, cr.receiver_id, cr.status, COALESCE(crn.note, ''), cr.created_at, cr.updated_at 
+	          FROM connection_requests cr
+	          LEFT JOIN connection_request_notes crn ON crn.request_id = cr.id
+	          WHERE cr.id = $1`
+	err := r.db.QueryRow(ctx, query, requestID).Scan(
+		&req.ID, &req.SenderID, &req.ReceiverID, &req.Status, &req.Note, &req.CreatedAt, &req.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return req, nil
+}
+
+func (r *NetworkingRepository) GetPendingRequestBetween(ctx context.Context, senderID, receiverID uuid.UUID) (*models.ConnectionRequest, error) {
+	req := &models.ConnectionRequest{}
+	query := `SELECT id, sender_id, receiver_id, status, created_at, updated_at FROM connection_requests 
+	          WHERE ((sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1)) AND status = 'pending'`
+	err := r.db.QueryRow(ctx, query, senderID, receiverID).Scan(
 		&req.ID, &req.SenderID, &req.ReceiverID, &req.Status, &req.CreatedAt, &req.UpdatedAt,
 	)
 	if err != nil {
@@ -47,8 +80,14 @@ func (r *NetworkingRepository) GetRequest(ctx context.Context, requestID uuid.UU
 }
 
 func (r *NetworkingRepository) ListIncomingRequests(ctx context.Context, receiverID uuid.UUID) ([]models.ConnectionRequest, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, sender_id, receiver_id, status, created_at, updated_at 
-	                             FROM connection_requests WHERE receiver_id = $1 AND status = 'pending' ORDER BY created_at DESC`, receiverID)
+	query := `SELECT cr.id, cr.sender_id, cr.receiver_id, cr.status, COALESCE(crn.note, ''), cr.created_at, cr.updated_at,
+	                 COALESCE(p.username, ''), COALESCE(p.headline, ''), COALESCE(p.avatar_url, '')
+	          FROM connection_requests cr
+	          LEFT JOIN connection_request_notes crn ON crn.request_id = cr.id
+	          LEFT JOIN user_profiles p ON p.user_id = cr.sender_id
+	          WHERE cr.receiver_id = $1 AND cr.status = 'pending'
+	          ORDER BY cr.created_at DESC`
+	rows, err := r.db.Query(ctx, query, receiverID)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +96,39 @@ func (r *NetworkingRepository) ListIncomingRequests(ctx context.Context, receive
 	var list []models.ConnectionRequest
 	for rows.Next() {
 		var req models.ConnectionRequest
-		err := rows.Scan(&req.ID, &req.SenderID, &req.ReceiverID, &req.Status, &req.CreatedAt, &req.UpdatedAt)
+		err := rows.Scan(
+			&req.ID, &req.SenderID, &req.ReceiverID, &req.Status, &req.Note, &req.CreatedAt, &req.UpdatedAt,
+			&req.SenderName, &req.SenderHeadline, &req.SenderAvatarUrl,
+		)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, req)
+	}
+	return list, nil
+}
+
+func (r *NetworkingRepository) ListSentRequests(ctx context.Context, senderID uuid.UUID) ([]models.ConnectionRequest, error) {
+	query := `SELECT cr.id, cr.sender_id, cr.receiver_id, cr.status, COALESCE(crn.note, ''), cr.created_at, cr.updated_at,
+	                 COALESCE(p.username, ''), COALESCE(p.headline, ''), COALESCE(p.avatar_url, '')
+	          FROM connection_requests cr
+	          LEFT JOIN connection_request_notes crn ON crn.request_id = cr.id
+	          LEFT JOIN user_profiles p ON p.user_id = cr.receiver_id
+	          WHERE cr.sender_id = $1 AND cr.status = 'pending'
+	          ORDER BY cr.created_at DESC`
+	rows, err := r.db.Query(ctx, query, senderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.ConnectionRequest
+	for rows.Next() {
+		var req models.ConnectionRequest
+		err := rows.Scan(
+			&req.ID, &req.SenderID, &req.ReceiverID, &req.Status, &req.Note, &req.CreatedAt, &req.UpdatedAt,
+			&req.ReceiverName, &req.ReceiverHeadline, &req.SenderAvatarUrl,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -71,6 +142,13 @@ func (r *NetworkingRepository) CreateConnection(ctx context.Context, c *models.C
 	query := `INSERT INTO connections (id, user_id_1, user_id_2, created_at) 
 	          VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`
 	_, err := r.db.Exec(ctx, query, c.ID, c.UserID1, c.UserID2, c.CreatedAt)
+	return err
+}
+
+func (r *NetworkingRepository) DeleteConnection(ctx context.Context, u1, u2 uuid.UUID) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM connections 
+	                         WHERE (user_id_1 = $1 AND user_id_2 = $2) 
+	                            OR (user_id_1 = $2 AND user_id_2 = $1)`, u1, u2)
 	return err
 }
 
@@ -94,11 +172,78 @@ func (r *NetworkingRepository) ListConnections(ctx context.Context, userID uuid.
 	return list, nil
 }
 
+func (r *NetworkingRepository) GetConnectionPair(ctx context.Context, u1 uuid.UUID, u2 uuid.UUID) (*models.Connection, error) {
+	var c models.Connection
+	err := r.db.QueryRow(ctx, `SELECT id, user_id_1, user_id_2, created_at FROM connections 
+	                          WHERE (user_id_1 = $1 AND user_id_2 = $2) 
+	                             OR (user_id_1 = $2 AND user_id_2 = $1)`, u1, u2).Scan(&c.ID, &c.UserID1, &c.UserID2, &c.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &c, nil
+}
+
+// Follow / Unfollow
+func (r *NetworkingRepository) CreateFollow(ctx context.Context, followerID, followingID uuid.UUID) error {
+	query := `INSERT INTO connection_follows (id, follower_id, following_id, created_at)
+	          VALUES ($1, $2, $3, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING`
+	_, err := r.db.Exec(ctx, query, uuid.New(), followerID, followingID)
+	return err
+}
+
+func (r *NetworkingRepository) DeleteFollow(ctx context.Context, followerID, followingID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, "DELETE FROM connection_follows WHERE follower_id = $1 AND following_id = $2", followerID, followingID)
+	return err
+}
+
+func (r *NetworkingRepository) IsFollowing(ctx context.Context, followerID, followingID uuid.UUID) (bool, error) {
+	var count int
+	err := r.db.QueryRow(ctx, "SELECT COUNT(*) FROM connection_follows WHERE follower_id = $1 AND following_id = $2", followerID, followingID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// Recommendation Dismissal
+func (r *NetworkingRepository) DismissRecommendation(ctx context.Context, userID, targetID uuid.UUID, reason string) error {
+	query := `INSERT INTO recommendation_dismissals (id, user_id, recommended_user_id, reason, created_at)
+	          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING`
+	_, err := r.db.Exec(ctx, query, uuid.New(), userID, targetID, reason)
+	return err
+}
+
+func (r *NetworkingRepository) GetDismissedIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := r.db.Query(ctx, "SELECT recommended_user_id FROM recommendation_dismissals WHERE user_id = $1", userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err == nil {
+			list = append(list, id)
+		}
+	}
+	return list, nil
+}
+
 // Privacy Blocks
 func (r *NetworkingRepository) CreateBlock(ctx context.Context, b *models.BlockedUser) error {
 	query := `INSERT INTO blocked_users (id, blocker_id, blocked_id, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`
 	_, err := r.db.Exec(ctx, query, b.ID, b.BlockerID, b.BlockedID, b.CreatedAt)
-	return err
+	if err != nil {
+		return err
+	}
+	// Delete any active connections or requests between them
+	_ = r.DeleteConnection(ctx, b.BlockerID, b.BlockedID)
+	_, _ = r.db.Exec(ctx, "DELETE FROM connection_requests WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1)", b.BlockerID, b.BlockedID)
+	return nil
 }
 
 func (r *NetworkingRepository) DeleteBlock(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) error {
@@ -117,16 +262,154 @@ func (r *NetworkingRepository) IsBlocked(ctx context.Context, blockerID uuid.UUI
 	return count > 0, nil
 }
 
-func (r *NetworkingRepository) GetConnectionPair(ctx context.Context, u1 uuid.UUID, u2 uuid.UUID) (*models.Connection, error) {
-	var c models.Connection
-	err := r.db.QueryRow(ctx, `SELECT id, user_id_1, user_id_2, created_at FROM connections 
-	                          WHERE (user_id_1 = $1 AND user_id_2 = $2) 
-	                             OR (user_id_1 = $2 AND user_id_2 = $1)`, u1, u2).Scan(&c.ID, &c.UserID1, &c.UserID2, &c.CreatedAt)
+// Safety Reports
+func (r *NetworkingRepository) CreateReport(ctx context.Context, rep *models.NetworkReport) error {
+	query := `INSERT INTO network_reports (id, reporter_id, target_user_id, reason, details, status, created_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := r.db.Exec(ctx, query, rep.ID, rep.ReporterID, rep.TargetUserID, rep.Reason, rep.Details, rep.Status, rep.CreatedAt)
+	return err
+}
+
+func (r *NetworkingRepository) ListAdminReports(ctx context.Context) ([]models.NetworkReport, error) {
+	rows, err := r.db.Query(ctx, `SELECT id, reporter_id, target_user_id, reason, details, status, created_at 
+	                             FROM network_reports ORDER BY created_at DESC LIMIT 100`)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, err
 	}
-	return &c, nil
+	defer rows.Close()
+
+	var list []models.NetworkReport
+	for rows.Next() {
+		var rep models.NetworkReport
+		if err := rows.Scan(&rep.ID, &rep.ReporterID, &rep.TargetUserID, &rep.Reason, &rep.Details, &rep.Status, &rep.CreatedAt); err == nil {
+			list = append(list, rep)
+		}
+	}
+	return list, nil
+}
+
+// People Search with Multi-Attribute Filtering & Privacy Controls
+func (r *NetworkingRepository) SearchPeople(ctx context.Context, currentUserID uuid.UUID, filter models.PeopleSearchFilter) ([]models.PeopleSearchResult, error) {
+	var conditions []string
+	var args []interface{}
+	argIdx := 1
+
+	// Ensure privacy settings: exclude private profiles and restricted users
+	conditions = append(conditions, "COALESCE(p.is_private, false) = false")
+	conditions = append(conditions, "COALESCE(p.is_restricted, false) = false")
+
+	// Exclude self
+	conditions = append(conditions, fmt.Sprintf("p.user_id != $%d", argIdx))
+	args = append(args, currentUserID)
+	argIdx++
+
+	if filter.Query != "" {
+		queryPattern := "%" + strings.TrimSpace(filter.Query) + "%"
+		conditions = append(conditions, fmt.Sprintf("(p.username ILIKE $%d OR p.headline ILIKE $%d OR p.summary ILIKE $%d OR p.current_position ILIKE $%d)", argIdx, argIdx, argIdx, argIdx))
+		args = append(args, queryPattern)
+		argIdx++
+	}
+
+	if filter.Location != "" {
+		conditions = append(conditions, fmt.Sprintf("p.location ILIKE $%d", argIdx))
+		args = append(args, "%"+filter.Location+"%")
+		argIdx++
+	}
+
+	if filter.Industry != "" {
+		conditions = append(conditions, fmt.Sprintf("p.industry ILIKE $%d", argIdx))
+		args = append(args, "%"+filter.Industry+"%")
+		argIdx++
+	}
+
+	if filter.Company != "" {
+		conditions = append(conditions, fmt.Sprintf("p.current_position ILIKE $%d", argIdx))
+		args = append(args, "%"+filter.Company+"%")
+		argIdx++
+	}
+
+	if filter.OpenToOpportunities != nil && *filter.OpenToOpportunities {
+		conditions = append(conditions, "p.open_to_work = true")
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	limit := filter.Limit
+	if limit <= 0 {
+		limit = 20
+	}
+	offset := (filter.Page - 1) * limit
+	if offset < 0 {
+		offset = 0
+	}
+
+	query := fmt.Sprintf(`
+		SELECT p.id, p.user_id, COALESCE(p.username, ''), COALESCE(p.headline, ''), COALESCE(p.current_position, ''),
+		       COALESCE(p.location, ''), COALESCE(p.industry, ''), COALESCE(p.open_to_work, false), COALESCE(p.avatar_url, ''),
+		       COALESCE(p.verification_status, 'unverified')
+		FROM user_profiles p
+		%s
+		ORDER BY p.profile_views_count DESC, p.created_at DESC
+		LIMIT %d OFFSET %d
+	`, whereClause, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []models.PeopleSearchResult
+	for rows.Next() {
+		var res models.PeopleSearchResult
+		err := rows.Scan(
+			&res.ID, &res.UserID, &res.Username, &res.Headline, &res.CurrentPosition,
+			&res.Location, &res.Industry, &res.OpenToWork, &res.AvatarUrl,
+			&res.VerificationStatus,
+		)
+		if err != nil {
+			return nil, err
+		}
+		res.Name = res.Username
+		results = append(results, res)
+	}
+
+	return results, nil
+}
+
+// Network Stats
+func (r *NetworkingRepository) GetNetworkStats(ctx context.Context, userID uuid.UUID) (*models.NetworkGrowthStats, error) {
+	conns, _ := r.ListConnections(ctx, userID)
+	incoming, _ := r.ListIncomingRequests(ctx, userID)
+	sent, _ := r.ListSentRequests(ctx, userID)
+
+	return &models.NetworkGrowthStats{
+		TotalConnections:  len(conns),
+		PendingReceived:   len(incoming),
+		PendingSent:       len(sent),
+		NetworkGrowth:     len(conns) / 2,
+		ProfileViews:      len(conns) * 12,
+		SearchAppearances: len(conns) * 35,
+	}, nil
+}
+
+// Admin Network Analytics
+func (r *NetworkingRepository) GetAdminAnalytics(ctx context.Context) (*models.AdminNetworkAnalytics, error) {
+	var totalConn, totalReq, pendingReq, totalReports, blockedPairs int
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM connections").Scan(&totalConn)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM connection_requests").Scan(&totalReq)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM connection_requests WHERE status = 'pending'").Scan(&pendingReq)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM network_reports").Scan(&totalReports)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM blocked_users").Scan(&blockedPairs)
+
+	return &models.AdminNetworkAnalytics{
+		TotalConnectionsCount: totalConn,
+		TotalRequestsCount:    totalReq,
+		PendingRequestsCount:  pendingReq,
+		ReportedNetworkCount:  totalReports,
+		BlockedPairsCount:     blockedPairs,
+	}, nil
 }

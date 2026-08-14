@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	profileRepo "kirmya/internal/profile/repository"
-	"kirmya/internal/networking/models"
+	netModels "kirmya/internal/networking/models"
 	netRepo "kirmya/internal/networking/repository"
+	profileRepo "kirmya/internal/profile/repository"
 	"strings"
 	"time"
 
@@ -21,9 +21,13 @@ func NewNetworkingService(r *netRepo.NetworkingRepository, p *profileRepo.Profil
 	return &NetworkingService{repo: r, profileRepo: p}
 }
 
-func (s *NetworkingService) SendConnectionRequest(ctx context.Context, senderID uuid.UUID, receiverID uuid.UUID) (*models.ConnectionRequest, error) {
+func (s *NetworkingService) SendConnectionRequest(ctx context.Context, senderID uuid.UUID, receiverID uuid.UUID, note string) (*netModels.ConnectionRequest, error) {
 	if senderID == receiverID {
 		return nil, fmt.Errorf("cannot connect with yourself")
+	}
+
+	if len(note) > 500 {
+		return nil, fmt.Errorf("personal note exceeds maximum length of 500 characters")
 	}
 
 	// Check blocks
@@ -41,11 +45,18 @@ func (s *NetworkingService) SendConnectionRequest(ctx context.Context, senderID 
 		return nil, fmt.Errorf("already connected")
 	}
 
-	req := &models.ConnectionRequest{
+	// Check duplicate pending request
+	pending, err := s.repo.GetPendingRequestBetween(ctx, senderID, receiverID)
+	if err == nil && pending != nil {
+		return nil, fmt.Errorf("a connection request is already pending")
+	}
+
+	req := &netModels.ConnectionRequest{
 		ID:         uuid.New(),
 		SenderID:   senderID,
 		ReceiverID: receiverID,
 		Status:     "pending",
+		Note:       strings.TrimSpace(note),
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}
@@ -68,13 +79,11 @@ func (s *NetworkingService) AcceptConnectionRequest(ctx context.Context, userID 
 		return fmt.Errorf("unauthorized request action")
 	}
 
-	// Update status
 	if err := s.repo.UpdateRequestStatus(ctx, requestID, "accepted"); err != nil {
 		return err
 	}
 
-	// Create bidirectional connections entries
-	c1 := &models.Connection{
+	c1 := &netModels.Connection{
 		ID:        uuid.New(),
 		UserID1:   req.SenderID,
 		UserID2:   req.ReceiverID,
@@ -98,78 +107,203 @@ func (s *NetworkingService) RejectConnectionRequest(ctx context.Context, userID 
 	return s.repo.UpdateRequestStatus(ctx, requestID, "rejected")
 }
 
+func (s *NetworkingService) WithdrawConnectionRequest(ctx context.Context, userID uuid.UUID, requestID uuid.UUID) error {
+	req, err := s.repo.GetRequest(ctx, requestID)
+	if err != nil {
+		return err
+	}
+	if req == nil {
+		return fmt.Errorf("request not found")
+	}
+	if req.SenderID != userID {
+		return fmt.Errorf("unauthorized request action")
+	}
+
+	return s.repo.UpdateRequestStatus(ctx, requestID, "withdrawn")
+}
+
+func (s *NetworkingService) RemoveConnection(ctx context.Context, userID uuid.UUID, targetUserID uuid.UUID) error {
+	return s.repo.DeleteConnection(ctx, userID, targetUserID)
+}
+
+func (s *NetworkingService) FollowUser(ctx context.Context, followerID uuid.UUID, followingID uuid.UUID) error {
+	if followerID == followingID {
+		return fmt.Errorf("cannot follow yourself")
+	}
+	return s.repo.CreateFollow(ctx, followerID, followingID)
+}
+
+func (s *NetworkingService) UnfollowUser(ctx context.Context, followerID uuid.UUID, followingID uuid.UUID) error {
+	return s.repo.DeleteFollow(ctx, followerID, followingID)
+}
+
+func (s *NetworkingService) DismissRecommendation(ctx context.Context, userID uuid.UUID, targetID uuid.UUID, reason string) error {
+	if reason == "" {
+		reason = "Not Interested"
+	}
+	return s.repo.DismissRecommendation(ctx, userID, targetID, reason)
+}
+
 func (s *NetworkingService) BlockUser(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) error {
 	if blockerID == blockedID {
 		return fmt.Errorf("cannot block yourself")
 	}
 
-	b := &models.BlockedUser{
+	b := &netModels.BlockedUser{
 		ID:        uuid.New(),
 		BlockerID: blockerID,
 		BlockedID: blockedID,
 		CreatedAt: time.Now(),
 	}
 
-	if err := s.repo.CreateBlock(ctx, b); err != nil {
-		return err
-	}
-
-	// Delete any active connections or requests between them
-	// In a real DB this would also cascade or we run deletes
-	return nil
+	return s.repo.CreateBlock(ctx, b)
 }
 
 func (s *NetworkingService) UnblockUser(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) error {
 	return s.repo.DeleteBlock(ctx, blockerID, blockedID)
 }
 
-func (s *NetworkingService) ListIncomingRequests(ctx context.Context, userID uuid.UUID) ([]models.ConnectionRequest, error) {
+func (s *NetworkingService) ReportUser(ctx context.Context, reporterID uuid.UUID, targetID uuid.UUID, reason, details string) error {
+	rep := &netModels.NetworkReport{
+		ID:           uuid.New(),
+		ReporterID:   reporterID,
+		TargetUserID: targetID,
+		Reason:       reason,
+		Details:      details,
+		Status:       "pending",
+		CreatedAt:    time.Now(),
+	}
+	return s.repo.CreateReport(ctx, rep)
+}
+
+func (s *NetworkingService) SearchPeople(ctx context.Context, currentUserID uuid.UUID, filter netModels.PeopleSearchFilter) ([]netModels.PeopleSearchResult, error) {
+	results, err := s.repo.SearchPeople(ctx, currentUserID, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// Enrich relationship status for each result
+	for i := range results {
+		s.enrichRelationshipStatus(ctx, currentUserID, &results[i])
+	}
+	return results, nil
+}
+
+func (s *NetworkingService) enrichRelationshipStatus(ctx context.Context, currentUserID uuid.UUID, res *netModels.PeopleSearchResult) {
+	// Check connection status
+	conn, err := s.repo.GetConnectionPair(ctx, currentUserID, res.UserID)
+	if err == nil && conn != nil {
+		res.ConnectionStatus = "connected"
+		return
+	}
+
+	// Check pending request
+	req, err := s.repo.GetPendingRequestBetween(ctx, currentUserID, res.UserID)
+	if err == nil && req != nil {
+		if req.SenderID == currentUserID {
+			res.ConnectionStatus = "pending_sent"
+		} else {
+			res.ConnectionStatus = "pending_received"
+		}
+		return
+	}
+
+	// Check follow
+	isFollowing, _ := s.repo.IsFollowing(ctx, currentUserID, res.UserID)
+	res.IsFollowing = isFollowing
+
+	res.ConnectionStatus = "none"
+}
+
+func (s *NetworkingService) ListIncomingRequests(ctx context.Context, userID uuid.UUID) ([]netModels.ConnectionRequest, error) {
 	return s.repo.ListIncomingRequests(ctx, userID)
 }
 
-func (s *NetworkingService) ListConnections(ctx context.Context, userID uuid.UUID) ([]models.ConnectionRecommendation, error) {
+func (s *NetworkingService) ListSentRequests(ctx context.Context, userID uuid.UUID) ([]netModels.ConnectionRequest, error) {
+	return s.repo.ListSentRequests(ctx, userID)
+}
+
+func (s *NetworkingService) ListConnections(ctx context.Context, userID uuid.UUID) ([]netModels.ConnectionRecommendation, error) {
 	conns, err := s.repo.ListConnections(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var list []models.ConnectionRecommendation
+	var list []netModels.ConnectionRecommendation
 	for _, connID := range conns {
 		name, headline, location, industry := getMockProfileInfo(connID)
-		list = append(list, models.ConnectionRecommendation{
-			UserID:   connID,
-			Name:     name,
-			Headline: headline,
-			Location: location,
-			Industry: industry,
+		list = append(list, netModels.ConnectionRecommendation{
+			UserID:           connID,
+			Name:             name,
+			Headline:         headline,
+			Location:         location,
+			Industry:         industry,
+			ConnectionStatus: "connected",
 		})
 	}
 	return list, nil
 }
 
-func (s *NetworkingService) GetRecommendations(ctx context.Context, userID uuid.UUID) ([]models.ConnectionRecommendation, error) {
-	// 1. Fetch user's active connections
+func (s *NetworkingService) GetMutualConnections(ctx context.Context, currentUserID, targetUserID uuid.UUID) (*netModels.MutualConnectionsResult, error) {
+	c1, _ := s.repo.ListConnections(ctx, currentUserID)
+	c2, _ := s.repo.ListConnections(ctx, targetUserID)
+
+	var mutuals []netModels.PeopleSearchResult
+	for _, id1 := range c1 {
+		for _, id2 := range c2 {
+			if id1 == id2 {
+				name, headline, location, industry := getMockProfileInfo(id1)
+				mutuals = append(mutuals, netModels.PeopleSearchResult{
+					UserID:           id1,
+					Name:             name,
+					Headline:         headline,
+					Location:         location,
+					Industry:         industry,
+					ConnectionStatus: "connected",
+				})
+			}
+		}
+	}
+
+	return &netModels.MutualConnectionsResult{
+		TargetUserID: targetUserID,
+		MutualCount:  len(mutuals),
+		Mutuals:      mutuals,
+	}, nil
+}
+
+func (s *NetworkingService) GetRecommendations(ctx context.Context, userID uuid.UUID) ([]netModels.ConnectionRecommendation, error) {
 	userConns, err := s.repo.ListConnections(ctx, userID)
 	if err != nil {
 		userConns = []uuid.UUID{}
 	}
 
-	// In offline/test environments, if connections are empty, let's mock one active connection
-	// to enable mutual connection graphs calculations!
+	dismissedIDs, _ := s.repo.GetDismissedIDs(ctx, userID)
+
 	if len(userConns) == 0 {
 		salimID := uuid.MustParse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
 		userConns = append(userConns, salimID)
 	}
 
-	// 2. Define pool of potential candidates (excluding user and direct connections)
 	candidates := getMockNetworkingCandidates(userID, userConns)
 
-	// 3. Compute score and extract mutual connections
-	var recs []models.ConnectionRecommendation
+	var recs []netModels.ConnectionRecommendation
 	for _, cand := range candidates {
-		// Verify if candidate is blocked
+		// Check blocked
 		blocked, err := s.repo.IsBlocked(ctx, userID, cand.UserID)
 		if err == nil && blocked {
+			continue
+		}
+
+		// Check dismissed
+		isDismissed := false
+		for _, dID := range dismissedIDs {
+			if dID == cand.UserID {
+				isDismissed = true
+				break
+			}
+		}
+		if isDismissed {
 			continue
 		}
 
@@ -177,6 +311,13 @@ func (s *NetworkingService) GetRecommendations(ctx context.Context, userID uuid.
 		cand.MutualConnections = mutuals
 		cand.MutualCount = len(mutuals)
 		cand.MatchScore = matchScore
+		cand.ConnectionStatus = "none"
+
+		if cand.MutualCount > 0 {
+			cand.Reason = fmt.Sprintf("%d mutual connections", cand.MutualCount)
+		} else {
+			cand.Reason = fmt.Sprintf("Works in %s", cand.Industry)
+		}
 
 		recs = append(recs, cand)
 	}
@@ -184,18 +325,12 @@ func (s *NetworkingService) GetRecommendations(ctx context.Context, userID uuid.
 	return recs, nil
 }
 
-// computeMutualsAndScore intersects connection lists and adds matching weights.
 func (s *NetworkingService) computeMutualsAndScore(ctx context.Context, userConns []uuid.UUID, candID uuid.UUID, candLoc, candInd string) ([]string, int) {
 	var candConns []uuid.UUID
-	var err error
 	if s.repo != nil {
-		candConns, err = s.repo.ListConnections(ctx, candID)
-		if err != nil {
-			candConns = []uuid.UUID{}
-		}
+		candConns, _ = s.repo.ListConnections(ctx, candID)
 	}
 
-	// If offline/mock mode, Salim acts as a bridge connection
 	if len(candConns) == 0 {
 		salimID := uuid.MustParse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
 		candConns = append(candConns, salimID)
@@ -212,31 +347,34 @@ func (s *NetworkingService) computeMutualsAndScore(ctx context.Context, userConn
 		}
 	}
 
-	score := 0
-	// Weightings:
-	// - Mutuals count (40% weight): +20 points per mutual (max 40)
-	score += len(mutualNames) * 20
+	score := len(mutualNames) * 20
 	if score > 40 {
 		score = 40
 	}
-
-	// - Location (20% weight)
 	if strings.EqualFold(candLoc, "Dubai") {
 		score += 20
 	}
-
-	// - Industry (20% weight)
 	if strings.EqualFold(candInd, "Technology") {
 		score += 20
 	}
-
-	// - Completeness base (20% weight)
 	score += 20
 
 	return mutualNames, score
 }
 
-// Mock profiles helper data
+func (s *NetworkingService) GetNetworkStats(ctx context.Context, userID uuid.UUID) (*netModels.NetworkGrowthStats, error) {
+	return s.repo.GetNetworkStats(ctx, userID)
+}
+
+func (s *NetworkingService) GetAdminAnalytics(ctx context.Context) (*netModels.AdminNetworkAnalytics, error) {
+	return s.repo.GetAdminAnalytics(ctx)
+}
+
+func (s *NetworkingService) GetAdminReports(ctx context.Context) ([]netModels.NetworkReport, error) {
+	return s.repo.ListAdminReports(ctx)
+}
+
+// Helpers
 func getMockProfileInfo(id uuid.UUID) (string, string, string, string) {
 	switch id.String() {
 	case "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee":
@@ -250,11 +388,11 @@ func getMockProfileInfo(id uuid.UUID) (string, string, string, string) {
 	}
 }
 
-func getMockNetworkingCandidates(userID uuid.UUID, userConns []uuid.UUID) []models.ConnectionRecommendation {
+func getMockNetworkingCandidates(userID uuid.UUID, userConns []uuid.UUID) []netModels.ConnectionRecommendation {
 	cand1 := uuid.MustParse("11112222-3333-4444-5555-666677778888")
 	cand2 := uuid.MustParse("99998888-7777-6666-5555-444433332222")
 
-	list := []models.ConnectionRecommendation{
+	list := []netModels.ConnectionRecommendation{
 		{
 			UserID:   cand1,
 			Name:     "Ayesha Siddiqui",
@@ -271,8 +409,7 @@ func getMockNetworkingCandidates(userID uuid.UUID, userConns []uuid.UUID) []mode
 		},
 	}
 
-	// Filter out users already connected
-	var filtered []models.ConnectionRecommendation
+	var filtered []netModels.ConnectionRecommendation
 	for _, cand := range list {
 		if cand.UserID == userID {
 			continue
