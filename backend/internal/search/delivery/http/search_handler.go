@@ -80,6 +80,50 @@ func (h *SearchHandler) SavePreference(c *gin.Context) {
 	c.JSON(http.StatusCreated, pref)
 }
 
+func (h *SearchHandler) DeleteHistoryItem(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	historyIDStr := c.Param("id")
+	historyID, err := uuid.Parse(historyIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid history ID"})
+		return
+	}
+	if err := h.service.DeleteHistoryItem(c.Request.Context(), userID, historyID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "History item deleted successfully"})
+}
+
+func (h *SearchHandler) ClearHistory(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.service.ClearUserHistory(c.Request.Context(), userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Search history cleared successfully"})
+}
+
+func (h *SearchHandler) Reindex(c *gin.Context) {
+	var payload domain.ReindexPayload
+	_ = c.ShouldBindJSON(&payload)
+
+	count, err := h.service.ReindexEntities(c.Request.Context(), payload.EntityType, payload.EntityID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Reindexed successfully", "count": count})
+}
+
 // Candidate Discovery Handlers
 func (h *SearchHandler) SearchCandidates(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))

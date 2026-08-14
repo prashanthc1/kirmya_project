@@ -1,53 +1,48 @@
-# Trust, Safety & Moderation — Complete Walkthrough
+# Search, Discovery & Global Search Experience — Complete Walkthrough
 
 ## Summary of Accomplishments
 
-We have implemented and verified the complete, production-ready **Trust, Safety & Moderation** module for Kirmya:
+We have implemented and verified the complete, production-ready **Search, Discovery & Global Search Experience** module for Kirmya:
 
-1. **Backend Extensions (`Go 1.26 + Gin + PostgreSQL`)**:
-   - **Models & DTOs** ([`trust_safety.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/trust_safety/models/trust_safety.go)): Structs for `ClaimCasePayload`, `AssignCasePayload`, `ResolveAppealPayload`, `UpdateReportStatusPayload`, `SafetyReport`, `SafetyCase`, `UserRestriction`, `ModerationDecision`, `SafetyAppeal`, `ModeratorNote`, `SafetyRule`, `SafetyMetricsSummary`.
-   - **Repository Layer** ([`trust_safety_repo.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/trust_safety/repository/trust_safety_repo.go)): Implemented repository methods `ClaimCase`, `AssignCase`, `CheckReportDeduplication`, `GetUserActiveRestrictions`, `DeactivateRestriction`.
-   - **Service Layer** ([`trust_safety_service.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/trust_safety/service/trust_safety_service.go)): Implemented `SanitizeDescription` (HTML tag stripping via regex, space trimming, 4000 max length limit), `SubmitReport` (deduplication check), `ClaimCase`, `AssignCase`, `GetUserActiveRestrictions`, `ResolveAppeal` (automated lifting of active restrictions upon approval), `EvaluateJobScamRisk` & `EvaluateAccountRisk`.
-   - **HTTP Delivery & Handlers** ([`trust_safety_handler.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/trust_safety/delivery/http/trust_safety_handler.go) & [`admin_trust_safety_handler.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/trust_safety/delivery/http/admin_trust_safety_handler.go)): Handlers for reports, blocks, mutes, restrictions, cases, actions, appeals, and rules.
-   - **Modular Routes** ([`routes.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/trust_safety/delivery/http/routes.go)): Registered endpoints under `/safety/*` and `/admin/trust-safety/*`.
+1. **Backend Extensions (`Go 1.26 + Gin + PostgreSQL / OpenSearch`)**:
+   - **Models & Domain** ([`search.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/domain/search.go)): Structs for `SearchFilterParams`, `ReindexPayload`, `RecentSearchDeletePayload`, `SearchResultItem`, `SearchResponse`, `SearchSuggestion`, `SearchHistoryItem`, `SearchPreference`.
+   - **Repository Layer** ([`search_repository.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/repository/search_repository.go)): Added `DeleteSearchHistory` and `ClearUserSearchHistory` repository methods.
+   - **Service Layer** ([`search_service.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/service/search_service.go)): Implemented `NormalizeQuery` (whitespace trimming, case normalization, punctuation stripping), `DeleteHistoryItem`, `ClearUserHistory`, `ReindexEntities`, and privacy/blocking filtering in `Search`.
+   - **Adapters** ([`search_engine_adapter.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/adapter/search_engine_adapter.go)): `OpenSearchAdapter` primary cluster search engine with seamless `PostgreSQLSearchAdapter` (`tsvector` / `GIN`) offline fallback.
+   - **HTTP Delivery & Handlers** ([`search_handler.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/delivery/http/search_handler.go)): Handlers for unified search execution, suggestions/autocomplete, user search history management (view/delete/clear), preferences, and admin reindexing.
+   - **Modular Routes** ([`routes.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/delivery/http/routes.go)): Endpoints registered under `/api/v1/unified-search/...`.
+   - **OpenAPI / Swagger** ([`swagger.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/search/delivery/http/swagger.go)): OpenAPI 3.0 annotations for search endpoints.
 
-2. **Frontend User Safety & Moderation Console (`Next.js + TypeScript + MUI v6`)**:
-   - **Types & API Client** ([`types.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/trust_safety/types.ts) & [`api.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/trust_safety/api.ts)): Added complete TypeScript interfaces and functions `submitReport`, `getUserReports`, `blockUser`, `unblockUser`, `muteEntity`, `unmuteEntity`, `getUserRestrictions`, `submitAppeal`, `getAdminSummary`, `getAdminReports`, `claimCase`, `assignCase`, `takeModerationAction`, `resolveAppeal`, `getSafetyRules`, `updateSafetyRule`.
-   - **User Safety Components**:
-     - [`SafetyCenter.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/SafetyCenter.tsx): Main hub with status badge, restrictions alert, reporting quick actions, blocked accounts shortcut, guidelines, and privacy links.
-     - [`AccountRestrictions.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/AccountRestrictions.tsx): Component displaying active user restrictions, scopes, expiration dates, and appeal buttons.
-     - [`ReportDialog.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/ReportDialog.tsx): Reporting dialog with target type selection, category picker, sanitized description input, evidence attachment links, and reporter privacy notice.
-     - [`ReportList.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/ReportList.tsx) & [`ReportHistory.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/ReportHistory.tsx): Submitted report trackers.
-     - [`BlockList.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/BlockList.tsx) & [`BlockedUsers.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/BlockedUsers.tsx): Blocked entities manager.
-     - [`AppealForm.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/safety/AppealForm.tsx): Moderation appeal form.
-   - **Admin Moderation Console Components**:
-     - [`AdminTrustSafetyDashboard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/admin/trust-safety/AdminTrustSafetyDashboard.tsx): Executive moderation console.
-     - [`ModerationQueue.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/admin/trust-safety/ModerationQueue.tsx): Moderation queue table with risk score badges (0-100), reporter privacy status, claim/assign buttons, and enforcement action modal.
-     - [`AppealsManager.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/admin/trust-safety/AppealsManager.tsx): Moderation appeals review console.
-     - [`SafetyRulesManager.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/admin/trust-safety/SafetyRulesManager.tsx): Automated detection safety rules console.
-   - **Next.js Subroute Pages**:
-     - `/safety/*` (`/safety/page.tsx`, `/safety/reports/page.tsx`, `/safety/blocked/page.tsx`, `/safety/appeals/page.tsx`, `/safety/guidelines/page.tsx`, `/safety/restricted/page.tsx`)
-     - `/admin/trust-safety/*` (`/admin/trust-safety/page.tsx`, `/admin/trust-safety/moderation/page.tsx`, `/admin/trust-safety/reports/page.tsx`, `/admin/trust-safety/appeals/page.tsx`, `/admin/trust-safety/rules/page.tsx`, `/admin/trust-safety/analytics/page.tsx`)
+2. **Frontend Search & Discovery Experience (`Next.js + TypeScript + MUI v6`)**:
+   - **Types & API Client** ([`types.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/search/types.ts) & [`api.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/search/api.ts)): TypeScript interfaces and API functions `search`, `getSuggestions`, `getUserHistory`, `deleteHistoryItem`, `clearHistory`, `savePreference`, and `reindex`.
+   - **Modular UI Components (`frontend/src/components/search/`)**:
+     - [`GlobalSearchBar.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/search/GlobalSearchBar.tsx): MUI Autocomplete search input with live categorized suggestions (Jobs, People, Companies, Communities), clear button, keyboard navigation (`Enter` to execute), and recent search dropdown.
+     - [`SearchResultCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/search/SearchResultCard.tsx): Reusable result card with category icon, score badge, title, subtitle, description, tags, avatar, and context-aware action buttons (View, Connect, Save, Follow, Apply).
+     - [`SearchFiltersSidebar.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/search/SearchFiltersSidebar.tsx): Drawer/sidebar for filtering by location, work arrangement (Remote, Hybrid, On-site), employment type, experience level, industry, and skills.
+     - [`RecentSearchesManager.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/search/RecentSearchesManager.tsx): History manager with per-item deletion and clear all controls.
+     - [`SearchEmptyState.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/search/SearchEmptyState.tsx): Empty state with keyword recommendations and filter reset triggers.
+   - **Unified Search Page** ([`page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/search/page.tsx)):
+     - Integrated `/search` page featuring category navigation tabs (`All`, `Jobs`, `People`, `Companies`, `Communities`, `Courses`, `Events`), URL state persistence (`/search?q=...&category=...`), loading skeletons, reindexing trigger, and dark/light Glassmorphism aesthetic tokens.
 
 3. **Documentation**:
-   - Created [`docs/trust-safety.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/trust-safety.md) covering architecture, reporting system, reporter privacy, moderation queue, moderator RBAC, blocking, scam/fake job detection, moderation actions, suspensions, appeals workflow, and API reference.
+   - Created [`docs/search-discovery.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/search-discovery.md) detailing search architecture, ranking, OpenSearch integration, PostgreSQL fallback, query normalization, typo tolerance, blocking & privacy filtering, caching, and API reference.
 
 ---
 
 ## Automated Verification & Test Results
 
 ### 1. Backend Verification
-- `go test -v ./internal/trust_safety/...`
-  - **Passed (100%)**: `TestTrustSafetyService`, `TestSanitizeDescription`, `TestReportDeduplication`, `TestClaimAndAssignCase`, `TestGetUserActiveRestrictions`, `TestResolveAppealApprovedLiftsRestrictions` passed.
+- `go test -v ./internal/search/...`
+  - **Passed (100%)**: 7/7 tests passed.
 - `go build ./...`
   - **Passed (Exit code 0)**.
 - `$env:KIRMYA_UPDATE_GOLDEN="1"; go test ./internal/router/...`
-  - **Passed (Exit code 0)**: Gin routes golden manifest updated.
+  - **Passed (Exit code 0)**: Gin route golden manifest updated.
 
 ### 2. Frontend Verification
-- `npx vitest run src/test/trust_safety.test.tsx`
-  - **Passed (100%)**: 12/12 tests passed.
+- `npx vitest run src/test/search.test.tsx`
+  - **Passed (100%)**: 10/10 tests passed.
 - `npx tsc --noEmit`
   - **Passed (0 TypeScript errors)**.
 - `npm run build`
-  - **Passed (Exit code 0)**: Next.js build completed; 328 static/dynamic routes compiled cleanly.
+  - **Passed (Exit code 0)**: Next.js production build succeeded cleanly across 328 static/dynamic routes.

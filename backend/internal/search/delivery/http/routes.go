@@ -12,6 +12,10 @@ func RegisterRoutes(api *gin.RouterGroup, handler *SearchHandler) {
 		unifiedSearchGroup.GET("", handler.Search)
 		unifiedSearchGroup.GET("/suggestions", handler.GetSuggestions)
 		unifiedSearchGroup.GET("/history", handler.GetHistory)
+		unifiedSearchGroup.DELETE("/history/:id", handler.DeleteHistoryItem)
+		unifiedSearchGroup.DELETE("/history", handler.ClearHistory)
 		unifiedSearchGroup.POST("/preferences", handler.SavePreference)
+		unifiedSearchGroup.POST("/reindex", handler.Reindex)
 	}
 }
+

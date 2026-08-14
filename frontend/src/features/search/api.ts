@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {
+  ReindexPayload,
   SaveSearchPreferencePayload,
   SearchHistoryItem,
   SearchResponse,
@@ -18,7 +19,7 @@ const client = axios.create({
 
 client.interceptors.request.use((config: any) => {
   config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  const tenantID = localStorage.getItem('active_tenant_id') || '00000000-0000-0000-0000-000000000000';
+  const tenantID = typeof window !== 'undefined' ? localStorage.getItem('active_tenant_id') || '00000000-0000-0000-0000-000000000000' : '00000000-0000-0000-0000-000000000000';
   config.headers['X-Tenant-ID'] = tenantID;
   return config;
 });
@@ -45,6 +46,21 @@ export const searchApi = {
 
   savePreference: async (payload: SaveSearchPreferencePayload): Promise<{ message: string }> => {
     const response = await client.post('/unified-search/preferences', payload);
+    return response.data;
+  },
+
+  deleteHistoryItem: async (id: string): Promise<{ message: string }> => {
+    const response = await client.delete(`/unified-search/history/${id}`);
+    return response.data;
+  },
+
+  clearHistory: async (): Promise<{ message: string }> => {
+    const response = await client.delete('/unified-search/history');
+    return response.data;
+  },
+
+  reindex: async (payload: ReindexPayload): Promise<{ message: string; status: string }> => {
+    const response = await client.post('/unified-search/reindex', payload);
     return response.data;
   },
 };

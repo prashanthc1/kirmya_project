@@ -15,6 +15,8 @@ import (
 type SearchRepository interface {
 	SaveSearchHistory(ctx context.Context, item *domain.SearchHistoryItem) error
 	GetUserSearchHistory(ctx context.Context, userID uuid.UUID, limit int) ([]domain.SearchHistoryItem, error)
+	DeleteSearchHistory(ctx context.Context, userID, historyID uuid.UUID) error
+	ClearUserSearchHistory(ctx context.Context, userID uuid.UUID) error
 	SaveSearchPreference(ctx context.Context, pref *domain.SearchPreference) error
 	GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error)
 }
@@ -27,8 +29,9 @@ type memorySearchRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
-	history     map[uuid.UUID]*domain.SearchHistoryItem
-	preferences map[uuid.UUID]*domain.SearchPreference
+	history      map[uuid.UUID]*domain.SearchHistoryItem
+	preferences  map[uuid.UUID]*domain.SearchPreference
+	clearedUsers map[uuid.UUID]bool
 }
 
 func NewSearchRepository(pool *pgxpool.Pool) SearchRepository {
@@ -39,9 +42,10 @@ func NewSearchRepository(pool *pgxpool.Pool) SearchRepository {
 	})
 
 	return &memorySearchRepository{
-		pool:        pool,
-		history:     make(map[uuid.UUID]*domain.SearchHistoryItem),
-		preferences: make(map[uuid.UUID]*domain.SearchPreference),
+		pool:         pool,
+		history:      make(map[uuid.UUID]*domain.SearchHistoryItem),
+		preferences:  make(map[uuid.UUID]*domain.SearchPreference),
+		clearedUsers: make(map[uuid.UUID]bool),
 	}
 }
 
@@ -55,12 +59,17 @@ func (r *memorySearchRepository) SaveSearchHistory(ctx context.Context, item *do
 	defer r.mu.Unlock()
 
 	r.history[item.ID] = item
+	delete(r.clearedUsers, item.UserID)
 	return nil
 }
 
 func (r *memorySearchRepository) GetUserSearchHistory(ctx context.Context, userID uuid.UUID, limit int) ([]domain.SearchHistoryItem, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
+
+	if r.clearedUsers[userID] {
+		return []domain.SearchHistoryItem{}, nil
+	}
 
 	var list []domain.SearchHistoryItem
 	for _, item := range r.history {
@@ -83,6 +92,30 @@ func (r *memorySearchRepository) GetUserSearchHistory(ctx context.Context, userI
 	}
 	return list, nil
 }
+
+func (r *memorySearchRepository) DeleteSearchHistory(ctx context.Context, userID, historyID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if item, ok := r.history[historyID]; ok && item.UserID == userID {
+		delete(r.history, historyID)
+	}
+	return nil
+}
+
+func (r *memorySearchRepository) ClearUserSearchHistory(ctx context.Context, userID uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for id, item := range r.history {
+		if item.UserID == userID {
+			delete(r.history, id)
+		}
+	}
+	r.clearedUsers[userID] = true
+	return nil
+}
+
 
 func (r *memorySearchRepository) SaveSearchPreference(ctx context.Context, pref *domain.SearchPreference) error {
 	if pref.ID == uuid.Nil {

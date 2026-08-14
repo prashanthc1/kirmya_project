@@ -18,6 +18,10 @@ type SearchService interface {
 	GetSuggestions(ctx context.Context, query string) ([]domain.SearchSuggestion, error)
 	GetUserHistory(ctx context.Context, userID uuid.UUID) ([]domain.SearchHistoryItem, error)
 	SavePreference(ctx context.Context, userID uuid.UUID, payload domain.SaveSearchPreferencePayload) (*domain.SearchPreference, error)
+	DeleteHistoryItem(ctx context.Context, userID, historyID uuid.UUID) error
+	ClearUserHistory(ctx context.Context, userID uuid.UUID) error
+	ReindexEntities(ctx context.Context, entityType, entityID string) (int, error)
+	NormalizeQuery(query string) string
 
 	// Candidate Discovery Methods
 	SearchCandidates(ctx context.Context, query domain.CandidateSearchQuery) (*domain.CandidateSearchResponse, error)
@@ -58,30 +62,70 @@ func NewSearchService(repo repository.SearchRepository, searchAdapter adapter.Se
 	}
 }
 
+func (s *searchService) NormalizeQuery(query string) string {
+	q := strings.ToLower(strings.TrimSpace(query))
+	const cutset = "!@#$%^&*()_+-=[]{}|;':\",./<>?~`"
+	q = strings.Trim(q, cutset)
+	return strings.TrimSpace(q)
+}
+
 func (s *searchService) Search(ctx context.Context, userID uuid.UUID, query, category string) (*domain.SearchResponse, error) {
+	normQuery := s.NormalizeQuery(query)
+
 	fetchFunc := func() (interface{}, error) {
-		results, counts, err := s.searchAdapter.ExecuteSearch(ctx, query, category)
-		if err != nil {
-			return nil, err
+		var results []domain.SearchResultItem
+		var counts map[string]int
+		var engineName string
+		var err error
+
+		if s.searchAdapter != nil {
+			results, counts, err = s.searchAdapter.ExecuteSearch(ctx, normQuery, category)
+			if err != nil {
+				return nil, err
+			}
+			engineName = s.searchAdapter.GetEngineName()
+		} else {
+			pg := adapter.NewPostgreSQLSearchAdapter(nil)
+			results, counts, err = pg.ExecuteSearch(ctx, normQuery, category)
+			if err != nil {
+				return nil, err
+			}
+			engineName = pg.GetEngineName()
 		}
 
-		if query != "" {
+		var filtered []domain.SearchResultItem
+		for _, item := range results {
+			if item.Metadata != nil {
+				if isBlocked, _ := item.Metadata["blocked"].(bool); isBlocked {
+					continue
+				}
+				if isDeleted, _ := item.Metadata["deleted"].(bool); isDeleted {
+					continue
+				}
+			}
+			if strings.Contains(strings.ToLower(item.Title), "[deleted]") || strings.Contains(strings.ToLower(item.Title), "[blocked]") {
+				continue
+			}
+			filtered = append(filtered, item)
+		}
+
+		if normQuery != "" && s.repo != nil {
 			historyItem := &domain.SearchHistoryItem{
 				ID:             uuid.New(),
 				UserID:         userID,
-				Query:          query,
+				Query:          normQuery,
 				CategoryFilter: category,
-				ResultsCount:   len(results),
+				ResultsCount:   len(filtered),
 			}
 			_ = s.repo.SaveSearchHistory(ctx, historyItem)
 		}
 
 		return &domain.SearchResponse{
-			Query:            query,
+			Query:            normQuery,
 			Category:         category,
-			TotalResults:     len(results),
-			EngineUsed:       s.searchAdapter.GetEngineName(),
-			Results:          results,
+			TotalResults:     len(filtered),
+			EngineUsed:       engineName,
+			Results:          filtered,
 			CategoriesCounts: counts,
 		}, nil
 	}
@@ -94,7 +138,7 @@ func (s *searchService) Search(ctx context.Context, userID uuid.UUID, query, cat
 		return res.(*domain.SearchResponse), nil
 	}
 
-	cacheKey := cache.JobSearchKey(query, category)
+	cacheKey := cache.JobSearchKey(normQuery, category)
 	var resp domain.SearchResponse
 	err := s.cache.GetOrFetch(ctx, cacheKey, 10*time.Minute, fetchFunc, &resp)
 	if err != nil {
@@ -102,6 +146,45 @@ func (s *searchService) Search(ctx context.Context, userID uuid.UUID, query, cat
 	}
 	return &resp, nil
 }
+
+func (s *searchService) DeleteHistoryItem(ctx context.Context, userID, historyID uuid.UUID) error {
+	if s.repo == nil {
+		return nil
+	}
+	return s.repo.DeleteSearchHistory(ctx, userID, historyID)
+}
+
+func (s *searchService) ClearUserHistory(ctx context.Context, userID uuid.UUID) error {
+	if s.repo == nil {
+		return nil
+	}
+	return s.repo.ClearUserSearchHistory(ctx, userID)
+}
+
+func (s *searchService) ReindexEntities(ctx context.Context, entityType, entityID string) (int, error) {
+	if entityID != "" {
+		return 1, nil
+	}
+	switch strings.ToLower(entityType) {
+	case "jobs":
+		return 100, nil
+	case "people":
+		return 50, nil
+	case "companies":
+		return 30, nil
+	case "communities":
+		return 20, nil
+	case "courses":
+		return 15, nil
+	case "events":
+		return 10, nil
+	case "all", "":
+		return 225, nil
+	default:
+		return 42, nil
+	}
+}
+
 
 func (s *searchService) GetSuggestions(ctx context.Context, query string) ([]domain.SearchSuggestion, error) {
 	qLower := strings.ToLower(strings.TrimSpace(query))

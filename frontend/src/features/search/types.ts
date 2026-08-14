@@ -47,3 +47,27 @@ export interface SaveSearchPreferencePayload {
   filters?: Record<string, any>;
   email_alert_enabled?: boolean;
 }
+
+export interface SearchFilterParams {
+  location?: string;
+  workArrangement?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+  industry?: string;
+  skills?: string[];
+  category?: SearchCategory;
+  minSalary?: number;
+  maxSalary?: number;
+  [key: string]: any;
+}
+
+export interface ReindexPayload {
+  entity_type?: string;
+  entity_id?: string;
+  full_reindex?: boolean;
+}
+
+export interface RecentSearchDeletePayload {
+  id?: string;
+  clear_all?: boolean;
+}

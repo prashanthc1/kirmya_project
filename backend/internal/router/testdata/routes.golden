@@ -39,6 +39,8 @@ DELETE /api/v1/resumes/:id
 DELETE /api/v1/resumes/:id/share
 DELETE /api/v1/saved-searches/:id
 DELETE /api/v1/search/saved/:id
+DELETE /api/v1/unified-search/history
+DELETE /api/v1/unified-search/history/:id
 GET /api/v1/admin/analytics/ai
 GET /api/v1/admin/analytics/applications
 GET /api/v1/admin/analytics/communities
@@ -503,6 +505,7 @@ POST /api/v1/search/notes
 POST /api/v1/search/saved
 POST /api/v1/skills
 POST /api/v1/unified-search/preferences
+POST /api/v1/unified-search/reindex
 POST /api/v1/verifications/documents
 POST /api/v1/verifications/requests
 POST /api/v1/work-experience

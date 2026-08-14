@@ -65,3 +65,29 @@ type SaveSearchPreferencePayload struct {
 	Filters           map[string]interface{} `json:"filters"`
 	EmailAlertEnabled bool                   `json:"email_alert_enabled"`
 }
+
+type SearchFilterParams struct {
+	Query           string   `json:"query"`
+	Category        string   `json:"category"`
+	Location        string   `json:"location"`
+	WorkArrangement string   `json:"work_arrangement"` // remote, hybrid, onsite
+	EmploymentType  string   `json:"employment_type"`  // full-time, part-time, contract, internship
+	ExperienceLevel string   `json:"experience_level"` // entry, mid, senior, lead, executive
+	Industry        string   `json:"industry"`
+	Skills          []string `json:"skills"`
+	CompanyID       string   `json:"company_id"`
+	SortBy          string   `json:"sort_by"` // relevance, newest, salary
+	Page            int      `json:"page"`
+	Limit           int      `json:"limit"`
+}
+
+type ReindexPayload struct {
+	EntityType string `json:"entity_type"` // jobs, people, companies, communities, all
+	EntityID   string `json:"entity_id,omitempty"`
+}
+
+type RecentSearchDeletePayload struct {
+	HistoryID string `json:"history_id,omitempty"`
+	ClearAll  bool   `json:"clear_all,omitempty"`
+}
+
