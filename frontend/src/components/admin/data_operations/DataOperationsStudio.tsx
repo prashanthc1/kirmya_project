@@ -296,7 +296,7 @@ export default function DataOperationsStudio() {
                     <TableRow sx={{ '& th': { color: '#94a3b8', fontWeight: 'bold', borderColor: '#334155' } }}>
                       <TableCell>Migration Code</TableCell>
                       <TableCell>Title</TableCell>
-                      <TableCell>Source -> Target</TableCell>
+                      <TableCell>Source &rarr; Target</TableCell>
                       <TableCell>Records Migrated</TableCell>
                       <TableCell>Reconciliation</TableCell>
                       <TableCell align="right">Executed At</TableCell>
