@@ -15,6 +15,7 @@ import (
 	assessmentHttp "kirmya/internal/assessment/delivery/http"
 	authHttp "kirmya/internal/auth/delivery/http"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
+	backupHttp "kirmya/internal/backup/delivery/http"
 	billingHttp "kirmya/internal/billing/delivery/http"
 	candidateSearchHttp "kirmya/internal/candidate_search/delivery/http"
 	careerAIHttp "kirmya/internal/career_ai/delivery/http"
@@ -122,6 +123,7 @@ type RouterDependencies struct {
 	AdminSecurityHandler        *securityHttp.AdminSecurityHandler
 	SupportHandler              *supportHttp.SupportHandler
 	AdminSupportHandler         *supportHttp.AdminSupportHandler
+	AdminBackupHandler          *backupHttp.BackupHandler
 }
 
 type Handlers = RouterDependencies
@@ -266,6 +268,9 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.AdminSupportHandler != nil {
 		supportHttp.RegisterAdminSupportRoutes(api, deps.AdminSupportHandler)
+	}
+	if deps.AdminBackupHandler != nil {
+		backupHttp.RegisterAdminBackupRoutes(api, deps.AdminBackupHandler, deps.AuthMiddleware)
 	}
 	trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
 	trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler)
