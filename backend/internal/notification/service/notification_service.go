@@ -396,3 +396,19 @@ func deriveIcon(nType string) string {
 		return "Notifications"
 	}
 }
+
+func (s *NotificationService) ListDeadLetters(ctx context.Context, limit int) ([]models.NotificationDeadLetter, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	return s.repo.ListDeadLetters(ctx, limit)
+}
+
+func (s *NotificationService) RetryDeadLetter(ctx context.Context, id uuid.UUID) error {
+	return s.repo.RetryDeadLetter(ctx, id)
+}
+
+func (s *NotificationService) ListDeliveryAnalytics(ctx context.Context) ([]models.NotificationAnalyticsDaily, error) {
+	return s.repo.ListDeliveryAnalytics(ctx)
+}
+

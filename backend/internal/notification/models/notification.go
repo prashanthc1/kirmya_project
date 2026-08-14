@@ -244,3 +244,35 @@ type TestSendPayload struct {
 	Channel        string            `json:"channel" binding:"required"`
 	Variables      map[string]string `json:"variables,omitempty"`
 }
+
+// NotificationDeadLetter represents a dead-lettered delivery attempt.
+type NotificationDeadLetter struct {
+	ID             uuid.UUID              `json:"id" db:"id"`
+	NotificationID *uuid.UUID             `json:"notificationId,omitempty" db:"notification_id"`
+	UserID         uuid.UUID              `json:"userId" db:"user_id"`
+	Channel        string                 `json:"channel" db:"channel"`
+	Provider       string                 `json:"provider" db:"provider"`
+	FailureReason  string                 `json:"failureReason" db:"failure_reason"`
+	AttemptsMade   int                    `json:"attemptsMade" db:"attempts_made"`
+	Payload        map[string]interface{} `json:"payload" db:"payload"`
+	Status         string                 `json:"status" db:"status"` // dead_lettered, retried, discarded
+	CreatedAt      time.Time              `json:"createdAt" db:"created_at"`
+	UpdatedAt      time.Time              `json:"updatedAt" db:"updated_at"`
+}
+
+// NotificationAnalyticsDaily represents aggregated daily channel metrics.
+type NotificationAnalyticsDaily struct {
+	ID             uuid.UUID `json:"id" db:"id"`
+	MetricDate     time.Time `json:"metricDate" db:"metric_date"`
+	Channel        string    `json:"channel" db:"channel"`
+	Category       string    `json:"category" db:"category"`
+	TotalQueued    int64     `json:"totalQueued" db:"total_queued"`
+	TotalSent      int64     `json:"totalSent" db:"total_sent"`
+	TotalDelivered int64     `json:"totalDelivered" db:"total_delivered"`
+	TotalFailed    int64     `json:"totalFailed" db:"total_failed"`
+	TotalOpened    int64     `json:"totalOpened" db:"total_opened"`
+	TotalClicked   int64     `json:"totalClicked" db:"total_clicked"`
+	AvgLatencyMS   int       `json:"avgLatencyMs" db:"avg_latency_ms"`
+	CreatedAt      time.Time `json:"createdAt" db:"created_at"`
+}
+

@@ -59,6 +59,8 @@ GET /api/v1/admin/network/analytics
 GET /api/v1/admin/network/reports
 GET /api/v1/admin/notifications
 GET /api/v1/admin/notifications/analytics
+GET /api/v1/admin/notifications/dead-letters
+GET /api/v1/admin/notifications/delivery-analytics
 GET /api/v1/admin/notifications/failed
 GET /api/v1/admin/notifications/failures
 GET /api/v1/admin/notifications/providers
@@ -291,6 +293,7 @@ GET /health/live
 GET /health/ready
 POST /api/v1/admin/analytics/export
 POST /api/v1/admin/notifications/announcement
+POST /api/v1/admin/notifications/dead-letters/:id/retry
 POST /api/v1/admin/notifications/templates
 POST /api/v1/admin/notifications/templates/:id/archive
 POST /api/v1/admin/notifications/templates/:id/publish

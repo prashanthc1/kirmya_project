@@ -65,6 +65,9 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 		admin.GET("/failures", handler.AdminGetFailures)
 		admin.GET("/providers", handler.AdminGetProviders)
 		admin.GET("/analytics", handler.AdminGetAnalytics)
+		admin.GET("/delivery-analytics", handler.AdminGetDeliveryAnalytics)
+		admin.GET("/dead-letters", handler.AdminListDeadLetters)
+		admin.POST("/dead-letters/:id/retry", handler.AdminRetryDeadLetter)
 		admin.POST("/announcement", handler.AdminSendAnnouncement)
 	}
 

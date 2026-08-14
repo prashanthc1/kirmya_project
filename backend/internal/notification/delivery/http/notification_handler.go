@@ -545,3 +545,36 @@ func (h *NotificationHandler) IngestEvent(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, n)
 }
+
+func (h *NotificationHandler) AdminListDeadLetters(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	list, err := h.service.ListDeadLetters(c.Request.Context(), limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, list)
+}
+
+func (h *NotificationHandler) AdminRetryDeadLetter(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dead-letter ID format"})
+		return
+	}
+	if err := h.service.RetryDeadLetter(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Dead-letter retry initiated successfully"})
+}
+
+func (h *NotificationHandler) AdminGetDeliveryAnalytics(c *gin.Context) {
+	analytics, err := h.service.ListDeliveryAnalytics(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, analytics)
+}
+

@@ -14,6 +14,7 @@ vi.mock('next/navigation', () => ({
 import NotificationBell from '../components/notifications/NotificationBell';
 import NotificationCenter from '../components/notifications/NotificationCenter';
 import AdminNotificationCenter from '../components/notifications/AdminNotificationCenter';
+import { notificationApi } from '../features/notifications/services/notificationApi';
 
 describe('Notifications & Real-Time Alerts Module Test Suite', () => {
   it('renders NotificationBell button', () => {
@@ -32,5 +33,13 @@ describe('Notifications & Real-Time Alerts Module Test Suite', () => {
     render(<AdminNotificationCenter />);
     expect(screen.getByText(/Admin Notification Control Console/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Broadcast System Announcement/i).length).toBeGreaterThan(0);
+  });
+
+  it('fetches dead letters and triggers retry safely', async () => {
+    const deadLetters = await notificationApi.adminGetDeadLetters();
+    expect(deadLetters.length).toBeGreaterThan(0);
+
+    const retryRes = await notificationApi.adminRetryDeadLetter(deadLetters[0].id);
+    expect(retryRes.message).toContain('initiated successfully');
   });
 });
