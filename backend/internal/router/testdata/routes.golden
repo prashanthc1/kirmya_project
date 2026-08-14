@@ -70,6 +70,8 @@ GET /api/v1/admin/notifications/templates/:id
 GET /api/v1/admin/onboarding
 GET /api/v1/admin/onboarding/analytics
 GET /api/v1/admin/onboarding/config
+GET /api/v1/admin/recommendations/config
+GET /api/v1/admin/recommendations/metrics
 GET /api/v1/admin/users/:id/profile
 GET /api/v1/ai/preferences
 GET /api/v1/analytics/applications
@@ -236,6 +238,7 @@ GET /api/v1/profile/me/preview
 GET /api/v1/profiles/:userId
 GET /api/v1/profiles/me
 GET /api/v1/profiles/me/preferences
+GET /api/v1/recommendation-engine/career-gaps
 GET /api/v1/recommendation-engine/preferences
 GET /api/v1/recommendation-engine/unified
 GET /api/v1/recommendations
@@ -483,6 +486,7 @@ POST /api/v1/work-experience
 PUT /api/v1/admin/company-verifications/:verificationId
 PUT /api/v1/admin/notifications/templates/:id
 PUT /api/v1/admin/onboarding/config
+PUT /api/v1/admin/recommendations/config
 PUT /api/v1/admin/users/:id/profile
 PUT /api/v1/ai/preferences
 PUT /api/v1/applications/:id/withdraw

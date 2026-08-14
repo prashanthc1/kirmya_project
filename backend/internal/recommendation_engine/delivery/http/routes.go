@@ -13,5 +13,15 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecommendationHandler) {
 		recommendationGroup.POST("/events", handler.TrackEvent)
 		recommendationGroup.GET("/preferences", handler.GetUserPreferences)
 		recommendationGroup.POST("/preferences", handler.UpdatePreferences)
+		recommendationGroup.GET("/career-gaps", handler.GetCareerGapAnalysis)
+	}
+
+	adminGroup := api.Group("/admin/recommendations")
+	adminGroup.Use(sharedMiddleware.AuthRequired())
+	{
+		adminGroup.GET("/config", handler.AdminGetConfig)
+		adminGroup.PUT("/config", handler.AdminUpdateConfig)
+		adminGroup.GET("/metrics", handler.AdminGetMetrics)
 	}
 }
+

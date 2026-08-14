@@ -15,6 +15,10 @@ type RecommendationService interface {
 	TrackEvent(ctx context.Context, userID uuid.UUID, payload domain.TrackEventPayload) error
 	GetUserPreferences(ctx context.Context, userID uuid.UUID) (*domain.UserPreference, error)
 	UpdatePreferences(ctx context.Context, userID uuid.UUID, payload domain.UpdatePreferencesPayload) error
+	GetActiveConfig(ctx context.Context) (*domain.RecommendationConfig, error)
+	UpdateActiveConfig(ctx context.Context, cfg *domain.RecommendationConfig) error
+	GetDailyMetrics(ctx context.Context) ([]domain.RecommendationMetricsDaily, error)
+	GetCareerGapAnalysis(ctx context.Context, userID uuid.UUID) (*domain.CareerGapAnalysis, error)
 }
 
 type recommendationService struct {
@@ -96,3 +100,20 @@ func (s *recommendationService) UpdatePreferences(ctx context.Context, userID uu
 
 	return s.repo.SaveUserPreferences(ctx, pref)
 }
+
+func (s *recommendationService) GetActiveConfig(ctx context.Context) (*domain.RecommendationConfig, error) {
+	return s.repo.GetActiveConfig(ctx)
+}
+
+func (s *recommendationService) UpdateActiveConfig(ctx context.Context, cfg *domain.RecommendationConfig) error {
+	return s.repo.UpdateActiveConfig(ctx, cfg)
+}
+
+func (s *recommendationService) GetDailyMetrics(ctx context.Context) ([]domain.RecommendationMetricsDaily, error) {
+	return s.repo.GetDailyMetrics(ctx)
+}
+
+func (s *recommendationService) GetCareerGapAnalysis(ctx context.Context, userID uuid.UUID) (*domain.CareerGapAnalysis, error) {
+	return s.repo.GetCareerGapAnalysis(ctx, userID)
+}
+

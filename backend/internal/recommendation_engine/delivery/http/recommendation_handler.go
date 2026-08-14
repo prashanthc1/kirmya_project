@@ -74,6 +74,47 @@ func (h *RecommendationHandler) UpdatePreferences(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User feature preferences updated successfully"})
 }
 
+func (h *RecommendationHandler) GetCareerGapAnalysis(c *gin.Context) {
+	userID := h.getUserID(c)
+	analysis, err := h.svc.GetCareerGapAnalysis(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, analysis)
+}
+
+func (h *RecommendationHandler) AdminGetConfig(c *gin.Context) {
+	cfg, err := h.svc.GetActiveConfig(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, cfg)
+}
+
+func (h *RecommendationHandler) AdminUpdateConfig(c *gin.Context) {
+	var cfg domain.RecommendationConfig
+	if err := c.ShouldBindJSON(&cfg); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid configuration payload", "details": err.Error()})
+		return
+	}
+	if err := h.svc.UpdateActiveConfig(c.Request.Context(), &cfg); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Recommendation algorithm configuration updated successfully"})
+}
+
+func (h *RecommendationHandler) AdminGetMetrics(c *gin.Context) {
+	metrics, err := h.svc.GetDailyMetrics(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, metrics)
+}
+
 func (h *RecommendationHandler) getUserID(c *gin.Context) uuid.UUID {
 	userIDStr := c.GetString("user_id")
 	userID, err := uuid.Parse(userIDStr)
@@ -82,3 +123,4 @@ func (h *RecommendationHandler) getUserID(c *gin.Context) uuid.UUID {
 	}
 	return userID
 }
+
