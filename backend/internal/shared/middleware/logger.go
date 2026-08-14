@@ -2,10 +2,42 @@ package middleware
 
 import (
 	"log/slog"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+var sensitiveQueryKeys = map[string]bool{
+	"token":              true,
+	"access_token":       true,
+	"refresh_token":      true,
+	"password":           true,
+	"secret":             true,
+	"api_key":            true,
+	"code":               true,
+	"otp":                true,
+	"verification_token": true,
+	"reset_token":        true,
+}
+
+func sanitizeQuery(rawQuery string) string {
+	if rawQuery == "" {
+		return ""
+	}
+	values, err := url.ParseQuery(rawQuery)
+	if err != nil {
+		return "[INVALID_QUERY]"
+	}
+	for k := range values {
+		lowerK := strings.ToLower(k)
+		if sensitiveQueryKeys[lowerK] || strings.Contains(lowerK, "token") || strings.Contains(lowerK, "secret") {
+			values.Set(k, "[REDACTED]")
+		}
+	}
+	return values.Encode()
+}
 
 // StructuredLogger intercepts requests and outputs structured JSON logs.
 func StructuredLogger() gin.HandlerFunc {
@@ -23,8 +55,9 @@ func StructuredLogger() gin.HandlerFunc {
 		method := c.Request.Method
 		errorMessage := c.Errors.ByType(gin.ErrorTypePrivate).String()
 
-		if rawQuery != "" {
-			path = path + "?" + rawQuery
+		cleanQuery := sanitizeQuery(rawQuery)
+		if cleanQuery != "" {
+			path = path + "?" + cleanQuery
 		}
 
 		// Log using structured attributes

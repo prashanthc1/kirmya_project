@@ -1,3 +1,4 @@
+import { authApiClient } from '../../../services/authService';
 import {
   SecurityOverview,
   PasswordChangePayload,
@@ -13,14 +14,13 @@ import {
   SecurityDashboardSummary,
 } from '../types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const apiClient = authApiClient;
 
 export const securityApi = {
   async getSecurityOverview(): Promise<SecurityOverview> {
     try {
-      const res = await fetch(`${API_BASE}/security`);
-      if (!res.ok) throw new Error('Failed to fetch security overview');
-      return await res.json();
+      const res = await apiClient.get<SecurityOverview>('/security');
+      return res.data;
     } catch {
       return {
         user_id: 'u1',
@@ -36,19 +36,14 @@ export const securityApi = {
   },
 
   async changePassword(payload: PasswordChangePayload): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/password/change`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return res.ok;
+    const res = await apiClient.post('/security/password/change', payload);
+    return res.status === 200;
   },
 
   async setupMFA(): Promise<MFASetupResponse> {
     try {
-      const res = await fetch(`${API_BASE}/security/mfa/setup`, { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to setup MFA');
-      return await res.json();
+      const res = await apiClient.post<MFASetupResponse>('/security/mfa/setup');
+      return res.data;
     } catch {
       return {
         secret: 'JBSWY3DPEHPK3PXP',
@@ -59,24 +54,19 @@ export const securityApi = {
   },
 
   async verifyMFA(code: string): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/mfa/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    });
-    return res.ok;
+    const res = await apiClient.post('/security/mfa/verify', { code });
+    return res.status === 200;
   },
 
   async disableMFA(): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/mfa/disable`, { method: 'POST' });
-    return res.ok;
+    const res = await apiClient.post('/security/mfa/disable');
+    return res.status === 200;
   },
 
   async getActiveSessions(): Promise<SessionItem[]> {
     try {
-      const res = await fetch(`${API_BASE}/security/sessions`);
-      if (!res.ok) throw new Error('Failed to fetch sessions');
-      return await res.json();
+      const res = await apiClient.get<SessionItem[]>('/security/sessions');
+      return res.data;
     } catch {
       return [
         {
@@ -94,20 +84,19 @@ export const securityApi = {
   },
 
   async revokeSession(sessionId: string): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/sessions/${sessionId}`, { method: 'DELETE' });
-    return res.ok;
+    const res = await apiClient.delete(`/security/sessions/${sessionId}`);
+    return res.status === 200;
   },
 
   async revokeAllOtherSessions(): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/sessions`, { method: 'DELETE' });
-    return res.ok;
+    const res = await apiClient.delete('/security/sessions');
+    return res.status === 200;
   },
 
   async getTrustedDevices(): Promise<DeviceItem[]> {
     try {
-      const res = await fetch(`${API_BASE}/security/devices`);
-      if (!res.ok) throw new Error('Failed to fetch devices');
-      return await res.json();
+      const res = await apiClient.get<DeviceItem[]>('/security/devices');
+      return res.data;
     } catch {
       return [
         {
@@ -126,15 +115,14 @@ export const securityApi = {
   },
 
   async removeDevice(deviceId: string): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/devices/${deviceId}`, { method: 'DELETE' });
-    return res.ok;
+    const res = await apiClient.delete(`/security/devices/${deviceId}`);
+    return res.status === 200;
   },
 
   async getLoginHistory(): Promise<LoginHistoryItem[]> {
     try {
-      const res = await fetch(`${API_BASE}/security/login-history`);
-      if (!res.ok) throw new Error('Failed to fetch login history');
-      return await res.json();
+      const res = await apiClient.get<LoginHistoryItem[]>('/security/login-history');
+      return res.data;
     } catch {
       return [
         {
@@ -152,12 +140,8 @@ export const securityApi = {
 
   async createAPIKey(payload: CreateAPIKeyPayload): Promise<CreateAPIKeyResponse> {
     try {
-      const res = await fetch(`${API_BASE}/security/api-keys`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      return await res.json();
+      const res = await apiClient.post<CreateAPIKeyResponse>('/security/api-keys', payload);
+      return res.data;
     } catch {
       return {
         api_key: {
@@ -175,24 +159,22 @@ export const securityApi = {
 
   async getAPIKeys(): Promise<APIKey[]> {
     try {
-      const res = await fetch(`${API_BASE}/security/api-keys`);
-      if (!res.ok) throw new Error('Failed to fetch API keys');
-      return await res.json();
+      const res = await apiClient.get<APIKey[]>('/security/api-keys');
+      return res.data;
     } catch {
       return [];
     }
   },
 
   async revokeAPIKey(keyId: string): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/security/api-keys/${keyId}`, { method: 'DELETE' });
-    return res.ok;
+    const res = await apiClient.delete(`/security/api-keys/${keyId}`);
+    return res.status === 200;
   },
 
   async getSecurityEvents(): Promise<SecurityEvent[]> {
     try {
-      const res = await fetch(`${API_BASE}/security/events`);
-      if (!res.ok) throw new Error('Failed to fetch security events');
-      return await res.json();
+      const res = await apiClient.get<SecurityEvent[]>('/security/events');
+      return res.data;
     } catch {
       return [];
     }
@@ -200,9 +182,8 @@ export const securityApi = {
 
   async getAdminSecuritySummary(): Promise<SecurityDashboardSummary> {
     try {
-      const res = await fetch(`${API_BASE}/admin/security`);
-      if (!res.ok) throw new Error('Failed to fetch admin security summary');
-      return await res.json();
+      const res = await apiClient.get<SecurityDashboardSummary>('/admin/security');
+      return res.data;
     } catch {
       return {
         total_events: 1280,
@@ -222,9 +203,8 @@ export const securityApi = {
 
   async getSecurityIncidents(): Promise<SecurityIncident[]> {
     try {
-      const res = await fetch(`${API_BASE}/admin/security/incidents`);
-      if (!res.ok) throw new Error('Failed to fetch incidents');
-      return await res.json();
+      const res = await apiClient.get<SecurityIncident[]>('/admin/security/incidents');
+      return res.data;
     } catch {
       return [];
     }
