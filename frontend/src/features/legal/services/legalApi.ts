@@ -1,3 +1,4 @@
+import { authApiClient } from '../../../services/authService';
 import {
   LegalDocument,
   CookieItem,
@@ -12,15 +13,13 @@ import {
   PrivacyDashboardSummary,
 } from '../types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const apiClient = authApiClient;
 
 export const legalApi = {
   async getDocument(slug: string): Promise<LegalDocument> {
     try {
-      const res = await fetch(`${API_BASE}/legal/documents/${slug}`);
-      if (!res.ok) throw new Error('Failed to fetch legal document');
-      const data = await res.json();
-      return data.data;
+      const res = await apiClient.get<{ data: LegalDocument }>(`/legal/documents/${slug}`);
+      return res.data.data;
     } catch {
       return {
         id: '1',
@@ -38,10 +37,8 @@ export const legalApi = {
 
   async getCookies(): Promise<CookieItem[]> {
     try {
-      const res = await fetch(`${API_BASE}/cookies`);
-      if (!res.ok) throw new Error('Failed to fetch cookies');
-      const data = await res.json();
-      return data.data || [];
+      const res = await apiClient.get<{ data: CookieItem[] }>('/cookies');
+      return res.data.data || [];
     } catch {
       return [];
     }
@@ -49,12 +46,8 @@ export const legalApi = {
 
   async saveCookieConsent(visitorId: string, preferences: CookiePreferences): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/cookies/consent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitor_id: visitorId, preferences }),
-      });
-      return res.ok;
+      const res = await apiClient.post('/cookies/consent', { visitor_id: visitorId, preferences });
+      return res.status === 200;
     } catch {
       return false;
     }
@@ -62,9 +55,8 @@ export const legalApi = {
 
   async getPrivacyPreferences(): Promise<PrivacyPreferences> {
     try {
-      const res = await fetch(`${API_BASE}/privacy`);
-      if (!res.ok) throw new Error('Failed to fetch privacy settings');
-      return await res.json();
+      const res = await apiClient.get<PrivacyPreferences>('/privacy');
+      return res.data;
     } catch {
       return {
         user_id: 'u1',
@@ -85,19 +77,14 @@ export const legalApi = {
   },
 
   async updatePrivacyPreferences(payload: Partial<PrivacyPreferences>): Promise<PrivacyPreferences> {
-    const res = await fetch(`${API_BASE}/privacy`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return await res.json();
+    const res = await apiClient.put<PrivacyPreferences>('/privacy', payload);
+    return res.data;
   },
 
   async getConsentHistory(): Promise<ConsentHistoryItem[]> {
     try {
-      const res = await fetch(`${API_BASE}/privacy/consents`);
-      if (!res.ok) throw new Error('Failed to fetch consent history');
-      return await res.json();
+      const res = await apiClient.get<ConsentHistoryItem[]>('/privacy/consents');
+      return res.data;
     } catch {
       return [
         { id: 'c1', document: 'Terms of Service', version: '1.0.0', accepted_at: new Date().toISOString(), source: 'Web Registration' },
@@ -107,15 +94,14 @@ export const legalApi = {
   },
 
   async requestDataExport(): Promise<DataExportJob> {
-    const res = await fetch(`${API_BASE}/privacy/export`, { method: 'POST' });
-    return await res.json();
+    const res = await apiClient.post<DataExportJob>('/privacy/export');
+    return res.data;
   },
 
   async getDataExportJob(): Promise<DataExportJob> {
     try {
-      const res = await fetch(`${API_BASE}/privacy/export`);
-      if (!res.ok) throw new Error('Failed to fetch export job');
-      return await res.json();
+      const res = await apiClient.get<DataExportJob>('/privacy/export');
+      return res.data;
     } catch {
       return {
         id: 'job-1',
@@ -127,24 +113,19 @@ export const legalApi = {
   },
 
   async requestAccountDeletion(reason: string): Promise<any> {
-    const res = await fetch(`${API_BASE}/privacy/delete-account`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason }),
-    });
-    return await res.json();
+    const res = await apiClient.post('/privacy/delete-account', { reason });
+    return res.data;
   },
 
   async cancelAccountDeletion(): Promise<boolean> {
-    const res = await fetch(`${API_BASE}/privacy/delete-account/cancel`, { method: 'POST' });
-    return res.ok;
+    const res = await apiClient.post('/privacy/delete-account/cancel');
+    return res.status === 200;
   },
 
   async getPrivacyRequests(): Promise<PrivacyRequest[]> {
     try {
-      const res = await fetch(`${API_BASE}/privacy/requests`);
-      if (!res.ok) throw new Error('Failed to fetch privacy requests');
-      return await res.json();
+      const res = await apiClient.get<PrivacyRequest[]>('/privacy/requests');
+      return res.data;
     } catch {
       return [];
     }
@@ -152,9 +133,8 @@ export const legalApi = {
 
   async getAdminPrivacySummary(): Promise<PrivacyDashboardSummary> {
     try {
-      const res = await fetch(`${API_BASE}/admin/privacy`);
-      if (!res.ok) throw new Error('Failed to fetch admin summary');
-      return await res.json();
+      const res = await apiClient.get<PrivacyDashboardSummary>('/admin/privacy');
+      return res.data;
     } catch {
       return {
         total_requests: 42,
@@ -175,9 +155,8 @@ export const legalApi = {
 
   async getDataProcessingRecords(): Promise<DataProcessingRecord[]> {
     try {
-      const res = await fetch(`${API_BASE}/admin/privacy/data-processing`);
-      if (!res.ok) throw new Error('Failed to fetch RoPA records');
-      return await res.json();
+      const res = await apiClient.get<DataProcessingRecord[]>('/admin/privacy/data-processing');
+      return res.data;
     } catch {
       return [];
     }
@@ -185,9 +164,8 @@ export const legalApi = {
 
   async getRetentionPolicies(): Promise<RetentionPolicy[]> {
     try {
-      const res = await fetch(`${API_BASE}/privacy/retention`);
-      if (!res.ok) throw new Error('Failed to fetch retention policies');
-      return await res.json();
+      const res = await apiClient.get<RetentionPolicy[]>('/privacy/retention');
+      return res.data;
     } catch {
       return [];
     }
@@ -195,9 +173,8 @@ export const legalApi = {
 
   async getThirdPartyServices(): Promise<ThirdPartyService[]> {
     try {
-      const res = await fetch(`${API_BASE}/admin/privacy/third-parties`);
-      if (!res.ok) throw new Error('Failed to fetch sub-processors');
-      return await res.json();
+      const res = await apiClient.get<ThirdPartyService[]>('/admin/privacy/third-parties');
+      return res.data;
     } catch {
       return [];
     }
