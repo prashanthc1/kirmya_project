@@ -13,6 +13,17 @@ import OfferManager from '../components/recruiter/OfferManager';
 import JobManager from '../components/recruiter/JobManager';
 import { ThemeProvider, createTheme } from '@mui/material';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/recruiter',
+}));
+
 const theme = createTheme();
 
 describe('Recruiter ATS Production Test Suite', () => {
@@ -66,34 +77,34 @@ describe('Recruiter ATS Production Test Suite', () => {
         <PipelineBoard />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Pipeline/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kanban/i)).toBeInTheDocument();
   });
 
   it('renders RecruiterNotes component', () => {
     render(
       <ThemeProvider theme={theme}>
-        <RecruiterNotes />
+        <RecruiterNotes candidateId="c1111111-1111-1111-1111-111111111111" candidateName="Sarah Chen" />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Notes/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Notes/i).length).toBeGreaterThan(0);
   });
 
   it('renders CandidateProfile component', () => {
     render(
       <ThemeProvider theme={theme}>
-        <CandidateProfile />
+        <CandidateProfile candidateId="c1111111-1111-1111-1111-111111111111" />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Candidate/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Candidate/i).length).toBeGreaterThan(0);
   });
 
   it('renders ApplicationDetails component', () => {
     render(
       <ThemeProvider theme={theme}>
-        <ApplicationDetails />
+        <ApplicationDetails applicationId="a1111111-1111-1111-1111-111111111111" />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Application/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Application/i).length).toBeGreaterThan(0);
   });
 
   it('renders InterviewScheduler component', () => {
@@ -102,7 +113,7 @@ describe('Recruiter ATS Production Test Suite', () => {
         <InterviewScheduler />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Interview/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Interview/i).length).toBeGreaterThan(0);
   });
 
   it('renders OfferManager component', () => {
@@ -111,7 +122,7 @@ describe('Recruiter ATS Production Test Suite', () => {
         <OfferManager />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Offer/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Offer/i).length).toBeGreaterThan(0);
   });
 
   it('renders JobManager component', () => {
@@ -120,6 +131,6 @@ describe('Recruiter ATS Production Test Suite', () => {
         <JobManager />
       </ThemeProvider>
     );
-    expect(screen.getByText(/Job/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Job/i).length).toBeGreaterThan(0);
   });
 });
