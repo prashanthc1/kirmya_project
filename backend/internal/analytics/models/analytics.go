@@ -106,6 +106,119 @@ type AdminAnalyticsOverview struct {
 	DataFreshnessTimestamp string  `json:"data_freshness_timestamp"`
 }
 
+// UserGrowthAnalytics details user growth & activation cohorts.
+type UserGrowthAnalytics struct {
+	TotalRegistrations int          `json:"total_registrations"`
+	ActivatedUsers     int          `json:"activated_users"`
+	ProfileCompletion  float64      `json:"profile_completion_pct"`
+	WeeklyActiveUsers  int          `json:"weekly_active_users"`
+	MonthlyActiveUsers int          `json:"monthly_active_users"`
+	RetentionRate      float64      `json:"retention_rate_pct"`
+	CohortMatrix       []CohortItem `json:"cohort_matrix"`
+}
+
+// SkillDemandItem represents skill demand frequency and market share.
+type SkillDemandItem struct {
+	Skill string  `json:"skill"`
+	Count int     `json:"count"`
+	Share float64 `json:"share"`
+}
+
+// JobMarketAnalytics details job demand and skill trends.
+type JobMarketAnalytics struct {
+	TotalJobsCreated     int               `json:"total_jobs_created"`
+	ActiveJobsCount      int               `json:"active_jobs_count"`
+	ExpiredJobsCount     int               `json:"expired_jobs_count"`
+	JobsByIndustry       map[string]int    `json:"jobs_by_industry"`
+	JobsByEmploymentType map[string]int    `json:"jobs_by_employment_type"`
+	JobsByWorkMode       map[string]int    `json:"jobs_by_work_mode"`
+	TopSkillsRequested   []SkillDemandItem `json:"top_skills_requested"`
+}
+
+
+// ApplicationFunnelAnalytics details job seeker conversion pipeline.
+type ApplicationFunnelAnalytics struct {
+	TotalViews        int               `json:"total_views"`
+	TotalSaves        int               `json:"total_saves"`
+	TotalApplications int               `json:"total_applications"`
+	TotalInterviews   int               `json:"total_interviews"`
+	TotalOffers       int               `json:"total_offers"`
+	TotalHires        int               `json:"total_hires"`
+	FunnelStages      []FunnelStageItem `json:"funnel_stages"`
+}
+
+// CommunityAnalytics details community membership & engagement.
+type CommunityAnalytics struct {
+	TotalCommunities   int     `json:"total_communities"`
+	TotalMemberships   int     `json:"total_memberships"`
+	ActiveMembersCount int     `json:"active_members_count"`
+	GrowthRate         float64 `json:"growth_rate_pct"`
+	ModerationEvents   int     `json:"moderation_events"`
+}
+
+// MessagingMetadataAnalytics details messaging delivery metadata (ZERO content inspection).
+type MessagingMetadataAnalytics struct {
+	TotalConversations  int     `json:"total_conversations"`
+	TotalMessagesSent   int     `json:"total_messages_sent"`
+	DeliverySuccessRate float64 `json:"delivery_success_rate_pct"`
+	AvgResponseTimeMins float64 `json:"avg_response_time_mins"`
+	UnreadMessagesCount int     `json:"unread_messages_count"`
+}
+
+// NotificationAnalytics details multi-channel notification performance.
+type NotificationAnalytics struct {
+	TotalSent         int     `json:"total_sent"`
+	TotalDelivered    int     `json:"total_delivered"`
+	TotalFailed       int     `json:"total_failed"`
+	DeliveryRate      float64 `json:"delivery_rate_pct"`
+	ClickThroughRate  float64 `json:"click_through_rate_pct"`
+	DeadLetterCount   int     `json:"dead_letter_count"`
+}
+
+// RecommendationAnalytics details recommendation engine conversion.
+type RecommendationAnalytics struct {
+	TotalImpressions int     `json:"total_impressions"`
+	TotalClicks      int     `json:"total_clicks"`
+	TotalSaves       int     `json:"total_saves"`
+	TotalApplies     int     `json:"total_applies"`
+	TotalDismissals  int     `json:"total_dismissals"`
+	AvgMatchScore    int     `json:"avg_match_score"`
+	ConversionRate   float64 `json:"conversion_rate_pct"`
+}
+
+// ZeroResultSearchItem tracks terms yielding zero search results.
+type ZeroResultSearchItem struct {
+	QueryTerm   string    `json:"query_term"`
+	SearchCount int       `json:"search_count"`
+	LastSearched time.Time `json:"last_searched"`
+}
+
+// SearchAnalytics details platform search activity & discovery gaps.
+type SearchAnalytics struct {
+	TotalSearches     int                    `json:"total_searches"`
+	PopularTerms      []string               `json:"popular_terms"`
+	ZeroResultSearches []ZeroResultSearchItem `json:"zero_result_searches"`
+	SearchToViewRate  float64                `json:"search_to_view_rate_pct"`
+	SearchToApplyRate float64                `json:"search_to_apply_rate_pct"`
+}
+
+// ScheduledReportConfig defines recurring admin report execution.
+type ScheduledReportConfig struct {
+	ID             uuid.UUID `json:"id" db:"id"`
+	Title          string    `json:"title" db:"title"`
+	CronExpression string    `json:"cron_expression" db:"cron_expression"`
+	ReportType     string    `json:"report_type" db:"report_type"`
+	ExportFormat   string    `json:"export_format" db:"export_format"`
+	Recipients     []string  `json:"recipients" db:"recipients"`
+	FilterParams   map[string]interface{} `json:"filter_params" db:"filter_params"`
+	IsActive       bool      `json:"is_active" db:"is_active"`
+	CreatedBy      uuid.UUID `json:"created_by" db:"created_by"`
+	LastRunAt      *time.Time`json:"last_run_at,omitempty" db:"last_run_at"`
+	NextRunAt      *time.Time`json:"next_run_at,omitempty" db:"next_run_at"`
+	CreatedAt      time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
+}
+
 // AnalyticsExportJob represents asynchronous data export request.
 type AnalyticsExportJob struct {
 	ID            uuid.UUID  `json:"id" db:"id"`
@@ -117,3 +230,15 @@ type AnalyticsExportJob struct {
 	FileSizeBytes int64      `json:"file_size_bytes" db:"file_size_bytes"`
 	CreatedAt     time.Time  `json:"created_at" db:"created_at"`
 }
+
+// SanitizeCSVCell prevents CSV formula injection by stripping leading =, +, -, or @.
+func SanitizeCSVCell(value string) string {
+	if len(value) > 0 {
+		switch value[0] {
+		case '=', '+', '-', '@':
+			return "'" + value
+		}
+	}
+	return value
+}
+

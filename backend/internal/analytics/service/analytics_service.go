@@ -84,3 +84,44 @@ func (s *AnalyticsService) RequestExport(ctx context.Context, adminID uuid.UUID,
 	}
 	return s.repo.CreateExportRecord(ctx, adminID, format)
 }
+
+func (s *AnalyticsService) GetUserGrowthAnalytics(ctx context.Context) (*models.UserGrowthAnalytics, error) {
+	return s.repo.GetUserGrowthAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetJobMarketAnalytics(ctx context.Context) (*models.JobMarketAnalytics, error) {
+	return s.repo.GetJobMarketAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetApplicationFunnelAnalytics(ctx context.Context) (*models.ApplicationFunnelAnalytics, error) {
+	return s.repo.GetApplicationFunnelAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetCommunityAnalytics(ctx context.Context) (*models.CommunityAnalytics, error) {
+	return s.repo.GetCommunityAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetMessagingMetadataAnalytics(ctx context.Context) (*models.MessagingMetadataAnalytics, error) {
+	return s.repo.GetMessagingMetadataAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetNotificationAnalytics(ctx context.Context) (*models.NotificationAnalytics, error) {
+	return s.repo.GetNotificationAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetRecommendationAnalytics(ctx context.Context) (*models.RecommendationAnalytics, error) {
+	return s.repo.GetRecommendationAnalytics(ctx)
+}
+
+func (s *AnalyticsService) GetSearchAnalytics(ctx context.Context) (*models.SearchAnalytics, error) {
+	return s.repo.GetSearchAnalytics(ctx)
+}
+
+func (s *AnalyticsService) CreateScheduledReport(ctx context.Context, adminID uuid.UUID, req *models.ScheduledReportConfig) (*models.ScheduledReportConfig, error) {
+	return s.repo.CreateScheduledReport(ctx, adminID, req)
+}
+
+func (s *AnalyticsService) GetScheduledReports(ctx context.Context) ([]models.ScheduledReportConfig, error) {
+	return s.repo.GetScheduledReports(ctx)
+}
+

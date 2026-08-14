@@ -45,10 +45,15 @@ GET /api/v1/admin/analytics/companies
 GET /api/v1/admin/analytics/events
 GET /api/v1/admin/analytics/jobs
 GET /api/v1/admin/analytics/messaging
+GET /api/v1/admin/analytics/notifications
 GET /api/v1/admin/analytics/overview
+GET /api/v1/admin/analytics/recommendations
 GET /api/v1/admin/analytics/recruiters
+GET /api/v1/admin/analytics/reports/download/:id
+GET /api/v1/admin/analytics/reports/scheduled
 GET /api/v1/admin/analytics/safety
 GET /api/v1/admin/analytics/search
+GET /api/v1/admin/analytics/search/zero-results
 GET /api/v1/admin/analytics/support
 GET /api/v1/admin/analytics/system
 GET /api/v1/admin/analytics/users
@@ -78,6 +83,7 @@ GET /api/v1/analytics/applications
 GET /api/v1/analytics/career
 GET /api/v1/analytics/content
 GET /api/v1/analytics/jobs
+GET /api/v1/analytics/me
 GET /api/v1/analytics/network
 GET /api/v1/analytics/profile
 GET /api/v1/applications
@@ -295,6 +301,7 @@ GET /health/dependencies
 GET /health/live
 GET /health/ready
 POST /api/v1/admin/analytics/export
+POST /api/v1/admin/analytics/reports/scheduled
 POST /api/v1/admin/notifications/announcement
 POST /api/v1/admin/notifications/dead-letters/:id/retry
 POST /api/v1/admin/notifications/templates

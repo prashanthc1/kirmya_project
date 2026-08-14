@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import AdminDashboard from '@/components/admin/AdminDashboard';
+import AdminAnalyticsCenter from '../../../components/admin/analytics/AdminAnalyticsCenter';
 
 export default function AdminAnalyticsPage() {
-  return <AdminDashboard />;
+  return <AdminAnalyticsCenter />;
 }

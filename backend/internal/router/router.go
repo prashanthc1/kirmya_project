@@ -195,8 +195,9 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	api.GET("/metrics", metricsGuard(deps.Metrics), metricsHandler())
 
 	authHttp.RegisterRoutes(api, deps.AuthHandler, deps.AuthMiddleware)
-	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler)
+	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler, deps.AdminAnalyticsHandler)
 	aiHttp.RegisterRoutes(api, deps.AIHandler)
+
 	companyHttp.RegisterRoutes(api, deps.CompanyHandler, deps.CompanyManagementHandler, deps.AuthMiddleware)
 	recruiterHttp.RegisterRoutes(api, deps.RecruiterHandler, deps.UnifiedSearchHandler)
 	candidateSearchHttp.RegisterRoutes(api, deps.CandidateSearchHandler)

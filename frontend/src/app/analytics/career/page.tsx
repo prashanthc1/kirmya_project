@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import ProfileAnalytics from '@/components/analytics/ProfileAnalytics';
+import PersonalCareerAnalytics from '../../../components/analytics/PersonalCareerAnalytics';
 
-export default function CareerAnalyticsSubPage() {
-  return <ProfileAnalytics />;
+export default function PersonalCareerAnalyticsPage() {
+  return <PersonalCareerAnalytics />;
 }
