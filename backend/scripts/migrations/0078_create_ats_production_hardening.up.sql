@@ -35,6 +35,8 @@ CREATE INDEX IF NOT EXISTS idx_candidate_pipeline_org ON candidate_pipeline(org_
 CREATE INDEX IF NOT EXISTS idx_candidate_pipeline_app ON candidate_pipeline(application_id);
 
 -- 3. Add additional indexes for high-volume ATS queries
+ALTER TABLE recruiter_jobs ADD COLUMN IF NOT EXISTS org_id UUID;
+ALTER TABLE interviews ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP WITH TIME ZONE;
 CREATE INDEX IF NOT EXISTS idx_job_applications_recruiter ON job_applications(recruiter_id);
 CREATE INDEX IF NOT EXISTS idx_job_applications_updated ON job_applications(updated_at);
 CREATE INDEX IF NOT EXISTS idx_recruiter_jobs_status ON recruiter_jobs(status);
