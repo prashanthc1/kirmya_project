@@ -1,3 +1,4 @@
+import { authApiClient } from '../../../services/authService';
 import {
   SupportArticleCategory,
   SupportArticle,
@@ -12,8 +13,8 @@ import {
 export const supportApi = {
   getCategories: async (): Promise<SupportArticleCategory[]> => {
     try {
-      const res = await fetch('/api/v1/help/categories');
-      if (res.ok) return await res.json();
+      const res = await authApiClient.get<SupportArticleCategory[]>('/help/categories');
+      return res.data;
     } catch (e) {
       console.warn('API fallback for getCategories', e);
     }
@@ -22,19 +23,19 @@ export const supportApi = {
       { id: 'cat-2', code: 'account', name: 'Account & Security', description: 'Password reset, 2FA, session management', display_order: 2, is_active: true },
       { id: 'cat-3', code: 'jobs', name: 'Jobs & Applications', description: 'Search, application tracking, saved job alerts', display_order: 3, is_active: true },
       { id: 'cat-4', code: 'privacy', name: 'Privacy & Data Rights', description: 'Cookie preferences, data export, account deletion', display_order: 4, is_active: true },
+      { id: 'cat-5', code: 'messaging', name: 'Direct Messaging', description: 'Real-time chat, connections, and messaging privacy', display_order: 5, is_active: true },
+      { id: 'cat-6', code: 'communities', name: 'Professional Communities', description: 'Joining groups, discussions, and networking', display_order: 6, is_active: true },
+      { id: 'cat-7', code: 'trust_safety', name: 'Trust & Safety', description: 'Reporting abuse, blocking accounts, platform guidelines', display_order: 7, is_active: true },
     ];
   },
 
   getArticles: async (category?: string, search?: string): Promise<SupportArticle[]> => {
     try {
-      let url = '/api/v1/help/articles';
-      const params = new URLSearchParams();
-      if (category) params.append('category', category);
-      if (search) params.append('search', search);
-      if (params.toString()) url += `?${params.toString()}`;
-
-      const res = await fetch(url);
-      if (res.ok) return await res.json();
+      const params: any = {};
+      if (category) params.category = category;
+      if (search) params.search = search;
+      const res = await authApiClient.get<SupportArticle[]>('/help/articles', { params });
+      return res.data;
     } catch (e) {
       console.warn('API fallback for getArticles', e);
     }
@@ -44,7 +45,7 @@ export const supportApi = {
         title: 'How to Create and Optimize Your Kirmya Candidate Profile',
         slug: 'create-and-optimize-kirmya-candidate-profile',
         summary: 'Step-by-step guide to showcasing your skills and experience to prospective employers.',
-        content: 'Building an optimized profile on Kirmya is essential for attracting verified recruiters...',
+        content: 'Building an optimized profile on Kirmya is essential for attracting verified recruiters. Start by setting your employment status, adding key technical skills, uploading your formatted resume, and verifying your professional email address.',
         category_code: 'getting_started',
         tags: ['profile', 'onboarding', 'resume'],
         status: 'published',
@@ -61,7 +62,7 @@ export const supportApi = {
         title: 'Setting Up Two-Factor Authentication (TOTP)',
         slug: 'setup-two-factor-authentication-totp',
         summary: 'Protect your Kirmya account using Google Authenticator, Authy, or 1Password.',
-        content: 'Two-Factor Authentication adds an extra security layer to protect your data...',
+        content: 'Two-Factor Authentication adds an extra security layer to protect your data. Navigate to Settings -> Security -> Two-Factor Authentication to link your authenticator application.',
         category_code: 'account',
         tags: ['security', 'mfa', '2fa'],
         status: 'published',
@@ -73,13 +74,30 @@ export const supportApi = {
         created_at: new Date(Date.now() - 5184000000).toISOString(),
         updated_at: new Date().toISOString(),
       },
+      {
+        id: 'art-3',
+        title: 'Managing Connection Requests and Professional Networking',
+        slug: 'managing-connection-requests-and-networking',
+        summary: 'How to send connection invites, control messaging preferences, and manage your network.',
+        content: 'Expand your professional network by sending connection requests from candidate profiles or company directories. You can manage incoming requests under the Network section.',
+        category_code: 'messaging',
+        tags: ['networking', 'connections', 'messages'],
+        status: 'published',
+        version: 1,
+        view_count: 760,
+        helpful_count: 112,
+        not_helpful_count: 3,
+        published_at: new Date(Date.now() - 1200000000).toISOString(),
+        created_at: new Date(Date.now() - 1200000000).toISOString(),
+        updated_at: new Date().toISOString(),
+      },
     ];
   },
 
   getArticleBySlug: async (slug: string): Promise<SupportArticle> => {
     try {
-      const res = await fetch(`/api/v1/help/articles/${slug}`);
-      if (res.ok) return await res.json();
+      const res = await authApiClient.get<SupportArticle>(`/help/articles/${slug}`);
+      return res.data;
     } catch (e) {
       console.warn('API fallback for getArticleBySlug', e);
     }
@@ -104,11 +122,7 @@ export const supportApi = {
 
   recordArticleFeedback: async (articleId: string, isHelpful: boolean, feedback?: string) => {
     try {
-      await fetch(`/api/v1/help/articles/${articleId}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_helpful: isHelpful, feedback }),
-      });
+      await authApiClient.post(`/help/articles/${articleId}/feedback`, { is_helpful: isHelpful, feedback });
     } catch (e) {
       console.warn('recordArticleFeedback error', e);
     }
@@ -116,8 +130,8 @@ export const supportApi = {
 
   getUserTickets: async (): Promise<SupportTicket[]> => {
     try {
-      const res = await fetch('/api/v1/support/tickets');
-      if (res.ok) return await res.json();
+      const res = await authApiClient.get<SupportTicket[]>('/support/tickets');
+      return res.data;
     } catch (e) {
       console.warn('API fallback for getUserTickets', e);
     }
@@ -142,12 +156,8 @@ export const supportApi = {
 
   createTicket: async (payload: CreateTicketPayload): Promise<SupportTicket> => {
     try {
-      const res = await fetch('/api/v1/support/tickets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) return await res.json();
+      const res = await authApiClient.post<SupportTicket>('/support/tickets', payload);
+      return res.data;
     } catch (e) {
       console.warn('API fallback for createTicket', e);
     }
@@ -170,8 +180,8 @@ export const supportApi = {
 
   getTicketMessages: async (ticketId: string): Promise<TicketMessage[]> => {
     try {
-      const res = await fetch(`/api/v1/support/tickets/${ticketId}/messages`);
-      if (res.ok) return await res.json();
+      const res = await authApiClient.get<TicketMessage[]>(`/support/tickets/${ticketId}/messages`);
+      return res.data;
     } catch (e) {
       console.warn('API fallback for getTicketMessages', e);
     }
@@ -197,12 +207,8 @@ export const supportApi = {
 
   addMessage: async (ticketId: string, messageText: string, attachments?: string[]): Promise<TicketMessage> => {
     try {
-      const res = await fetch(`/api/v1/support/tickets/${ticketId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message_text: messageText, attachments }),
-      });
-      if (res.ok) return await res.json();
+      const res = await authApiClient.post<TicketMessage>(`/support/tickets/${ticketId}/messages`, { message_text: messageText, attachments });
+      return res.data;
     } catch (e) {
       console.warn('API fallback for addMessage', e);
     }
@@ -219,7 +225,7 @@ export const supportApi = {
 
   closeTicket: async (ticketId: string) => {
     try {
-      await fetch(`/api/v1/support/tickets/${ticketId}/close`, { method: 'POST' });
+      await authApiClient.post(`/support/tickets/${ticketId}/close`);
     } catch (e) {
       console.warn('closeTicket error', e);
     }
@@ -227,7 +233,7 @@ export const supportApi = {
 
   reopenTicket: async (ticketId: string) => {
     try {
-      await fetch(`/api/v1/support/tickets/${ticketId}/reopen`, { method: 'POST' });
+      await authApiClient.post(`/support/tickets/${ticketId}/reopen`);
     } catch (e) {
       console.warn('reopenTicket error', e);
     }
@@ -235,11 +241,7 @@ export const supportApi = {
 
   recordCSAT: async (ticketId: string, rating: number, feedback?: string) => {
     try {
-      await fetch(`/api/v1/support/tickets/${ticketId}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, feedback }),
-      });
+      await authApiClient.post(`/support/tickets/${ticketId}/feedback`, { rating, feedback });
     } catch (e) {
       console.warn('recordCSAT error', e);
     }
@@ -247,12 +249,8 @@ export const supportApi = {
 
   createFeatureRequest: async (payload: { title: string; category: string; description: string }): Promise<FeatureRequest> => {
     try {
-      const res = await fetch('/api/v1/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) return await res.json();
+      const res = await authApiClient.post<FeatureRequest>('/feedback', payload);
+      return res.data;
     } catch (e) {
       console.warn('API fallback for createFeatureRequest', e);
     }
@@ -270,12 +268,8 @@ export const supportApi = {
 
   createBugReport: async (payload: { title: string; description: string; steps_to_reproduce?: string }): Promise<BugReport> => {
     try {
-      const res = await fetch('/api/v1/feedback/bugs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) return await res.json();
+      const res = await authApiClient.post<BugReport>('/feedback/bugs', payload);
+      return res.data;
     } catch (e) {
       console.warn('API fallback for createBugReport', e);
     }
@@ -293,8 +287,8 @@ export const supportApi = {
   // Admin APIs
   getAnalyticsSummary: async (): Promise<SupportAnalyticsSummary> => {
     try {
-      const res = await fetch('/api/v1/admin/support');
-      if (res.ok) return await res.json();
+      const res = await authApiClient.get<SupportAnalyticsSummary>('/admin/support');
+      return res.data;
     } catch (e) {
       console.warn('API fallback for getAnalyticsSummary', e);
     }

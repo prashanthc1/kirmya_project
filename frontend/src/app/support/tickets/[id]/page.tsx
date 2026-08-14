@@ -1,22 +1,28 @@
 'use client';
 
 import React from 'react';
-import SupportTicketDetails from '@/components/support/SupportTicketDetails';
-import { Container, Button } from '@mui/material';
+import { useParams } from 'next/navigation';
+import { Box, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import SupportTicketDetails from '@/components/support/SupportTicketDetails';
 
-export default function UserTicketDetailPage() {
+export default function TicketDetailsPage() {
   const params = useParams();
-  const id = (params?.id as string) || 'tkt-101';
+  const ticketId = (params.id as string) || '';
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Button component={Link} href="/support/tickets" startIcon={<ArrowBackIcon />} sx={{ mb: 2, fontWeight: 800 }}>
+    <Box sx={{ maxWidth: 950, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <Button
+        component={Link}
+        href="/support/tickets"
+        startIcon={<ArrowBackIcon />}
+        sx={{ mb: 3, fontWeight: 800, textTransform: 'none' }}
+      >
         Back to My Tickets
       </Button>
-      <SupportTicketDetails ticketId={id} />
-    </Container>
+
+      <SupportTicketDetails ticketId={ticketId} />
+    </Box>
   );
 }

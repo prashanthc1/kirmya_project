@@ -320,6 +320,8 @@ func deriveCategory(nType string) string {
 		return "Cover Letters"
 	case "ai_analysis_complete", "ai_recommendation":
 		return "AI"
+	case "support.ticket.created", "support.ticket.updated", "support.ticket.response.created", "support.ticket.resolved", "support.ticket.closed", "support.ticket.reopened":
+		return "Support"
 	default:
 		return "System"
 	}
