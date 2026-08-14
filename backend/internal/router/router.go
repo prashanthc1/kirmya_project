@@ -24,6 +24,7 @@ import (
 	companyHttp "kirmya/internal/company/delivery/http"
 	complianceHttp "kirmya/internal/compliance/delivery/http"
 	coverLetterHttp "kirmya/internal/cover_letter/delivery/http"
+	dataOpsHttp "kirmya/internal/data_operations/delivery/http"
 	endorsementHttp "kirmya/internal/endorsement/delivery/http"
 	enterpriseHttp "kirmya/internal/enterprise_hiring/delivery/http"
 	eventHttp "kirmya/internal/event/delivery/http"
@@ -124,6 +125,7 @@ type RouterDependencies struct {
 	SupportHandler              *supportHttp.SupportHandler
 	AdminSupportHandler         *supportHttp.AdminSupportHandler
 	AdminBackupHandler          *backupHttp.BackupHandler
+	DataOperationsHandler       *dataOpsHttp.DataOperationsHandler
 }
 
 type Handlers = RouterDependencies
@@ -271,6 +273,10 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.AdminBackupHandler != nil {
 		backupHttp.RegisterAdminBackupRoutes(api, deps.AdminBackupHandler, deps.AuthMiddleware)
+	}
+	if deps.DataOperationsHandler != nil {
+		dataOpsHttp.RegisterUserRoutes(api, deps.DataOperationsHandler, deps.AuthMiddleware)
+		dataOpsHttp.RegisterAdminRoutes(api, deps.DataOperationsHandler, deps.AuthMiddleware)
 	}
 	trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
 	trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler)
