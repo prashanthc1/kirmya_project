@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log"
+	"strings"
+	"sync"
+	"time"
+
 	"kirmya/internal/messaging/models"
 	"kirmya/internal/messaging/pubsub"
 	"kirmya/internal/messaging/repository"
-	"sync"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -70,6 +73,19 @@ func (s *MessagingService) ListConversations(ctx context.Context, userID uuid.UU
 }
 
 func (s *MessagingService) GetOrCreateConversation(ctx context.Context, u1 uuid.UUID, u2 uuid.UUID) (*models.Conversation, error) {
+	if u1 == u2 {
+		return nil, fmt.Errorf("cannot initiate a conversation with yourself")
+	}
+
+	// Check blocking status
+	blocked, err := s.repo.IsBlocked(ctx, u1, u2)
+	if err != nil {
+		return nil, err
+	}
+	if blocked {
+		return nil, fmt.Errorf("messaging is restricted due to privacy or block settings")
+	}
+
 	conv, err := s.repo.GetConversationByParticipants(ctx, u1, u2)
 	if err != nil {
 		return nil, err
@@ -91,24 +107,51 @@ func (s *MessagingService) GetOrCreateConversation(ctx context.Context, u1 uuid.
 	return conv, nil
 }
 
-func (s *MessagingService) GetMessages(ctx context.Context, conversationID uuid.UUID) ([]models.Message, error) {
+func (s *MessagingService) GetMessages(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID) ([]models.Message, error) {
+	// Verify membership
+	conv, err := s.repo.GetConversation(ctx, conversationID)
+	if err != nil || conv == nil {
+		return nil, fmt.Errorf("conversation not found")
+	}
+	if conv.UserID1 != userID && conv.UserID2 != userID {
+		return nil, fmt.Errorf("unauthorized to view this conversation")
+	}
+
 	return s.repo.ListMessages(ctx, conversationID)
 }
 
 func (s *MessagingService) SendMessage(ctx context.Context, senderID uuid.UUID, conversationID uuid.UUID, content string, attachments []models.MessageAttachment) (*models.Message, error) {
+	sanitizedContent := strings.TrimSpace(html.EscapeString(content))
+	if len(sanitizedContent) == 0 && len(attachments) == 0 {
+		return nil, fmt.Errorf("message content or attachment cannot be empty")
+	}
+	if len(sanitizedContent) > 5000 {
+		return nil, fmt.Errorf("message content exceeds maximum limit of 5000 characters")
+	}
+
 	conv, err := s.repo.GetConversation(ctx, conversationID)
+	if err != nil || conv == nil {
+		return nil, fmt.Errorf("conversation not found")
+	}
+
+	if conv.UserID1 != senderID && conv.UserID2 != senderID {
+		return nil, fmt.Errorf("unauthorized to send messages to this conversation")
+	}
+
+	// Check blocking status
+	blocked, err := s.repo.IsBlocked(ctx, conv.UserID1, conv.UserID2)
 	if err != nil {
 		return nil, err
 	}
-	if conv == nil {
-		return nil, fmt.Errorf("conversation not found")
+	if blocked {
+		return nil, fmt.Errorf("cannot send message to a blocked candidate")
 	}
 
 	m := &models.Message{
 		ID:             uuid.New(),
 		ConversationID: conversationID,
 		SenderID:       senderID,
-		Content:        content,
+		Content:        sanitizedContent,
 		IsRead:         false,
 		CreatedAt:      time.Now(),
 		Attachments:    attachments,
@@ -119,7 +162,7 @@ func (s *MessagingService) SendMessage(ctx context.Context, senderID uuid.UUID, 
 	}
 
 	// Update preview in conversation room
-	_ = s.repo.UpdateConversationPreview(ctx, conversationID, content)
+	_ = s.repo.UpdateConversationPreview(ctx, conversationID, sanitizedContent, senderID)
 
 	// Determine recipient ID
 	recipientID := conv.UserID2
@@ -133,7 +176,7 @@ func (s *MessagingService) SendMessage(ctx context.Context, senderID uuid.UUID, 
 		ConversationID: conversationID,
 		SenderID:       senderID,
 		ReceiverID:     recipientID,
-		Content:        content,
+		Content:        sanitizedContent,
 		Attachments:    attachments,
 		Timestamp:      time.Now(),
 	}
@@ -142,7 +185,140 @@ func (s *MessagingService) SendMessage(ctx context.Context, senderID uuid.UUID, 
 	return m, nil
 }
 
-// WebSocket connection registry management
+// Conversation Actions
+func (s *MessagingService) SetConversationArchived(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID, archived bool) error {
+	return s.repo.SetConversationArchived(ctx, conversationID, userID, archived)
+}
+
+func (s *MessagingService) SetConversationMuted(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID, muted bool) error {
+	return s.repo.SetConversationMuted(ctx, conversationID, userID, muted)
+}
+
+func (s *MessagingService) SetConversationPinned(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID, pinned bool) error {
+	return s.repo.SetConversationPinned(ctx, conversationID, userID, pinned)
+}
+
+func (s *MessagingService) MarkMessagesRead(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID) error {
+	return s.repo.UpdateUnread(ctx, conversationID, userID)
+}
+
+func (s *MessagingService) SearchMessages(ctx context.Context, userID uuid.UUID, query string) ([]models.Message, error) {
+	if len(strings.TrimSpace(query)) == 0 {
+		return []models.Message{}, nil
+	}
+	return s.repo.SearchMessages(ctx, userID, query)
+}
+
+// Message Requests Logic
+func (s *MessagingService) SendMessageRequest(ctx context.Context, senderID uuid.UUID, receiverID uuid.UUID, initialMessage string) (*models.MessageRequest, error) {
+	if senderID == receiverID {
+		return nil, fmt.Errorf("cannot send message request to yourself")
+	}
+
+	blocked, err := s.repo.IsBlocked(ctx, senderID, receiverID)
+	if err != nil {
+		return nil, err
+	}
+	if blocked {
+		return nil, fmt.Errorf("cannot send request to a blocked user")
+	}
+
+	sanitizedMsg := strings.TrimSpace(html.EscapeString(initialMessage))
+	if len(sanitizedMsg) == 0 {
+		return nil, fmt.Errorf("initial message is required")
+	}
+
+	req := &models.MessageRequest{
+		ID:             uuid.New(),
+		SenderID:       senderID,
+		ReceiverID:     receiverID,
+		InitialMessage: sanitizedMsg,
+		Status:         "pending",
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
+
+	if err := s.repo.CreateMessageRequest(ctx, req); err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
+func (s *MessagingService) ListIncomingRequests(ctx context.Context, receiverID uuid.UUID) ([]models.MessageRequest, error) {
+	return s.repo.ListIncomingRequests(ctx, receiverID)
+}
+
+func (s *MessagingService) AcceptMessageRequest(ctx context.Context, receiverID uuid.UUID, requestID uuid.UUID) (*models.Conversation, error) {
+	req, err := s.repo.GetMessageRequest(ctx, requestID)
+	if err != nil || req == nil {
+		return nil, fmt.Errorf("message request not found")
+	}
+	if req.ReceiverID != receiverID {
+		return nil, fmt.Errorf("unauthorized to manage this message request")
+	}
+
+	if err := s.repo.UpdateMessageRequestStatus(ctx, requestID, "accepted"); err != nil {
+		return nil, err
+	}
+
+	// Automatically create conversation and post initial message
+	conv, err := s.GetOrCreateConversation(ctx, req.SenderID, req.ReceiverID)
+	if err != nil {
+		return nil, err
+	}
+
+	_, _ = s.SendMessage(ctx, req.SenderID, conv.ID, req.InitialMessage, nil)
+
+	return conv, nil
+}
+
+func (s *MessagingService) DeclineMessageRequest(ctx context.Context, receiverID uuid.UUID, requestID uuid.UUID) error {
+	req, err := s.repo.GetMessageRequest(ctx, requestID)
+	if err != nil || req == nil {
+		return fmt.Errorf("message request not found")
+	}
+	if req.ReceiverID != receiverID {
+		return fmt.Errorf("unauthorized to manage this message request")
+	}
+	return s.repo.UpdateMessageRequestStatus(ctx, requestID, "declined")
+}
+
+// Reactions & Safety Reports
+func (s *MessagingService) AddReaction(ctx context.Context, messageID uuid.UUID, userID uuid.UUID, emoji string) error {
+	r := &models.MessageReaction{
+		ID:        uuid.New(),
+		MessageID: messageID,
+		UserID:    userID,
+		Emoji:     emoji,
+		CreatedAt: time.Now(),
+	}
+	return s.repo.AddReaction(ctx, r)
+}
+
+func (s *MessagingService) ReportMessage(ctx context.Context, reporterID uuid.UUID, convID uuid.UUID, msgID *uuid.UUID, reason string, details string) error {
+	rep := &models.MessageReport{
+		ID:             uuid.New(),
+		ReporterID:     reporterID,
+		MessageID:      msgID,
+		ConversationID: convID,
+		Reason:         reason,
+		Details:        details,
+		Status:         "pending",
+		CreatedAt:      time.Now(),
+	}
+	return s.repo.CreateMessageReport(ctx, rep)
+}
+
+// Admin Logic
+func (s *MessagingService) GetAdminAnalytics(ctx context.Context) (*models.AdminMessagingAnalytics, error) {
+	return s.repo.GetAdminAnalytics(ctx)
+}
+
+func (s *MessagingService) GetAdminReports(ctx context.Context) ([]models.MessageReport, error) {
+	return s.repo.GetAdminReports(ctx)
+}
+
+// WebSocket Connection Registry Management
 func (s *MessagingService) RegisterClient(userID uuid.UUID, conn *websocket.Conn) {
 	s.clientsMu.Lock()
 	defer s.clientsMu.Unlock()
@@ -162,14 +338,13 @@ func (s *MessagingService) RegisterClient(userID uuid.UUID, conn *websocket.Conn
 		if err != nil {
 			log.Printf("Failed to subscribe to user events for %s: %v", userID, err)
 		} else {
-			// Start reader loop from subscription channel and write to connection
 			go func(sessionSub pubsub.Subscription, sessionConn *websocket.Conn) {
 				ch := sessionSub.Channel()
 				for msgBytes := range ch {
 					func() {
 						defer func() {
 							if r := recover(); r != nil {
-								// Silent recover to handle dummy websocket connections in test suites
+								// Silent recover
 							}
 						}()
 						_ = sessionConn.WriteMessage(websocket.TextMessage, msgBytes)
@@ -195,7 +370,6 @@ func (s *MessagingService) RegisterClient(userID uuid.UUID, conn *websocket.Conn
 		_ = s.repo.UpsertPresence(context.Background(), p)
 	}
 
-	// Broadcast online presence status to all connected users
 	s.broadcastPresence(userID, "online")
 }
 
@@ -207,7 +381,7 @@ func (s *MessagingService) UnregisterClient(userID uuid.UUID) {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					// Handle panics from dummy websocket connections in test suites
+					// Handle panics
 				}
 			}()
 			sess.Conn.Close()
@@ -219,7 +393,6 @@ func (s *MessagingService) UnregisterClient(userID uuid.UUID) {
 		log.Printf("User %s disconnected from WebSocket hub.", userID)
 	}
 
-	// Set presence offline
 	p := &models.UserPresence{
 		UserID:   userID,
 		Status:   "offline",
@@ -258,7 +431,6 @@ func (s *MessagingService) HandleIncomingWS(userID uuid.UUID, conn *websocket.Co
 			evt.SenderID = userID
 			evt.Timestamp = time.Now()
 
-			// Route typing notifications
 			if evt.Type == "typing" && evt.ReceiverID != uuid.Nil {
 				s.SendEventToUser(evt.ReceiverID, evt)
 			}

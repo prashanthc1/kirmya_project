@@ -24,7 +24,17 @@ func (r *MessagingRepository) CreateConversation(ctx context.Context, c *models.
 	          VALUES ($1, $2, $3, $4, $5, $6) 
 	          ON CONFLICT (user_id_1, user_id_2) DO NOTHING`
 	_, err := r.db.Exec(ctx, query, c.ID, c.UserID1, c.UserID2, c.LastMessageText, c.LastMessageTime, c.CreatedAt)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Insert default participant states
+	partQuery := `INSERT INTO conversation_participants (id, conversation_id, user_id, is_archived, is_muted, is_pinned, unread_count, created_at)
+	              VALUES ($1, $2, $3, false, false, false, 0, $4), ($5, $2, $6, false, false, false, 0, $4)
+	              ON CONFLICT (conversation_id, user_id) DO NOTHING`
+	_, _ = r.db.Exec(ctx, partQuery, uuid.New(), c.ID, c.UserID1, c.CreatedAt, uuid.New(), c.UserID2)
+
+	return nil
 }
 
 func (r *MessagingRepository) GetConversation(ctx context.Context, id uuid.UUID) (*models.Conversation, error) {
@@ -58,8 +68,14 @@ func (r *MessagingRepository) GetConversationByParticipants(ctx context.Context,
 }
 
 func (r *MessagingRepository) ListConversations(ctx context.Context, userID uuid.UUID) ([]models.Conversation, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, user_id_1, user_id_2, last_message_text, last_message_time, created_at 
-	                             FROM conversations WHERE user_id_1 = $1 OR user_id_2 = $2 ORDER BY last_message_time DESC`, userID, userID)
+	query := `SELECT c.id, c.user_id_1, c.user_id_2, c.last_message_text, c.last_message_time, c.created_at,
+	                 COALESCE(cp.is_archived, false), COALESCE(cp.is_muted, false), COALESCE(cp.is_pinned, false), COALESCE(cp.unread_count, 0)
+	          FROM conversations c
+	          LEFT JOIN conversation_participants cp ON cp.conversation_id = c.id AND cp.user_id = $1
+	          WHERE c.user_id_1 = $1 OR c.user_id_2 = $1
+	          ORDER BY cp.is_pinned DESC NULLS LAST, c.last_message_time DESC`
+
+	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,17 +84,60 @@ func (r *MessagingRepository) ListConversations(ctx context.Context, userID uuid
 	var list []models.Conversation
 	for rows.Next() {
 		var c models.Conversation
-		err := rows.Scan(&c.ID, &c.UserID1, &c.UserID2, &c.LastMessageText, &c.LastMessageTime, &c.CreatedAt)
+		err := rows.Scan(
+			&c.ID, &c.UserID1, &c.UserID2, &c.LastMessageText, &c.LastMessageTime, &c.CreatedAt,
+			&c.IsArchived, &c.IsMuted, &c.IsPinned, &c.UnreadCount,
+		)
 		if err != nil {
 			return nil, err
 		}
+
+		// Fill participant ID
+		targetID := c.UserID2
+		if userID == c.UserID2 {
+			targetID = c.UserID1
+		}
+		c.ParticipantName = "User " + targetID.String()[:8]
+
 		list = append(list, c)
 	}
 	return list, nil
 }
 
-func (r *MessagingRepository) UpdateConversationPreview(ctx context.Context, id uuid.UUID, text string) error {
+func (r *MessagingRepository) UpdateConversationPreview(ctx context.Context, id uuid.UUID, text string, senderID uuid.UUID) error {
 	_, err := r.db.Exec(ctx, "UPDATE conversations SET last_message_text = $1, last_message_time = CURRENT_TIMESTAMP WHERE id = $2", text, id)
+	if err != nil {
+		return err
+	}
+
+	// Increment unread count for non-sender participant
+	_, err = r.db.Exec(ctx, `UPDATE conversation_participants 
+	                         SET unread_count = unread_count + 1 
+	                         WHERE conversation_id = $1 AND user_id != $2`, id, senderID)
+	return err
+}
+
+func (r *MessagingRepository) SetConversationArchived(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID, archived bool) error {
+	query := `INSERT INTO conversation_participants (id, conversation_id, user_id, is_archived, created_at)
+	          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+	          ON CONFLICT (conversation_id, user_id) DO UPDATE SET is_archived = $4`
+	_, err := r.db.Exec(ctx, query, uuid.New(), conversationID, userID, archived)
+	return err
+}
+
+func (r *MessagingRepository) SetConversationMuted(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID, muted bool) error {
+	query := `INSERT INTO conversation_participants (id, conversation_id, user_id, is_muted, created_at)
+	          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+	          ON CONFLICT (conversation_id, user_id) DO UPDATE SET is_muted = $4`
+	_, err := r.db.Exec(ctx, query, uuid.New(), conversationID, userID, muted)
+	return err
+}
+
+func (r *MessagingRepository) SetConversationPinned(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID, pinned bool) error {
+	query := `INSERT INTO conversation_participants (id, conversation_id, user_id, is_pinned, created_at)
+	          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+	          ON CONFLICT (conversation_id, user_id) DO UPDATE SET is_pinned = $4`
+	_, err := r.db.Exec(ctx, query, uuid.New(), conversationID, userID, pinned)
 	return err
 }
 
@@ -148,8 +207,108 @@ func (r *MessagingRepository) ListMessages(ctx context.Context, conversationID u
 	return list, nil
 }
 
+func (r *MessagingRepository) SearchMessages(ctx context.Context, userID uuid.UUID, query string) ([]models.Message, error) {
+	sqlQuery := `SELECT m.id, m.conversation_id, m.sender_id, m.content, m.is_read, m.created_at
+	             FROM messages m
+	             JOIN conversations c ON c.id = m.conversation_id
+	             WHERE (c.user_id_1 = $1 OR c.user_id_2 = $1)
+	               AND m.content ILIKE $2
+	             ORDER BY m.created_at DESC LIMIT 50`
+
+	rows, err := r.db.Query(ctx, sqlQuery, userID, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.Message
+	for rows.Next() {
+		var m models.Message
+		err := rows.Scan(&m.ID, &m.ConversationID, &m.SenderID, &m.Content, &m.IsRead, &m.CreatedAt)
+		if err == nil {
+			list = append(list, m)
+		}
+	}
+	return list, nil
+}
+
 func (r *MessagingRepository) UpdateUnread(ctx context.Context, conversationID uuid.UUID, userID uuid.UUID) error {
 	_, err := r.db.Exec(ctx, "UPDATE messages SET is_read = TRUE WHERE conversation_id = $1 AND sender_id != $2", conversationID, userID)
+	if err != nil {
+		return err
+	}
+
+	// Reset unread count for user in conversation_participants
+	_, err = r.db.Exec(ctx, "UPDATE conversation_participants SET unread_count = 0, last_read_at = CURRENT_TIMESTAMP WHERE conversation_id = $1 AND user_id = $2", conversationID, userID)
+	return err
+}
+
+func (r *MessagingRepository) DeleteMessageForUser(ctx context.Context, messageID uuid.UUID, userID uuid.UUID) error {
+	_, err := r.db.Exec(ctx, "DELETE FROM messages WHERE id = $1 AND sender_id = $2", messageID, userID)
+	return err
+}
+
+// Message Requests
+func (r *MessagingRepository) CreateMessageRequest(ctx context.Context, req *models.MessageRequest) error {
+	query := `INSERT INTO message_requests (id, sender_id, receiver_id, initial_message, status, created_at, updated_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7)
+	          ON CONFLICT (sender_id, receiver_id) DO NOTHING`
+	_, err := r.db.Exec(ctx, query, req.ID, req.SenderID, req.ReceiverID, req.InitialMessage, req.Status, req.CreatedAt, req.UpdatedAt)
+	return err
+}
+
+func (r *MessagingRepository) GetMessageRequest(ctx context.Context, id uuid.UUID) (*models.MessageRequest, error) {
+	req := &models.MessageRequest{}
+	err := r.db.QueryRow(ctx, "SELECT id, sender_id, receiver_id, initial_message, status, created_at, updated_at FROM message_requests WHERE id = $1", id).Scan(
+		&req.ID, &req.SenderID, &req.ReceiverID, &req.InitialMessage, &req.Status, &req.CreatedAt, &req.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return req, nil
+}
+
+func (r *MessagingRepository) ListIncomingRequests(ctx context.Context, receiverID uuid.UUID) ([]models.MessageRequest, error) {
+	rows, err := r.db.Query(ctx, `SELECT id, sender_id, receiver_id, initial_message, status, created_at, updated_at 
+	                             FROM message_requests WHERE receiver_id = $1 AND status = 'pending' ORDER BY created_at DESC`, receiverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.MessageRequest
+	for rows.Next() {
+		var req models.MessageRequest
+		err := rows.Scan(&req.ID, &req.SenderID, &req.ReceiverID, &req.InitialMessage, &req.Status, &req.CreatedAt, &req.UpdatedAt)
+		if err == nil {
+			req.SenderName = "User " + req.SenderID.String()[:8]
+			list = append(list, req)
+		}
+	}
+	return list, nil
+}
+
+func (r *MessagingRepository) UpdateMessageRequestStatus(ctx context.Context, id uuid.UUID, status string) error {
+	_, err := r.db.Exec(ctx, "UPDATE message_requests SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", status, id)
+	return err
+}
+
+// Reactions & Reports
+func (r *MessagingRepository) AddReaction(ctx context.Context, reaction *models.MessageReaction) error {
+	query := `INSERT INTO message_reactions (id, message_id, user_id, emoji, created_at)
+	          VALUES ($1, $2, $3, $4, $5)
+	          ON CONFLICT (message_id, user_id, emoji) DO NOTHING`
+	_, err := r.db.Exec(ctx, query, reaction.ID, reaction.MessageID, reaction.UserID, reaction.Emoji, reaction.CreatedAt)
+	return err
+}
+
+func (r *MessagingRepository) CreateMessageReport(ctx context.Context, rep *models.MessageReport) error {
+	query := `INSERT INTO message_reports (id, reporter_id, message_id, conversation_id, reason, details, status, created_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	_, err := r.db.Exec(ctx, query, rep.ID, rep.ReporterID, rep.MessageID, rep.ConversationID, rep.Reason, rep.Details, rep.Status, rep.CreatedAt)
 	return err
 }
 
@@ -171,4 +330,52 @@ func (r *MessagingRepository) GetPresence(ctx context.Context, userID uuid.UUID)
 		return nil, err
 	}
 	return p, nil
+}
+
+// Admin Metrics
+func (r *MessagingRepository) GetAdminAnalytics(ctx context.Context) (*models.AdminMessagingAnalytics, error) {
+	stats := &models.AdminMessagingAnalytics{}
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM conversations").Scan(&stats.TotalConversationsCount)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM messages").Scan(&stats.TotalMessagesSent)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM message_requests WHERE status = 'pending'").Scan(&stats.PendingRequestsCount)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM message_reports WHERE status = 'pending'").Scan(&stats.ReportedMessagesCount)
+	return stats, nil
+}
+
+func (r *MessagingRepository) GetAdminReports(ctx context.Context) ([]models.MessageReport, error) {
+	rows, err := r.db.Query(ctx, "SELECT id, reporter_id, message_id, conversation_id, reason, details, status, created_at FROM message_reports ORDER BY created_at DESC LIMIT 50")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.MessageReport
+	for rows.Next() {
+		var rep models.MessageReport
+		err := rows.Scan(&rep.ID, &rep.ReporterID, &rep.MessageID, &rep.ConversationID, &rep.Reason, &rep.Details, &rep.Status, &rep.CreatedAt)
+		if err == nil {
+			list = append(list, rep)
+		}
+	}
+	return list, nil
+}
+
+func (r *MessagingRepository) IsBlocked(ctx context.Context, u1 uuid.UUID, u2 uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx, `SELECT EXISTS(
+		SELECT 1 FROM blocked_users 
+		WHERE (blocker_id = $1 AND blocked_id = $2) 
+		   OR (blocker_id = $2 AND blocked_id = $1)
+	)`, u1, u2).Scan(&exists)
+	return exists, err
+}
+
+func (r *MessagingRepository) IsConnected(ctx context.Context, u1 uuid.UUID, u2 uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx, `SELECT EXISTS(
+		SELECT 1 FROM connections 
+		WHERE (user_id_1 = $1 AND user_id_2 = $2) 
+		   OR (user_id_1 = $2 AND user_id_2 = $1)
+	)`, u1, u2).Scan(&exists)
+	return exists, err
 }

@@ -1,10 +1,12 @@
 package service
 
 import (
-	"kirmya/internal/messaging/models"
-	"kirmya/internal/messaging/pubsub"
+	"context"
 	"testing"
 	"time"
+
+	"kirmya/internal/messaging/models"
+	"kirmya/internal/messaging/pubsub"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -23,7 +25,7 @@ func TestWSHubConnectionRegistration(t *testing.T) {
 
 	// Lock mutex and register
 	svc.RegisterClient(userID, dummyConn)
-	
+
 	svc.clientsMu.RLock()
 	c, exists := svc.clients[userID]
 	svc.clientsMu.RUnlock()
@@ -58,4 +60,15 @@ func TestSendEventToDisconnectedUser(t *testing.T) {
 	assert.NotPanics(t, func() {
 		svc.SendEventToUser(userID, evt)
 	})
+}
+
+// TestSelfMessagingValidation ensures self-messaging is rejected
+func TestSelfMessagingValidation(t *testing.T) {
+	ps := pubsub.NewInMemoryPubSub()
+	svc := NewMessagingService(nil, ps)
+
+	u1 := uuid.New()
+	_, err := svc.GetOrCreateConversation(context.Background(), u1, u1)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot initiate a conversation with yourself")
 }
