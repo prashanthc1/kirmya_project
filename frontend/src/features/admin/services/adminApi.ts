@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { authApiClient } from '../../../services/authService';
 import {
   AdminDashboardStatsDTO,
   AdminAuditLogDTO,
@@ -9,12 +9,7 @@ import {
   FeatureFlagDTO,
 } from '../types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-
-const apiClient = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,
-});
+const apiClient = authApiClient;
 
 export const adminApi = {
   getDashboardStats: async (): Promise<AdminDashboardStatsDTO> => {
@@ -99,6 +94,11 @@ export const adminApi = {
 
   getSystemSettings: async () => {
     const res = await apiClient.get('/admin/settings');
+    return res.data;
+  },
+
+  createAnnouncement: async (payload: { title: string; content: string; audience: string; priority?: string; channels?: string[] }) => {
+    const res = await apiClient.post('/admin/announcements', payload);
     return res.data;
   },
 };

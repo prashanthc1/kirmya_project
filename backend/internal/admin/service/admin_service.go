@@ -6,6 +6,7 @@ import (
 	"kirmya/internal/admin/models"
 	"kirmya/internal/admin/repository"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -239,6 +240,32 @@ func (s *AdminService) ClassifyContentReport(ctx context.Context, title string, 
 	return "Spam", 0.65, "Automated high-frequency message pattern."
 }
 
+func (s *AdminService) CreateAnnouncement(ctx context.Context, adminID uuid.UUID, title string, content string, audience string, priority string, channels []string, ip string, userAgent string) (*models.AdminAnnouncement, error) {
+	if title == "" || content == "" {
+		return nil, errors.New("title and content are required")
+	}
+
+	announcement := &models.AdminAnnouncement{
+		ID:             uuid.New(),
+		AdminID:        adminID,
+		Title:          title,
+		Content:        content,
+		Audience:       audience,
+		Priority:       priority,
+		Channels:       channels,
+		StartTime:      time.Now(),
+		RecipientCount: 12450,
+		CreatedAt:      time.Now(),
+	}
+
+	prev := map[string]interface{}{}
+	next := map[string]interface{}{"title": title, "audience": audience}
+
+	_ = s.LogAction(ctx, adminID, "admin@kirmya.com", "super_admin", "announcement.create", "Announcement", announcement.ID.String(), prev, next, "Created platform announcement", ip, userAgent, "")
+
+	return announcement, nil
+}
+
 func (s *AdminService) CalculateRiskScore(ctx context.Context, entityType string, entityID string) (*models.RiskScore, error) {
 	return &models.RiskScore{
 		ID:         uuid.New(),
@@ -253,3 +280,5 @@ func (s *AdminService) CalculateRiskScore(ctx context.Context, entityType string
 		},
 	}, nil
 }
+
+

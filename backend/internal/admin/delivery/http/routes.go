@@ -56,10 +56,13 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 		admin.GET("/security-events", handler.ListSecurityEvents)
 		admin.GET("/system/health", handler.GetDashboard)
 
-		// System Settings & Feature Flags
+		// System Settings & Feature Flags & Announcements
 		admin.GET("/settings", handler.GetSystemSettings)
 		admin.GET("/feature-flags", handler.ListFeatureFlags)
 		admin.POST("/feature-flags", handler.UpdateFeatureFlag)
 		admin.PUT("/feature-flags/:id", handler.UpdateFeatureFlag)
+		admin.POST("/announcements", handler.CreateAnnouncement)
+		admin.GET("/roles", handler.ListUsers)
 	}
 }
+

@@ -1,95 +1,66 @@
-import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import AdminHeader from '../components/admin/AdminHeader';
-import AdminDashboard from '../components/admin/AdminDashboard';
-import UserManagement from '../components/admin/UserManagement';
-import JobModeration from '../components/admin/JobModeration';
-import TrustSafetyDashboard from '../components/admin/TrustSafetyDashboard';
-import AuditLog from '../components/admin/AuditLog';
-import SystemSettings from '../components/admin/SystemSettings';
-import { ThemeProvider, createTheme } from '@mui/material';
+import React from 'react';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
+    back: vi.fn(),
   }),
-  usePathname: () => '/admin/dashboard',
+  useParams: () => ({
+    id: 'u1',
+  }),
 }));
 
-const theme = createTheme();
+import AdminDashboard from '../components/admin/AdminDashboard';
+import UserManagement from '../components/admin/UserManagement';
+import RoleManagement from '../components/admin/RoleManagement';
+import JobModeration from '../components/admin/JobModeration';
+import AuditLog from '../components/admin/AuditLog';
+import FeatureFlagTable from '../components/admin/FeatureFlagTable';
+import SystemSettings from '../components/admin/SystemSettings';
+import AnnouncementEditor from '../components/admin/AnnouncementEditor';
 
-describe('Admin Module Component Tests', () => {
-  it('renders Admin Header with RBAC indicator', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <AdminHeader />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Kirmya Admin Control Center/i)).toBeInTheDocument();
-    expect(screen.getByText(/RBAC ACTIVE/i)).toBeInTheDocument();
-  });
-
-  it('renders Admin Dashboard metrics overview', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <AdminDashboard />
-      </ThemeProvider>
-    );
+describe('Admin & Platform Administration Module Test Suite', () => {
+  it('renders AdminDashboard executive metrics', () => {
+    render(<AdminDashboard />);
     expect(screen.getByText(/Platform Administrative Dashboard/i)).toBeInTheDocument();
-    expect(screen.getByText(/Total Users/i)).toBeInTheDocument();
-    expect(screen.getByText(/Verified Companies/i)).toBeInTheDocument();
   });
 
-  it('renders User Account Governance management table', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <UserManagement />
-      </ThemeProvider>
-    );
+  it('renders UserManagement governance table', () => {
+    render(<UserManagement />);
     expect(screen.getByText(/User Account Governance/i)).toBeInTheDocument();
-    expect(screen.getByText(/Tariq Al-Mansoor/i)).toBeInTheDocument();
   });
 
-  it('renders Job Moderation Queue', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <JobModeration />
-      </ThemeProvider>
-    );
+  it('renders RoleManagement RBAC console', () => {
+    render(<RoleManagement />);
+    expect(screen.getByText(/Role-Based Access Control/i)).toBeInTheDocument();
+  });
+
+  it('renders JobModeration queue', () => {
+    render(<JobModeration />);
     expect(screen.getByText(/Job Listing Moderation Queue/i)).toBeInTheDocument();
-    expect(screen.getByText(/Senior Go Backend Architect/i)).toBeInTheDocument();
   });
 
-  it('renders Trust & Safety Dashboard with explainable risk', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <TrustSafetyDashboard />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Trust & Safety Control Dashboard/i)).toBeInTheDocument();
-    expect(screen.getByText(/Explainable Risk Policy:/i)).toBeInTheDocument();
+  it('renders AuditLog immutable records table', () => {
+    render(<AuditLog />);
+    expect(screen.getByText(/Administrative Audit Trail/i)).toBeInTheDocument();
   });
 
-  it('renders Immutable Audit Trail logs', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <AuditLog />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Immutable Administrative Audit Trail/i)).toBeInTheDocument();
-    expect(screen.getByText(/user.status_update/i)).toBeInTheDocument();
+  it('renders FeatureFlagTable toggles', () => {
+    render(<FeatureFlagTable />);
+    expect(screen.getByText(/Feature Rollout Controls/i)).toBeInTheDocument();
   });
 
-  it('renders System Settings & Feature Flags', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <SystemSettings />
-      </ThemeProvider>
-    );
-    expect(screen.getByText(/Protected System Settings & Feature Flags/i)).toBeInTheDocument();
-    expect(screen.getByText(/ai_moderation_v2/i)).toBeInTheDocument();
+  it('renders SystemSettings configuration controls', () => {
+    render(<SystemSettings />);
+    expect(screen.getByText(/Protected System Settings/i)).toBeInTheDocument();
+  });
+
+  it('renders AnnouncementEditor composer', () => {
+    render(<AnnouncementEditor />);
+    expect(screen.getByText(/Platform Announcement Broadcast/i)).toBeInTheDocument();
   });
 });

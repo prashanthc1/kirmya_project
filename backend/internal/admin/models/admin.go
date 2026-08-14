@@ -212,3 +212,27 @@ type ResolveReportPayload struct {
 	Action string `json:"action" binding:"required"` // Resolve, Dismiss, Escalate
 	Notes  string `json:"notes" binding:"required"`
 }
+
+// AdminAnnouncement defines targeted platform notification broadcasts.
+type AdminAnnouncement struct {
+	ID             uuid.UUID  `json:"id"`
+	AdminID        uuid.UUID  `json:"adminId"`
+	Title          string     `json:"title"`
+	Content        string     `json:"content"`
+	Audience       string     `json:"audience"` // All Active Users, Verified Users, Recruiters, Professionals, Administrators
+	Priority       string     `json:"priority"` // Low, Normal, High, Urgent
+	Channels       []string   `json:"channels"` // ["in_app", "email", "push"]
+	StartTime      time.Time  `json:"startTime"`
+	EndTime        *time.Time `json:"endTime,omitempty"`
+	RecipientCount int        `json:"recipientCount"`
+	CreatedAt      time.Time  `json:"createdAt"`
+}
+
+type CreateAnnouncementPayload struct {
+	Title    string   `json:"title" binding:"required"`
+	Content  string   `json:"content" binding:"required"`
+	Audience string   `json:"audience" binding:"required"`
+	Priority string   `json:"priority"`
+	Channels []string `json:"channels"`
+}
+

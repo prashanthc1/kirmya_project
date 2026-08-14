@@ -315,3 +315,25 @@ func (h *AdminHandler) GetSystemSettings(c *gin.Context) {
 		"maintenanceMode":       false,
 	})
 }
+
+func (h *AdminHandler) CreateAnnouncement(c *gin.Context) {
+	adminID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var payload models.CreateAnnouncementPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ann, err := h.service.CreateAnnouncement(c.Request.Context(), adminID, payload.Title, payload.Content, payload.Audience, payload.Priority, payload.Channels, c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, ann)
+}
+
