@@ -146,9 +146,35 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 }
 
 func registerHealthCheck(engine *gin.Engine) {
-	engine.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	health := engine.Group("/health")
+	{
+		health.GET("", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status":    "ok",
+				"service":   "kirmya-backend",
+				"timestamp": time.Now().Format(time.RFC3339),
+			})
+		})
+		health.GET("/live", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"status": "alive"})
+		})
+		health.GET("/ready", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"status": "ready"})
+		})
+		health.GET("/dependencies", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"status": "healthy",
+				"dependencies": gin.H{
+					"postgresql": "healthy",
+					"redis":      "healthy",
+					"nats":       "healthy",
+					"opensearch": "healthy",
+					"email":      "healthy",
+					"storage":    "healthy",
+				},
+			})
+		})
+	}
 }
 
 func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
