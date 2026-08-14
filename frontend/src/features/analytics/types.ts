@@ -81,8 +81,10 @@ export interface AnalyticsExportJob {
   status: string;
   download_url?: string;
   expires_at: string;
+  file_size_bytes?: number;
   created_at: string;
 }
+
 
 // Legacy Type Exports for Backward Compatibility
 export type AdminAnalytics = AdminAnalyticsOverview;
