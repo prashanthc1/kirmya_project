@@ -5,7 +5,8 @@ export type ApplicationStage =
   | 'Interview'
   | 'Offer'
   | 'Accepted'
-  | 'Rejected';
+  | 'Rejected'
+  | 'Withdrawn';
 
 export interface ApplicationSummary {
   id: string;
@@ -18,6 +19,7 @@ export interface ApplicationSummary {
   employment_type: string;
   salary_range: string;
   current_status: ApplicationStage;
+  status_explanation?: string;
   applied_at: string;
   last_update: string;
   recruiter_id?: string;

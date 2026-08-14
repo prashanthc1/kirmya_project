@@ -18,11 +18,23 @@ func NewApplicationsService(repo *repository.ApplicationsRepository) *Applicatio
 }
 
 func (s *ApplicationsService) GetCandidateApplications(ctx context.Context, candidateID uuid.UUID, status string, search string) ([]models.ApplicationSummary, error) {
-	return s.repo.GetCandidateApplications(ctx, candidateID, status, search)
+	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, status, search)
+	if err != nil {
+		return nil, err
+	}
+	for i := range apps {
+		apps[i].StatusExplanation = models.GetStatusExplanation(apps[i].CurrentStatus)
+	}
+	return apps, nil
 }
 
 func (s *ApplicationsService) GetApplicationByID(ctx context.Context, candidateID, appID uuid.UUID) (*models.ApplicationDetail, error) {
-	return s.repo.GetApplicationByID(ctx, candidateID, appID)
+	detail, err := s.repo.GetApplicationByID(ctx, candidateID, appID)
+	if err != nil || detail == nil {
+		return nil, err
+	}
+	detail.Summary.StatusExplanation = models.GetStatusExplanation(detail.Summary.CurrentStatus)
+	return detail, nil
 }
 
 func (s *ApplicationsService) WithdrawApplication(ctx context.Context, candidateID, appID uuid.UUID) error {

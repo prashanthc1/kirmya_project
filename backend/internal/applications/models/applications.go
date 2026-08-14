@@ -16,28 +16,53 @@ const (
 	StageOffer       ApplicationStage = "Offer"
 	StageAccepted    ApplicationStage = "Accepted"
 	StageRejected    ApplicationStage = "Rejected"
+	StageWithdrawn   ApplicationStage = "Withdrawn"
 )
 
+func GetStatusExplanation(status ApplicationStage) string {
+	switch status {
+	case StageApplied:
+		return "Your application has been submitted and is awaiting recruiter review."
+	case StageViewed:
+		return "The recruiter has reviewed your application profile and resume."
+	case StageShortlisted:
+		return "You have passed initial screening and are shortlisted for the role."
+	case StageInterview:
+		return "You have been invited to an interview. Check your scheduled dates below."
+	case StageOffer:
+		return "The employer has extended a formal job offer."
+	case StageAccepted:
+		return "You have accepted the job offer."
+	case StageRejected:
+		return "The employer has closed this application process."
+	case StageWithdrawn:
+		return "You have withdrawn this application."
+	default:
+		return "Application is currently being processed."
+	}
+}
+
 type ApplicationSummary struct {
-	ID               uuid.UUID        `json:"id"`
-	JobID            uuid.UUID        `json:"job_id"`
-	JobTitle         string           `json:"job_title"`
-	CompanyID        uuid.UUID        `json:"company_id"`
-	CompanyName      string           `json:"company_name"`
-	CompanyLogo      string           `json:"company_logo"`
-	Location         string           `json:"location"`
-	EmploymentType   string           `json:"employment_type"`
-	SalaryRange      string           `json:"salary_range"`
-	CurrentStatus    ApplicationStage `json:"current_status"`
-	AppliedAt        time.Time        `json:"applied_at"`
-	LastUpdate       time.Time        `json:"last_update"`
-	RecruiterID      *uuid.UUID       `json:"recruiter_id,omitempty"`
-	RecruiterName    string           `json:"recruiter_name,omitempty"`
-	RecruiterAvatar  string           `json:"recruiter_avatar,omitempty"`
-	RecruiterEmail   string           `json:"recruiter_email,omitempty"`
-	NextInterviewDate *time.Time      `json:"next_interview_date,omitempty"`
-	IsSaved          bool             `json:"is_saved"`
-	NotesCount       int              `json:"notes_count"`
+	ID                uuid.UUID        `json:"id"`
+	JobID             uuid.UUID        `json:"job_id"`
+	JobTitle          string           `json:"job_title"`
+	CompanyID         uuid.UUID        `json:"company_id"`
+	CompanyName       string           `json:"company_name"`
+	CompanyLogo       string           `json:"company_logo"`
+	Location          string           `json:"location"`
+	EmploymentType    string           `json:"employment_type"`
+	SalaryRange       string           `json:"salary_range"`
+	CurrentStatus     ApplicationStage `json:"current_status"`
+	StatusExplanation string           `json:"status_explanation,omitempty"`
+	AppliedAt         time.Time        `json:"applied_at"`
+	LastUpdate        time.Time        `json:"last_update"`
+	RecruiterID       *uuid.UUID       `json:"recruiter_id,omitempty"`
+	RecruiterName     string           `json:"recruiter_name,omitempty"`
+	RecruiterAvatar   string           `json:"recruiter_avatar,omitempty"`
+	RecruiterEmail    string           `json:"recruiter_email,omitempty"`
+	NextInterviewDate *time.Time       `json:"next_interview_date,omitempty"`
+	IsSaved           bool             `json:"is_saved"`
+	NotesCount        int              `json:"notes_count"`
 }
 
 type ApplicationTimelineItem struct {

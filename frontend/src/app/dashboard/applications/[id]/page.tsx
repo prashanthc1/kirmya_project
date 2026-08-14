@@ -65,7 +65,7 @@ export default function ApplicationDetailPage() {
       </Box>
 
       <ApplicationDetails
-        detail={detail}
+        application={detail}
         onWithdraw={() => {
           if (confirm('Are you sure you want to withdraw this application?')) {
             withdrawMutation.mutate(id);

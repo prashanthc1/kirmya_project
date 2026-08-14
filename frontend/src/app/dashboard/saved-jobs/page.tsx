@@ -33,7 +33,7 @@ export default function SavedJobsPage() {
       ) : (
         <SavedJobs
           savedJobs={savedJobs}
-          onRemove={(jobId) => removeSavedMutation.mutate(jobId)}
+          onRemove={(jobId: string) => removeSavedMutation.mutate(jobId)}
         />
       )}
     </Container>

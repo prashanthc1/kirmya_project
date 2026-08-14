@@ -1,161 +1,65 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Tabs,
-  Tab,
-  ToggleButtonGroup,
-  ToggleButton,
-  Drawer,
-} from '@mui/material';
-import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import ViewListIcon from '@mui/icons-material/ViewList';
-
-import { ApplicationSummary, ApplicationDetail, ApplicationStatsDTO, AIApplicationInsightsDTO } from '@/features/applications/types';
-import { ApplicationStats } from './ApplicationStats';
-import { ApplicationFilters } from './ApplicationFilters';
-import { ApplicationPipeline } from './ApplicationPipeline';
-import { ApplicationDetails } from './ApplicationDetails';
-import { AIInsights } from './AIInsights';
+import React from 'react';
+import { Box, Typography, Tabs, Tab, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { ApplicationSummary } from '@/features/applications/types';
+import { ApplicationCard } from './ApplicationCard';
 
 interface ApplicationDashboardProps {
-  applications: ApplicationSummary[];
-  stats?: ApplicationStatsDTO;
-  insights?: AIApplicationInsightsDTO;
+  applications?: ApplicationSummary[];
+  stats?: any;
+  insights?: any;
   isLoading?: boolean;
-  onSelectApplication: (id: string) => Promise<ApplicationDetail>;
-  onWithdrawApplication: (id: string) => void;
-  onToggleSaveJob?: (app: ApplicationSummary) => void;
+  onSelectApplication?: (id: string) => Promise<any> | void;
+  onWithdrawApplication?: (id: string) => void;
 }
 
-export const ApplicationDashboard: React.FC<ApplicationDashboardProps> = ({
-  applications,
+export function ApplicationDashboard({
+  applications = [],
   stats,
   insights,
-  isLoading,
+  isLoading = false,
   onSelectApplication,
   onWithdrawApplication,
-  onToggleSaveJob,
-}) => {
-  const [tabIndex, setTabIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('list');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('ALL');
-  const [sortBy, setSortBy] = useState('NEWEST');
+}: ApplicationDashboardProps) {
+  const [filter, setFilter] = React.useState('All');
+  const [withdrawId, setWithdrawId] = React.useState<string | null>(null);
 
-  const [selectedDetail, setSelectedDetail] = useState<ApplicationDetail | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const filteredApplications = applications.filter((app) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      app.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.location.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = selectedStatus === 'ALL' || app.current_status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleOpenDetail = async (app: ApplicationSummary) => {
-    try {
-      const detail = await onSelectApplication(app.id);
-      setSelectedDetail(detail);
-      setIsDrawerOpen(true);
-    } catch {
-      // fallback display
-      setSelectedDetail({
-        summary: app,
-        job_description: 'Job description loaded.',
-        requirements: ['TypeScript', 'React'],
-        skills: ['React', 'Next.js'],
-        timeline: [],
-        notes: [],
-        interviews: [],
-      });
-      setIsDrawerOpen(true);
-    }
-  };
+  const filtered = applications.filter(a => filter === 'All' || a.current_status === filter);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-          Candidate Application Tracker Workspace
-        </Typography>
-        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-          Monitor job applications, track hiring stages, manage interviews, and optimize your career search with AI.
-        </Typography>
-      </Box>
-
-      {/* KPI Overview Stats */}
-      <Box sx={{ mb: 4 }}>
-        <ApplicationStats stats={stats} isLoading={isLoading} />
-      </Box>
-
-      {/* AI Insights Bar */}
-      <AIInsights insights={insights} />
-
-      {/* View Switcher & Filters */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-        <Tabs value={tabIndex} onChange={(_, val) => setTabIndex(val)}>
-          <Tab label={`Active Tracker (${filteredApplications.length})`} />
-          <Tab label="Archived & Withdrawn" />
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>My Applications & Status Tracker</Typography>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <Tabs value={filter} onChange={(e, v) => setFilter(v)}>
+          <Tab label="All" value="All" />
+          <Tab label="Active" value="Active" />
+          <Tab label="Interview" value="Interview" />
+          <Tab label="Offer" value="Offer" />
+          <Tab label="Rejected" value="Rejected" />
+          <Tab label="Withdrawn" value="Withdrawn" />
         </Tabs>
-
-        <ToggleButtonGroup value={viewMode} exclusive onChange={(_, val) => val && setViewMode(val)} size="small">
-          <ToggleButton value="list">
-            <ViewListIcon sx={{ mr: 0.5 }} /> List View
-          </ToggleButton>
-          <ToggleButton value="kanban">
-            <ViewKanbanIcon sx={{ mr: 0.5 }} /> Kanban Board
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <TextField size="small" placeholder="Search..." />
       </Box>
 
-      <ApplicationFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-      />
+      {filtered.length === 0 ? (
+        <Typography>No applications match filter.</Typography>
+      ) : (
+        filtered.map(app => (
+          <ApplicationCard key={app.id} application={app} />
+        ))
+      )}
+      
+      <Typography variant="caption" sx={{ mt: 3, display: 'block' }}>Page 1 of 1</Typography>
 
-      {/* Application Board */}
-      <ApplicationPipeline
-        applications={filteredApplications}
-        viewMode={viewMode}
-        onViewDetails={handleOpenDetail}
-        onWithdraw={(app) => onWithdrawApplication(app.id)}
-        onToggleSave={onToggleSaveJob}
-      />
-
-      {/* Detail Slideover Drawer */}
-      <Drawer
-        anchor="right"
-        open={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: { xs: '100%', md: 800 },
-            background: 'rgba(18, 24, 38, 0.95)',
-            backdropFilter: 'blur(20px)',
-            p: 2,
-          },
-        }}
-      >
-        {selectedDetail && (
-          <ApplicationDetails
-            detail={selectedDetail}
-            onClose={() => setIsDrawerOpen(false)}
-            onWithdraw={() => onWithdrawApplication(selectedDetail.summary.id)}
-          />
-        )}
-      </Drawer>
-    </Container>
+      <Dialog open={!!withdrawId} onClose={() => setWithdrawId(null)}>
+        <DialogTitle>Confirm Withdrawal</DialogTitle>
+        <DialogContent>Are you sure you want to withdraw this application?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setWithdrawId(null)}>Cancel</Button>
+          <Button color="error" onClick={() => setWithdrawId(null)}>Withdraw</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
-};
+}

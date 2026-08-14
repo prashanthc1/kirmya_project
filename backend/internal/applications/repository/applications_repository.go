@@ -443,9 +443,9 @@ func (r *ApplicationsRepository) getMockApplications(candidateID uuid.UUID) []mo
 	return []models.ApplicationSummary{
 		{
 			ID:              uuid.MustParse("10000000-0000-0000-0000-000000000001"),
-			JobID:           uuid.MustParse("job00000-0000-0000-0000-000000000001"),
+			JobID:           uuid.MustParse("20000000-0000-0000-0000-000000000001"),
 			JobTitle:        "Staff Frontend Engineer",
-			CompanyID:       uuid.MustParse("comp0000-0000-0000-0000-000000000001"),
+			CompanyID:       uuid.MustParse("30000000-0000-0000-0000-000000000001"),
 			CompanyName:     "Kirmya AI Technologies",
 			CompanyLogo:     "/images/companies/kirmya.png",
 			Location:        "San Francisco, CA (Remote)",
@@ -463,9 +463,9 @@ func (r *ApplicationsRepository) getMockApplications(candidateID uuid.UUID) []mo
 		},
 		{
 			ID:              uuid.MustParse("10000000-0000-0000-0000-000000000002"),
-			JobID:           uuid.MustParse("job00000-0000-0000-0000-000000000002"),
+			JobID:           uuid.MustParse("20000000-0000-0000-0000-000000000002"),
 			JobTitle:        "Lead Full-Stack Architect",
-			CompanyID:       uuid.MustParse("comp0000-0000-0000-0000-000000000002"),
+			CompanyID:       uuid.MustParse("30000000-0000-0000-0000-000000000002"),
 			CompanyName:     "CloudScale Solutions",
 			CompanyLogo:     "/images/companies/cloudscale.png",
 			Location:        "New York, NY (Hybrid)",
@@ -483,9 +483,9 @@ func (r *ApplicationsRepository) getMockApplications(candidateID uuid.UUID) []mo
 		},
 		{
 			ID:              uuid.MustParse("10000000-0000-0000-0000-000000000003"),
-			JobID:           uuid.MustParse("job00000-0000-0000-0000-000000000003"),
+			JobID:           uuid.MustParse("20000000-0000-0000-0000-000000000003"),
 			JobTitle:        "Senior UI/UX & Web Developer",
-			CompanyID:       uuid.MustParse("comp0000-0000-0000-0000-000000000003"),
+			CompanyID:       uuid.MustParse("30000000-0000-0000-0000-000000000004"),
 			CompanyName:     "DesignCraft Studio",
 			CompanyLogo:     "/images/companies/designcraft.png",
 			Location:        "Austin, TX",
@@ -503,9 +503,9 @@ func (r *ApplicationsRepository) getMockApplications(candidateID uuid.UUID) []mo
 		},
 		{
 			ID:             uuid.MustParse("10000000-0000-0000-0000-000000000004"),
-			JobID:          uuid.MustParse("job00000-0000-0000-0000-000000000004"),
+			JobID:          uuid.MustParse("20000000-0000-0000-0000-000000000004"),
 			JobTitle:       "Golang Microservices Engineer",
-			CompanyID:      uuid.MustParse("comp0000-0000-0000-0000-000000000004"),
+			CompanyID:      uuid.MustParse("30000000-0000-0000-0000-000000000005"),
 			CompanyName:    "HyperDrive Labs",
 			CompanyLogo:    "/images/companies/hyperdrive.png",
 			Location:       "Seattle, WA",
