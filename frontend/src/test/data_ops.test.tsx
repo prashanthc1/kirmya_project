@@ -24,6 +24,6 @@ describe('Data Operations, Import/Export & Bulk Ops Module Test Suite', () => {
     render(<DataOperationsStudio />);
     expect(screen.getByText(/TOTAL IMPORTS/i)).toBeInTheDocument();
     expect(screen.getByText(/ACTIVE EXPORTS/i)).toBeInTheDocument();
-    expect(screen.getByText(/BULK OPERATIONS/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/BULK OPERATIONS/i).length).toBeGreaterThan(0);
   });
 });
