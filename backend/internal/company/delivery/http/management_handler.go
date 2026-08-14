@@ -35,6 +35,12 @@ func (h *ManagementHandler) resolveCompany(c *gin.Context) (uuid.UUID, bool) {
 		raw = strings.TrimSpace(c.Param("slug"))
 	}
 	if raw == "" {
+		raw = strings.TrimSpace(c.Query("companyId"))
+	}
+	if raw == "" {
+		raw = strings.TrimSpace(c.Query("company_id"))
+	}
+	if raw == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Company is required"})
 		return uuid.Nil, false
 	}
@@ -957,3 +963,119 @@ func (h *ManagementHandler) DeleteUpdate(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"deleted": true})
 }
+
+func getActor(c *gin.Context) service.Actor {
+	return actorFrom(c)
+}
+
+func handleError(c *gin.Context, err error) {
+	respondError(c, err)
+}
+
+func parseCompanyID(c *gin.Context) (uuid.UUID, error) {
+	companyID, err := uuid.Parse(c.Param("id"))
+	if err == nil {
+		return companyID, nil
+	}
+	if qID := c.Query("companyId"); qID != "" {
+		if parsed, pErr := uuid.Parse(qID); pErr == nil {
+			return parsed, nil
+		}
+	}
+	if qID := c.Query("company_id"); qID != "" {
+		if parsed, pErr := uuid.Parse(qID); pErr == nil {
+			return parsed, nil
+		}
+	}
+	return uuid.Nil, err
+}
+
+func (h *ManagementHandler) GetEmployerSettings(c *gin.Context) {
+	actor := getActor(c)
+	companyID, err := parseCompanyID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return
+	}
+	settings, err := h.service.GetEmployerSettings(c.Request.Context(), actor, companyID)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, settings)
+}
+
+func (h *ManagementHandler) UpdateEmployerSettings(c *gin.Context) {
+	actor := getActor(c)
+	companyID, err := parseCompanyID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return
+	}
+	var payload models.EmployerSettingsUpdatePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	settings, err := h.service.UpdateEmployerSettings(c.Request.Context(), actor, companyID, payload)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, settings)
+}
+
+func (h *ManagementHandler) TransferOwnership(c *gin.Context) {
+	actor := getActor(c)
+	companyID, err := parseCompanyID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return
+	}
+	var payload models.TransferOwnershipPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.service.TransferOwnership(c.Request.Context(), actor, companyID, payload); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Ownership transferred successfully"})
+}
+
+func (h *ManagementHandler) ResendInvitation(c *gin.Context) {
+	actor := getActor(c)
+	companyID, err := parseCompanyID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return
+	}
+	invID, err := uuid.Parse(c.Param("invitationId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid invitation ID"})
+		return
+	}
+	inv, err := h.service.ResendInvitation(c.Request.Context(), actor, companyID, invID)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, inv)
+}
+
+func (h *ManagementHandler) ExportCompanyData(c *gin.Context) {
+	actor := getActor(c)
+	companyID, err := parseCompanyID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+		return
+	}
+	exp, err := h.service.ExportCompanyData(c.Request.Context(), actor, companyID)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, exp)
+}
+

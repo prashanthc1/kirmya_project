@@ -661,3 +661,49 @@ type FollowPayload struct {
 	NotifyUpdates *bool `json:"notifyUpdates"`
 	NotifyJobs    *bool `json:"notifyJobs"`
 }
+
+// EmployerSettings contains company-level recruitment configuration.
+type EmployerSettings struct {
+	CompanyID                     uuid.UUID  `json:"companyId"`
+	DefaultRecruiterID            *uuid.UUID `json:"defaultRecruiterId,omitempty"`
+	DefaultPipeline               string     `json:"defaultPipeline"`
+	NewApplicationNotification    bool       `json:"newApplicationNotification"`
+	CandidateMessageNotification  bool       `json:"candidateMessageNotification"`
+	InterviewReminderNotification bool       `json:"interviewReminderNotification"`
+	AutoAcknowledgeApplication   bool       `json:"autoAcknowledgeApplication"`
+	AutoAcknowledgeMessage        string     `json:"autoAcknowledgeMessage"`
+	CandidateVisibilityMode       string     `json:"candidateVisibilityMode"`
+	DataExportRetentionDays       int        `json:"dataExportRetentionDays"`
+	UpdatedAt                     time.Time  `json:"updatedAt"`
+}
+
+type EmployerSettingsUpdatePayload struct {
+	DefaultRecruiterID            *string `json:"defaultRecruiterId"`
+	DefaultPipeline               string  `json:"defaultPipeline"`
+	NewApplicationNotification    *bool   `json:"newApplicationNotification"`
+	CandidateMessageNotification  *bool   `json:"candidateMessageNotification"`
+	InterviewReminderNotification *bool   `json:"interviewReminderNotification"`
+	AutoAcknowledgeApplication   *bool   `json:"autoAcknowledgeApplication"`
+	AutoAcknowledgeMessage        string  `json:"autoAcknowledgeMessage"`
+	CandidateVisibilityMode       string  `json:"candidateVisibilityMode"`
+}
+
+type TransferOwnershipPayload struct {
+	NewOwnerID string `json:"newOwnerId" binding:"required"`
+	Reason     string `json:"reason"`
+}
+
+type ResendInvitationPayload struct {
+	InvitationID string `json:"invitationId" binding:"required"`
+}
+
+type CompanyDataExport struct {
+	ID          uuid.UUID `json:"id"`
+	CompanyID   uuid.UUID `json:"companyId"`
+	RequestedBy uuid.UUID `json:"requestedBy"`
+	Status      string    `json:"status"`
+	ExportURL   string    `json:"exportUrl"`
+	ExpiresAt   time.Time `json:"expiresAt"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+

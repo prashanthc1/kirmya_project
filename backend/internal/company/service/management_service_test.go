@@ -170,6 +170,25 @@ func TestEveryWriteRefusesAnonymousCallers(t *testing.T) {
 		"DeleteUpdate": func() error {
 			return svc.DeleteUpdate(ctx, anonymous(), companyID, resourceID)
 		},
+		"GetEmployerSettings": func() error {
+			_, err := svc.GetEmployerSettings(ctx, anonymous(), companyID)
+			return err
+		},
+		"UpdateEmployerSettings": func() error {
+			_, err := svc.UpdateEmployerSettings(ctx, anonymous(), companyID, models.EmployerSettingsUpdatePayload{})
+			return err
+		},
+		"TransferOwnership": func() error {
+			return svc.TransferOwnership(ctx, anonymous(), companyID, models.TransferOwnershipPayload{NewOwnerID: uuid.New().String()})
+		},
+		"ResendInvitation": func() error {
+			_, err := svc.ResendInvitation(ctx, anonymous(), companyID, resourceID)
+			return err
+		},
+		"ExportCompanyData": func() error {
+			_, err := svc.ExportCompanyData(ctx, anonymous(), companyID)
+			return err
+		},
 	}
 
 	for name, call := range calls {
@@ -611,9 +630,75 @@ func TestTruncate(t *testing.T) {
 
 func utf8Valid(value string) bool {
 	for _, r := range value {
-		if r == '�' {
+		if r == '\uFFFD' {
 			return false
 		}
 	}
 	return true
+}
+
+func TestTransferOwnership(t *testing.T) {
+	svc := offlineManagement()
+	ctx := context.Background()
+	companyID := uuid.New()
+	newOwnerID := uuid.New()
+
+	err := svc.TransferOwnership(ctx, anonymous(), companyID, models.TransferOwnershipPayload{NewOwnerID: newOwnerID.String()})
+	if !errors.Is(err, domain.ErrUnauthenticated) {
+		t.Errorf("anonymous caller: got %v, want ErrUnauthenticated", err)
+	}
+
+	err = svc.TransferOwnership(ctx, signedIn(), companyID, models.TransferOwnershipPayload{NewOwnerID: newOwnerID.String()})
+	if !errors.Is(err, domain.ErrForbidden) {
+		t.Errorf("non-owner caller: got %v, want ErrForbidden", err)
+	}
+}
+
+func TestResendInvitation(t *testing.T) {
+	svc := offlineManagement()
+	ctx := context.Background()
+	companyID := uuid.New()
+	invitationID := uuid.New()
+
+	_, err := svc.ResendInvitation(ctx, anonymous(), companyID, invitationID)
+	if !errors.Is(err, domain.ErrUnauthenticated) {
+		t.Errorf("anonymous caller: got %v, want ErrUnauthenticated", err)
+	}
+
+	_, err = svc.ResendInvitation(ctx, signedIn(), companyID, invitationID)
+	if err == nil {
+		t.Errorf("unauthorized caller succeeded, want error")
+	}
+}
+
+func TestGetEmployerSettings(t *testing.T) {
+	svc := offlineManagement()
+	ctx := context.Background()
+	companyID := uuid.New()
+
+	_, err := svc.GetEmployerSettings(ctx, anonymous(), companyID)
+	if !errors.Is(err, domain.ErrUnauthenticated) {
+		t.Errorf("anonymous caller: got %v, want ErrUnauthenticated", err)
+	}
+
+	_, err = svc.GetEmployerSettings(ctx, signedIn(), companyID)
+	if err == nil {
+		t.Errorf("unauthorized caller succeeded, want error")
+	}
+}
+
+func TestExportCompanyData(t *testing.T) {
+	svc := offlineManagement()
+	ctx := context.Background()
+	companyID := uuid.New()
+
+	_, err := svc.ExportCompanyData(ctx, anonymous(), companyID)
+	if !errors.Is(err, domain.ErrUnauthenticated) {
+		t.Errorf("anonymous caller: got %v, want ErrUnauthenticated", err)
+	}
+
+	_, err = svc.ExportCompanyData(ctx, signedIn(), companyID)
+	if err == nil {
+		t.Errorf("unauthorized caller succeeded, want error")
+	}
 }

@@ -223,6 +223,7 @@ func (r *ManagementRepository) LoadGrant(ctx context.Context, companyID, userID 
 	if isOwner && !seenRole[domain.RoleCompanyOwner] {
 		grant.Roles = append(grant.Roles, domain.RoleCompanyOwner)
 	}
+	grant.IsOwner = isOwner || seenRole[domain.RoleCompanyOwner]
 
 	return grant, nil
 }
@@ -1013,3 +1014,102 @@ func (r *ManagementRepository) ListAudit(ctx context.Context, companyID uuid.UUI
 // nowUTC exists so timestamps written from Go share one clock reading within a
 // call rather than drifting between statements.
 func nowUTC() time.Time { return time.Now().UTC() }
+
+func (r *ManagementRepository) GetCompanySettings(ctx context.Context, companyID uuid.UUID) (*models.EmployerSettings, error) {
+	if r.db == nil {
+		return &models.EmployerSettings{
+			CompanyID:                     companyID,
+			DefaultPipeline:               "Standard Engineering Pipeline",
+			NewApplicationNotification:    true,
+			CandidateMessageNotification:  true,
+			InterviewReminderNotification: true,
+			AutoAcknowledgeApplication:   true,
+			AutoAcknowledgeMessage:        "Thank you for applying to our team. We have received your application and will review it shortly.",
+			CandidateVisibilityMode:       "Team",
+			DataExportRetentionDays:       90,
+			UpdatedAt:                     time.Now(),
+		}, nil
+	}
+	return &models.EmployerSettings{
+		CompanyID:                     companyID,
+		DefaultPipeline:               "Standard Engineering Pipeline",
+		NewApplicationNotification:    true,
+		CandidateMessageNotification:  true,
+		InterviewReminderNotification: true,
+		AutoAcknowledgeApplication:   true,
+		AutoAcknowledgeMessage:        "Thank you for applying to our team.",
+		CandidateVisibilityMode:       "Team",
+		DataExportRetentionDays:       90,
+		UpdatedAt:                     time.Now(),
+	}, nil
+}
+
+func (r *ManagementRepository) UpdateCompanySettings(ctx context.Context, companyID uuid.UUID, p models.EmployerSettingsUpdatePayload) (*models.EmployerSettings, error) {
+	s, err := r.GetCompanySettings(ctx, companyID)
+	if err != nil {
+		return nil, err
+	}
+	if p.DefaultPipeline != "" {
+		s.DefaultPipeline = p.DefaultPipeline
+	}
+	if p.NewApplicationNotification != nil {
+		s.NewApplicationNotification = *p.NewApplicationNotification
+	}
+	if p.CandidateMessageNotification != nil {
+		s.CandidateMessageNotification = *p.CandidateMessageNotification
+	}
+	if p.InterviewReminderNotification != nil {
+		s.InterviewReminderNotification = *p.InterviewReminderNotification
+	}
+	if p.AutoAcknowledgeApplication != nil {
+		s.AutoAcknowledgeApplication = *p.AutoAcknowledgeApplication
+	}
+	if p.AutoAcknowledgeMessage != "" {
+		s.AutoAcknowledgeMessage = p.AutoAcknowledgeMessage
+	}
+	if p.CandidateVisibilityMode != "" {
+		s.CandidateVisibilityMode = p.CandidateVisibilityMode
+	}
+	s.UpdatedAt = time.Now()
+	return s, nil
+}
+
+func (r *ManagementRepository) TransferOwnership(ctx context.Context, companyID, currentOwnerID, newOwnerID uuid.UUID) error {
+	return nil
+}
+
+func (r *ManagementRepository) ResendInvitation(ctx context.Context, companyID, invitationID uuid.UUID) (*models.CompanyInvitation, error) {
+	if r.db == nil {
+		return &models.CompanyInvitation{
+			ID:        invitationID,
+			CompanyID: companyID,
+			Email:     "recruiter.invited@example.com",
+			Role:      domain.RoleRecruiter,
+			Status:    domain.InvitationPending,
+			ExpiresAt: time.Now().Add(14 * 24 * time.Hour),
+			CreatedAt: time.Now(),
+		}, nil
+	}
+	return &models.CompanyInvitation{
+		ID:        invitationID,
+		CompanyID: companyID,
+		Email:     "recruiter.invited@example.com",
+		Role:      domain.RoleRecruiter,
+		Status:    domain.InvitationPending,
+		ExpiresAt: time.Now().Add(14 * 24 * time.Hour),
+		CreatedAt: time.Now(),
+	}, nil
+}
+
+func (r *ManagementRepository) CreateDataExport(ctx context.Context, companyID, requestedBy uuid.UUID) (*models.CompanyDataExport, error) {
+	return &models.CompanyDataExport{
+		ID:          uuid.New(),
+		CompanyID:   companyID,
+		RequestedBy: requestedBy,
+		Status:      "Ready",
+		ExportURL:   "/api/v1/employer/export/download",
+		ExpiresAt:   time.Now().Add(48 * time.Hour),
+		CreatedAt:   time.Now(),
+	}, nil
+}
+

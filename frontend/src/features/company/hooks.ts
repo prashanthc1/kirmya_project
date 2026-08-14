@@ -35,12 +35,16 @@ import {
   CompanySearchQuery,
   CompanyUpdatePayload,
   CompanyUpdatesPage,
+  CompanyDataExport,
+  EmployerSettings,
+  EmployerSettingsUpdatePayload,
   JobAnalytics,
   PeopleQuery,
   ReviewPayload,
   RoleDescriptor,
   TeamInvitePayload,
   TeamMemberUpdatePayload,
+  TransferOwnershipPayload,
   UpdatePayload,
   VerificationSubmitPayload,
 } from './types';
@@ -53,6 +57,7 @@ export const companyKeys = {
   following: () => ['company', 'following'] as const,
   memberships: () => ['company', 'memberships'] as const,
   permissions: () => ['company', 'permission-catalog'] as const,
+  settings: (companyId: string) => ['company', companyId, 'settings'] as const,
   people: (identifier: string, query: PeopleQuery) =>
     ['company', identifier, 'people', query] as const,
   departments: (identifier: string) => ['company', identifier, 'departments'] as const,
@@ -564,3 +569,58 @@ export const useDeleteUpdate = (companyId: string, identifier: string) => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: companyScope(identifier) }),
   });
 };
+
+// ---------------------------------------------------------------------------
+// Employer Settings & Actions
+// ---------------------------------------------------------------------------
+
+export const useEmployerSettings = (
+  companyId: string,
+  options?: QueryOpts<EmployerSettings>
+) =>
+  useQuery({
+    queryKey: companyKeys.settings(companyId),
+    queryFn: () => companyManagementApi.getEmployerSettings(companyId),
+    enabled: !!companyId,
+    ...options,
+  });
+
+export const useUpdateEmployerSettings = (companyId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: EmployerSettingsUpdatePayload) =>
+      companyManagementApi.updateEmployerSettings(companyId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companyKeys.settings(companyId) });
+    },
+  });
+};
+
+export const useTransferOwnership = (companyId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: TransferOwnershipPayload) =>
+      companyManagementApi.transferOwnership(companyId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companyScope(companyId) });
+    },
+  });
+};
+
+export const useResendInvitation = (companyId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      companyManagementApi.resendInvitation(companyId, invitationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companyKeys.invitations(companyId) });
+    },
+  });
+};
+
+export const useExportCompanyData = (companyId: string) => {
+  return useMutation({
+    mutationFn: () => companyManagementApi.exportCompanyData(companyId),
+  });
+};
+

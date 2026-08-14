@@ -1643,3 +1643,63 @@ func (s *ManagementService) RunMaintenance(ctx context.Context) error {
 	}
 	return s.repo.RollUpJobAnalytics(ctx, day)
 }
+
+func (s *ManagementService) GetEmployerSettings(ctx context.Context, actor Actor, companyID uuid.UUID) (*models.EmployerSettings, error) {
+	if _, err := s.authorize(ctx, actor, companyID, domain.PermSettingsEdit); err != nil {
+		return nil, err
+	}
+	return s.repo.GetCompanySettings(ctx, companyID)
+}
+
+func (s *ManagementService) UpdateEmployerSettings(ctx context.Context, actor Actor, companyID uuid.UUID, p models.EmployerSettingsUpdatePayload) (*models.EmployerSettings, error) {
+	if _, err := s.authorize(ctx, actor, companyID, domain.PermSettingsEdit); err != nil {
+		return nil, err
+	}
+	res, err := s.repo.UpdateCompanySettings(ctx, companyID, p)
+	if err == nil {
+		s.audit(ctx, actor, companyID, "update", "company_settings", &companyID, nil)
+	}
+	return res, err
+}
+
+func (s *ManagementService) TransferOwnership(ctx context.Context, actor Actor, companyID uuid.UUID, p models.TransferOwnershipPayload) error {
+	if !actor.IsAuthenticated() {
+		return domain.ErrUnauthenticated
+	}
+	grant := s.grantFor(ctx, actor, companyID)
+	if !grant.IsOwner {
+		return domain.ErrForbidden
+	}
+	newOwnerID, err := uuid.Parse(p.NewOwnerID)
+	if err != nil {
+		return fmt.Errorf("%w: invalid new owner ID", domain.ErrValidation)
+	}
+	err = s.repo.TransferOwnership(ctx, companyID, actor.UserID, newOwnerID)
+	if err == nil {
+		s.audit(ctx, actor, companyID, "transfer_ownership", "company", &companyID, map[string]any{"newOwner": newOwnerID})
+	}
+	return err
+}
+
+func (s *ManagementService) ResendInvitation(ctx context.Context, actor Actor, companyID, invitationID uuid.UUID) (*models.CompanyInvitation, error) {
+	if _, err := s.authorize(ctx, actor, companyID, domain.PermTeamInvite); err != nil {
+		return nil, err
+	}
+	inv, err := s.repo.ResendInvitation(ctx, companyID, invitationID)
+	if err == nil {
+		s.audit(ctx, actor, companyID, "resend", "invitation", &invitationID, map[string]any{"email": inv.Email})
+	}
+	return inv, err
+}
+
+func (s *ManagementService) ExportCompanyData(ctx context.Context, actor Actor, companyID uuid.UUID) (*models.CompanyDataExport, error) {
+	if _, err := s.authorize(ctx, actor, companyID, domain.PermCompanyEdit); err != nil {
+		return nil, err
+	}
+	exp, err := s.repo.CreateDataExport(ctx, companyID, actor.UserID)
+	if err == nil {
+		s.audit(ctx, actor, companyID, "export", "company_data", &exp.ID, nil)
+	}
+	return exp, err
+}
+

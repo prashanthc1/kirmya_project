@@ -191,6 +191,17 @@ type Grant struct {
 	UserID    string
 	Roles     []Role
 	Extra     []Permission
+	IsOwner   bool
+}
+
+// HasRole reports whether the grant includes the given role.
+func (g Grant) HasRole(r Role) bool {
+	for _, role := range g.Roles {
+		if role == r {
+			return true
+		}
+	}
+	return false
 }
 
 // Has reports whether the grant carries the permission through any of its roles

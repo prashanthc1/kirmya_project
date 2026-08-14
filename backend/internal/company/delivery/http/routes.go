@@ -108,6 +108,26 @@ func RegisterRoutes(api *gin.RouterGroup, handler *CompanyHandler, management *M
 		protected.DELETE("/:id/updates/:updateId", management.DeleteUpdate)
 	}
 
+	// Dedicated Employer Portal routes
+	employer := api.Group("/employer")
+	employer.Use(auth.RequireAuth())
+	{
+		employer.GET("/dashboard", management.GetDashboard)
+		employer.GET("/company", management.GetCompany)
+		employer.PUT("/company", management.UpdateCompany)
+		employer.GET("/team", management.GetTeam)
+		employer.POST("/team/invite", management.InviteTeamMember)
+		employer.POST("/team/invitations/:invitationId/resend", management.ResendInvitation)
+		employer.DELETE("/team/members/:memberId", management.RemoveTeamMember)
+		employer.PUT("/team/members/:memberId", management.UpdateTeamMember)
+		employer.POST("/team/transfer-ownership", management.TransferOwnership)
+		employer.GET("/jobs", management.GetJobs)
+		employer.GET("/analytics", management.GetAnalytics)
+		employer.GET("/settings", management.GetEmployerSettings)
+		employer.PUT("/settings", management.UpdateEmployerSettings)
+		employer.POST("/export", management.ExportCompanyData)
+	}
+
 	// The public company page reached by slug.
 	companyPublic := api.Group("/company")
 	companyPublic.Use(auth.OptionalAuth())

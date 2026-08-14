@@ -30,6 +30,9 @@ import {
   CompanyUpdatePayload,
   CompanyUpdatesPage,
   CompanyVerification,
+  CompanyDataExport,
+  EmployerSettings,
+  EmployerSettingsUpdatePayload,
   FollowPayload,
   InvitationIssued,
   JobAnalytics,
@@ -39,6 +42,7 @@ import {
   RoleDescriptor,
   TeamInvitePayload,
   TeamMemberUpdatePayload,
+  TransferOwnershipPayload,
   UpdatePayload,
   VerificationStatus,
   VerificationSubmitPayload,
@@ -420,6 +424,36 @@ export const companyManagementApi = {
 
   deleteUpdate: async (companyId: string, updateId: string): Promise<void> => {
     await authApiClient.delete(`/companies/${companyId}/updates/${updateId}`);
+  },
+
+  // -------------------------------------------------------------------------
+  // Employer Settings, Ownership & Export
+  // -------------------------------------------------------------------------
+
+  getEmployerSettings: async (companyId: string): Promise<EmployerSettings> => {
+    const res = await authApiClient.get<EmployerSettings>(`/companies/${companyId}/settings`);
+    return res.data;
+  },
+
+  updateEmployerSettings: async (
+    companyId: string,
+    payload: EmployerSettingsUpdatePayload
+  ): Promise<EmployerSettings> => {
+    const res = await authApiClient.put<EmployerSettings>(`/companies/${companyId}/settings`, payload);
+    return res.data;
+  },
+
+  transferOwnership: async (companyId: string, payload: TransferOwnershipPayload): Promise<void> => {
+    await authApiClient.post(`/companies/${companyId}/transfer-ownership`, payload);
+  },
+
+  resendInvitation: async (companyId: string, invitationId: string): Promise<void> => {
+    await authApiClient.post(`/companies/${companyId}/team/invitations/${invitationId}/resend`);
+  },
+
+  exportCompanyData: async (companyId: string): Promise<CompanyDataExport> => {
+    const res = await authApiClient.post<CompanyDataExport>(`/companies/${companyId}/export`);
+    return res.data;
   },
 
   // -------------------------------------------------------------------------

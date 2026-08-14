@@ -8,6 +8,7 @@ DELETE /api/v1/companies/:id/updates/:updateId
 DELETE /api/v1/companies/follow
 DELETE /api/v1/companies/save
 DELETE /api/v1/documents/:id
+DELETE /api/v1/employer/team/members/:memberId
 DELETE /api/v1/job-alerts/:id
 DELETE /api/v1/jobs/:id/save
 DELETE /api/v1/network/connections/:id
@@ -150,6 +151,12 @@ GET /api/v1/company/analytics/overview
 GET /api/v1/compliance/consent
 GET /api/v1/compliance/requests
 GET /api/v1/documents
+GET /api/v1/employer/analytics
+GET /api/v1/employer/company
+GET /api/v1/employer/dashboard
+GET /api/v1/employer/jobs
+GET /api/v1/employer/settings
+GET /api/v1/employer/team
 GET /api/v1/endorsements/recommendations
 GET /api/v1/endorsements/references
 GET /api/v1/endorsements/skills
@@ -359,6 +366,10 @@ POST /api/v1/compliance/delete-account
 POST /api/v1/compliance/export
 POST /api/v1/documents/upload
 POST /api/v1/education
+POST /api/v1/employer/export
+POST /api/v1/employer/team/invitations/:invitationId/resend
+POST /api/v1/employer/team/invite
+POST /api/v1/employer/team/transfer-ownership
 POST /api/v1/endorsements/recommendations
 POST /api/v1/endorsements/references
 POST /api/v1/endorsements/skills
@@ -511,6 +522,9 @@ PUT /api/v1/companies/:id/reviews/:reviewId
 PUT /api/v1/companies/:id/team/:memberId
 PUT /api/v1/companies/:id/team/:memberId/permissions
 PUT /api/v1/companies/:id/updates/:updateId
+PUT /api/v1/employer/company
+PUT /api/v1/employer/settings
+PUT /api/v1/employer/team/members/:memberId
 PUT /api/v1/endorsements/recommendations/:id/status
 PUT /api/v1/interviews/:id/status
 PUT /api/v1/interviews/rounds/:roundId/status

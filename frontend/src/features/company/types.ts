@@ -704,3 +704,44 @@ export interface RoleDescriptor {
   rank: number;
   permissions: CompanyPermission[];
 }
+
+export interface EmployerSettings {
+  companyId: string;
+  defaultRecruiterId?: string;
+  defaultPipeline: string;
+  newApplicationNotification: boolean;
+  candidateMessageNotification: boolean;
+  interviewReminderNotification: boolean;
+  autoAcknowledgeApplication: boolean;
+  autoAcknowledgeMessage: string;
+  candidateVisibilityMode: string;
+  dataExportRetentionDays: number;
+  updatedAt: string;
+}
+
+export interface EmployerSettingsUpdatePayload {
+  defaultRecruiterId?: string;
+  defaultPipeline?: string;
+  newApplicationNotification?: boolean;
+  candidateMessageNotification?: boolean;
+  interviewReminderNotification?: boolean;
+  autoAcknowledgeApplication?: boolean;
+  autoAcknowledgeMessage?: string;
+  candidateVisibilityMode?: string;
+}
+
+export interface TransferOwnershipPayload {
+  newOwnerId: string;
+  reason?: string;
+}
+
+export interface CompanyDataExport {
+  id: string;
+  companyId: string;
+  requestedBy: string;
+  status: string;
+  exportUrl: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
