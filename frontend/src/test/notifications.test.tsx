@@ -1,6 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
+
 import NotificationBell from '../components/notifications/NotificationBell';
 import NotificationCenter from '../components/notifications/NotificationCenter';
 import AdminNotificationCenter from '../components/notifications/AdminNotificationCenter';
@@ -20,7 +30,7 @@ describe('Notifications & Real-Time Alerts Module Test Suite', () => {
 
   it('renders AdminNotificationCenter control panel', () => {
     render(<AdminNotificationCenter />);
-    expect(screen.getByText(/Admin Notification Command Center/i)).toBeInTheDocument();
-    expect(screen.getByText(/System Announcements/i)).toBeInTheDocument();
+    expect(screen.getByText(/Admin Notification Control Console/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Broadcast System Announcement/i).length).toBeGreaterThan(0);
   });
 });
