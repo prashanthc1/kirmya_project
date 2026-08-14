@@ -620,3 +620,110 @@ func (s *RecruiterService) GetTeamMembers(ctx context.Context, userID uuid.UUID)
 		},
 	}, nil
 }
+
+func (s *RecruiterService) GetStageHistory(ctx context.Context, applicationID uuid.UUID) ([]models.ApplicationStageHistoryDTO, error) {
+	return s.repo.GetStageHistory(ctx, applicationID)
+}
+
+func (s *RecruiterService) CreateCandidateNote(ctx context.Context, userID, candidateID uuid.UUID, payload *models.CreateNotePayload) (*models.CandidateNoteItem, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	if err != nil {
+		return nil, err
+	}
+
+	rec := payload.Recommendation
+	if rec == "" {
+		rec = "Consider"
+	}
+
+	note := &models.CandidateNoteItem{
+		ID:             uuid.New(),
+		CandidateID:    candidateID,
+		RecruiterID:    p.ID,
+		RecruiterName:  p.JobTitle + " at " + p.CompanyName,
+		Note:           payload.Note,
+		Score:          payload.Score,
+		Recommendation: rec,
+		IsPinned:       payload.IsPinned,
+		CreatedAt:      time.Now(),
+	}
+
+	var appID *uuid.UUID
+	if payload.ApplicationID != "" {
+		parsed, err := uuid.Parse(payload.ApplicationID)
+		if err == nil {
+			appID = &parsed
+		}
+	}
+
+	err = s.repo.CreateCandidateNote(ctx, note, p.OrgID, appID)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candidateID, p.CompanyName, "Note Created")
+
+	return note, nil
+}
+
+func (s *RecruiterService) GetCandidateNotes(ctx context.Context, userID, candidateID uuid.UUID) ([]models.CandidateNoteItem, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	if err != nil {
+		return nil, err
+	}
+
+	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candidateID, p.CompanyName, "Notes Viewed")
+
+	return s.repo.GetCandidateNotes(ctx, candidateID, p.OrgID)
+}
+
+func (s *RecruiterService) CreateCandidateEvaluation(ctx context.Context, userID uuid.UUID, payload *models.CandidateEvaluationPayload) (*models.CandidateEvaluationDTO, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	if err != nil {
+		return nil, err
+	}
+
+	appID, _ := uuid.Parse(payload.ApplicationID)
+	jobID, _ := uuid.Parse(payload.JobID)
+	candID, _ := uuid.Parse(payload.CandidateID)
+
+	rec := payload.Recommendation
+	if rec == "" {
+		rec = "Consider"
+	}
+
+	eval := &models.CandidateEvaluationDTO{
+		ID:                 uuid.New(),
+		ApplicationID:      appID,
+		JobID:              jobID,
+		CandidateID:        candID,
+		EvaluatorID:        p.ID,
+		EvaluatorName:      p.JobTitle,
+		OrgID:              p.OrgID,
+		SkillsScore:        payload.SkillsScore,
+		ExperienceScore:    payload.ExperienceScore,
+		CommunicationScore: payload.CommunicationScore,
+		TechnicalScore:     payload.TechnicalScore,
+		CultureFitScore:    payload.CultureFitScore,
+		RoleFitScore:       payload.RoleFitScore,
+		OverallScore:       payload.OverallScore,
+		Recommendation:     rec,
+		Strengths:          payload.Strengths,
+		Weaknesses:         payload.Weaknesses,
+		Notes:              payload.Notes,
+		CreatedAt:          time.Now(),
+	}
+
+	err = s.repo.CreateCandidateEvaluation(ctx, eval)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candID, p.CompanyName, "Evaluation Created")
+
+	return eval, nil
+}
+
+func (s *RecruiterService) GetCandidateEvaluations(ctx context.Context, applicationID uuid.UUID) ([]models.CandidateEvaluationDTO, error) {
+	return s.repo.GetCandidateEvaluations(ctx, applicationID)
+}

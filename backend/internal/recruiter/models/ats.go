@@ -121,3 +121,53 @@ type AIEvaluationResponse struct {
 	RiskFactors         []string  `json:"riskFactors"`
 	SuggestedQuestions  []string  `json:"suggestedQuestions"`
 }
+
+// CandidateEvaluationPayload is the request for creating a candidate evaluation.
+type CandidateEvaluationPayload struct {
+	ApplicationID      string `json:"application_id" binding:"required"`
+	JobID              string `json:"job_id" binding:"required"`
+	CandidateID        string `json:"candidate_id" binding:"required"`
+	SkillsScore        int    `json:"skills_score"`
+	ExperienceScore    int    `json:"experience_score"`
+	CommunicationScore int    `json:"communication_score"`
+	TechnicalScore     int    `json:"technical_score"`
+	CultureFitScore    int    `json:"culture_fit_score"`
+	RoleFitScore       int    `json:"role_fit_score"`
+	OverallScore       int    `json:"overall_score"`
+	Recommendation     string `json:"recommendation"`
+	Strengths          string `json:"strengths"`
+	Weaknesses         string `json:"weaknesses"`
+	Notes              string `json:"notes"`
+}
+
+// CandidateEvaluationDTO is the response for a candidate evaluation.
+type CandidateEvaluationDTO struct {
+	ID                 uuid.UUID `json:"id"`
+	ApplicationID      uuid.UUID `json:"applicationId"`
+	JobID              uuid.UUID `json:"jobId"`
+	CandidateID        uuid.UUID `json:"candidateId"`
+	EvaluatorID        uuid.UUID `json:"evaluatorId"`
+	EvaluatorName      string    `json:"evaluatorName"`
+	OrgID              uuid.UUID `json:"orgId"`
+	SkillsScore        int       `json:"skillsScore"`
+	ExperienceScore    int       `json:"experienceScore"`
+	CommunicationScore int       `json:"communicationScore"`
+	TechnicalScore     int       `json:"technicalScore"`
+	CultureFitScore    int       `json:"cultureFitScore"`
+	RoleFitScore       int       `json:"roleFitScore"`
+	OverallScore       int       `json:"overallScore"`
+	Recommendation     string    `json:"recommendation"`
+	Strengths          string    `json:"strengths"`
+	Weaknesses         string    `json:"weaknesses"`
+	Notes              string    `json:"notes"`
+	CreatedAt          time.Time `json:"createdAt"`
+}
+
+// CreateNotePayload is the request for creating a recruiter note on a candidate.
+type CreateNotePayload struct {
+	Note           string `json:"note" binding:"required"`
+	ApplicationID  string `json:"application_id"`
+	Score          int    `json:"score"`
+	Recommendation string `json:"recommendation"`
+	IsPinned       bool   `json:"is_pinned"`
+}

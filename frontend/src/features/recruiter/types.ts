@@ -83,3 +83,97 @@ export interface RecruiterAnalytics {
   candidateSources: { source: string; percentage?: number; count?: number }[];
   timeToHireDays: number;
 }
+
+export interface CandidateNote {
+  id: string;
+  candidateId: string;
+  recruiterId: string;
+  recruiterName: string;
+  note: string;
+  score: number;
+  recommendation: string;
+  isPinned: boolean;
+  createdAt: string;
+}
+
+export interface CandidateEvaluation {
+  id: string;
+  applicationId: string;
+  jobId: string;
+  candidateId: string;
+  evaluatorId: string;
+  evaluatorName: string;
+  skillsScore: number;
+  experienceScore: number;
+  communicationScore: number;
+  technicalScore: number;
+  cultureFitScore: number;
+  roleFitScore: number;
+  overallScore: number;
+  recommendation: string;
+  strengths: string;
+  weaknesses: string;
+  notes: string;
+  createdAt: string;
+}
+
+export interface StageHistoryItem {
+  id: string;
+  applicationId: string;
+  fromStage: string;
+  toStage: string;
+  movedBy: string;
+  movedByName: string;
+  notes: string;
+  movedAt: string;
+}
+
+export interface ApplicationDetail {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  candidateId: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidateHeadline: string;
+  candidateAvatar: string;
+  candidateLocation: string;
+  experienceYears: number;
+  skills: string[];
+  aiMatchScore: number;
+  currentStage: string;
+  recruiterId: string;
+  assignedRecruiter: string;
+  rating: number;
+  coverLetter: string;
+  resumeUrl: string;
+  appliedAt: string;
+  updatedAt: string;
+}
+
+export interface JobOffer {
+  id: string;
+  applicationId: string;
+  jobId: string;
+  candidateId: string;
+  candidateName: string;
+  positionTitle: string;
+  salary: string;
+  currency: string;
+  benefits: string;
+  joiningDate: string;
+  contractType: string;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface BulkActionPayload {
+  application_ids: string[];
+  action: 'move' | 'reject' | 'shortlist' | 'assign' | 'tag' | 'message';
+  target_stage?: string;
+  assignee_id?: string;
+  tag_id?: string;
+  message_text?: string;
+  notes?: string;
+}

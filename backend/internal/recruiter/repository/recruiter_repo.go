@@ -360,3 +360,218 @@ func (r *RecruiterRepository) GetAnalytics(ctx context.Context, recruiterID uuid
 
 	return analytics, nil
 }
+
+// RecordStageHistory inserts a stage transition record for audit trail.
+func (r *RecruiterRepository) RecordStageHistory(ctx context.Context, applicationID, movedBy uuid.UUID, fromStage, toStage, notes string) error {
+	if r.db == nil {
+		return nil
+	}
+	query := `INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, NOW())`
+	_, err := r.db.Exec(ctx, query, uuid.New(), applicationID, fromStage, toStage, movedBy, notes)
+	return err
+}
+
+// GetStageHistory retrieves the stage transition history for an application.
+func (r *RecruiterRepository) GetStageHistory(ctx context.Context, applicationID uuid.UUID) ([]models.ApplicationStageHistoryDTO, error) {
+	if r.db == nil {
+		return []models.ApplicationStageHistoryDTO{
+			{
+				ID:            uuid.New(),
+				ApplicationID: applicationID,
+				FromStage:     "New",
+				ToStage:       "Shortlisted",
+				MovedBy:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+				MovedByName:   "Rashid Al-Maktoum",
+				Notes:         "Strong technical background in Go and cloud systems.",
+				MovedAt:       time.Now().Add(-24 * time.Hour),
+			},
+			{
+				ID:            uuid.New(),
+				ApplicationID: applicationID,
+				FromStage:     "Shortlisted",
+				ToStage:       "Interview",
+				MovedBy:       uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+				MovedByName:   "Amira Al-Farsi",
+				Notes:         "Scheduled for Technical Architecture Round.",
+				MovedAt:       time.Now().Add(-12 * time.Hour),
+			},
+		}, nil
+	}
+
+	query := `SELECT ash.id, ash.application_id, ash.from_stage, ash.to_stage, ash.moved_by, 
+	                 COALESCE(up.full_name, 'Recruiter'), ash.notes, ash.moved_at
+	          FROM application_stage_history ash
+	          LEFT JOIN user_profiles up ON ash.moved_by = up.user_id
+	          WHERE ash.application_id = $1
+	          ORDER BY ash.moved_at DESC`
+	rows, err := r.db.Query(ctx, query, applicationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.ApplicationStageHistoryDTO
+	for rows.Next() {
+		var h models.ApplicationStageHistoryDTO
+		err := rows.Scan(&h.ID, &h.ApplicationID, &h.FromStage, &h.ToStage, &h.MovedBy, &h.MovedByName, &h.Notes, &h.MovedAt)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, h)
+	}
+	return list, nil
+}
+
+// CreateCandidateNote inserts a recruiter note on a candidate.
+func (r *RecruiterRepository) CreateCandidateNote(ctx context.Context, note *models.CandidateNoteItem, orgID uuid.UUID, applicationID *uuid.UUID) error {
+	if r.db == nil {
+		return nil
+	}
+	query := `INSERT INTO recruiter_internal_notes (id, org_id, candidate_id, application_id, recruiter_id, recruiter_name, note, score, recommendation, is_pinned, created_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`
+	var appID *uuid.UUID
+	if applicationID != nil && *applicationID != uuid.Nil {
+		appID = applicationID
+	}
+	_, err := r.db.Exec(ctx, query, note.ID, orgID, note.CandidateID, appID, note.RecruiterID, note.RecruiterName, note.Note, note.Score, note.Recommendation, note.IsPinned)
+	return err
+}
+
+// GetCandidateNotes retrieves notes for a candidate scoped to an organization.
+func (r *RecruiterRepository) GetCandidateNotes(ctx context.Context, candidateID, orgID uuid.UUID) ([]models.CandidateNoteItem, error) {
+	if r.db == nil {
+		return []models.CandidateNoteItem{
+			{
+				ID:             uuid.New(),
+				CandidateID:    candidateID,
+				RecruiterID:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+				RecruiterName:  "Rashid Al-Maktoum",
+				Note:           "Exceptional Go microservices experience. Strong systems design skills demonstrated in portfolio.",
+				Score:          9,
+				Recommendation: "Strong Hire",
+				IsPinned:       true,
+				CreatedAt:      time.Now().Add(-4 * time.Hour),
+			},
+			{
+				ID:             uuid.New(),
+				CandidateID:    candidateID,
+				RecruiterID:    uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+				RecruiterName:  "Amira Al-Farsi",
+				Note:           "Good communication skills. Aligned with team culture and values.",
+				Score:          8,
+				Recommendation: "Hire",
+				IsPinned:       false,
+				CreatedAt:      time.Now().Add(-2 * time.Hour),
+			},
+		}, nil
+	}
+
+	query := `SELECT id, candidate_id, recruiter_id, COALESCE(recruiter_name, 'Recruiter'), note, score, COALESCE(recommendation, 'Consider'), is_pinned, created_at
+	          FROM recruiter_internal_notes
+	          WHERE candidate_id = $1 AND org_id = $2
+	          ORDER BY is_pinned DESC, created_at DESC`
+	rows, err := r.db.Query(ctx, query, candidateID, orgID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.CandidateNoteItem
+	for rows.Next() {
+		var n models.CandidateNoteItem
+		err := rows.Scan(&n.ID, &n.CandidateID, &n.RecruiterID, &n.RecruiterName, &n.Note, &n.Score, &n.Recommendation, &n.IsPinned, &n.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, n)
+	}
+	return list, nil
+}
+
+// CreateCandidateEvaluation inserts a structured evaluation.
+func (r *RecruiterRepository) CreateCandidateEvaluation(ctx context.Context, eval *models.CandidateEvaluationDTO) error {
+	if r.db == nil {
+		return nil
+	}
+	query := `INSERT INTO candidate_evaluations
+	          (id, application_id, job_id, candidate_id, evaluator_id, evaluator_name, org_id,
+	           skills_score, experience_score, communication_score, technical_score,
+	           culture_fit_score, role_fit_score, overall_score, recommendation,
+	           strengths, weaknesses, notes, created_at)
+	          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,NOW())`
+	_, err := r.db.Exec(ctx, query, eval.ID, eval.ApplicationID, eval.JobID, eval.CandidateID,
+		eval.EvaluatorID, eval.EvaluatorName, eval.OrgID,
+		eval.SkillsScore, eval.ExperienceScore, eval.CommunicationScore, eval.TechnicalScore,
+		eval.CultureFitScore, eval.RoleFitScore, eval.OverallScore, eval.Recommendation,
+		eval.Strengths, eval.Weaknesses, eval.Notes)
+	return err
+}
+
+// GetCandidateEvaluations retrieves evaluations for an application.
+func (r *RecruiterRepository) GetCandidateEvaluations(ctx context.Context, applicationID uuid.UUID) ([]models.CandidateEvaluationDTO, error) {
+	if r.db == nil {
+		return []models.CandidateEvaluationDTO{
+			{
+				ID:                 uuid.New(),
+				ApplicationID:      applicationID,
+				JobID:              uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+				CandidateID:        uuid.MustParse("c1111111-1111-1111-1111-111111111111"),
+				EvaluatorID:        uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+				EvaluatorName:      "Rashid Al-Maktoum",
+				SkillsScore:        9,
+				ExperienceScore:    8,
+				CommunicationScore: 9,
+				TechnicalScore:     10,
+				CultureFitScore:    8,
+				RoleFitScore:       9,
+				OverallScore:       9,
+				Recommendation:     "Strong Hire",
+				Strengths:          "Exceptional Go microservices architecture, PostgreSQL optimization, Kubernetes orchestration",
+				Weaknesses:         "Limited Kafka streaming experience",
+				Notes:              "Top-tier candidate. Recommend fast-track to offer.",
+				CreatedAt:          time.Now().Add(-6 * time.Hour),
+			},
+		}, nil
+	}
+
+	query := `SELECT id, application_id, job_id, candidate_id, evaluator_id, COALESCE(evaluator_name, 'Evaluator'), org_id,
+	                 skills_score, experience_score, communication_score, technical_score,
+	                 culture_fit_score, role_fit_score, overall_score, COALESCE(recommendation, 'Consider'),
+	                 COALESCE(strengths, ''), COALESCE(weaknesses, ''), COALESCE(notes, ''), created_at
+	          FROM candidate_evaluations
+	          WHERE application_id = $1
+	          ORDER BY created_at DESC`
+	rows, err := r.db.Query(ctx, query, applicationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.CandidateEvaluationDTO
+	for rows.Next() {
+		var e models.CandidateEvaluationDTO
+		err := rows.Scan(&e.ID, &e.ApplicationID, &e.JobID, &e.CandidateID, &e.EvaluatorID, &e.EvaluatorName, &e.OrgID,
+			&e.SkillsScore, &e.ExperienceScore, &e.CommunicationScore, &e.TechnicalScore,
+			&e.CultureFitScore, &e.RoleFitScore, &e.OverallScore, &e.Recommendation,
+			&e.Strengths, &e.Weaknesses, &e.Notes, &e.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, e)
+	}
+	return list, nil
+}
+
+// VerifyRecruiterOrgAccess checks the recruiter belongs to the specified organization.
+func (r *RecruiterRepository) VerifyRecruiterOrgAccess(ctx context.Context, recruiterProfileID, orgID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		return true, nil
+	}
+	var count int
+	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM recruiter_organization_profiles WHERE id = $1 AND org_id = $2`, recruiterProfileID, orgID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

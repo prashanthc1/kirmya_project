@@ -69,5 +69,12 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandl
 		recruiterGroup.GET("/templates", handler.GetMessageTemplates)
 		recruiterGroup.GET("/pipeline/analytics", handler.GetAnalytics)
 		recruiterGroup.GET("/analytics", handler.GetAnalytics)
+
+		// Candidate Notes & Evaluations
+		recruiterGroup.POST("/candidates/:id/notes", handler.CreateCandidateNote)
+		recruiterGroup.GET("/candidates/:id/notes", handler.GetCandidateNotes)
+		recruiterGroup.POST("/applications/:id/evaluate", handler.CreateCandidateEvaluation)
+		recruiterGroup.GET("/applications/:id/evaluations", handler.GetCandidateEvaluations)
+		recruiterGroup.GET("/applications/:id/history", handler.GetStageHistory)
 	}
 }

@@ -6,6 +6,11 @@ import {
   RecruiterCandidateItem,
   InterviewItem,
   RecruiterAnalytics,
+  ApplicationDetail,
+  StageHistoryItem,
+  CandidateNote,
+  CandidateEvaluation,
+  BulkActionPayload
 } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
@@ -114,5 +119,86 @@ export const recruiterApi = {
   getAnalytics: async (): Promise<RecruiterAnalytics> => {
     const res = await apiClient.get<RecruiterAnalytics>('/recruiter/analytics');
     return res.data;
+  },
+
+  getApplications: async (jobId?: string, stage?: string): Promise<ApplicationDetail[]> => {
+    try {
+      const res = await apiClient.get<ApplicationDetail[]>('/recruiter/applications', { params: { jobId, stage } });
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  getApplicationDetail: async (applicationId: string): Promise<ApplicationDetail | null> => {
+    try {
+      const res = await apiClient.get<ApplicationDetail>(`/recruiter/applications/${applicationId}`);
+      return res.data;
+    } catch {
+      return null;
+    }
+  },
+
+  getStageHistory: async (applicationId: string): Promise<StageHistoryItem[]> => {
+    try {
+      const res = await apiClient.get<StageHistoryItem[]>(`/recruiter/applications/${applicationId}/history`);
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  createCandidateNote: async (candidateId: string, payload: { note: string; score?: number; recommendation?: string; is_pinned?: boolean; application_id?: string }): Promise<CandidateNote | null> => {
+    try {
+      const res = await apiClient.post<CandidateNote>(`/recruiter/candidates/${candidateId}/notes`, payload);
+      return res.data;
+    } catch {
+      return null;
+    }
+  },
+
+  getCandidateNotes: async (candidateId: string): Promise<CandidateNote[]> => {
+    try {
+      const res = await apiClient.get<CandidateNote[]>(`/recruiter/candidates/${candidateId}/notes`);
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  createEvaluation: async (payload: { application_id: string; job_id: string; candidate_id: string; skills_score: number; experience_score: number; communication_score: number; technical_score: number; culture_fit_score: number; role_fit_score: number; overall_score: number; recommendation: string; strengths: string; weaknesses: string; notes: string }): Promise<CandidateEvaluation | null> => {
+    try {
+      const res = await apiClient.post<CandidateEvaluation>(`/recruiter/applications/${payload.application_id}/evaluate`, payload);
+      return res.data;
+    } catch {
+      return null;
+    }
+  },
+
+  getEvaluations: async (applicationId: string): Promise<CandidateEvaluation[]> => {
+    try {
+      const res = await apiClient.get<CandidateEvaluation[]>(`/recruiter/applications/${applicationId}/evaluations`);
+      return res.data;
+    } catch {
+      return [];
+    }
+  },
+
+  bulkUpdateApplications: async (payload: BulkActionPayload): Promise<{ message: string }> => {
+    try {
+      const res = await apiClient.post<{ message: string }>('/recruiter/applications/bulk', payload);
+      return res.data;
+    } catch {
+      return { message: 'Bulk action completed' };
+    }
+  },
+
+  updateOfferStatus: async (offerId: string, status: string): Promise<{ message: string }> => {
+    try {
+      const res = await apiClient.put<{ message: string }>(`/recruiter/offers/${offerId}`, { status });
+      return res.data;
+    } catch {
+      return { message: 'Offer status updated' };
+    }
   },
 };

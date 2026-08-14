@@ -459,6 +459,109 @@ func (h *RecruiterHandler) GetTeamMembers(c *gin.Context) {
 	c.JSON(http.StatusOK, team)
 }
 
+func (h *RecruiterHandler) GetStageHistory(c *gin.Context) {
+	appIDStr := c.Param("id")
+	appID, err := uuid.Parse(appIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid application ID"})
+		return
+	}
+
+	history, err := h.service.GetStageHistory(c.Request.Context(), appID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, history)
+}
+
+func (h *RecruiterHandler) CreateCandidateNote(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	candIDStr := c.Param("id")
+	candID, err := uuid.Parse(candIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid candidate ID"})
+		return
+	}
+
+	var payload models.CreateNotePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	note, err := h.service.CreateCandidateNote(c.Request.Context(), userID, candID, &payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, note)
+}
+
+func (h *RecruiterHandler) GetCandidateNotes(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	candIDStr := c.Param("id")
+	candID, err := uuid.Parse(candIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid candidate ID"})
+		return
+	}
+
+	notes, err := h.service.GetCandidateNotes(c.Request.Context(), userID, candID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, notes)
+}
+
+func (h *RecruiterHandler) CreateCandidateEvaluation(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	var payload models.CandidateEvaluationPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	eval, err := h.service.CreateCandidateEvaluation(c.Request.Context(), userID, &payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, eval)
+}
+
+func (h *RecruiterHandler) GetCandidateEvaluations(c *gin.Context) {
+	appIDStr := c.Param("id")
+	appID, err := uuid.Parse(appIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid application ID"})
+		return
+	}
+
+	evals, err := h.service.GetCandidateEvaluations(c.Request.Context(), appID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, evals)
+}
+
 // Helpers
 func (h *RecruiterHandler) getUserID(c *gin.Context) (uuid.UUID, error) {
 	val, exists := c.Get("userID")

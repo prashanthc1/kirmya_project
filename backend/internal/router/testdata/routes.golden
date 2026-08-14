@@ -257,8 +257,11 @@ GET /api/v1/recruiter/analytics/overview
 GET /api/v1/recruiter/applications
 GET /api/v1/recruiter/applications/:id
 GET /api/v1/recruiter/applications/:id/ai-eval
+GET /api/v1/recruiter/applications/:id/evaluations
+GET /api/v1/recruiter/applications/:id/history
 GET /api/v1/recruiter/candidates
 GET /api/v1/recruiter/candidates/:id
+GET /api/v1/recruiter/candidates/:id/notes
 GET /api/v1/recruiter/candidates/filters
 GET /api/v1/recruiter/candidates/recommendations
 GET /api/v1/recruiter/candidates/saved
@@ -451,9 +454,11 @@ POST /api/v1/recruiter-ai/interview-questions
 POST /api/v1/recruiter-ai/optimize-jd
 POST /api/v1/recruiter-ai/outreach-email
 POST /api/v1/recruiter-ai/rank-candidates
+POST /api/v1/recruiter/applications/:id/evaluate
 POST /api/v1/recruiter/applications/bulk
 POST /api/v1/recruiter/candidates/:id/connect
 POST /api/v1/recruiter/candidates/:id/message
+POST /api/v1/recruiter/candidates/:id/notes
 POST /api/v1/recruiter/candidates/:id/save
 POST /api/v1/recruiter/candidates/compare
 POST /api/v1/recruiter/interviews
