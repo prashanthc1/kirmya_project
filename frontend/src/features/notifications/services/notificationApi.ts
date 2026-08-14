@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { authApiClient } from '../../../services/authService';
 import {
   NotificationItemDTO,
   NotificationPreferenceDTO,
@@ -10,12 +10,7 @@ import {
   NotificationScheduleDTO,
 } from '../types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-
-const apiClient = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,
-});
+const apiClient = authApiClient;
 
 export const notificationApi = {
   getMockUserId: () => '00000000-0000-0000-0000-000000000001',
@@ -47,6 +42,11 @@ export const notificationApi = {
 
   markAllRead: async (): Promise<{ message: string }> => {
     const res = await apiClient.post('/notifications/read-all');
+    return res.data;
+  },
+
+  clearRead: async (): Promise<{ message: string }> => {
+    const res = await apiClient.post('/notifications/clear-read');
     return res.data;
   },
 

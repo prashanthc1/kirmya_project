@@ -1,0 +1,20 @@
+{
+	// --- Tool & Command Execution ---
+	// "always-proceed": Runs all tools/commands without prompting
+	// "proceed-in-sandbox": Runs commands automatically only if sandboxed
+	"toolPermission": "always-proceed",
+
+	// --- Code & Artifact Approvals ---
+	// "always-proceed": Applies file changes and writes directly without confirmation
+	"artifactReviewPolicy": "always-proceed",
+
+	// --- Sandbox & Workspace Bounds ---
+	// Set to false/"off" if you don't want terminal execution restricted to a container
+	"enableTerminalSandbox": false,
+	// Allows the agent to read/write outside the immediate workspace directory
+	"allowNonWorkspaceAccess": true,
+
+	// --- Prompt / UI Behavior ---
+	"verbosity": "low",
+	"notifications": false
+}

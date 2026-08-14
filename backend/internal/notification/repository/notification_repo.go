@@ -499,3 +499,32 @@ func (r *NotificationRepository) GetAnalytics(ctx context.Context) (*models.Noti
 		},
 	}, nil
 }
+
+// ClearRead deletes all read notifications for a user.
+func (r *NotificationRepository) ClearRead(ctx context.Context, userID uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
+	_, err := r.db.Exec(ctx, "DELETE FROM notifications WHERE user_id = $1 AND is_read = TRUE", userID)
+	return err
+}
+
+// IsDeduplicated checks if an idempotency key has already been processed.
+func (r *NotificationRepository) IsDeduplicated(ctx context.Context, idempotencyKey string) (bool, error) {
+	if r == nil || r.db == nil || idempotencyKey == "" {
+		return false, nil
+	}
+	var exists bool
+	err := r.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM notification_deduplication WHERE idempotency_key = $1)", idempotencyKey).Scan(&exists)
+	return exists, err
+}
+
+// LogDeduplication records an idempotency key to prevent double processing.
+func (r *NotificationRepository) LogDeduplication(ctx context.Context, idempotencyKey string) error {
+	if r == nil || r.db == nil || idempotencyKey == "" {
+		return nil
+	}
+	_, err := r.db.Exec(ctx, "INSERT INTO notification_deduplication (idempotency_key, created_at) VALUES ($1, NOW()) ON CONFLICT (idempotency_key) DO NOTHING", idempotencyKey)
+	return err
+}
+

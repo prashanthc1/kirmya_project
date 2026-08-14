@@ -25,6 +25,8 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 		notifications.DELETE("/devices/:id", handler.DeleteDevice)
 		notifications.POST("/read-all", handler.MarkAllRead)
 		notifications.PUT("/read-all", handler.MarkAllRead)
+		notifications.POST("/clear-read", handler.ClearRead)
+		notifications.DELETE("/read", handler.ClearRead)
 
 		notifications.GET("/digests", handler.GetPreferences)
 		notifications.PUT("/digests", handler.UpdatePreference)

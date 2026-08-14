@@ -6,11 +6,25 @@ import (
 	"github.com/google/uuid"
 )
 
+// NotificationCatalogEntry defines centralized notification metadata catalog.
+type NotificationCatalogEntry struct {
+	ID                string   `json:"id"`
+	Category          string   `json:"category"`
+	TitleTemplate     string   `json:"titleTemplate"`
+	MessageTemplate   string   `json:"messageTemplate"`
+	Priority          string   `json:"priority"` // Critical, High, Normal, Low
+	SupportedChannels []string `json:"supportedChannels"`
+	DeepLinkPattern   string   `json:"deepLinkPattern"`
+	PreferenceKey     string   `json:"preferenceKey"`
+	RetentionDays     int      `json:"retentionDays"`
+	IsMandatory       bool     `json:"isMandatory"` // Security/Critical notifications cannot be disabled
+}
+
 // Notification represents a normalized in-app or cross-channel alert log.
 type Notification struct {
 	ID                 uuid.UUID              `json:"id"`
 	UserID             uuid.UUID              `json:"userId"`
-	Category           string                 `json:"category"` // Security, Jobs, Applications, Interviews, Recruiter, Companies, Networking, Communities, Career, Resume, Cover Letters, AI, System
+	Category           string                 `json:"category"` // Security, Jobs, Applications, Interviews, Recruiter, Networking, Messaging, Communities, Career, System
 	Type               string                 `json:"type"`
 	Priority           string                 `json:"priority"` // Critical, High, Normal, Low
 	Title              string                 `json:"title"`
@@ -160,43 +174,6 @@ type NotificationSchedule struct {
 	ScheduledAt        time.Time `json:"scheduledAt"`
 	Status             string    `json:"status"` // Scheduled, Processing, Sent, Cancelled
 	CreatedAt          time.Time `json:"createdAt"`
-}
-
-// NotificationEmailEvent tracks email delivery.
-type NotificationEmailEvent struct {
-	ID           uuid.UUID `json:"id"`
-	DeliveryID   uuid.UUID `json:"deliveryId"`
-	UserID       uuid.UUID `json:"userId"`
-	EmailAddress string    `json:"emailAddress"`
-	EmailSubject string    `json:"emailSubject"`
-	Provider     string    `json:"provider"`
-	Status       string    `json:"status"`
-	BounceReason string    `json:"bounceReason,omitempty"`
-	CreatedAt    time.Time `json:"createdAt"`
-}
-
-// NotificationSMSEvent tracks SMS delivery.
-type NotificationSMSEvent struct {
-	ID           uuid.UUID `json:"id"`
-	DeliveryID   uuid.UUID `json:"deliveryId"`
-	UserID       uuid.UUID `json:"userId"`
-	PhoneNumber  string    `json:"phoneNumber"`
-	Provider     string    `json:"provider"`
-	Status       string    `json:"status"`
-	ErrorMessage string    `json:"errorMessage,omitempty"`
-	CreatedAt    time.Time `json:"createdAt"`
-}
-
-// NotificationPushEvent tracks Push delivery.
-type NotificationPushEvent struct {
-	ID           uuid.UUID `json:"id"`
-	DeliveryID   uuid.UUID `json:"deliveryId"`
-	UserID       uuid.UUID `json:"userId"`
-	DeviceToken  string    `json:"deviceToken"`
-	Platform     string    `json:"platform"`
-	Status       string    `json:"status"`
-	ErrorMessage string    `json:"errorMessage,omitempty"`
-	CreatedAt    time.Time `json:"createdAt"`
 }
 
 // NotificationAnalytics defines metrics aggregated for system admins.

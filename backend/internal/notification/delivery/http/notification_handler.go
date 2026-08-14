@@ -146,6 +146,21 @@ func (h *NotificationHandler) MarkAllRead(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "All notifications marked as read"})
 }
 
+func (h *NotificationHandler) ClearRead(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	err := h.service.ClearRead(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Read notifications cleared"})
+}
+
 func (h *NotificationHandler) DeleteNotification(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {

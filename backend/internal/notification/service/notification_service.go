@@ -28,6 +28,15 @@ func NewNotificationService(repo *repository.NotificationRepository, ps pubsub.P
 
 // ProcessEvent processes platform events centrally and evaluates user preferences and quiet hours.
 func (s *NotificationService) ProcessEvent(ctx context.Context, evt models.NotificationEvent) (*models.Notification, error) {
+	if evt.IdempotencyKey != "" {
+		deduped, err := s.repo.IsDeduplicated(ctx, evt.IdempotencyKey)
+		if err == nil && deduped {
+			log.Printf("[DEDUPLICATION] Event %s already processed via key %s", evt.EventType, evt.IdempotencyKey)
+			return nil, nil
+		}
+		_ = s.repo.LogDeduplication(ctx, evt.IdempotencyKey)
+	}
+
 	category := deriveCategory(evt.EventType)
 	priority := derivePriority(evt.EventType)
 
@@ -143,6 +152,10 @@ func (s *NotificationService) MarkUnread(ctx context.Context, id uuid.UUID, user
 
 func (s *NotificationService) MarkAllRead(ctx context.Context, userID uuid.UUID) error {
 	return s.repo.MarkAllRead(ctx, userID)
+}
+
+func (s *NotificationService) ClearRead(ctx context.Context, userID uuid.UUID) error {
+	return s.repo.ClearRead(ctx, userID)
 }
 
 func (s *NotificationService) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
