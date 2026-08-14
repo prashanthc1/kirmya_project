@@ -108,7 +108,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                     {conv.isPinned && <PushPinIcon fontSize="small" color="primary" sx={{ transform: 'rotate(45deg)', fontSize: 16 }} />}
                     {conv.isMuted && <VolumeOffIcon fontSize="small" color="action" sx={{ fontSize: 16 }} />}
                     {conv.unreadCount ? (
-                      <Badge badgeContent={conv.unreadCount} color="error" size="small" />
+                      <Badge badgeContent={conv.unreadCount} color="error" />
                     ) : null}
                   </Stack>
                 </Stack>
