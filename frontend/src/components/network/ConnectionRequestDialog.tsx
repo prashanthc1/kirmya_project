@@ -27,14 +27,36 @@ export const ConnectionRequestDialog: React.FC<ConnectionRequestDialogProps> = (
 }) => {
   const [note, setNote] = useState('');
 
-  const handleSubmit = () => {
-    onSubmit(note);
+  const handleSubmitWithNote = () => {
+    onSubmit(note.trim() ? note.trim() : undefined);
+    setNote('');
+    onClose();
+  };
+
+  const handleSubmitWithoutNote = () => {
+    onSubmit(undefined);
     setNote('');
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '24px', p: 1, maxWidth: 500, width: '100%' } }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs"
+      PaperProps={{
+        sx: {
+          borderRadius: '24px',
+          p: 1,
+          backdropFilter: 'blur(16px)',
+          bgcolor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          border: '1px solid',
+          borderColor: 'divider',
+        },
+      }}
+    >
       <DialogTitle sx={{ fontWeight: 900 }}>
         Connect with {targetName}
       </DialogTitle>
@@ -50,15 +72,15 @@ export const ConnectionRequestDialog: React.FC<ConnectionRequestDialogProps> = (
           value={note}
           onChange={(e) => setNote(e.target.value.slice(0, 500))}
         />
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'right', mt: 0.5 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'right', mt: 0.5, fontWeight: 700 }}>
           {note.length}/500
         </Typography>
       </DialogContent>
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={() => onSubmit()} variant="outlined" sx={{ borderRadius: '12px', fontWeight: 700 }}>
+      <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
+        <Button onClick={handleSubmitWithoutNote} variant="outlined" sx={{ borderRadius: '12px', fontWeight: 700 }}>
           Send Without Note
         </Button>
-        <Button onClick={handleSubmit} variant="contained" sx={{ borderRadius: '12px', fontWeight: 800 }}>
+        <Button onClick={handleSubmitWithNote} variant="contained" sx={{ borderRadius: '12px', fontWeight: 800 }}>
           Send Invitation
         </Button>
       </DialogActions>

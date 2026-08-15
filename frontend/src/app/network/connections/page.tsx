@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Box, Stack } from '@mui/material';
+import { Container, Typography, Box, Stack, TextField, InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import ConnectionCard from '@/components/network/ConnectionCard';
-import PeopleSearchBar from '@/components/network/PeopleSearchBar';
 import { ConnectionRecommendation, networkingApi } from '@/features/networking/services/networkingApi';
 
 export default function NetworkConnectionsPage() {
   const [connections, setConnections] = useState<ConnectionRecommendation[]>([]);
+  const [query, setQuery] = useState('');
   const [filtered, setFiltered] = useState<ConnectionRecommendation[]>([]);
 
   useEffect(() => {
@@ -17,8 +18,9 @@ export default function NetworkConnectionsPage() {
     });
   }, []);
 
-  const handleSearch = (q: string) => {
-    if (!q) {
+  const handleSearchChange = (q: string) => {
+    setQuery(q);
+    if (!q.trim()) {
       setFiltered(connections);
       return;
     }
@@ -28,7 +30,8 @@ export default function NetworkConnectionsPage() {
         (c) =>
           c.name?.toLowerCase().includes(lower) ||
           c.headline?.toLowerCase().includes(lower) ||
-          c.location?.toLowerCase().includes(lower)
+          c.location?.toLowerCase().includes(lower) ||
+          c.industry?.toLowerCase().includes(lower)
       )
     );
   };
@@ -39,11 +42,29 @@ export default function NetworkConnectionsPage() {
         1st-Degree Connections ({filtered.length})
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Search and manage your established professional contacts.
+        Search, organize with private notes & labels, and manage your direct professional graph.
       </Typography>
 
       <Box sx={{ mb: 3 }}>
-        <PeopleSearchBar onSearch={handleSearch} placeholder="Filter your 1st-degree connections..." />
+        <TextField
+          fullWidth
+          placeholder="Filter 1st-degree contacts by name, headline, location, or industry..."
+          value={query}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '16px',
+              bgcolor: 'background.paper',
+            },
+          }}
+        />
       </Box>
 
       <Stack spacing={2}>
@@ -51,9 +72,19 @@ export default function NetworkConnectionsPage() {
           <ConnectionCard
             key={conn.userId}
             connection={conn}
-            onRemove={() => setFiltered(filtered.filter((item) => item.userId !== conn.userId))}
+            onRemove={() => {
+              const updated = connections.filter((item) => item.userId !== conn.userId);
+              setConnections(updated);
+              setFiltered(updated.filter((c) => c.name?.toLowerCase().includes(query.toLowerCase())));
+            }}
           />
         ))}
+
+        {filtered.length === 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4, fontStyle: 'italic' }}>
+            No connections found matching &quot;{query}&quot;.
+          </Typography>
+        )}
       </Stack>
     </Container>
   );

@@ -13,6 +13,9 @@ DELETE /api/v1/job-alerts/:id
 DELETE /api/v1/jobs/:id/save
 DELETE /api/v1/network/connections/:id
 DELETE /api/v1/network/follow/:userId
+DELETE /api/v1/network/goals/:id
+DELETE /api/v1/network/labels/:targetUserId/:label
+DELETE /api/v1/network/notes/:targetUserId
 DELETE /api/v1/networking/blocks/:userId
 DELETE /api/v1/notifications/:id
 DELETE /api/v1/notifications/devices/:id
@@ -227,8 +230,14 @@ GET /api/v1/mobile/user/messages
 GET /api/v1/mobile/user/notifications
 GET /api/v1/mobile/user/profile
 GET /api/v1/network
+GET /api/v1/network/company-connections/:companyId
 GET /api/v1/network/connections
+GET /api/v1/network/followers
+GET /api/v1/network/following
+GET /api/v1/network/goals
+GET /api/v1/network/labels/:targetUserId
 GET /api/v1/network/mutual/:userId
+GET /api/v1/network/notes/:targetUserId
 GET /api/v1/network/requests
 GET /api/v1/network/requests/sent
 GET /api/v1/networking/connections
@@ -441,6 +450,9 @@ POST /api/v1/mobile/devices/register
 POST /api/v1/mobile/push/send
 POST /api/v1/mobile/uploads/presign
 POST /api/v1/network/follow/:userId
+POST /api/v1/network/goals
+POST /api/v1/network/labels
+POST /api/v1/network/notes
 POST /api/v1/network/recommendations/:userId/dismiss
 POST /api/v1/network/report/:userId
 POST /api/v1/network/requests
@@ -558,6 +570,7 @@ PUT /api/v1/job-alerts/:id
 PUT /api/v1/mentorship/goals/:id
 PUT /api/v1/mentorship/requests/:id/status
 PUT /api/v1/mentorship/sessions/:id
+PUT /api/v1/network/goals/:id
 PUT /api/v1/networking/requests/:id
 PUT /api/v1/notifications/:id/read
 PUT /api/v1/notifications/digests

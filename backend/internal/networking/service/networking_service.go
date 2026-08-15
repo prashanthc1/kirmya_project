@@ -427,3 +427,227 @@ func getMockNetworkingCandidates(userID uuid.UUID, userConns []uuid.UUID) []netM
 	}
 	return filtered
 }
+
+// Connection Notes
+func (s *NetworkingService) SaveConnectionNote(ctx context.Context, userID uuid.UUID, dto netModels.SaveNoteDTO) (*netModels.ConnectionNote, error) {
+	if userID == dto.TargetUserID {
+		return nil, fmt.Errorf("cannot create note for yourself")
+	}
+
+	content := strings.TrimSpace(dto.Content)
+	if content == "" {
+		return nil, fmt.Errorf("note content cannot be empty")
+	}
+	if len(content) > 2000 {
+		return nil, fmt.Errorf("note content exceeds maximum length of 2000 characters")
+	}
+
+	conn, err := s.repo.GetConnectionPair(ctx, userID, dto.TargetUserID)
+	if err != nil || conn == nil {
+		return nil, fmt.Errorf("connection not found or unauthorized")
+	}
+
+	existing, _ := s.repo.GetNoteForConnection(ctx, userID, dto.TargetUserID)
+	if existing != nil {
+		existing.Content = content
+		existing.UpdatedAt = time.Now()
+		if err := s.repo.CreateNote(ctx, existing); err != nil {
+			return nil, err
+		}
+		return existing, nil
+	}
+
+	note := &netModels.ConnectionNote{
+		ID:           uuid.New(),
+		UserID:       userID,
+		ConnectionID: conn.ID,
+		TargetUserID: dto.TargetUserID,
+		Content:      content,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	if err := s.repo.CreateNote(ctx, note); err != nil {
+		return nil, err
+	}
+	return note, nil
+}
+
+func (s *NetworkingService) GetConnectionNote(ctx context.Context, userID, targetUserID uuid.UUID) (*netModels.ConnectionNote, error) {
+	conn, err := s.repo.GetConnectionPair(ctx, userID, targetUserID)
+	if err != nil || conn == nil {
+		return nil, fmt.Errorf("connection not found or unauthorized")
+	}
+
+	return s.repo.GetNoteForConnection(ctx, userID, targetUserID)
+}
+
+func (s *NetworkingService) DeleteConnectionNote(ctx context.Context, userID, targetUserID uuid.UUID) error {
+	conn, err := s.repo.GetConnectionPair(ctx, userID, targetUserID)
+	if err != nil || conn == nil {
+		return fmt.Errorf("connection not found or unauthorized")
+	}
+
+	return s.repo.DeleteNote(ctx, userID, targetUserID)
+}
+
+// Connection Labels
+func (s *NetworkingService) AddConnectionLabel(ctx context.Context, userID uuid.UUID, dto netModels.SaveLabelDTO) (*netModels.ConnectionLabel, error) {
+	if userID == dto.TargetUserID {
+		return nil, fmt.Errorf("cannot label yourself")
+	}
+
+	labelStr := strings.TrimSpace(dto.Label)
+	if labelStr == "" {
+		return nil, fmt.Errorf("label cannot be empty")
+	}
+	if len(labelStr) > 50 {
+		return nil, fmt.Errorf("label exceeds maximum length of 50 characters")
+	}
+
+	conn, err := s.repo.GetConnectionPair(ctx, userID, dto.TargetUserID)
+	if err != nil || conn == nil {
+		return nil, fmt.Errorf("connection not found or unauthorized")
+	}
+
+	existingLabels, _ := s.repo.GetLabelsForConnection(ctx, userID, dto.TargetUserID)
+	for _, l := range existingLabels {
+		if strings.EqualFold(l.Label, labelStr) {
+			return nil, fmt.Errorf("label already assigned to connection")
+		}
+	}
+
+	label := &netModels.ConnectionLabel{
+		ID:           uuid.New(),
+		UserID:       userID,
+		ConnectionID: conn.ID,
+		TargetUserID: dto.TargetUserID,
+		Label:        labelStr,
+		CreatedAt:    time.Now(),
+	}
+
+	if err := s.repo.AddLabel(ctx, label); err != nil {
+		return nil, err
+	}
+	return label, nil
+}
+
+func (s *NetworkingService) RemoveConnectionLabel(ctx context.Context, userID, targetUserID uuid.UUID, label string) error {
+	conn, err := s.repo.GetConnectionPair(ctx, userID, targetUserID)
+	if err != nil || conn == nil {
+		return fmt.Errorf("connection not found or unauthorized")
+	}
+
+	return s.repo.RemoveLabel(ctx, userID, targetUserID, strings.TrimSpace(label))
+}
+
+func (s *NetworkingService) GetConnectionLabels(ctx context.Context, userID, targetUserID uuid.UUID) ([]netModels.ConnectionLabel, error) {
+	conn, err := s.repo.GetConnectionPair(ctx, userID, targetUserID)
+	if err != nil || conn == nil {
+		return nil, fmt.Errorf("connection not found or unauthorized")
+	}
+
+	return s.repo.GetLabelsForConnection(ctx, userID, targetUserID)
+}
+
+// Networking Goals
+func (s *NetworkingService) CreateNetworkingGoal(ctx context.Context, userID uuid.UUID, dto netModels.CreateNetworkingGoalDTO) (*netModels.NetworkingGoal, error) {
+	title := strings.TrimSpace(dto.Title)
+	if title == "" {
+		return nil, fmt.Errorf("goal title is required")
+	}
+	if dto.TargetCount < 1 {
+		return nil, fmt.Errorf("target count must be at least 1")
+	}
+
+	goal := &netModels.NetworkingGoal{
+		ID:           uuid.New(),
+		UserID:       userID,
+		Title:        title,
+		Description:  strings.TrimSpace(dto.Description),
+		TargetCount:  dto.TargetCount,
+		CurrentCount: 0,
+		Category:     strings.TrimSpace(dto.Category),
+		Status:       "active",
+		Deadline:     strings.TrimSpace(dto.Deadline),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	if err := s.repo.CreateGoal(ctx, goal); err != nil {
+		return nil, err
+	}
+	return goal, nil
+}
+
+func (s *NetworkingService) GetNetworkingGoals(ctx context.Context, userID uuid.UUID) ([]netModels.NetworkingGoal, error) {
+	return s.repo.GetGoals(ctx, userID)
+}
+
+func (s *NetworkingService) UpdateNetworkingGoal(ctx context.Context, userID, goalID uuid.UUID, dto netModels.UpdateNetworkingGoalDTO) (*netModels.NetworkingGoal, error) {
+	goal, err := s.repo.GetGoalByID(ctx, userID, goalID)
+	if err != nil || goal == nil || goal.UserID != userID {
+		return nil, fmt.Errorf("goal not found or unauthorized")
+	}
+
+	if strings.TrimSpace(dto.Title) != "" {
+		goal.Title = strings.TrimSpace(dto.Title)
+	}
+	if dto.Description != "" {
+		goal.Description = strings.TrimSpace(dto.Description)
+	}
+	if dto.TargetCount > 0 {
+		goal.TargetCount = dto.TargetCount
+	}
+	if dto.CurrentCount >= 0 {
+		goal.CurrentCount = dto.CurrentCount
+	}
+	if dto.Category != "" {
+		goal.Category = strings.TrimSpace(dto.Category)
+	}
+	if dto.Status != "" {
+		goal.Status = strings.TrimSpace(dto.Status)
+	}
+	if dto.Deadline != "" {
+		goal.Deadline = strings.TrimSpace(dto.Deadline)
+	}
+
+	if goal.CurrentCount >= goal.TargetCount {
+		goal.Status = "completed"
+	}
+	goal.UpdatedAt = time.Now()
+
+	if err := s.repo.UpdateGoal(ctx, goal); err != nil {
+		return nil, err
+	}
+	return goal, nil
+}
+
+func (s *NetworkingService) DeleteNetworkingGoal(ctx context.Context, userID, goalID uuid.UUID) error {
+	goal, err := s.repo.GetGoalByID(ctx, userID, goalID)
+	if err != nil || goal == nil || goal.UserID != userID {
+		return fmt.Errorf("goal not found or unauthorized")
+	}
+
+	return s.repo.DeleteGoal(ctx, userID, goalID)
+}
+
+// Company Connections (Referrals)
+func (s *NetworkingService) GetCompanyConnections(ctx context.Context, userID uuid.UUID, companyID string) ([]netModels.CompanyConnectionDTO, error) {
+	companyID = strings.TrimSpace(companyID)
+	if companyID == "" {
+		return nil, fmt.Errorf("company identifier is required")
+	}
+
+	return s.repo.GetConnectionsAtCompany(ctx, userID, companyID)
+}
+
+// Following & Followers
+func (s *NetworkingService) GetFollowing(ctx context.Context, userID uuid.UUID) ([]netModels.PeopleSearchResult, error) {
+	return s.repo.GetFollowing(ctx, userID)
+}
+
+func (s *NetworkingService) GetFollowers(ctx context.Context, userID uuid.UUID) ([]netModels.PeopleSearchResult, error) {
+	return s.repo.GetFollowers(ctx, userID)
+}
+

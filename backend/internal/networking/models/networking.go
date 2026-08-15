@@ -172,3 +172,80 @@ type AdminRestrictNetworkDTO struct {
 	IsRestricted bool      `json:"isRestricted"`
 	Reason       string    `json:"reason"`
 }
+
+// ConnectionNote represents a private note attached to a connection.
+type ConnectionNote struct {
+	ID           uuid.UUID `json:"id"`
+	UserID       uuid.UUID `json:"userId"`
+	ConnectionID uuid.UUID `json:"connectionId"`
+	TargetUserID uuid.UUID `json:"targetUserId"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+// ConnectionLabel represents a tag/label assigned to a connection.
+type ConnectionLabel struct {
+	ID           uuid.UUID `json:"id"`
+	UserID       uuid.UUID `json:"userId"`
+	ConnectionID uuid.UUID `json:"connectionId"`
+	TargetUserID uuid.UUID `json:"targetUserId"`
+	Label        string    `json:"label"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
+// NetworkingGoal represents a user's networking objective.
+type NetworkingGoal struct {
+	ID           uuid.UUID `json:"id"`
+	UserID       uuid.UUID `json:"userId"`
+	Title        string    `json:"title"`
+	Description  string    `json:"description"`
+	TargetCount  int       `json:"targetCount"`
+	CurrentCount int       `json:"currentCount"`
+	Category     string    `json:"category"`
+	Status       string    `json:"status"` // active, completed, paused
+	Deadline     string    `json:"deadline,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type CreateNetworkingGoalDTO struct {
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description"`
+	TargetCount int    `json:"targetCount" binding:"required"`
+	Category    string `json:"category"`
+	Deadline    string `json:"deadline"`
+}
+
+type UpdateNetworkingGoalDTO struct {
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	TargetCount  int    `json:"targetCount"`
+	CurrentCount int    `json:"currentCount"`
+	Category     string `json:"category"`
+	Status       string `json:"status"`
+	Deadline     string `json:"deadline"`
+}
+
+type CompanyConnectionDTO struct {
+	UserID             uuid.UUID `json:"userId"`
+	Name               string    `json:"name"`
+	Headline           string    `json:"headline"`
+	AvatarUrl          string    `json:"avatarUrl"`
+	CurrentPosition    string    `json:"currentPosition"`
+	Company            string    `json:"company"`
+	Industry           string    `json:"industry"`
+	ConnectionStatus   string    `json:"connectionStatus"`
+	VerificationStatus string    `json:"verificationStatus"`
+}
+
+type SaveNoteDTO struct {
+	TargetUserID uuid.UUID `json:"targetUserId" binding:"required"`
+	Content      string    `json:"content" binding:"required"`
+}
+
+type SaveLabelDTO struct {
+	TargetUserID uuid.UUID `json:"targetUserId" binding:"required"`
+	Label        string    `json:"label" binding:"required"`
+}
+

@@ -1,51 +1,58 @@
-# Career Guidance, Mentorship & Professional Growth System — Complete Walkthrough
+# Kirmya Project — Implementation & Verification Walkthrough
 
-## Summary of Accomplishments
+## Summary of Accomplished Modules
 
-We have implemented and verified the complete, production-ready **Career Guidance, Mentorship & Professional Growth System** for Kirmya:
+### 1. Networking, Connections & Professional Relationship Management System
 
-1. **Backend Subsystem (`Go 1.26 + Gin + PostgreSQL`)**:
-   - **Models & Domain** ([`mentorship.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/models/mentorship.go)): Structs for `MentorProfile`, `MentorshipRequest`, `Mentorship`, `MentorshipGoal`, `MentorshipSession`, `MentorshipFeedback`, `MentorFilterParams`, and DTOs.
-   - **Repository Layer** ([`mentorship_repository.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/repository/mentorship_repository.go)): Repository interface & implementation managing mentor profiles, request lifecycles, active mentorships, goals, sessions, and feedback.
-   - **Service Layer** ([`mentorship_service.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/service/mentorship_service.go)): Implemented mentor opt-in availability, discovery search, matching recommendations, request validation (prevents self-request, duplicate active/pending requests, checks mentor availability & `maxMentees` capacity), request acceptance, goal tracking, session scheduling, and feedback calculation.
-   - **HTTP Delivery & Handlers** ([`mentorship_handler.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/delivery/http/mentorship_handler.go)): Handlers for mentor discovery, profiles, requests, active relationships, goals, sessions, feedback, and safety reporting.
-   - **Modular Routes** ([`routes.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/delivery/http/routes.go)): Endpoints registered under `/api/v1/mentorship/...`.
-   - **Router Integration** ([`router.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/router/router.go)): Registered `MentorshipHandler` in `RouterDependencies` and registered routes.
-   - **OpenAPI / Swagger** ([`swagger.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/delivery/http/swagger.go)): OpenAPI 3.0 annotations.
-   - **Unit Tests** ([`mentorship_service_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/service/mentorship_service_test.go)): Added test cases for mentor profile creation, discovery, request validation, request acceptance, goal tracking, and session scheduling.
+Implemented a production-ready **Networking, Connections & Professional Relationship Management System**:
 
-2. **Frontend Subsystem (`Next.js + TypeScript + MUI v6`)**:
-   - **Types & API Client** ([`types.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/mentorship/types.ts) & [`api.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/mentorship/api.ts)): Full TypeScript definitions and `mentorshipApi` methods.
-   - **Modular UI Components (`frontend/src/components/mentorship/`)**:
-     - [`MentorCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorCard.tsx): Glassmorphic mentor profile card.
-     - [`MentorFiltersSidebar.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorFiltersSidebar.tsx): Search & filter drawer (skills, industry, topics, experience, format).
-     - [`MentorshipRequestModal.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorshipRequestModal.tsx): Mentorship request form.
-     - [`MentorshipGoalsCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorshipGoalsCard.tsx): Goals list widget with progress bar and status toggle.
-     - [`MentorshipSessionsCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorshipSessionsCard.tsx): Scheduled sessions list with scheduling modal and format badges.
-     - [`MentorProfileEditor.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorProfileEditor.tsx): Availability & capacity preferences editor.
-     - [`MentorshipFeedbackModal.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/mentorship/MentorshipFeedbackModal.tsx): Post-mentorship feedback modal.
-   - **Mentorship Pages (`frontend/src/app/mentorship/`)**:
-     - Main `/mentorship` dashboard page, `/mentorship/mentors` discovery page, `/mentorship/mentors/[id]` mentor detail view, and `/mentorship/[id]` active workspace page.
+- **Backend Subsystem (`Go 1.26 + Gin + PostgreSQL`)**:
+  - **Models & Domain** ([`networking.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/models/networking.go)): Models for `Connection`, `ConnectionRequest`, `ConnectionNote`, `ConnectionLabel`, `NetworkingGoal`, `CompanyConnectionDTO`, `PeopleSearchFilter`, `PeopleSearchResult`, `ConnectionRecommendation`, `MutualConnectionsResult`.
+  - **Repository Layer** ([`networking_repo.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/repository/networking_repo.go)): Thread-safe storage for connections, requests, notes, labels, goals, referral contacts, follow/unfollow, blocking, and reporting.
+  - **Service Layer** ([`networking_service.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/service/networking_service.go)): Business logic for connection lifecycle state transitions, request validations (preventing self-requests, duplicate pending/active requests, blocked user requests), private notes & labels (with strict IDOR protection), networking goals tracking, referral contact discovery, and OpenSearch search fallback to PostgreSQL.
+  - **HTTP Delivery & Handlers** ([`networking_handler.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/delivery/http/networking_handler.go)): Handlers for people search, recommendations, network stats, connections, requests (accept, decline, withdraw), notes, labels, goals, company connections, follow/unfollow, and reporting.
+  - **Modular Routing** ([`routes.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/delivery/http/routes.go)): Registered endpoints under `/api/v1/network/...` and `/api/v1/people/...`.
+  - **OpenAPI / Swagger** ([`swagger.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/delivery/http/swagger.go)): OpenAPI 3.0 annotations.
+  - **Unit Tests** ([`networking_service_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/networking/service/networking_service_test.go)): Unit tests for connection request validation, duplicate prevention, notes IDOR protection, and referral discovery.
 
-3. **Documentation**:
-   - Created [`docs/mentorship.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/mentorship.md) detailing architecture, mentor opt-in availability, request lifecycle, goals, sessions, OpenSearch indexing, PostgreSQL fallback, and API reference.
+- **Frontend Subsystem (`Next.js + TypeScript + MUI v6`)**:
+  - **Types & API Client** ([`types.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/networking/types.ts) & [`networkingApi.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/networking/services/networkingApi.ts)): Full TypeScript definitions and API client.
+  - **Modular UI Components (`frontend/src/components/network/`)**:
+    - [`ConnectionCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/ConnectionCard.tsx): Glassmorphic card displaying profile, labels, private note indicator, message action, view profile, remove, block, report.
+    - [`ConnectionNoteModal.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/ConnectionNoteModal.tsx): Private note & labels modal.
+    - [`NetworkingGoalsCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/NetworkingGoalsCard.tsx): Goals creation & progress widget.
+    - [`ReferralDiscoveryCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/ReferralDiscoveryCard.tsx): Company connections / referral finder.
+    - [`ConnectionRequestDialog.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/ConnectionRequestDialog.tsx): Invitation modal with personalized note & length validation.
+    - [`NetworkStats.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/NetworkStats.tsx): Overview stats & goals progress summary.
+    - [`PeopleFilters.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/PeopleFilters.tsx): Search & filter drawer.
+    - [`PeopleResultCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/PeopleResultCard.tsx): Person card with mutuals badge, recommendation reason chip, and action buttons.
+    - [`RecommendationCard.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/network/RecommendationCard.tsx): Suggested connection card with explanation badge & dismiss action.
+  - **Networking Pages (`frontend/src/app/network/`)**:
+    - `/network` main dashboard.
+    - `/network/connections` page.
+    - `/network/requests` page (Received & Sent tabs).
+    - `/network/suggestions` page.
+    - `/network/search` page.
+
+- **Documentation**:
+  - Created [`docs/networking.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/networking.md) detailing architecture, connection lifecycles, mutual connections, recommendations, notes & labels, goals, and API references.
 
 ---
 
-## Automated Verification & Test Results
+## Verification Results
 
 ### 1. Backend Verification
-- `go test -v ./internal/mentorship/...`
-  - **Passed (100%)**: 3/3 test suites passed.
+- `go test -v ./internal/networking/...`
+  - **Passed (100%)**: All unit tests passed.
 - `go build ./...`
   - **Passed (Exit code 0)**.
 - `$env:KIRMYA_UPDATE_GOLDEN="1"; go test ./internal/router/...`
   - **Passed (Exit code 0)**: Gin router golden manifest updated.
 
 ### 2. Frontend Verification
-- `npx vitest run src/test/mentorship.test.tsx`
-  - **Passed (100%)**: 16/16 tests passed.
+- `npx vitest run src/test/networking.test.tsx`
+  - **Passed (100%)**: 19/19 tests passed.
 - `npx tsc --noEmit`
   - **Passed (0 TypeScript errors)**.
 - `npm run build`
-  - **Passed (Exit code 0)**: Next.js production build succeeded cleanly.
+  - **Passed (Exit code 0)**: Next.js compiled 330 static & dynamic pages successfully.

@@ -11,7 +11,6 @@ import {
   Stack,
   Button,
   Avatar,
-  Divider,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,18 +28,30 @@ export default function PendingRequestsPage() {
   }, []);
 
   const handleAccept = async (id: string) => {
-    await networkingApi.acceptRequest(id);
-    setIncoming(incoming.filter((r) => r.id !== id));
+    try {
+      await networkingApi.acceptRequest(id);
+      setIncoming(incoming.filter((r) => r.id !== id));
+    } catch {
+      alert('Failed to accept request.');
+    }
   };
 
   const handleDecline = async (id: string) => {
-    await networkingApi.declineRequest(id);
-    setIncoming(incoming.filter((r) => r.id !== id));
+    try {
+      await networkingApi.declineRequest(id);
+      setIncoming(incoming.filter((r) => r.id !== id));
+    } catch {
+      alert('Failed to ignore request.');
+    }
   };
 
   const handleWithdraw = async (id: string) => {
-    await networkingApi.withdrawRequest(id);
-    setSent(sent.filter((r) => r.id !== id));
+    try {
+      await networkingApi.withdrawRequest(id);
+      setSent(sent.filter((r) => r.id !== id));
+    } catch {
+      alert('Failed to withdraw request.');
+    }
   };
 
   return (
@@ -59,8 +70,19 @@ export default function PendingRequestsPage() {
       {tab === 'received' ? (
         <Stack spacing={2}>
           {incoming.map((req) => (
-            <Card key={req.id} sx={{ p: 2.5, borderRadius: '20px', bgcolor: 'background.paper' }}>
-              <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
+            <Card
+              key={req.id}
+              sx={{
+                p: 2.5,
+                borderRadius: '20px',
+                backdropFilter: 'blur(12px)',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Avatar src={req.senderAvatarUrl} sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800 }}>
                     {req.senderName ? req.senderName[0].toUpperCase() : 'K'}
@@ -80,25 +102,54 @@ export default function PendingRequestsPage() {
                   </Box>
                 </Stack>
 
-                <Stack direction="row" spacing={1}>
-                  <Button variant="contained" color="success" startIcon={<CheckIcon />} onClick={() => handleAccept(req.id)} sx={{ borderRadius: '12px', fontWeight: 800 }}>
+                <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    startIcon={<CheckIcon />}
+                    onClick={() => handleAccept(req.id)}
+                    sx={{ borderRadius: '12px', fontWeight: 800 }}
+                  >
                     Accept
                   </Button>
-                  <Button variant="outlined" color="error" startIcon={<CloseIcon />} onClick={() => handleDecline(req.id)} sx={{ borderRadius: '12px', fontWeight: 800 }}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<CloseIcon />}
+                    onClick={() => handleDecline(req.id)}
+                    sx={{ borderRadius: '12px', fontWeight: 800 }}
+                  >
                     Ignore
                   </Button>
                 </Stack>
               </Stack>
             </Card>
           ))}
+
+          {incoming.length === 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4, fontStyle: 'italic' }}>
+              No incoming connection invitations pending.
+            </Typography>
+          )}
         </Stack>
       ) : (
         <Stack spacing={2}>
           {sent.map((req) => (
-            <Card key={req.id} sx={{ p: 2.5, borderRadius: '20px', bgcolor: 'background.paper' }}>
-              <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
+            <Card
+              key={req.id}
+              sx={{
+                p: 2.5,
+                borderRadius: '20px',
+                backdropFilter: 'blur(12px)',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }}>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar src={req.senderAvatarUrl} sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800 }}>
+                  <Avatar src={req.receiverAvatarUrl} sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800 }}>
                     {req.receiverName ? req.receiverName[0].toUpperCase() : 'K'}
                   </Avatar>
                   <Box>
@@ -108,15 +159,31 @@ export default function PendingRequestsPage() {
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
                       {req.receiverHeadline}
                     </Typography>
+                    {req.note && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
+                        Note sent: &quot;{req.note}&quot;
+                      </Typography>
+                    )}
                   </Box>
                 </Stack>
 
-                <Button variant="outlined" startIcon={<UndoIcon />} onClick={() => handleWithdraw(req.id)} sx={{ borderRadius: '12px', fontWeight: 800 }}>
-                  Withdraw Request
+                <Button
+                  variant="outlined"
+                  startIcon={<UndoIcon />}
+                  onClick={() => handleWithdraw(req.id)}
+                  sx={{ borderRadius: '12px', fontWeight: 800 }}
+                >
+                  Withdraw
                 </Button>
               </Stack>
             </Card>
           ))}
+
+          {sent.length === 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4, fontStyle: 'italic' }}>
+              No sent invitations pending.
+            </Typography>
+          )}
         </Stack>
       )}
     </Container>

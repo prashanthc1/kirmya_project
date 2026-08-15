@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Card, Grid, Typography, Box, Stack } from '@mui/material';
+import { Card, Grid, Typography, Box, Stack, LinearProgress } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 import { NetworkGrowthStats } from '../../features/networking/services/networkingApi';
 
 export const NetworkStats: React.FC<{ stats?: NetworkGrowthStats }> = ({ stats }) => {
@@ -16,10 +17,26 @@ export const NetworkStats: React.FC<{ stats?: NetworkGrowthStats }> = ({ stats }
     networkGrowthThisMonth: 12,
     profileViews: 380,
     searchAppearances: 1250,
+    goalProgress: {
+      totalGoals: 3,
+      completedGoals: 2,
+      targetConnectionsCount: 25,
+    },
   };
 
   return (
-    <Card sx={{ p: 3, borderRadius: '24px', mb: 3, bgcolor: 'background.paper' }}>
+    <Card
+      sx={{
+        p: 3,
+        borderRadius: '24px',
+        mb: 3,
+        backdropFilter: 'blur(16px)',
+        bgcolor: (theme) =>
+          theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
       <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>
         Your Network Overview & Growth Analytics
       </Typography>
@@ -65,6 +82,31 @@ export const NetworkStats: React.FC<{ stats?: NetworkGrowthStats }> = ({ stats }
           </Box>
         </Grid>
       </Grid>
+
+      {defaultStats.goalProgress && (
+        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <TrackChangesIcon color="primary" fontSize="small" />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                Networking Goals Progress
+              </Typography>
+            </Stack>
+            <Typography variant="caption" sx={{ fontWeight: 800 }}>
+              {defaultStats.goalProgress.completedGoals} of {defaultStats.goalProgress.totalGoals} Goals Achieved
+            </Typography>
+          </Stack>
+          <LinearProgress
+            variant="determinate"
+            value={
+              defaultStats.goalProgress.totalGoals > 0
+                ? (defaultStats.goalProgress.completedGoals / defaultStats.goalProgress.totalGoals) * 100
+                : 0
+            }
+            sx={{ height: 8, borderRadius: 4 }}
+          />
+        </Box>
+      )}
     </Card>
   );
 };

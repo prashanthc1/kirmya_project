@@ -33,6 +33,29 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NetworkingHandler) {
 		network.POST("/follow/:userId", handler.FollowUser)
 		network.DELETE("/follow/:userId", handler.UnfollowUser)
 		network.POST("/report/:userId", handler.ReportUser)
+
+		// Connection Notes
+		network.POST("/notes", handler.SaveNote)
+		network.GET("/notes/:targetUserId", handler.GetNote)
+		network.DELETE("/notes/:targetUserId", handler.DeleteNote)
+
+		// Connection Labels
+		network.POST("/labels", handler.AddLabel)
+		network.GET("/labels/:targetUserId", handler.GetLabels)
+		network.DELETE("/labels/:targetUserId/:label", handler.RemoveLabel)
+
+		// Networking Goals
+		network.POST("/goals", handler.CreateGoal)
+		network.GET("/goals", handler.GetGoals)
+		network.PUT("/goals/:id", handler.UpdateGoal)
+		network.DELETE("/goals/:id", handler.DeleteGoal)
+
+		// Company Connections (Referrals)
+		network.GET("/company-connections/:companyId", handler.GetCompanyConnections)
+
+		// Following & Followers
+		network.GET("/following", handler.GetFollowing)
+		network.GET("/followers", handler.GetFollowers)
 	}
 
 	// Legacy /networking Group (Backwards Compatibility)

@@ -42,11 +42,14 @@ interface ConnectionRequest {
 interface ConnectionRecommendation {
   userId: string;
   name: string;
-  headline: string;
-  location: string;
-  industry: string;
+  headline?: string;
+  avatarUrl?: string;
+  currentCompany?: string;
+  location?: string;
+  industry?: string;
   mutualCount: number;
-  mutualConnections: string[];
+  mutualConnections?: string[];
+  reason?: string;
   matchScore: number;
 }
 
@@ -269,7 +272,7 @@ export default function NetworkingPage() {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, p: 1, borderRadius: '4px', backgroundColor: 'rgba(0,0,0,0.01)' }}>
                                 <GroupsIcon sx={{ fontSize: 16, color: 'secondary.main' }} />
                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {cand.mutualCount} mutual connection: {cand.mutualConnections.join(', ')}
+                                  {cand.mutualCount} mutual connection{cand.mutualCount > 1 ? 's' : ''}: {cand.mutualConnections?.join(', ') || ''}
                                 </Typography>
                               </Box>
                             )}

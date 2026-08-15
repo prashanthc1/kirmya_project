@@ -1,43 +1,98 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Container, Typography, Box, Stack } from '@mui/material';
-import PeopleSearchBar from '@/components/network/PeopleSearchBar';
-import ConnectionCard from '@/components/network/ConnectionCard';
-import { ConnectionRecommendation, networkingApi } from '@/features/networking/services/networkingApi';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Container, Typography, Grid, Box, CircularProgress } from '@mui/material';
+import PeopleFilters, { PeopleFilterState } from '@/components/network/PeopleFilters';
+import PeopleResultCard from '@/components/network/PeopleResultCard';
+import { PeopleSearchResult, networkingApi } from '@/features/networking/services/networkingApi';
 
 export default function NetworkSearchPage() {
-  const [results, setResults] = useState<ConnectionRecommendation[]>([]);
+  const [filters, setFilters] = useState<PeopleFilterState>({
+    role: '',
+    company: '',
+    skills: '',
+    industry: '',
+    location: '',
+    degree: 'all',
+    openToWork: false,
+  });
+  const [results, setResults] = useState<PeopleSearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSearch = (q: string) => {
-    networkingApi.listConnections().then((conns) => {
-      if (!q) {
-        setResults(conns);
-        return;
-      }
-      const lower = q.toLowerCase();
-      setResults(conns.filter((c) => c.name?.toLowerCase().includes(lower) || c.headline?.toLowerCase().includes(lower)));
-    });
+  const fetchResults = useCallback(async (currentFilters: PeopleFilterState) => {
+    setLoading(true);
+    try {
+      const data = await networkingApi.searchPeople({
+        query: currentFilters.role,
+        company: currentFilters.company,
+        skills: currentFilters.skills,
+        industry: currentFilters.industry,
+        location: currentFilters.location,
+        degree: currentFilters.degree !== 'all' ? currentFilters.degree : undefined,
+        openToWork: currentFilters.openToWork,
+      });
+      setResults(data);
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchResults(filters);
+  }, [filters, fetchResults]);
+
+  const handleReset = () => {
+    const defaultFilters: PeopleFilterState = {
+      role: '',
+      company: '',
+      skills: '',
+      industry: '',
+      location: '',
+      degree: 'all',
+      openToWork: false,
+    };
+    setFilters(defaultFilters);
   };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
-        Search Within Your Network
+        Discover & Search Professional Members
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Query your 1st-degree connection graph exclusively.
+        Find potential connections, peers, recruiters, and industry partners.
       </Typography>
 
-      <Box sx={{ mb: 3 }}>
-        <PeopleSearchBar onSearch={handleSearch} placeholder="Search your contacts by name or title..." />
-      </Box>
+      <PeopleFilters filters={filters} onChange={(newFilters) => setFilters(newFilters)} onReset={handleReset} />
 
-      <Stack spacing={2}>
-        {results.map((conn) => (
-          <ConnectionCard key={conn.userId} connection={conn} />
-        ))}
-      </Stack>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {results.map((person) => (
+            <Grid item xs={12} sm={6} md={4} key={person.userId || person.id}>
+              <PeopleResultCard person={person} onStatusChange={() => fetchResults(filters)} />
+            </Grid>
+          ))}
+
+          {results.length === 0 && (
+            <Grid item xs={12}>
+              <Box sx={{ textAlign: 'center', py: 6 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  No professional profiles matched your search criteria.
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Try adjusting or resetting your filter criteria above.
+                </Typography>
+              </Box>
+            </Grid>
+          )}
+        </Grid>
+      )}
     </Container>
   );
 }
