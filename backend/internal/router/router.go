@@ -39,6 +39,7 @@ import (
 	legalHttp "kirmya/internal/legal/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
 	mobileHttp "kirmya/internal/mobile/delivery/http"
+	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
 	nativeMobileHttp "kirmya/internal/native_mobile/delivery/http"
 	netHttp "kirmya/internal/networking/delivery/http"
 	notifyHttp "kirmya/internal/notification/delivery/http"
@@ -128,6 +129,7 @@ type RouterDependencies struct {
 	AdminBackupHandler          *backupHttp.BackupHandler
 	DataOperationsHandler       *dataOpsHttp.DataOperationsHandler
 	SystemHealthHandler         *sysHealthHttp.SystemHealthHandler
+	MentorshipHandler           *mentorshipHttp.MentorshipHandler
 }
 
 type Handlers = RouterDependencies
@@ -240,6 +242,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	applicationsHttp.RegisterRoutes(api, deps.ApplicationsHandler)
 	jobAlertsHttp.RegisterRoutes(api, deps.JobAlertsHandler)
 	jobsHttp.RegisterRoutes(api, deps.JobsHandler)
+	mentorshipHttp.RegisterRoutes(api, deps.MentorshipHandler)
 	if deps.CoverLetterHandler != nil {
 		coverLetterHttp.RegisterRoutes(api, deps.CoverLetterHandler)
 	}
