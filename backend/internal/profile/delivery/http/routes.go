@@ -49,6 +49,13 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler) {
 		protectedSingular.POST("/me/photo", handler.UploadPhoto)
 		protectedSingular.DELETE("/me/photo", handler.DeletePhoto)
 		protectedSingular.PUT("/me/privacy", handler.UpdatePreferences)
+
+		// Profile Enhancements & Identity
+		protectedSingular.GET("/me/completeness", handler.GetCompleteness)
+		protectedSingular.POST("/me/verification", handler.RequestVerification)
+		protectedSingular.PUT("/me/career-preferences", handler.UpdateCareerPreferences)
+		protectedSingular.GET("/me/resume-consistency", handler.GetResumeConsistency)
+		protectedSingular.GET("/me/analytics", handler.GetAnalytics)
 	}
 
 	profileGroup.GET("/:username", handler.GetPublicProfile)
@@ -73,6 +80,11 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler) {
 		protectedPlural.DELETE("/me/achievements/:id", handler.DeleteAchievement)
 		protectedPlural.GET("/me/preferences", handler.GetMyPreferences)
 		protectedPlural.PUT("/me/preferences", handler.UpdatePreferences)
+		protectedPlural.GET("/me/completeness", handler.GetCompleteness)
+		protectedPlural.POST("/me/verification", handler.RequestVerification)
+		protectedPlural.PUT("/me/career-preferences", handler.UpdateCareerPreferences)
+		protectedPlural.GET("/me/resume-consistency", handler.GetResumeConsistency)
+		protectedPlural.GET("/me/analytics", handler.GetAnalytics)
 	}
 
 	api.GET("/profiles/:userId", handler.GetPublicProfile)

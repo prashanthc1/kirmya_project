@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Grid, Box, CircularProgress, Typography } from '@mui/material';
+import { Container, Grid, Box, CircularProgress, Typography, Stack, Button } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileAbout from '@/components/profile/ProfileAbout';
 import ProfileExperience from '@/components/profile/ProfileExperience';
@@ -11,12 +12,17 @@ import ProfileCertifications from '@/components/profile/ProfileCertifications';
 import ProfileLanguages from '@/components/profile/ProfileLanguages';
 import ProfileProjects from '@/components/profile/ProfileProjects';
 import ProfileAchievements from '@/components/profile/ProfileAchievements';
-import ProfileCompletionCard from '@/components/onboarding/ProfileCompletionCard';
-import { ProfileData, profileApi } from '@/features/profile/services/profileApi';
+import ProfileCompletenessCard from '@/components/profile/ProfileCompletenessCard';
+import ProfileAnalyticsCard from '@/components/profile/ProfileAnalyticsCard';
+import ResumeConsistencyCard from '@/components/profile/ResumeConsistencyCard';
+import ProfileVerificationCard from '@/components/profile/ProfileVerificationCard';
+import ProfilePublicPreviewModal from '@/components/profile/ProfilePublicPreviewModal';
+import { UserProfile, profileApi } from '@/features/profile/services/profileApi';
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     profileApi
@@ -28,13 +34,13 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  const dummyProfile: ProfileData = profile || {
+  const dummyProfile: UserProfile = profile || {
     id: 'demo-profile',
     userId: 'demo-user',
     username: 'johndoe',
@@ -62,6 +68,7 @@ export default function ProfilePage() {
     isPrivate: false,
     profileViewsCount: 420,
     searchAppearancesCount: 1280,
+    connectionRequestsCount: 35,
     workExperiences: [
       {
         id: 'w1',
@@ -104,24 +111,45 @@ export default function ProfilePage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <ProfileHeader profile={dummyProfile} isOwner={true} />
+      <ProfileHeader
+        profile={dummyProfile}
+        isOwner={true}
+        onPhotoUpload={(url) => setProfile((prev) => (prev ? { ...prev, avatarUrl: url } : prev))}
+        onCoverUpload={(url) => setProfile((prev) => (prev ? { ...prev, coverUrl: url } : prev))}
+      />
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
           <ProfileAbout summary={dummyProfile.summary} />
+          <ResumeConsistencyCard
+            onSyncSkills={() => alert('Missing skills synced to profile!')}
+            onReanalyze={() => alert('Re-analyzing uploaded resume...')}
+          />
           <ProfileExperience experiences={dummyProfile.workExperiences} />
           <ProfileEducation educations={dummyProfile.educations} />
           <ProfileProjects projects={dummyProfile.projects} />
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <ProfileCompletionCard />
+          <ProfileCompletenessCard percentage={dummyProfile.profileCompletedPercentage} />
+          <ProfileAnalyticsCard
+            views={dummyProfile.profileViewsCount}
+            searchAppearances={dummyProfile.searchAppearancesCount}
+            connectionRequests={dummyProfile.connectionRequestsCount}
+          />
+          <ProfileVerificationCard status={dummyProfile.verificationStatus} />
           <ProfileSkills skills={dummyProfile.skills} />
           <ProfileCertifications certifications={dummyProfile.certifications} />
           <ProfileLanguages languages={dummyProfile.languages} />
           <ProfileAchievements achievements={dummyProfile.achievements} />
         </Grid>
       </Grid>
+
+      <ProfilePublicPreviewModal
+        open={previewOpen}
+        profile={dummyProfile}
+        onClose={() => setPreviewOpen(false)}
+      />
     </Container>
   );
 }

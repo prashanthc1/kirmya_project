@@ -742,5 +742,93 @@ func (h *ProfileHandler) AdminRestrictProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Profile restriction state updated by Admin"})
 }
 
+func (h *ProfileHandler) GetCompleteness(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	dto, err := h.service.CalculateCompleteness(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto)
+}
+
+func (h *ProfileHandler) RequestVerification(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var req models.VerificationRequestPayload
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	p, err := h.service.RequestVerification(c.Request.Context(), userID, req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, p)
+}
+
+func (h *ProfileHandler) UpdateCareerPreferences(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var req models.CareerPreferencesDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	p, err := h.service.UpdateCareerPreferences(c.Request.Context(), userID, req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, p)
+}
+
+func (h *ProfileHandler) GetResumeConsistency(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	dto, err := h.service.CheckResumeConsistency(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto)
+}
+
+func (h *ProfileHandler) GetAnalytics(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	dto, err := h.service.GetAnalytics(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto)
+}
+
 // File helper type for multipart header
 var _ = (*multipart.FileHeader)(nil)
+

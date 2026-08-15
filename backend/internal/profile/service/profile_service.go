@@ -43,9 +43,13 @@ func (s *ProfileService) SetCache(c cache.Cache) {
 }
 
 func (s *ProfileService) GetOrCreateProfile(ctx context.Context, userID uuid.UUID) (*models.UserProfile, error) {
-	p, err := s.repo.GetByUserID(ctx, userID)
-	if err != nil {
-		return nil, err
+	var p *models.UserProfile
+	if s.repo != nil {
+		var err error
+		p, err = s.repo.GetByUserID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if p == nil {
@@ -66,8 +70,10 @@ func (s *ProfileService) GetOrCreateProfile(ctx context.Context, userID uuid.UUI
 			CreatedAt:                  time.Now(),
 			UpdatedAt:                  time.Now(),
 		}
-		if err := s.repo.Create(ctx, p); err != nil {
-			return nil, err
+		if s.repo != nil {
+			if err := s.repo.Create(ctx, p); err != nil {
+				return nil, err
+			}
 		}
 	}
 	return p, nil
@@ -91,7 +97,7 @@ func (s *ProfileService) GetProfileByUsername(ctx context.Context, username stri
 }
 
 func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profileID uuid.UUID, userID uuid.UUID) (int, error) {
-	p, err := s.repo.GetByUserID(ctx, userID)
+	p, err := s.GetOrCreateProfile(ctx, userID)
 	if err != nil {
 		return 0, err
 	}
@@ -128,7 +134,9 @@ func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profi
 
 	if score != p.ProfileCompletedPercentage {
 		p.ProfileCompletedPercentage = score
-		_ = s.repo.Update(ctx, p)
+		if s.repo != nil {
+			_ = s.repo.Update(ctx, p)
+		}
 	}
 
 	return score, nil
@@ -166,12 +174,16 @@ func (s *ProfileService) UpdateProfile(ctx context.Context, userID uuid.UUID, dt
 	p.Publications = dto.Publications
 	p.Licenses = dto.Licenses
 
-	if err := s.repo.Update(ctx, p); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.Update(ctx, p); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetByUserID(ctx, userID)
 	}
 
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetByUserID(ctx, userID)
+	return p, nil
 }
 
 func (s *ProfileService) UpdateProfileAbout(ctx context.Context, userID uuid.UUID, summary string) (*models.UserProfile, error) {
@@ -180,11 +192,15 @@ func (s *ProfileService) UpdateProfileAbout(ctx context.Context, userID uuid.UUI
 		return nil, err
 	}
 	p.Summary = summary
-	if err := s.repo.Update(ctx, p); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.Update(ctx, p); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetByUserID(ctx, userID)
 	}
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetByUserID(ctx, userID)
+	return p, nil
 }
 
 func (s *ProfileService) UpdateProfileHeadline(ctx context.Context, userID uuid.UUID, headline string) (*models.UserProfile, error) {
@@ -193,11 +209,15 @@ func (s *ProfileService) UpdateProfileHeadline(ctx context.Context, userID uuid.
 		return nil, err
 	}
 	p.Headline = headline
-	if err := s.repo.Update(ctx, p); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.Update(ctx, p); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetByUserID(ctx, userID)
 	}
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetByUserID(ctx, userID)
+	return p, nil
 }
 
 // Work Experience CRUD
@@ -627,3 +647,164 @@ func (s *ProfileService) AdminVerifyProfile(ctx context.Context, userID uuid.UUI
 func (s *ProfileService) AdminRestrictProfile(ctx context.Context, userID uuid.UUID, isRestricted bool) error {
 	return s.repo.AdminUpdateRestriction(ctx, userID, isRestricted)
 }
+
+func (s *ProfileService) CalculateCompleteness(ctx context.Context, userID uuid.UUID) (*models.ProfileCompletenessDTO, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	missingSections := make([]string, 0)
+	recommendations := make([]string, 0)
+
+	if p.Headline == "" || p.Headline == "Professional at Kirmya" {
+		missingSections = append(missingSections, "headline")
+		recommendations = append(recommendations, "Add a custom professional headline")
+	}
+	if p.Summary == "" {
+		missingSections = append(missingSections, "summary")
+		recommendations = append(recommendations, "Add a professional summary")
+	}
+	if len(p.WorkExperiences) == 0 {
+		missingSections = append(missingSections, "work_experience")
+		recommendations = append(recommendations, "Add your work experiences")
+	}
+	if len(p.Educations) == 0 {
+		missingSections = append(missingSections, "education")
+		recommendations = append(recommendations, "Add your education history")
+	}
+	if len(p.Skills) == 0 {
+		missingSections = append(missingSections, "skills")
+		recommendations = append(recommendations, "Add relevant skills")
+	}
+	if len(p.Certifications) == 0 {
+		missingSections = append(missingSections, "certifications")
+		recommendations = append(recommendations, "Add licenses and certifications")
+	}
+	if len(p.Projects) == 0 {
+		missingSections = append(missingSections, "projects")
+		recommendations = append(recommendations, "Add portfolio projects")
+	}
+	if len(p.Languages) == 0 {
+		missingSections = append(missingSections, "languages")
+		recommendations = append(recommendations, "Add spoken languages")
+	}
+
+	percentage, _ := s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+
+	return &models.ProfileCompletenessDTO{
+		Percentage:        percentage,
+		MissingSections:   missingSections,
+		Recommendations:   recommendations,
+		IsProfileComplete: percentage >= 80,
+	}, nil
+}
+
+func (s *ProfileService) CheckResumeConsistency(ctx context.Context, userID uuid.UUID) (*models.ResumeConsistencyDTO, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	missingSkills := make([]string, 0)
+	titleDiscrepancies := make([]string, 0)
+
+	existingSkills := make(map[string]bool)
+	for _, sk := range p.Skills {
+		existingSkills[strings.ToLower(strings.TrimSpace(sk.Name))] = true
+	}
+
+	seenMissing := make(map[string]bool)
+	for _, exp := range p.WorkExperiences {
+		for _, sk := range exp.SkillsUsed {
+			cleanSk := strings.ToLower(strings.TrimSpace(sk))
+			if cleanSk != "" && !existingSkills[cleanSk] && !seenMissing[cleanSk] {
+				seenMissing[cleanSk] = true
+				missingSkills = append(missingSkills, sk)
+			}
+		}
+	}
+
+	if len(p.WorkExperiences) > 0 {
+		latestExp := p.WorkExperiences[0]
+		if p.CurrentPosition != "" && latestExp.JobTitle != "" {
+			if !strings.EqualFold(strings.TrimSpace(p.CurrentPosition), strings.TrimSpace(latestExp.JobTitle)) {
+				titleDiscrepancies = append(titleDiscrepancies, fmt.Sprintf("Current position '%s' does not match recent job title '%s'", p.CurrentPosition, latestExp.JobTitle))
+			}
+		}
+	}
+
+	score := 100 - (len(missingSkills) * 10) - (len(titleDiscrepancies) * 20)
+	if score < 0 {
+		score = 0
+	}
+
+	return &models.ResumeConsistencyDTO{
+		Score:              score,
+		MissingSkills:      missingSkills,
+		TitleDiscrepancies: titleDiscrepancies,
+		IsConsistent:       score >= 80 && len(titleDiscrepancies) == 0,
+	}, nil
+}
+
+func (s *ProfileService) RequestVerification(ctx context.Context, userID uuid.UUID, payload models.VerificationRequestPayload) (*models.UserProfile, error) {
+	if payload.DocumentType == "" || payload.DocumentURL == "" {
+		return nil, errors.New("documentType and documentUrl are required")
+	}
+
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	p.VerificationStatus = "pending"
+	p.VerificationNotes = fmt.Sprintf("Document: %s | URL: %s | Notes: %s", payload.DocumentType, payload.DocumentURL, payload.Notes)
+
+	if s.repo != nil {
+		if err := s.repo.AdminUpdateVerification(ctx, userID, p.VerificationStatus, p.VerificationNotes); err != nil {
+			return nil, err
+		}
+	}
+
+	return p, nil
+}
+
+func (s *ProfileService) UpdateCareerPreferences(ctx context.Context, userID uuid.UUID, payload models.CareerPreferencesDTO) (*models.UserProfile, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	p.AvailabilityStatus = payload.AvailabilityStatus
+	p.OpenToWork = payload.OpenToWork
+	p.OpenToRecruiters = payload.OpenToRecruiters
+	if payload.TargetRoles != nil {
+		p.TargetRoles = payload.TargetRoles
+	}
+	if payload.PreferredLocations != nil {
+		p.PreferredLocations = payload.PreferredLocations
+	}
+
+	if s.repo != nil {
+		if err := s.repo.Update(ctx, p); err != nil {
+			return nil, err
+		}
+		return s.repo.GetByUserID(ctx, userID)
+	}
+
+	return p, nil
+}
+
+func (s *ProfileService) GetAnalytics(ctx context.Context, userID uuid.UUID) (*models.ProfileAnalyticsDTO, error) {
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.ProfileAnalyticsDTO{
+		ProfileViews:       p.ProfileViewsCount,
+		SearchAppearances:  p.SearchAppearancesCount,
+		ConnectionRequests: 0,
+	}, nil
+}
+

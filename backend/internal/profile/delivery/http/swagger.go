@@ -2,6 +2,7 @@ package http
 
 import (
 	"kirmya/internal/common/swagger"
+	"kirmya/internal/profile/models"
 )
 
 // This file carries the OpenAPI (swagger) contract for the profile module.
@@ -242,10 +243,83 @@ func swaggerUpdatePreferences() {}
 // @Router       /api/v1/profiles/{userId} [get]
 func swaggerGetPublicProfile() {}
 
+// swaggerGetCompleteness documents GET /api/v1/profile/me/completeness.
+//
+// @Summary      Get profile completeness
+// @Description  Returns profile completeness percentage, missing sections, and recommendations. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Produce      json
+// @Success      200  {object}  models.ProfileCompletenessDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/completeness [get]
+func swaggerGetCompleteness() {}
+
+// swaggerRequestVerification documents POST /api/v1/profile/me/verification.
+//
+// @Summary      Request profile verification
+// @Description  Submits document verification request for profile. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Accept       json
+// @Produce      json
+// @Param        request  body  models.VerificationRequestPayload  true  "Verification payload"
+// @Success      200  {object}  models.UserProfile
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/verification [post]
+func swaggerRequestVerification() {}
+
+// swaggerUpdateCareerPreferences documents PUT /api/v1/profile/me/career-preferences.
+//
+// @Summary      Update career preferences
+// @Description  Updates availability status, target roles, preferred locations, etc. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Accept       json
+// @Produce      json
+// @Param        request  body  models.CareerPreferencesDTO  true  "Career preferences payload"
+// @Success      200  {object}  models.UserProfile
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/career-preferences [put]
+func swaggerUpdateCareerPreferences() {}
+
+// swaggerGetResumeConsistency documents GET /api/v1/profile/me/resume-consistency.
+//
+// @Summary      Get resume consistency score
+// @Description  Analyzes profile for missing skills and title discrepancies. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Produce      json
+// @Success      200  {object}  models.ResumeConsistencyDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/resume-consistency [get]
+func swaggerGetResumeConsistency() {}
+
+// swaggerGetAnalytics documents GET /api/v1/profile/me/analytics.
+//
+// @Summary      Get profile analytics
+// @Description  Returns profile view counts, search appearances, and connection requests. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Produce      json
+// @Success      200  {object}  models.ProfileAnalyticsDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/analytics [get]
+func swaggerGetAnalytics() {}
+
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,
 // and package names such as `domain` and `models` are not unique across
 // modules, so the imports have to be explicit rather than inferred.
 var (
 	_ swagger.ErrorResponse
+	_ models.ProfileCompletenessDTO
 )
+

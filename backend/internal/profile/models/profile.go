@@ -196,3 +196,45 @@ type AdminRestrictionDTO struct {
 	IsRestricted bool   `json:"isRestricted"`
 	Reason       string `json:"reason"`
 }
+
+type ProfileCompletenessDTO struct {
+	Percentage        int      `json:"percentage"`
+	MissingSections   []string `json:"missingSections"`
+	Recommendations   []string `json:"recommendations"`
+	IsProfileComplete bool     `json:"isProfileComplete"`
+}
+
+type VerificationRequestPayload struct {
+	DocumentType string `json:"documentType" binding:"required"`
+	DocumentURL  string `json:"documentUrl" binding:"required"`
+	Notes        string `json:"notes"`
+}
+
+type CareerPreferencesDTO struct {
+	AvailabilityStatus string   `json:"availabilityStatus"`
+	OpenToWork         bool     `json:"openToWork"`
+	OpenToRecruiters   bool     `json:"openToRecruiters"`
+	TargetRoles        []string `json:"targetRoles"`
+	PreferredLocations []string `json:"preferredLocations"`
+	PreferredWorkModes []string `json:"preferredWorkModes"`
+}
+
+type ProfilePrivacyDTO struct {
+	ProfileVisibility string `json:"profileVisibility"` // public, connections_only, private
+	SearchVisible     bool   `json:"searchVisible"`
+	ShowContactInfo   bool   `json:"showContactInfo"`
+}
+
+type ProfileAnalyticsDTO struct {
+	ProfileViews       int `json:"profileViews"`
+	SearchAppearances  int `json:"searchAppearances"`
+	ConnectionRequests int `json:"connectionRequests"`
+}
+
+type ResumeConsistencyDTO struct {
+	Score              int      `json:"score"`
+	MissingSkills      []string `json:"missingSkills"`
+	TitleDiscrepancies []string `json:"titleDiscrepancies"`
+	IsConsistent       bool     `json:"isConsistent"`
+}
+

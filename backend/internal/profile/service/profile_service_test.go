@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -104,3 +105,119 @@ func TestGetOrCreateProfileDefaults(t *testing.T) {
 	assert.Equal(t, "looking_for_networking", p.AvailabilityStatus)
 	assert.Equal(t, 25, p.ProfileCompletedPercentage)
 }
+
+func TestCalculateCompleteness(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	dto, err := s.CalculateCompleteness(ctx, userID)
+	assert.NoError(t, err)
+	assert.NotNil(t, dto)
+	assert.False(t, dto.IsProfileComplete)
+	assert.Contains(t, dto.MissingSections, "headline")
+	assert.Contains(t, dto.MissingSections, "summary")
+	assert.Contains(t, dto.MissingSections, "work_experience")
+	assert.Contains(t, dto.MissingSections, "education")
+	assert.Contains(t, dto.MissingSections, "skills")
+}
+
+func TestCheckResumeConsistency(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	dto, err := s.CheckResumeConsistency(ctx, userID)
+	assert.NoError(t, err)
+	assert.NotNil(t, dto)
+	assert.True(t, dto.IsConsistent)
+	assert.Equal(t, 100, dto.Score)
+}
+
+func TestRequestVerification(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	// Missing documentType/documentUrl
+	_, err := s.RequestVerification(ctx, userID, models.VerificationRequestPayload{})
+	assert.Error(t, err)
+
+	// Valid payload
+	p, err := s.RequestVerification(ctx, userID, models.VerificationRequestPayload{
+		DocumentType: "government_id",
+		DocumentURL:  "https://example.com/id.pdf",
+		Notes:        "National ID upload",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "pending", p.VerificationStatus)
+	assert.Contains(t, p.VerificationNotes, "government_id")
+}
+
+func TestUpdateCareerPreferences(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	prefDTO := models.CareerPreferencesDTO{
+		AvailabilityStatus: "open_to_work",
+		OpenToWork:         true,
+		OpenToRecruiters:   true,
+		TargetRoles:        []string{"Staff Go Engineer", "Tech Lead"},
+		PreferredLocations: []string{"San Francisco", "Remote"},
+	}
+
+	p, err := s.UpdateCareerPreferences(ctx, userID, prefDTO)
+	assert.NoError(t, err)
+	assert.Equal(t, "open_to_work", p.AvailabilityStatus)
+	assert.True(t, p.OpenToWork)
+	assert.True(t, p.OpenToRecruiters)
+	assert.Equal(t, []string{"Staff Go Engineer", "Tech Lead"}, p.TargetRoles)
+	assert.Equal(t, []string{"San Francisco", "Remote"}, p.PreferredLocations)
+}
+
+func TestDateValidation(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	// Work Experience: EndDate before StartDate
+	expDTO := &models.WorkExperienceDTO{
+		Company:   "Acme Corp",
+		JobTitle:  "Software Engineer",
+		StartDate: "2023-06-01",
+		EndDate:   "2022-01-01",
+	}
+	_, err := s.AddWorkExperience(ctx, userID, expDTO)
+	assert.ErrorIs(t, err, ErrInvalidDates)
+
+	// Education: EndDate before StartDate
+	eduDTO := &models.EducationDTO{
+		Institution: "Stanford University",
+		Degree:      "M.S. Computer Science",
+		StartDate:   "2023-09-01",
+		EndDate:     "2021-06-01",
+	}
+	_, err = s.AddEducation(ctx, userID, eduDTO)
+	assert.ErrorIs(t, err, ErrInvalidDates)
+}
+
+func TestReservedUsernameCheck(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	// Admin reserved username
+	_, err := s.UpdateProfile(ctx, userID, &models.UpdateProfileDTO{Username: "admin"})
+	assert.ErrorIs(t, err, ErrReservedName)
+
+	// Settings reserved username
+	_, err = s.UpdateProfile(ctx, userID, &models.UpdateProfileDTO{Username: "settings"})
+	assert.ErrorIs(t, err, ErrReservedName)
+
+	// Valid username
+	p, err := s.UpdateProfile(ctx, userID, &models.UpdateProfileDTO{Username: "john_doe_99"})
+	assert.NoError(t, err)
+	assert.Equal(t, "john_doe_99", p.Username)
+}
+
