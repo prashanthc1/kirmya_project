@@ -16,7 +16,7 @@ import {
   Link as MuiLink,
   useTheme,
 } from '@mui/material';
-import SecurityIcon from '@mui/icons-material/Security';
+import BrandLockup from '../brand/BrandLockup';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import FacebookIcon from '@mui/icons-material/Facebook';
@@ -58,24 +58,7 @@ export const Footer: React.FC = () => {
           {/* Brand & Newsletter Column */}
           <Grid item xs={12} md={4}>
             <Stack spacing={2.5}>
-              <Stack direction="row" alignItems="center" spacing={1.2}>
-                <Box
-                  sx={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <SecurityIcon sx={{ color: '#ffffff', fontSize: 20 }} />
-                </Box>
-                <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
-                  KIRMYA
-                </Typography>
-              </Stack>
+              <BrandLockup size={36} variant="h5" />
 
               <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65, maxWidth: 340 }}>
                 Kirmya is a professional networking and AI-powered career platform dedicated to helping job seekers find opportunities, build connections, receive referrals, and accelerate career growth.

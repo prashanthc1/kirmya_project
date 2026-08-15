@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Container, Stack, Typography, Button, IconButton, useTheme } from '@mui/material';
-import SecurityIcon from '@mui/icons-material/Security';
+import BrandLockup from '../brand/BrandLockup';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import ThemeToggle from '../landing/ThemeToggle';
 
@@ -45,24 +45,15 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, on
         <Container maxWidth="lg">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             {/* Logo */}
-            <Stack direction="row" alignItems="center" spacing={1.2}>
-              <Box
-                sx={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <SecurityIcon sx={{ color: '#ffffff', fontSize: 20 }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
-                KIRMYA ONBOARDING
-              </Typography>
-            </Stack>
+            <BrandLockup
+              size={38}
+              variant="h6"
+              suffix={
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.08em' }}>
+                  ONBOARDING
+                </Typography>
+              }
+            />
 
             {/* Right Action Tools */}
             <Stack direction="row" spacing={1.5} alignItems="center">
