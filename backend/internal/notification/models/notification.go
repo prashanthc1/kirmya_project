@@ -6,6 +6,32 @@ import (
 	"github.com/google/uuid"
 )
 
+// Supported Notification Categories
+const (
+	CategorySecurity     = "Security"
+	CategoryJobs         = "Jobs"
+	CategoryApplications = "Applications"
+	CategoryInterviews   = "Interviews"
+	CategoryRecruiter    = "Recruiter"
+	CategoryNetworking   = "Networking"
+	CategoryMessaging    = "Messaging"
+	CategoryCommunities = "Communities"
+	CategoryCareer       = "Career"
+	CategoryResume       = "Resume"
+	CategoryCoverLetters = "Cover Letters"
+	CategoryAI           = "AI"
+	CategorySupport      = "Support"
+	CategorySystem       = "System"
+)
+
+// Supported Notification Priorities
+const (
+	PriorityCritical = "Critical"
+	PriorityHigh     = "High"
+	PriorityNormal   = "Normal"
+	PriorityLow      = "Low"
+)
+
 // NotificationCatalogEntry defines centralized notification metadata catalog.
 type NotificationCatalogEntry struct {
 	ID                string   `json:"id"`
@@ -24,7 +50,7 @@ type NotificationCatalogEntry struct {
 type Notification struct {
 	ID                 uuid.UUID              `json:"id"`
 	UserID             uuid.UUID              `json:"userId"`
-	Category           string                 `json:"category"` // Security, Jobs, Applications, Interviews, Recruiter, Networking, Messaging, Communities, Career, System
+	Category           string                 `json:"category"` // Security, Jobs, Applications, Interviews, Recruiter, Networking, Messaging, Communities, Career, Resume, Cover Letters, AI, Support, System
 	Type               string                 `json:"type"`
 	Priority           string                 `json:"priority"` // Critical, High, Normal, Low
 	Title              string                 `json:"title"`
@@ -275,4 +301,3 @@ type NotificationAnalyticsDaily struct {
 	AvgLatencyMS   int       `json:"avgLatencyMs" db:"avg_latency_ms"`
 	CreatedAt      time.Time `json:"createdAt" db:"created_at"`
 }
-

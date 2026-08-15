@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -8,15 +8,18 @@ import {
   Tab,
   Tabs,
   Stack,
+  Button,
   useTheme,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 import NotificationList from './NotificationList';
 import NotificationPreferences from './NotificationPreferences';
 import QuietHours from './QuietHours';
 import DigestSettings from './DigestSettings';
 import NotificationHistory from './NotificationHistory';
-import { NotificationItemDTO, NotificationCategory } from '../../features/notifications/types';
+import { notificationApi } from '../../features/notifications/services/notificationApi';
+import { NotificationItemDTO } from '../../features/notifications/types';
 
 interface NotificationCenterProps {
   initialCategory?: string;
@@ -32,99 +35,63 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   const [activeTab, setActiveTab] = useState(initialUnreadOnly ? 1 : 0);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [notifications, setNotifications] = useState<NotificationItemDTO[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [notifications, setNotifications] = useState<NotificationItemDTO[]>([
-    {
-      id: 'n1',
-      userId: 'u1',
-      category: 'Interviews',
-      type: 'interview_scheduled',
-      priority: 'High',
-      title: 'Technical Interview Scheduled',
-      content: 'Your Senior Go Architect interview with Emaar is scheduled for tomorrow at 10:00 AM.',
-      actionUrl: '/dashboard/interviews',
-      isRead: false,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 1800000).toISOString(),
-    },
-    {
-      id: 'n2',
-      userId: 'u1',
-      category: 'Jobs',
-      type: 'job_alert',
-      priority: 'Normal',
-      title: 'New Matching Job Opportunity',
-      content: 'Kirmya AI matched a new Lead Backend Role in Dubai (96% Skill Score).',
-      actionUrl: '/jobs',
-      isRead: false,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-    },
-    {
-      id: 'n3',
-      userId: 'u1',
-      category: 'Security',
-      type: 'security_alert',
-      priority: 'Critical',
-      title: 'New Login Detected',
-      content: 'Successful account login from Chrome on Windows (Dubai, UAE).',
-      actionUrl: '/notifications',
-      isRead: false,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 14400000).toISOString(),
-    },
-    {
-      id: 'n4',
-      userId: 'u1',
-      category: 'Applications',
-      type: 'application_status_changed',
-      priority: 'High',
-      title: 'Application Shortlisted',
-      content: 'Your application for Lead Architect at TechCorp has been moved to Shortlisted.',
-      actionUrl: '/dashboard/applications',
-      isRead: true,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-    {
-      id: 'n5',
-      userId: 'u1',
-      category: 'Networking',
-      type: 'connection_accepted',
-      priority: 'Normal',
-      title: 'Connection Accepted',
-      content: 'Salim Al-Harthy accepted your connection request.',
-      actionUrl: '/networking',
-      isRead: true,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-    },
-  ]);
+  useEffect(() => {
+    notificationApi
+      .listNotifications()
+      .then((data) => {
+        setNotifications(data || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleMarkRead = (id: string) => {
+  const handleMarkRead = async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    try {
+      await notificationApi.markRead(id);
+    } catch {}
   };
 
-  const handleMarkUnread = (id: string) => {
+  const handleMarkUnread = async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)));
+    try {
+      await notificationApi.markUnread(id);
+    } catch {}
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    try {
+      await notificationApi.markAllRead();
+    } catch {}
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await notificationApi.deleteNotification(id);
+    } catch {}
   };
 
-  const handleArchive = (id: string) => {
+  const handleArchive = async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isArchived: true } : n)));
+    try {
+      await notificationApi.archiveNotification(id);
+    } catch {}
   };
 
   const filteredNotifications = notifications.filter((n) => {
     if (n.isArchived) return false;
     if (activeTab === 1 && n.isRead) return false;
-    if (selectedCategory !== 'all' && n.category.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+    if (selectedCategory !== 'all') {
+      const catLower = selectedCategory.toLowerCase();
+      const itemCatLower = n.category.toLowerCase();
+      if (catLower === 'network' && itemCatLower === 'networking') return true;
+      if (catLower !== itemCatLower) return false;
+    }
     return true;
   });
 
@@ -134,21 +101,38 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     { key: 'applications', label: 'Applications' },
     { key: 'interviews', label: 'Interviews' },
     { key: 'networking', label: 'Networking' },
+    { key: 'messages', label: 'Messages' },
+    { key: 'career', label: 'Career' },
     { key: 'security', label: 'Security' },
   ];
 
+  const unreadCount = notifications.filter((n) => !n.isRead && !n.isArchived).length;
+
   return (
     <Box sx={{ maxWidth: 1100, mx: 'auto', p: { xs: 2, md: 4 } }}>
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-        <NotificationsIcon sx={{ color: 'primary.main', fontSize: 36 }} />
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900 }}>
-            Centralized Notification Center
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Manage your real-time alerts, job notifications, interview updates, and communication preferences.
-          </Typography>
-        </Box>
+      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <NotificationsIcon sx={{ color: 'primary.main', fontSize: 36 }} />
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 900 }}>
+              Centralized Notification Center
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Manage your real-time alerts, job notifications, interview updates, and communication preferences.
+            </Typography>
+          </Box>
+        </Stack>
+
+        {unreadCount > 0 && (activeTab === 0 || activeTab === 1) && (
+          <Button
+            startIcon={<DoneAllIcon />}
+            variant="outlined"
+            onClick={handleMarkAllRead}
+            sx={{ fontWeight: 800, borderRadius: '12px', textTransform: 'none' }}
+          >
+            Mark All Read
+          </Button>
+        )}
       </Stack>
 
       <Card
@@ -163,7 +147,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
       >
         <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)}>
           <Tab label={`All Feed (${notifications.filter((n) => !n.isArchived).length})`} sx={{ fontWeight: 800 }} />
-          <Tab label={`Unread (${notifications.filter((n) => !n.isRead && !n.isArchived).length})`} sx={{ fontWeight: 800 }} />
+          <Tab label={`Unread (${unreadCount})`} sx={{ fontWeight: 800 }} />
           <Tab label="Channel Preferences" sx={{ fontWeight: 800 }} />
           <Tab label="Quiet Hours" sx={{ fontWeight: 800 }} />
           <Tab label="Digest & History" sx={{ fontWeight: 800 }} />

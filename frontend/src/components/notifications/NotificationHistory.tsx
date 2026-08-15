@@ -106,11 +106,11 @@ export const NotificationHistory: React.FC<HistoryProps> = ({ items = [] }) => {
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{row.attempts} / {row.maxAttempts}</Typography>
+                  <Typography variant="body2">{row.attempts} / {row.maxAttempts ?? 3}</Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="caption" color="text.secondary">
-                    {new Date(row.scheduledAt).toLocaleString()}
+                    {new Date(row.scheduledAt || row.createdAt || Date.now()).toLocaleString()}
                   </Typography>
                 </TableCell>
                 <TableCell>

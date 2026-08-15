@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"kirmya/internal/messaging/pubsub"
@@ -40,12 +42,21 @@ func (s *NotificationService) ProcessEvent(ctx context.Context, evt models.Notif
 	category := deriveCategory(evt.EventType)
 	priority := derivePriority(evt.EventType)
 
-	// Check user quiet hours (Security/Critical priority bypasses quiet hours)
-	if priority != "Critical" && priority != "High" {
-		qh, err := s.repo.GetQuietHours(ctx, evt.TargetUserID)
-		if err == nil && qh.Enabled {
-			log.Printf("[QUIET HOURS] Non-critical notification deferred for user %s during quiet hours", evt.TargetUserID)
+	// Check user quiet hours
+	quietHoursActive := false
+	qh, err := s.repo.GetQuietHours(ctx, evt.TargetUserID)
+	if err == nil && qh != nil && qh.Enabled {
+		if isQuietHoursActive(qh, time.Now()) {
+			quietHoursActive = true
 		}
+	}
+
+	// Security and Critical alerts bypass quiet hours enforcement
+	bypassQuietHours := (category == models.CategorySecurity || priority == models.PriorityCritical)
+	suppressOutbound := quietHoursActive && !bypassQuietHours
+
+	if suppressOutbound {
+		log.Printf("[QUIET HOURS] Non-critical notification %s deferred for user %s during quiet hours", evt.EventType, evt.TargetUserID)
 	}
 
 	pref, err := s.repo.GetPreference(ctx, evt.TargetUserID, evt.EventType)
@@ -105,11 +116,19 @@ func (s *NotificationService) ProcessEvent(ctx context.Context, evt models.Notif
 	}
 
 	if pref.EmailEnabled {
-		log.Printf("[EMAIL CHANNEL] Dispatched email notification to %s. Title: %s", evt.TargetUserID, n.Title)
+		if suppressOutbound {
+			log.Printf("[EMAIL CHANNEL] Email delivery deferred for user %s due to quiet hours", evt.TargetUserID)
+		} else {
+			log.Printf("[EMAIL CHANNEL] Dispatched email notification to %s. Title: %s", evt.TargetUserID, n.Title)
+		}
 	}
 
 	if pref.PushEnabled {
-		log.Printf("[PUSH CHANNEL] Dispatched mobile/web push notification to %s. Title: %s", evt.TargetUserID, n.Title)
+		if suppressOutbound {
+			log.Printf("[PUSH CHANNEL] Push delivery deferred for user %s due to quiet hours", evt.TargetUserID)
+		} else {
+			log.Printf("[PUSH CHANNEL] Dispatched mobile/web push notification to %s. Title: %s", evt.TargetUserID, n.Title)
+		}
 	}
 
 	return n, nil
@@ -295,48 +314,65 @@ func (s *NotificationService) SendAnnouncement(ctx context.Context, req models.A
 	return nil
 }
 
+func (s *NotificationService) ListDeadLetters(ctx context.Context, limit int) ([]models.NotificationDeadLetter, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	return s.repo.ListDeadLetters(ctx, limit)
+}
+
+func (s *NotificationService) RetryDeadLetter(ctx context.Context, id uuid.UUID) error {
+	return s.repo.RetryDeadLetter(ctx, id)
+}
+
+func (s *NotificationService) ListDeliveryAnalytics(ctx context.Context) ([]models.NotificationAnalyticsDaily, error) {
+	return s.repo.ListDeliveryAnalytics(ctx)
+}
+
 // Helper Functions
 func deriveCategory(nType string) string {
 	switch nType {
-	case "security_alert", "password_changed", "new_login", "email_verification":
-		return "Security"
-	case "recommended_job", "job_alert", "saved_search_match", "job_expiring", "company_hiring":
-		return "Jobs"
+	case "security_alert", "password_changed", "new_login", "email_verification", "2fa_enabled", "2fa_disabled", "security_device_added":
+		return models.CategorySecurity
+	case "recommended_job", "job_alert", "saved_search_match", "job_expiring", "company_hiring", "job_recommendation":
+		return models.CategoryJobs
 	case "application_submitted", "application_viewed", "application_status_changed", "application_shortlisted", "application_rejected", "offer_received":
-		return "Applications"
+		return models.CategoryApplications
 	case "interview_scheduled", "interview_rescheduled", "interview_cancelled", "interview_reminder", "interview_feedback":
-		return "Interviews"
+		return models.CategoryInterviews
 	case "new_candidate", "candidate_response", "candidate_match", "candidate_assignment", "recruiter_invitation":
-		return "Recruiter"
+		return models.CategoryRecruiter
 	case "connection_request", "connection_accepted", "profile_view", "recommendation":
-		return "Networking"
-	case "community_invitation", "community_update", "community_activity":
-		return "Communities"
-	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder":
-		return "Career"
-	case "resume_analysis", "ats_improvement":
-		return "Resume"
-	case "cover_letter_suggestion":
-		return "Cover Letters"
-	case "ai_analysis_complete", "ai_recommendation":
-		return "AI"
+		return models.CategoryNetworking
+	case "new_message", "message_received", "direct_message", "chat_mention":
+		return models.CategoryMessaging
+	case "community_invitation", "community_update", "community_activity", "community_post":
+		return models.CategoryCommunities
+	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder", "mentorship_request", "mentorship_accepted":
+		return models.CategoryCareer
+	case "resume_analysis", "ats_improvement", "resume_updated":
+		return models.CategoryResume
+	case "cover_letter_suggestion", "cover_letter_generated":
+		return models.CategoryCoverLetters
+	case "ai_analysis_complete", "ai_recommendation", "ai_insights_ready":
+		return models.CategoryAI
 	case "support.ticket.created", "support.ticket.updated", "support.ticket.response.created", "support.ticket.resolved", "support.ticket.closed", "support.ticket.reopened":
-		return "Support"
+		return models.CategorySupport
 	default:
-		return "System"
+		return models.CategorySystem
 	}
 }
 
 func derivePriority(nType string) string {
 	switch nType {
-	case "security_alert", "new_login":
-		return "Critical"
-	case "interview_reminder", "interview_scheduled", "offer_received", "application_status_changed":
-		return "High"
-	case "job_recommendation", "connection_request", "candidate_match":
-		return "Normal"
+	case "security_alert", "new_login", "2fa_disabled", "system_emergency":
+		return models.PriorityCritical
+	case "interview_reminder", "interview_scheduled", "offer_received", "application_status_changed", "password_changed", "mentorship_request":
+		return models.PriorityHigh
+	case "job_recommendation", "connection_request", "candidate_match", "new_message", "community_invitation", "support.ticket.updated":
+		return models.PriorityNormal
 	default:
-		return "Low"
+		return models.PriorityLow
 	}
 }
 
@@ -355,6 +391,10 @@ func formatTitle(nType string, payload map[string]interface{}) string {
 		return "New Connection Request"
 	case "security_alert":
 		return "Security Alert"
+	case "new_message":
+		return "New Message Received"
+	case "mentorship_request":
+		return "Mentorship Request"
 	default:
 		return "Kirmya Notification"
 	}
@@ -369,14 +409,20 @@ func formatContent(nType string, payload map[string]interface{}) string {
 
 func formatActionURL(nType string, resourceID string) string {
 	switch nType {
-	case "application_status_changed", "application_submitted":
-		return "/dashboard/applications"
-	case "interview_scheduled", "interview_reminder":
-		return "/dashboard/interviews"
 	case "connection_request", "connection_accepted":
-		return "/networking"
-	case "job_alert", "recommended_job":
+		return "/network/requests"
+	case "new_message", "message_received", "direct_message", "chat_mention":
+		return "/messages"
+	case "mentorship_request", "mentorship_accepted":
+		return "/mentorship"
+	case "community_invitation", "community_update", "community_activity", "community_post":
+		return "/communities"
+	case "job_alert", "recommended_job", "saved_search_match", "company_hiring", "job_recommendation":
 		return "/jobs"
+	case "application_status_changed", "application_submitted", "application_viewed", "application_shortlisted", "application_rejected", "offer_received":
+		return "/applications"
+	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder", "ai_analysis_complete", "ai_recommendation":
+		return "/analytics/career"
 	default:
 		return "/notifications"
 	}
@@ -392,23 +438,36 @@ func deriveIcon(nType string) string {
 		return "Security"
 	case "job_alert", "recommended_job":
 		return "Work"
+	case "new_message":
+		return "Chat"
+	case "connection_request":
+		return "PersonAdd"
 	default:
 		return "Notifications"
 	}
 }
 
-func (s *NotificationService) ListDeadLetters(ctx context.Context, limit int) ([]models.NotificationDeadLetter, error) {
-	if limit <= 0 {
-		limit = 50
+func isQuietHoursActive(qh *models.QuietHoursSettings, now time.Time) bool {
+	if qh == nil || !qh.Enabled {
+		return false
 	}
-	return s.repo.ListDeadLetters(ctx, limit)
-}
+	startParts := strings.Split(qh.StartTime, ":")
+	endParts := strings.Split(qh.EndTime, ":")
+	if len(startParts) < 2 || len(endParts) < 2 {
+		return false
+	}
+	startHour, _ := strconv.Atoi(startParts[0])
+	startMin, _ := strconv.Atoi(startParts[1])
+	endHour, _ := strconv.Atoi(endParts[0])
+	endMin, _ := strconv.Atoi(endParts[1])
 
-func (s *NotificationService) RetryDeadLetter(ctx context.Context, id uuid.UUID) error {
-	return s.repo.RetryDeadLetter(ctx, id)
-}
+	curHour, curMin, _ := now.Clock()
+	curMinutes := curHour*60 + curMin
+	startMinutes := startHour*60 + startMin
+	endMinutes := endHour*60 + endMin
 
-func (s *NotificationService) ListDeliveryAnalytics(ctx context.Context) ([]models.NotificationAnalyticsDaily, error) {
-	return s.repo.ListDeliveryAnalytics(ctx)
+	if startMinutes < endMinutes {
+		return curMinutes >= startMinutes && curMinutes < endMinutes
+	}
+	return curMinutes >= startMinutes || curMinutes < endMinutes
 }
-

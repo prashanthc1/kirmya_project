@@ -40,24 +40,37 @@ export interface NotificationItemDTO {
   updatedAt?: string;
 }
 
+export type Notification = NotificationItemDTO;
+
 export interface NotificationPreferenceDTO {
   userId: string;
-  notificationType: string;
+  notificationType?: string;
   category: NotificationCategory;
   emailEnabled: boolean;
   pushEnabled: boolean;
   inAppEnabled: boolean;
   smsEnabled: boolean;
-  frequency: 'Instant' | 'Daily Digest' | 'Weekly Digest' | 'Never';
+  frequency?: 'Instant' | 'Daily Digest' | 'Weekly Digest' | 'Never';
 }
 
+export type NotificationPreference = NotificationPreferenceDTO;
+
 export interface QuietHoursDTO {
-  userId: string;
+  userId?: string;
   enabled: boolean;
   startTime: string;
   endTime: string;
   timezone: string;
-  days: string;
+  days?: string;
+}
+
+export type QuietHoursSettings = QuietHoursDTO;
+
+export interface NotificationDigestSettings {
+  userId?: string;
+  frequency: 'Instant' | 'Daily Digest' | 'Weekly Digest' | 'Never';
+  deliveryTime: string;
+  categories?: NotificationCategory[];
 }
 
 export interface NotificationDeviceDTO {
@@ -86,19 +99,35 @@ export interface NotificationScheduleDTO {
 export interface NotificationDeliveryDTO {
   id: string;
   notificationId: string;
-  userId: string;
+  userId?: string;
   channel: 'in_app' | 'email' | 'push' | 'sms' | 'webhook';
   provider: string;
   status: 'Pending' | 'Queued' | 'Sent' | 'Delivered' | 'Opened' | 'Failed' | 'Expired' | 'Cancelled';
   attempts: number;
-  maxAttempts: number;
+  maxAttempts?: number;
   lastError?: string;
-  scheduledAt: string;
+  scheduledAt?: string;
   sentAt?: string;
   deliveredAt?: string;
   openedAt?: string;
   createdAt: string;
 }
+
+export type NotificationDelivery = NotificationDeliveryDTO;
+
+export interface NotificationDeadLetter {
+  id: string;
+  notificationId?: string;
+  channel: string;
+  provider: string;
+  failureReason: string;
+  attemptsMade: number;
+  status: string;
+  createdAt: string;
+  failedAt?: string;
+}
+
+export type NotificationDeadLetterDTO = NotificationDeadLetter;
 
 export interface NotificationTemplateDTO {
   id: string;
@@ -113,7 +142,7 @@ export interface NotificationTemplateDTO {
   variables: string[];
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface NotificationAnalyticsDTO {

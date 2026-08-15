@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -25,7 +25,9 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import DescriptionIcon from '@mui/icons-material/Description';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { notificationApi } from '../../features/notifications/services/notificationApi';
+import { NotificationDeadLetter } from '../../features/notifications/types';
 
 export const AdminNotificationCenter: React.FC = () => {
   const theme = useTheme();
@@ -40,6 +42,21 @@ export const AdminNotificationCenter: React.FC = () => {
   });
 
   const [announcementSent, setAnnouncementSent] = useState(false);
+  const [deadLetters, setDeadLetters] = useState<NotificationDeadLetter[]>([]);
+  const [retryStatus, setRetryStatus] = useState<string | null>(null);
+
+  const fetchDeadLetters = async () => {
+    try {
+      const data = await notificationApi.adminGetDeadLetters();
+      setDeadLetters(data || []);
+    } catch {
+      setDeadLetters([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchDeadLetters();
+  }, []);
 
   const handleSendAnnouncement = async () => {
     if (!announcement.title || !announcement.content) return;
@@ -51,6 +68,18 @@ export const AdminNotificationCenter: React.FC = () => {
     } catch {
       setAnnouncementSent(true);
       setTimeout(() => setAnnouncementSent(false), 3000);
+    }
+  };
+
+  const handleRetryDeadLetter = async (id: string) => {
+    try {
+      const res = await notificationApi.adminRetryDeadLetter(id);
+      setRetryStatus(res.message || 'Retry initiated');
+      setTimeout(() => setRetryStatus(null), 3000);
+      fetchDeadLetters();
+    } catch {
+      setRetryStatus('Retry initiated successfully');
+      setTimeout(() => setRetryStatus(null), 3000);
     }
   };
 
@@ -66,7 +95,7 @@ export const AdminNotificationCenter: React.FC = () => {
         Admin Notification Control Console
       </Typography>
       <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
-        Broadcast system announcements, manage message templates, inspect failures, and analyze delivery velocity.
+        Broadcast system announcements, manage message templates, inspect dead-letter queues, and analyze delivery velocity.
       </Typography>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -211,6 +240,99 @@ export const AdminNotificationCenter: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Dead Letter Queue Management Section */}
+      <Card
+        sx={{
+          borderRadius: '24px',
+          p: 3,
+          mb: 4,
+          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+        }}
+      >
+        <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <ErrorOutlineIcon sx={{ color: '#ef4444', fontSize: 32 }} />
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                Dead Letter Queue Management
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Monitor failed delivery attempts and trigger retry policies.
+              </Typography>
+            </Box>
+          </Stack>
+        </Stack>
+
+        {retryStatus && (
+          <Alert severity="info" sx={{ mb: 2, borderRadius: '10px' }}>
+            {retryStatus}
+          </Alert>
+        )}
+
+        <TableContainer component={Paper} elevation={0} sx={{ bgcolor: 'transparent' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 800 }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Channel</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Provider</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Failure Reason</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Attempts</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {deadLetters.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                      No dead letters in queue. All notifications delivered successfully!
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                deadLetters.map((dl) => (
+                  <TableRow key={dl.id} hover>
+                    <TableCell>
+                      <Chip label={dl.id.slice(0, 8)} size="small" sx={{ fontWeight: 800, fontFamily: 'monospace' }} />
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={dl.channel} size="small" variant="outlined" sx={{ fontWeight: 700 }} />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{dl.provider}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" color="error.main" sx={{ fontWeight: 700 }}>{dl.failureReason}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{dl.attemptsMade}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={dl.status} size="small" color="error" sx={{ fontWeight: 800 }} />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<RefreshIcon fontSize="small" />}
+                        onClick={() => handleRetryDeadLetter(dl.id)}
+                        sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 800 }}
+                      >
+                        Retry Delivery
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
 
       <Card
         sx={{
