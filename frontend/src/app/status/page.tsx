@@ -18,7 +18,7 @@ export default function PublicStatusPage() {
   }, []);
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100vh', color: '#f8fafc', py: 6 }}>
+    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 6 }}>
       <Container maxWidth="md">
         <Box sx={{ textCenter: 'center', textAlign: 'center', mb: 4 }}>
           <Typography variant="h3" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #10b981 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', mb: 1 }}>

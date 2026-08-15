@@ -41,7 +41,7 @@ export const NotificationList: React.FC<NotificationListProps> = ({
       <Box sx={{ p: 8, textAlign: 'center', opacity: 0.7 }}>
         <NotificationsIcon sx={{ fontSize: 56, color: 'text.secondary', mb: 2 }} />
         <Typography variant="h6" sx={{ fontWeight: 800 }}>
-          You're all caught up!
+          You&apos;re all caught up!
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           No notifications found matching your current filter.

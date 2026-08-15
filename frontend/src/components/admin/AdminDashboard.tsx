@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { surfaceTransition } from '../../theme/motion';
 import {
   Box,
   Typography,
@@ -73,7 +74,7 @@ export const AdminDashboard: React.FC = () => {
                 bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
-                transition: 'all 0.2s ease',
+                transition: surfaceTransition(0.2),
                 '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 24px rgba(0,0,0,0.15)' },
               }}
             >

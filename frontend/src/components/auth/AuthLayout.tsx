@@ -30,7 +30,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         width: '100%',
         bgcolor: isDark ? '#090d16' : '#f8fafc',
         backgroundImage: isDark

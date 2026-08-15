@@ -30,7 +30,7 @@ export default function KirmyaLandingPage() {
   }, []);
 
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh', transition: 'background-color 0.3s ease' }}>
+    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100dvh', transition: 'background-color 0.3s ease' }}>
       {/* Schema.org Structured Data */}
       <script
         type="application/ld+json"

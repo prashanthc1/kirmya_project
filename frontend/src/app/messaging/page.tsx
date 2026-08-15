@@ -431,7 +431,7 @@ export default function MessagingPage() {
       <Box
         component="div"
         sx={{
-          minHeight: '100vh',
+          minHeight: '100dvh',
           bgcolor: mode === 'light' ? '#f3f2f0' : '#090d16',
           display: 'flex',
           flexDirection: 'column',

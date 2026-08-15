@@ -30,7 +30,7 @@ export const CompanyDirectoryLayout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: 'background.default',
         color: 'text.primary',
         pb: 10,

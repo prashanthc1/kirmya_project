@@ -11,7 +11,7 @@ interface RecruiterLayoutProps {
 
 export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({ children }) => {
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: 'background.default', color: 'text.primary' }}>
       <RecruiterSidebar />
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <RecruiterHeader />

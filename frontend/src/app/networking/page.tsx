@@ -186,7 +186,7 @@ export default function NetworkingPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 4, background: mode === 'light' ? 'linear-gradient(135deg, #eef2f6 0%, #cbd5e1 100%)' : 'linear-gradient(135deg, #020617 0%, #1e1b4b 100%)' }}>
+    <Box sx={{ minHeight: '100dvh', py: 4, background: mode === 'light' ? 'linear-gradient(135deg, #eef2f6 0%, #cbd5e1 100%)' : 'linear-gradient(135deg, #020617 0%, #1e1b4b 100%)' }}>
       
       {/* Global Header Bar */}
       <Container maxWidth="lg" sx={{ mb: 4 }}>

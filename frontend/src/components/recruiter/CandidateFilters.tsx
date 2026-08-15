@@ -270,7 +270,7 @@ export const CandidateFilters: React.FC<Props> = ({ filters, onChange, onReset }
                     color="primary"
                   />
                 }
-                label={<Typography variant="body2" sx={{ fontWeight: 700 }}>"Open To Work" candidates only</Typography>}
+                label={<Typography variant="body2" sx={{ fontWeight: 700 }}>&quot;Open To Work&quot; candidates only</Typography>}
               />
             </Grid>
           </Grid>

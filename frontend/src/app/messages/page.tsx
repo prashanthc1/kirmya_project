@@ -110,7 +110,7 @@ export default function MessagesMainPage() {
   );
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3, height: 'calc(100vh - 80px)' }}>
+    <Container maxWidth="xl" sx={{ py: 3, height: 'calc(100dvh - 80px)' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 900 }}>

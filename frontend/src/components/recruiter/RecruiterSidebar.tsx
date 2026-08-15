@@ -46,7 +46,7 @@ export const RecruiterSidebar: React.FC = () => {
     <Box
       sx={{
         width: 280,
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
         borderRight: '1px solid rgba(255, 255, 255, 0.08)',
         p: 2.5,

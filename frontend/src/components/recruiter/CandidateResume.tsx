@@ -58,7 +58,7 @@ export const CandidateResume: React.FC<Props> = ({ candidateId, candidateName })
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
-              {candidateName}'s Resume (PDF Version 2.4)
+              {candidateName}&apos;s Resume (PDF Version 2.4)
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Uploaded on 2026-07-28 • Verified ATS Format Parse

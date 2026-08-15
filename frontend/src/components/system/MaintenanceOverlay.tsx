@@ -10,7 +10,7 @@ interface MaintenanceOverlayProps {
 
 export default function MaintenanceOverlay({ reason }: MaintenanceOverlayProps) {
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#090d16', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3, color: '#f8fafc' }}>
+    <Box sx={{ minHeight: '100dvh', bgcolor: '#090d16', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3, color: '#f8fafc' }}>
       <Container maxWidth="sm">
         <Paper sx={{ p: 4, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 3, textAlign: 'center' }}>
           <Box sx={{ bgcolor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', p: 2, borderRadius: '50%', display: 'inline-flex', mb: 2 }}>

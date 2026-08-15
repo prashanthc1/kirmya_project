@@ -20,7 +20,7 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, on
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: 'background.default',
         color: 'text.primary',
         transition: 'background-color 0.3s ease',

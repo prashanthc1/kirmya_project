@@ -21,6 +21,7 @@ import {
   Checkbox,
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { springs } from '../../theme/motion';
 import BusinessIcon from '@mui/icons-material/Business';
 import BadgeIcon from '@mui/icons-material/Badge';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
@@ -103,7 +104,7 @@ export const RecruiterOnboarding: React.FC<{ onComplete?: () => void }> = ({ onC
 
   return (
     <Box sx={{ maxWidth: 840, mx: 'auto', p: { xs: 2, md: 4 } }}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Chip
             icon={<VerifiedUserIcon sx={{ fontSize: '1rem !important' }} />}
@@ -115,7 +116,7 @@ export const RecruiterOnboarding: React.FC<{ onComplete?: () => void }> = ({ onC
             Recruiter &amp; Employer Onboarding
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Set up your organization's hiring profile to create jobs, discover candidates, and schedule interviews.
+            Set up your organization&apos;s hiring profile to create jobs, discover candidates, and schedule interviews.
           </Typography>
         </Box>
 
