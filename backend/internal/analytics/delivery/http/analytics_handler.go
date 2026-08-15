@@ -27,7 +27,7 @@ func (h *AnalyticsHandler) IngestEvent(c *gin.Context) {
 
 	event, err := h.svc.IngestEvent(c.Request.Context(), &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -99,4 +99,109 @@ func (h *AnalyticsHandler) GetCompanyAnalytics(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, analytics)
+}
+
+// GetUserConsent handles GET /api/v1/analytics/consent
+func (h *AnalyticsHandler) GetUserConsent(c *gin.Context) {
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		userIDStr = "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		userID = uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	}
+
+	consent, err := h.svc.GetUserConsent(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, consent)
+}
+
+// UpdateUserConsent handles PUT /api/v1/analytics/consent
+func (h *AnalyticsHandler) UpdateUserConsent(c *gin.Context) {
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
+		userIDStr = "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		userID = uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	}
+
+	var req models.UserConsentPreferences
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid consent payload", "details": err.Error()})
+		return
+	}
+
+	updated, err := h.svc.UpdateUserConsent(c.Request.Context(), userID, &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, updated)
+}
+
+// GetPersonalFunnel handles GET /api/v1/analytics/funnel
+func (h *AnalyticsHandler) GetPersonalFunnel(c *gin.Context) {
+	userIDStr := c.GetString("user_id")
+	var userIDPtr *uuid.UUID
+	if userIDStr != "" {
+		if uid, err := uuid.Parse(userIDStr); err == nil {
+			userIDPtr = &uid
+		}
+	}
+
+	funnel, err := h.svc.GetUserActivationFunnel(c.Request.Context(), userIDPtr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, funnel)
+}
+
+// GetPersonalMentorshipAnalytics handles GET /api/v1/analytics/mentorship
+func (h *AnalyticsHandler) GetPersonalMentorshipAnalytics(c *gin.Context) {
+	userIDStr := c.GetString("user_id")
+	var userIDPtr *uuid.UUID
+	if userIDStr != "" {
+		if uid, err := uuid.Parse(userIDStr); err == nil {
+			userIDPtr = &uid
+		}
+	}
+
+	data, err := h.svc.GetMentorshipAnalytics(c.Request.Context(), userIDPtr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}
+
+// GetPersonalLearningAnalytics handles GET /api/v1/analytics/learning
+func (h *AnalyticsHandler) GetPersonalLearningAnalytics(c *gin.Context) {
+	userIDStr := c.GetString("user_id")
+	var userIDPtr *uuid.UUID
+	if userIDStr != "" {
+		if uid, err := uuid.Parse(userIDStr); err == nil {
+			userIDPtr = &uid
+		}
+	}
+
+	data, err := h.svc.GetLearningAnalytics(c.Request.Context(), userIDPtr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
 }

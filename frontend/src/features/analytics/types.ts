@@ -86,6 +86,90 @@ export interface AnalyticsExportJob {
 }
 
 
+export interface SystemPerformanceAnalytics {
+  p50_latency_ms: number;
+  p95_latency_ms: number;
+  p99_latency_ms: number;
+  api_request_rate_rps: number;
+  db_latency_ms: number;
+  redis_latency_ms: number;
+  search_latency_ms: number;
+  otel_exporter_status: 'healthy' | 'degraded' | 'error' | string;
+  active_worker_threads: number;
+  error_rate_pct: number;
+}
+
+export interface TrustSafetyAnalytics {
+  total_reports_count: number;
+  resolved_reports_count: number;
+  avg_resolution_time_mins: number;
+  user_restrictions_count: number;
+  permanent_bans_count: number;
+  security_threat_level: 'low' | 'medium' | 'high' | 'critical' | string;
+  flagged_content_count: number;
+  spam_score_avg: number;
+}
+
+export interface MentorshipAnalytics {
+  total_mentors_count: number;
+  active_pairings_count: number;
+  completed_sessions_count: number;
+  avg_rating: number;
+  top_skills_mentored: Array<{ skill: string; session_count: number }>;
+}
+
+export interface LearningAnalytics {
+  courses_enrolled_count: number;
+  courses_completed_count: number;
+  total_learning_hours: number;
+  certificates_issued_count: number;
+  skill_assessments_passed: number;
+}
+
+export interface CohortGridAnalytics {
+  cohorts: Array<{
+    cohort_name: string;
+    cohort_date: string;
+    initial_users: number;
+    retention_percentages: number[];
+  }>;
+}
+
+export interface UserActivationFunnel {
+  stages: Array<{
+    stage_name: string;
+    count: number;
+    conversion_pct: number;
+    dropoff_pct: number;
+  }>;
+}
+
+export interface FeatureAdoptionMetrics {
+  feature_name: string;
+  active_users_count: number;
+  adoption_rate_pct: number;
+  daily_usage_count: number;
+}
+
+export interface UserConsentPreferences {
+  essential_telemetry: boolean;
+  optional_analytics: boolean;
+  personalization_tracking: boolean;
+  data_retention_period_days: number;
+  updated_at: string;
+}
+
+export interface CustomReportRequest {
+  title: string;
+  report_type: string;
+  date_from?: string;
+  date_to?: string;
+  metrics?: string[];
+  export_format: 'csv' | 'json' | 'pdf';
+  recipients?: string[];
+  cron_expression?: string;
+}
+
 // Legacy Type Exports for Backward Compatibility
 export type AdminAnalytics = AdminAnalyticsOverview;
 export type RecruiterAnalytics = RecruiterHiringAnalytics;
@@ -96,3 +180,4 @@ export interface TrackEventPayload {
   entity_id?: string;
   properties?: Record<string, any>;
 }
+

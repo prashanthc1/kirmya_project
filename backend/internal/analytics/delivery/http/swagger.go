@@ -330,7 +330,165 @@ func swaggerGetAdminAnalyticsEvents() {}
 // @Router       /api/v1/admin/analytics/export [post]
 func swaggerRequestExport() {}
 
+// swaggerGetUserConsent documents GET /api/v1/analytics/consent.
+//
+// @Summary      Get user consent preferences
+// @Description  Returns user consent and privacy settings for analytics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/analytics/consent [get]
+func swaggerGetUserConsent() {}
+
+// swaggerUpdateUserConsent documents PUT /api/v1/analytics/consent.
+//
+// @Summary      Update user consent preferences
+// @Description  Updates user consent preferences.
+// @Tags         Analytics
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/analytics/consent [put]
+func swaggerUpdateUserConsent() {}
+
+// swaggerGetPersonalFunnel documents GET /api/v1/analytics/funnel.
+//
+// @Summary      Get user activation funnel
+// @Description  Returns personal activation funnel stages.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/analytics/funnel [get]
+func swaggerGetPersonalFunnel() {}
+
+// swaggerGetPersonalMentorship documents GET /api/v1/analytics/mentorship.
+//
+// @Summary      Get personal mentorship analytics
+// @Description  Returns user mentorship engagement metrics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/analytics/mentorship [get]
+func swaggerGetPersonalMentorship() {}
+
+// swaggerGetPersonalLearning documents GET /api/v1/analytics/learning.
+//
+// @Summary      Get personal learning analytics
+// @Description  Returns user learning progress analytics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/analytics/learning [get]
+func swaggerGetPersonalLearning() {}
+
+// swaggerGetPerformance documents GET /api/v1/admin/analytics/performance.
+//
+// @Summary      Get system performance analytics
+// @Description  Returns latency percentile metrics and throughput rates.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/performance [get]
+func swaggerGetPerformance() {}
+
+// swaggerGetTrustSafety documents GET /api/v1/admin/analytics/trust-safety.
+//
+// @Summary      Get trust & safety analytics
+// @Description  Returns moderation, bans, and safety report analytics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/trust-safety [get]
+func swaggerGetTrustSafety() {}
+
+// swaggerGetMentorshipAdmin documents GET /api/v1/admin/analytics/mentorship.
+//
+// @Summary      Get admin mentorship analytics
+// @Description  Returns platform-wide mentorship engagement metrics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/mentorship [get]
+func swaggerGetMentorshipAdmin() {}
+
+// swaggerGetLearningAdmin documents GET /api/v1/admin/analytics/learning.
+//
+// @Summary      Get admin learning analytics
+// @Description  Returns platform-wide learning metrics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/learning [get]
+func swaggerGetLearningAdmin() {}
+
+// swaggerGetFunnelAdmin documents GET /api/v1/admin/analytics/funnel.
+//
+// @Summary      Get admin user activation funnel
+// @Description  Returns platform-wide activation funnel stages.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/funnel [get]
+func swaggerGetFunnelAdmin() {}
+
+// swaggerGetCohorts documents GET /api/v1/admin/analytics/cohorts.
+//
+// @Summary      Get admin cohort grid analytics
+// @Description  Returns user retention cohort matrix.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/cohorts [get]
+func swaggerGetCohorts() {}
+
+// swaggerGetFeatureAdoption documents GET /api/v1/admin/analytics/feature-adoption.
+//
+// @Summary      Get feature adoption metrics
+// @Description  Returns feature usage map and active counts.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/feature-adoption [get]
+func swaggerGetFeatureAdoption() {}
+
+// swaggerGenerateCustomReport documents POST /api/v1/admin/analytics/reports/custom.
+//
+// @Summary      Generate custom report
+// @Description  Generates ad-hoc custom analytics export.
+// @Tags         Analytics
+// @Accept       json
+// @Produce      json
+// @Success      202  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/reports/custom [post]
+func swaggerGenerateCustomReport() {}
+
+// swaggerTriggerRetentionCleanup documents POST /api/v1/admin/analytics/cleanup.
+//
+// @Summary      Trigger data retention cleanup
+// @Description  Executes automated purging of expired analytics raw events.
+// @Tags         Analytics
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/cleanup [post]
+func swaggerTriggerRetentionCleanup() {}
+
 var (
 	_ domain.TrackEventPayload
 	_ swagger.ErrorResponse
 )
+

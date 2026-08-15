@@ -242,3 +242,94 @@ func SanitizeCSVCell(value string) string {
 	return value
 }
 
+// SystemPerformanceAnalytics represents platform runtime latency and throughput.
+type SystemPerformanceAnalytics struct {
+	P50LatencyMs        float64 `json:"p50_latency_ms"`
+	P95LatencyMs        float64 `json:"p95_latency_ms"`
+	P99LatencyMs        float64 `json:"p99_latency_ms"`
+	RequestRateRPS      float64 `json:"request_rate_rps"`
+	ErrorRatePct        float64 `json:"error_rate_pct"`
+	DBLatencyMs         float64 `json:"db_latency_ms"`
+	RedisLatencyMs      float64 `json:"redis_latency_ms"`
+	SearchLatencyMs     float64 `json:"search_latency_ms"`
+	WorkerQueueDepth    int     `json:"worker_queue_depth"`
+	OpenTelemetryStatus string  `json:"opentelemetry_status"`
+}
+
+// TrustSafetyAnalytics represents moderation, safety reports and resolution.
+type TrustSafetyAnalytics struct {
+	TotalReports           int            `json:"total_reports"`
+	AvgResolutionTimeHours float64        `json:"avg_resolution_time_hours"`
+	RestrictionsCount      int            `json:"restrictions_count"`
+	BansCount              int            `json:"bans_count"`
+	AppealsCount           int            `json:"appeals_count"`
+	SpamEventsDetected     int            `json:"spam_events_detected"`
+	TopReportedCategories  map[string]int `json:"top_reported_categories"`
+}
+
+// MentorshipAnalytics represents user mentorship activity.
+type MentorshipAnalytics struct {
+	TotalRequests     int     `json:"total_requests"`
+	AcceptedRequests  int     `json:"accepted_requests"`
+	ActiveSessions    int     `json:"active_sessions"`
+	CompletedSessions int     `json:"completed_sessions"`
+	SatisfactionScore float64 `json:"satisfaction_score"`
+}
+
+// LearningAnalytics represents platform learning and skill progress.
+type LearningAnalytics struct {
+	ResourcesViewed       int     `json:"resources_viewed"`
+	ResourcesCompleted    int     `json:"resources_completed"`
+	SkillsAdded           int     `json:"skills_added"`
+	ActiveLearnersCount   int     `json:"active_learners_count"`
+	CareerImprovementRate float64 `json:"career_improvement_rate"`
+}
+
+// UserActivationFunnel represents signup-to-engagement pipeline metrics.
+type UserActivationFunnel struct {
+	TotalRegistrations    int               `json:"total_registrations"`
+	EmailVerifiedCount    int               `json:"email_verified_count"`
+	ProfileCompletedCount int               `json:"profile_completed_count"`
+	JobSearchesCount      int               `json:"job_searches_count"`
+	SavedJobsCount        int               `json:"saved_jobs_count"`
+	ApplicationsCount     int               `json:"applications_count"`
+	NetworkingActiveCount int               `json:"networking_active_count"`
+	FunnelStages          []FunnelStageItem `json:"funnel_stages"`
+}
+
+// CohortGridAnalytics matrix of cohort retention items.
+type CohortGridAnalytics struct {
+	CohortItems []CohortItem `json:"cohort_items"`
+}
+
+// FeatureAdoptionMetrics maps feature identifiers to total active usage counts.
+type FeatureAdoptionMetrics struct {
+	FeatureUsageMap map[string]int `json:"feature_usage_map"`
+}
+
+// UserConsentPreferences tracks individual telemetry and personalization options.
+type UserConsentPreferences struct {
+	UserID                    uuid.UUID `json:"user_id" db:"user_id"`
+	EssentialTelemetryEnabled bool      `json:"essential_telemetry_enabled" db:"essential_telemetry_enabled"`
+	OptionalAnalyticsEnabled  bool      `json:"optional_analytics_enabled" db:"optional_analytics_enabled"`
+	PersonalizationEnabled    bool      `json:"personalization_enabled" db:"personalization_enabled"`
+	UpdatedAt                 time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// CustomReportRequest payload for ad-hoc custom analytics generation.
+type CustomReportRequest struct {
+	Title         string   `json:"title"`
+	DateRangeDays int      `json:"date_range_days"`
+	ReportType    string   `json:"report_type"`
+	Metrics       []string `json:"metrics"`
+	ExportFormat  string   `json:"export_format"`
+}
+
+// DataRetentionConfig specifies automated purging options for raw analytics events.
+type DataRetentionConfig struct {
+	RetentionDays       int  `json:"retention_days"`
+	PurgeRawEvents      bool `json:"purge_raw_events"`
+	KeepDailyAggregates bool `json:"keep_daily_aggregates"`
+}
+
+
