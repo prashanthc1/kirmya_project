@@ -33,7 +33,13 @@ export const AdminLegalCMS: React.FC = () => {
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', md: 'center' }}
+        spacing={2}
+        sx={{ mb: 4 }}
+      >
         <Box>
           <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
             <GavelIcon sx={{ color: '#6366f1', fontSize: 36 }} />

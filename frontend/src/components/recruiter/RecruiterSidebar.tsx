@@ -45,10 +45,14 @@ export const RecruiterSidebar: React.FC = () => {
   return (
     <Box
       sx={{
-        width: 280,
-        minHeight: '100dvh',
+        width: { xs: '100%', md: 280 },
+        // Only a full-height rail once it sits beside the content; stacked on a
+        // phone it should take the height of its own list, not the screen.
+        minHeight: { xs: 'auto', md: '100dvh' },
+        flexShrink: 0,
         bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRight: { xs: 'none', md: '1px solid rgba(255, 255, 255, 0.08)' },
+        borderBottom: { xs: '1px solid rgba(255, 255, 255, 0.08)', md: 'none' },
         p: 2.5,
         display: 'flex',
         flexDirection: 'column',

@@ -233,6 +233,55 @@ export const getTheme = (mode: 'light' | 'dark') => {
           },
         },
       },
+      // --- Mobile adaptation ------------------------------------------------
+      // A centred dialog on a 390px screen is a 326px card with 32px of dead
+      // margin either side — the least usable width on the smallest screen.
+      // Below the sm breakpoint these become bottom sheets: full width,
+      // anchored to the thumb, rounded only at the top edge so the surface
+      // reads as having risen from below rather than as a floating card.
+      //
+      // Done in CSS rather than the fullScreen prop because that prop needs a
+      // hook at every one of the 324 call sites; this reaches all of them.
+      MuiDialog: {
+        styleOverrides: {
+          container: {
+            '@media (max-width:599.95px)': { alignItems: 'flex-end' },
+          },
+          paper: {
+            '@media (max-width:599.95px)': {
+              margin: 0,
+              width: '100%',
+              maxWidth: '100%',
+              // dvh, not vh: a sheet sized against the hidden-chrome viewport
+              // would push its own actions off the bottom of the screen.
+              maxHeight: '92dvh',
+              borderRadius: '16px 16px 0 0',
+            },
+          },
+        },
+      },
+      // Tables laid straight into a card were not merely overflowing, they were
+      // being clipped: a 398px table inside a 356px CardContent whose Paper sets
+      // overflow hidden, so the right-hand columns could not be reached at all.
+      // :has() lets the container opt itself into scrolling without touching the
+      // 13 pages that do this.
+      MuiCardContent: {
+        styleOverrides: {
+          root: {
+            '&:has(> table)': { overflowX: 'auto' },
+          },
+        },
+      },
+      // Same clipping, one level up: some tables sit straight inside the Paper,
+      // which sets overflow hidden, so a 484px table in a 358px card simply lost
+      // its right-hand columns.
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            '&:has(> table)': { overflowX: 'auto' },
+          },
+        },
+      },
       MuiToggleButton: {
         styleOverrides: {
           root: {
@@ -275,6 +324,17 @@ export const getTheme = (mode: 'light' | 'dark') => {
               transition: 'transform 100ms ease-out',
               '&&:active': { transform: 'scale(0.96)' },
             },
+          },
+          // Legibility floor for phones. Chips carry the densest labels in the
+          // app and several call sites shrink them to 0.6-0.72rem, which
+          // measured as low as 9.6px — below any reasonable reading size.
+          //
+          // max(0.75rem, 1em) reads as "at least 12px, otherwise inherit what
+          // the call site asked for": 1em resolves against the chip root, where
+          // the sx font-size lands, so larger chips keep their size and only the
+          // too-small ones are lifted.
+          label: {
+            '@media (max-width:599.95px)': { fontSize: 'max(0.75rem, 1em)' },
           },
         },
       },
