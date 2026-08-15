@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -15,6 +15,7 @@ import {
   Grid,
   TextField,
   useTheme,
+  LinearProgress,
 } from '@mui/material';
 import LockResetIcon from '@mui/icons-material/LockReset';
 import PhonelinkLockIcon from '@mui/icons-material/PhonelinkLock';
@@ -22,26 +23,37 @@ import DevicesIcon from '@mui/icons-material/Devices';
 import KeyIcon from '@mui/icons-material/Key';
 import HistoryIcon from '@mui/icons-material/History';
 import SecurityIcon from '@mui/icons-material/Security';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+
 import MFASetupDialog from './MFASetupDialog';
 import APIKeyManagerDialog from './APIKeyManagerDialog';
 import SessionManagerView from './SessionManagerView';
 import DeviceManagerView from './DeviceManagerView';
+import LoginHistoryView from './LoginHistoryView';
 import { SecurityOverview } from '../../features/security/types';
+import { securityApi } from '../../features/security/services/securityApi';
 
-export const SecurityCenter: React.FC = () => {
+interface SecurityCenterProps {
+  initialTab?: number;
+}
+
+export const SecurityCenter: React.FC<SecurityCenterProps> = ({ initialTab = 0 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(initialTab);
 
-  const [overview] = useState<SecurityOverview>({
+  const [overview, setOverview] = useState<SecurityOverview>({
     user_id: 'u1',
     email_verified: true,
     mfa_enabled: false,
-    active_sessions_count: 1,
+    active_sessions_count: 2,
     trusted_devices_count: 1,
-    recent_security_events: 2,
+    recent_security_events: 3,
     password_last_changed_at: new Date(Date.now() - 2592000000).toISOString(),
-    security_score: 75,
+    security_score: 78,
+    last_login_at: new Date(Date.now() - 7200000).toISOString(),
+    login_ip: '127.0.0.1',
   });
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -52,7 +64,15 @@ export const SecurityCenter: React.FC = () => {
   const [openMFADialog, setOpenMFADialog] = useState(false);
   const [openAPIKeyDialog, setOpenAPIKeyDialog] = useState(false);
 
-  const handlePasswordChange = () => {
+  useEffect(() => {
+    securityApi.getSecurityOverview().then(setOverview);
+  }, []);
+
+  const handlePasswordChange = async () => {
+    if (!currentPassword) {
+      setPasswordStatus('Please enter your current password.');
+      return;
+    }
     if (newPassword.length < 12) {
       setPasswordStatus('Password must be at least 12 characters long.');
       return;
@@ -61,10 +81,21 @@ export const SecurityCenter: React.FC = () => {
       setPasswordStatus('New passwords do not match.');
       return;
     }
-    setPasswordStatus('Password changed successfully. A security alert email has been sent.');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    const success = await securityApi.changePassword({ current_password: currentPassword, new_password: newPassword });
+    if (success) {
+      setPasswordStatus('Password changed successfully. A security alert email has been sent.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setPasswordStatus('Failed to change password. Please verify current password.');
+    }
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'success.main';
+    if (score >= 60) return 'warning.main';
+    return 'error.main';
   };
 
   return (
@@ -108,10 +139,16 @@ export const SecurityCenter: React.FC = () => {
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
               <Card sx={{ p: 2.5, borderRadius: '20px' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Security Score</Typography>
-                <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: 'success.main' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Security Score Gauge</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: getScoreColor(overview.security_score) }}>
                   {overview.security_score} / 100
                 </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={overview.security_score}
+                  color={overview.security_score >= 80 ? 'success' : overview.security_score >= 60 ? 'warning' : 'error'}
+                  sx={{ height: 8, borderRadius: 4, mt: 1.5 }}
+                />
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -141,10 +178,44 @@ export const SecurityCenter: React.FC = () => {
           </Grid>
 
           {!overview.mfa_enabled && (
-            <Alert severity="warning" sx={{ borderRadius: '16px' }} action={<Button color="warning" size="small" onClick={() => setOpenMFADialog(true)}>Enable MFA</Button>}>
+            <Alert
+              severity="warning"
+              sx={{ borderRadius: '16px' }}
+              action={
+                <Button color="warning" size="small" onClick={() => setOpenMFADialog(true)}>
+                  Enable MFA
+                </Button>
+              }
+            >
               Protect your candidate profile and company credentials by enabling Two-Factor Authentication (TOTP).
             </Alert>
           )}
+
+          <Card sx={{ borderRadius: '24px', p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
+              Account Security Status Check
+            </Typography>
+            <Stack spacing={2} divider={<Divider />}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 700 }}>Password Health</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Last changed: {new Date(overview.password_last_changed_at).toLocaleDateString()}
+                  </Typography>
+                </Box>
+                <Chip label="Strong" color="success" size="small" sx={{ fontWeight: 800 }} />
+              </Stack>
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 700 }}>Last Login Activity</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {overview.last_login_at ? new Date(overview.last_login_at).toLocaleString() : 'Recent'} ({overview.login_ip || '127.0.0.1'})
+                  </Typography>
+                </Box>
+                <Chip label="Verified IP" color="info" size="small" sx={{ fontWeight: 800 }} />
+              </Stack>
+            </Stack>
+          </Card>
         </Stack>
       )}
 
@@ -156,7 +227,11 @@ export const SecurityCenter: React.FC = () => {
             <Typography variant="h6" sx={{ fontWeight: 800 }}>Change Password</Typography>
           </Stack>
           <Stack spacing={2.5}>
-            {passwordStatus && <Alert severity={passwordStatus.includes('successfully') ? 'success' : 'error'} sx={{ borderRadius: '12px' }}>{passwordStatus}</Alert>}
+            {passwordStatus && (
+              <Alert severity={passwordStatus.includes('successfully') ? 'success' : 'error'} sx={{ borderRadius: '12px' }}>
+                {passwordStatus}
+              </Alert>
+            )}
             <TextField
               label="Current Password"
               type="password"
@@ -220,7 +295,7 @@ export const SecurityCenter: React.FC = () => {
               Generate API Key
             </Button>
           </Stack>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Manage granular scoped API keys for external integrations and background services.
           </Typography>
           <APIKeyManagerDialog open={openAPIKeyDialog} onClose={() => setOpenAPIKeyDialog(false)} />
@@ -228,17 +303,7 @@ export const SecurityCenter: React.FC = () => {
       )}
 
       {/* Tab 6: Audit */}
-      {tabIndex === 6 && (
-        <Card sx={{ borderRadius: '24px', p: 3 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-            <HistoryIcon color="primary" />
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>Recent Login Security Telemetry</Typography>
-          </Stack>
-          <Typography variant="body2" color="text.secondary">
-            Recent authentication events, successful logins, password changes, and MFA verifications.
-          </Typography>
-        </Card>
-      )}
+      {tabIndex === 6 && <LoginHistoryView />}
     </Box>
   );
 };

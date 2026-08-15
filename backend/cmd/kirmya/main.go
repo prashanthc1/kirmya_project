@@ -196,6 +196,10 @@ import (
 	intelligenceRepo "kirmya/internal/workforce_intelligence/repository"
 	intelligenceSvc "kirmya/internal/workforce_intelligence/service"
 
+	securityHttp "kirmya/internal/security/delivery/http"
+	securityRepo "kirmya/internal/security/repository"
+	securitySvc "kirmya/internal/security/service"
+
 	"kirmya/internal/router"
 	cachePkg "kirmya/internal/shared/cache"
 	configPkg "kirmya/internal/shared/config"
@@ -510,6 +514,11 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	interviewPrepService := interviewPrepSvc.NewInterviewPrepService(interviewPrepRepository)
 	interviewPrepHandler := interviewPrepHttp.NewInterviewPrepHandler(interviewPrepService)
 
+	securityRepository := securityRepo.NewSecurityRepository(dbPool)
+	securityService := securitySvc.NewSecurityService(securityRepository)
+	securityHandler := securityHttp.NewSecurityHandler(securityService)
+	adminSecurityHandler := securityHttp.NewAdminSecurityHandler(securityService)
+
 	return router.RouterDependencies{
 		AuthHandler:                 authHandler,
 		AuthMiddleware:              authMiddleware,
@@ -556,5 +565,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		JobsHandler:                 jobsHandler,
 		CoverLetterHandler:          coverLetterHandler,
 		InterviewPrepHandler:        interviewPrepHandler,
+		SecurityHandler:             securityHandler,
+		AdminSecurityHandler:        adminSecurityHandler,
 	}
 }

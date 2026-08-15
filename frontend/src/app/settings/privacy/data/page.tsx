@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import PrivacyRightsCenter from '@/components/legal/PrivacyRightsCenter';
+import PrivacyCenter from '@/components/privacy/PrivacyCenter';
 
 export default function SettingsPrivacyDataPage() {
-  return <PrivacyRightsCenter />;
+  return <PrivacyCenter initialTab={1} />;
 }

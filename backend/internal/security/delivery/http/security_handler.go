@@ -46,6 +46,19 @@ func (h *SecurityHandler) GetSecurityOverview(c *gin.Context) {
 	c.JSON(http.StatusOK, ov)
 }
 
+func (h *SecurityHandler) ValidatePasswordPolicy(c *gin.Context) {
+	var body struct {
+		Password string `json:"password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	res := h.securityService.EvaluatePasswordPolicy(body.Password)
+	c.JSON(http.StatusOK, res)
+}
+
 func (h *SecurityHandler) ChangePassword(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -147,6 +160,10 @@ func (h *SecurityHandler) RevokeSession(c *gin.Context) {
 
 	err = h.securityService.RevokeSession(c.Request.Context(), userID, sessionID)
 	if err != nil {
+		if err.Error() == "FORBIDDEN_IDOR: Cannot revoke session belonging to another user account" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -184,6 +201,27 @@ func (h *SecurityHandler) GetTrustedDevices(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
+func (h *SecurityHandler) RegisterDevice(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var dev models.DeviceItem
+	if err := c.ShouldBindJSON(&dev); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	res, err := h.securityService.RegisterDevice(c.Request.Context(), userID, dev)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, res)
+}
+
 func (h *SecurityHandler) UpdateDeviceTrustStatus(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {
@@ -206,6 +244,10 @@ func (h *SecurityHandler) UpdateDeviceTrustStatus(c *gin.Context) {
 
 	err = h.securityService.UpdateDeviceTrustStatus(c.Request.Context(), userID, deviceID, body.Status)
 	if err != nil {
+		if err.Error() == "FORBIDDEN_IDOR: Cannot modify device belonging to another user account" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -227,6 +269,10 @@ func (h *SecurityHandler) RemoveDevice(c *gin.Context) {
 
 	err = h.securityService.RemoveDevice(c.Request.Context(), userID, deviceID)
 	if err != nil {
+		if err.Error() == "FORBIDDEN_IDOR: Cannot remove device belonging to another user account" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -299,6 +345,10 @@ func (h *SecurityHandler) RevokeAPIKey(c *gin.Context) {
 
 	err = h.securityService.RevokeAPIKey(c.Request.Context(), userID, keyID)
 	if err != nil {
+		if err.Error() == "FORBIDDEN_IDOR: Cannot revoke API key belonging to another user account" {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -319,4 +369,124 @@ func (h *SecurityHandler) GetSecurityEvents(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, events)
+}
+
+func (h *SecurityHandler) GetPrivacySettings(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	settings, err := h.securityService.GetPrivacySettings(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, settings)
+}
+
+func (h *SecurityHandler) UpdatePrivacySettings(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var payload models.PrivacySettingsPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	settings, err := h.securityService.UpdatePrivacySettings(c.Request.Context(), userID, payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, settings)
+}
+
+func (h *SecurityHandler) RequestDataExport(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	exportReq, err := h.securityService.RequestDataExport(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, exportReq)
+}
+
+func (h *SecurityHandler) GetDataExports(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	exports, err := h.securityService.GetDataExports(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, exports)
+}
+
+func (h *SecurityHandler) RequestAccountDeletion(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var body struct {
+		Reason          string `json:"reason"`
+		ConfirmPassword string `json:"confirm_password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	delReq, err := h.securityService.RequestAccountDeletion(c.Request.Context(), userID, body.Reason, body.ConfirmPassword)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, delReq)
+}
+
+func (h *SecurityHandler) GetAccountDeletionStatus(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	status, err := h.securityService.GetAccountDeletionStatus(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, status)
+}
+
+func (h *SecurityHandler) CancelAccountDeletion(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	err := h.securityService.CancelAccountDeletion(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Account deletion request cancelled."})
 }

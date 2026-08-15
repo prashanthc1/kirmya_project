@@ -7,6 +7,9 @@ export interface SecurityOverview {
   recent_security_events: number;
   password_last_changed_at: string;
   security_score: number;
+  last_login_at?: string;
+  login_ip?: string;
+  privacy_score?: number;
 }
 
 export interface PasswordChangePayload {
@@ -18,6 +21,7 @@ export interface MFASetupResponse {
   secret: string;
   qr_code_uri: string;
   recovery_codes: string[];
+  enabled_at?: string;
 }
 
 export interface SessionItem {
@@ -29,6 +33,8 @@ export interface SessionItem {
   is_current: boolean;
   expires_at: string;
   created_at: string;
+  last_active_at?: string;
+  device_type?: string;
 }
 
 export interface DeviceItem {
@@ -41,16 +47,19 @@ export interface DeviceItem {
   trusted_status: 'trusted' | 'pending' | 'revoked';
   last_seen_at: string;
   created_at: string;
+  ip_address?: string;
 }
 
 export interface LoginHistoryItem {
   id: string;
   event_type: string;
-  severity: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
   ip_address: string;
   user_agent: string;
   location: string;
   created_at: string;
+  status?: 'success' | 'failed' | 'blocked';
+  details?: string;
 }
 
 export interface APIKey {
@@ -107,4 +116,41 @@ export interface SecurityDashboardSummary {
   mfa_adoption_rate: number;
   active_incidents: number;
   events_by_type: Record<string, number>;
+}
+
+export interface PrivacySettings {
+  user_id: string;
+  profile_visibility: 'Public' | 'Registered' | 'Connections' | 'Recruiters' | 'Private';
+  discover_in_search: boolean;
+  recruiter_discoverable: boolean;
+  recruiter_contactable: boolean;
+  show_resume_to_recruiters: boolean;
+  messaging_permission: 'Anyone' | 'Connections' | 'Recruiters' | 'None';
+  community_visibility: 'Public' | 'Connections' | 'Private';
+  search_personalization: boolean;
+  ai_data_usage: boolean;
+  analytics_consent: boolean;
+  marketing_consent: boolean;
+  updated_at: string;
+}
+
+export interface DataExportStatus {
+  id: string;
+  user_id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  file_url?: string;
+  file_size_bytes?: number;
+  expires_at?: string;
+  created_at: string;
+}
+
+export interface ConsentRecord {
+  id: string;
+  user_id: string;
+  document: string;
+  version: string;
+  accepted_at: string;
+  source: string;
+  ip_address?: string;
+  status: 'active' | 'revoked' | 'superseded';
 }

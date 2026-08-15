@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,7 +13,14 @@ import {
   Alert,
   Box,
   Chip,
+  Stepper,
+  Step,
+  StepLabel,
 } from '@mui/material';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { securityApi } from '../../features/security/services/securityApi';
+import { MFASetupResponse } from '../../features/security/types';
 
 interface MFASetupDialogProps {
   open: boolean;
@@ -21,65 +28,155 @@ interface MFASetupDialogProps {
 }
 
 export const MFASetupDialog: React.FC<MFASetupDialogProps> = ({ open, onClose }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [mfaData, setMfaData] = useState<MFASetupResponse | null>(null);
   const [code, setCode] = useState('');
   const [status, setStatus] = useState<string | null>(null);
+  const [copiedSecret, setCopiedSecret] = useState(false);
 
-  const recoveryCodes = ['REC-8F3A', 'REC-9B21', 'REC-1C4D', 'REC-7E82', 'REC-3F90', 'REC-4D12', 'REC-5B67', 'REC-2A89'];
+  useEffect(() => {
+    if (open) {
+      securityApi.setupMFA().then(setMfaData);
+      setActiveStep(0);
+      setCode('');
+      setStatus(null);
+    }
+  }, [open]);
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (code.length !== 6) {
       setStatus('Code must be 6 digits.');
       return;
     }
-    setStatus('Two-Factor Authentication activated successfully!');
-    setTimeout(() => {
-      onClose();
-    }, 2000);
+    const ok = await securityApi.verifyMFA(code);
+    if (ok) {
+      setStatus('Two-Factor Authentication activated successfully!');
+      setActiveStep(2);
+    } else {
+      setStatus('Invalid TOTP verification code. Please check your authenticator app.');
+    }
   };
+
+  const copySecret = () => {
+    if (mfaData?.secret) {
+      navigator.clipboard.writeText(mfaData.secret);
+      setCopiedSecret(true);
+      setTimeout(() => setCopiedSecret(false), 2000);
+    }
+  };
+
+  const steps = ['Scan Authenticator QR Code', 'Enter 6-Digit Code', 'Save Recovery Codes'];
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ style: { borderRadius: 24 } }}>
       <DialogTitle sx={{ fontWeight: 900 }}>Two-Factor Authentication Setup</DialogTitle>
       <DialogContent dividers>
-        <Stack spacing={2.5}>
-          <Typography variant="body2" color="text.secondary">
-            Scan the secret key below with your authenticator application (Google Authenticator, Authy, or 1Password).
-          </Typography>
+        <Stack spacing={3}>
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-          <Box sx={{ p: 2, borderRadius: '16px', bgcolor: 'action.hover', textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary">Secret Key (Base32):</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: 2, fontFamily: 'monospace' }}>
-              JBSW Y3DP EHPK 3PXP
-            </Typography>
-          </Box>
+          {activeStep === 0 && (
+            <Stack spacing={2.5} alignItems="center">
+              <Typography variant="body2" color="text.secondary" align="center">
+                Scan the secret key below with your authenticator application (Google Authenticator, Authy, or 1Password).
+              </Typography>
 
-          <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-              One-Time Recovery Codes (Store securely):
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {recoveryCodes.map((c) => (
-                <Chip key={c} label={c} variant="outlined" sx={{ fontFamily: 'monospace', fontWeight: 800 }} />
-              ))}
-            </Box>
-          </Box>
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: '20px',
+                  bgcolor: 'action.hover',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  width: '100%',
+                }}
+              >
+                <QrCode2Icon sx={{ fontSize: 120, color: 'primary.main' }} />
+                <Typography variant="caption" color="text.secondary">Secret Key (Base32):</Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: 2, fontFamily: 'monospace' }}>
+                    {mfaData?.secret || 'JBSWY3DPEHPK3PXP'}
+                  </Typography>
+                  <Button size="small" onClick={copySecret} startIcon={<ContentCopyIcon fontSize="small" />}>
+                    {copiedSecret ? 'Copied' : 'Copy'}
+                  </Button>
+                </Stack>
+              </Box>
+              <Button variant="contained" onClick={() => setActiveStep(1)} sx={{ borderRadius: '12px', fontWeight: 800, px: 4 }}>
+                Next: Verify Code
+              </Button>
+            </Stack>
+          )}
 
-          <TextField
-            label="Enter 6-Digit Authenticator Code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="123456"
-            fullWidth
-          />
+          {activeStep === 1 && (
+            <Stack spacing={2.5}>
+              <Typography variant="body2" color="text.secondary">
+                Enter the 6-digit verification code generated by your authenticator application.
+              </Typography>
 
-          {status && <Alert severity={status.includes('successfully') ? 'success' : 'error'} sx={{ borderRadius: '12px' }}>{status}</Alert>}
+              <TextField
+                label="Enter 6-Digit Authenticator Code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.trim())}
+                placeholder="123456"
+                fullWidth
+                inputProps={{ maxLength: 6 }}
+              />
+
+              {status && (
+                <Alert severity={status.includes('successfully') ? 'success' : 'error'} sx={{ borderRadius: '12px' }}>
+                  {status}
+                </Alert>
+              )}
+            </Stack>
+          )}
+
+          {activeStep === 2 && (
+            <Stack spacing={2.5}>
+              <Alert severity="success" sx={{ borderRadius: '16px' }}>
+                MFA has been enabled on your Kirmya account!
+              </Alert>
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
+                  One-Time Recovery Codes (Store securely):
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
+                  If you lose access to your authenticator app, these emergency single-use codes are the only way to recover access.
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {(mfaData?.recovery_codes || ['REC-8F3A', 'REC-9B21', 'REC-1C4D', 'REC-7E82']).map((c) => (
+                    <Chip key={c} label={c} variant="outlined" sx={{ fontFamily: 'monospace', fontWeight: 800 }} />
+                  ))}
+                </Box>
+              </Box>
+            </Stack>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ p: 2.5 }}>
-        <Button onClick={onClose} sx={{ fontWeight: 800 }}>Cancel</Button>
-        <Button variant="contained" onClick={handleVerify} sx={{ borderRadius: '12px', fontWeight: 800 }}>
-          Verify & Activate MFA
-        </Button>
+        {activeStep < 2 && (
+          <Button onClick={onClose} sx={{ fontWeight: 800 }}>
+            Cancel
+          </Button>
+        )}
+        {activeStep === 1 && (
+          <Button variant="contained" onClick={handleVerify} sx={{ borderRadius: '12px', fontWeight: 800 }}>
+            Verify & Activate MFA
+          </Button>
+        )}
+        {activeStep === 2 && (
+          <Button variant="contained" onClick={onClose} sx={{ borderRadius: '12px', fontWeight: 800 }}>
+            Done
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

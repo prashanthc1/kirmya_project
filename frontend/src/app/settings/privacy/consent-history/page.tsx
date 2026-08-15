@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ConsentHistoryView from '@/components/privacy/ConsentHistoryView';
-import { Container, Typography, Box } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 
 export default function ConsentHistoryPage() {
   return (

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Card, Typography, Stack, Button, useTheme } from '@mui/material';
 import CookieIcon from '@mui/icons-material/Cookie';
+import { securityApi } from '../../features/security/services/securityApi';
 
 interface CookieConsentBannerProps {
   onOpenPreferences?: () => void;
@@ -21,12 +22,16 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
   }, []);
 
   const handleAcceptAll = () => {
-    localStorage.setItem('kirmya_cookie_consent', JSON.stringify({ necessary: true, analytics: true, preferences: true, marketing: false }));
+    const consentData = { necessary: true, analytics: true, preferences: true, marketing: false };
+    localStorage.setItem('kirmya_cookie_consent', JSON.stringify(consentData));
+    securityApi.recordConsent('Cookie Preferences', '1.0.0', 'Cookie Banner Accept All');
     setVisible(false);
   };
 
   const handleRejectOptional = () => {
-    localStorage.setItem('kirmya_cookie_consent', JSON.stringify({ necessary: true, analytics: false, preferences: false, marketing: false }));
+    const consentData = { necessary: true, analytics: false, preferences: false, marketing: false };
+    localStorage.setItem('kirmya_cookie_consent', JSON.stringify(consentData));
+    securityApi.recordConsent('Cookie Preferences', '1.0.0', 'Cookie Banner Reject Optional');
     setVisible(false);
   };
 

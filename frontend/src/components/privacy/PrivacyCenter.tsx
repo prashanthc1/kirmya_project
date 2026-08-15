@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -17,6 +17,7 @@ import {
   Alert,
   Chip,
   useTheme,
+  Snackbar,
 } from '@mui/material';
 import SecurityIcon from '@mui/icons-material/Security';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -29,14 +30,19 @@ import CookiePreferencesModal from './CookiePreferencesModal';
 import ConsentHistoryView from './ConsentHistoryView';
 import DataExportView from './DataExportView';
 import AccountDeletionModal from './AccountDeletionModal';
-import { PrivacyPreferences } from '../../features/legal/types';
+import { PrivacySettings } from '../../features/security/types';
+import { securityApi } from '../../features/security/services/securityApi';
 
-export const PrivacyCenter: React.FC = () => {
+interface PrivacyCenterProps {
+  initialTab?: number;
+}
+
+export const PrivacyCenter: React.FC<PrivacyCenterProps> = ({ initialTab = 0 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(initialTab);
 
-  const [prefs, setPrefs] = useState<PrivacyPreferences>({
+  const [prefs, setPrefs] = useState<PrivacySettings>({
     user_id: 'u1',
     profile_visibility: 'Public',
     discover_in_search: true,
@@ -54,19 +60,23 @@ export const PrivacyCenter: React.FC = () => {
 
   const [openCookieModal, setOpenCookieModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [saveAlert, setSaveAlert] = useState(false);
 
-  const handleToggle = (key: keyof PrivacyPreferences) => {
-    setPrefs((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+  useEffect(() => {
+    securityApi.getPrivacySettings().then(setPrefs);
+  }, []);
+
+  const handleToggle = async (key: keyof PrivacySettings) => {
+    const updatedValue = !prefs[key];
+    const updated = await securityApi.updatePrivacySettings({ [key]: updatedValue });
+    setPrefs(updated);
+    setSaveAlert(true);
   };
 
-  const handleSelectChange = (key: keyof PrivacyPreferences, val: string) => {
-    setPrefs((prev) => ({
-      ...prev,
-      [key]: val,
-    }));
+  const handleSelectChange = async (key: keyof PrivacySettings, val: string) => {
+    const updated = await securityApi.updatePrivacySettings({ [key]: val as any });
+    setPrefs(updated);
+    setSaveAlert(true);
   };
 
   return (
@@ -128,14 +138,22 @@ export const PrivacyCenter: React.FC = () => {
                   <Typography variant="body1" sx={{ fontWeight: 700 }}>Recruiter Discoverability</Typography>
                   <Typography variant="caption" color="text.secondary">Allow recruiters to discover your skills</Typography>
                 </Box>
-                <Chip label={prefs.recruiter_discoverable ? 'Enabled' : 'Disabled'} color={prefs.recruiter_discoverable ? 'success' : 'default'} sx={{ fontWeight: 800 }} />
+                <Chip
+                  label={prefs.recruiter_discoverable ? 'Enabled' : 'Disabled'}
+                  color={prefs.recruiter_discoverable ? 'success' : 'default'}
+                  sx={{ fontWeight: 800 }}
+                />
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Box>
                   <Typography variant="body1" sx={{ fontWeight: 700 }}>AI Features & Data Usage</Typography>
                   <Typography variant="caption" color="text.secondary">Allow AI job & career recommendations</Typography>
                 </Box>
-                <Chip label={prefs.ai_data_usage ? 'Allowed' : 'Opted Out'} color={prefs.ai_data_usage ? 'info' : 'default'} sx={{ fontWeight: 800 }} />
+                <Chip
+                  label={prefs.ai_data_usage ? 'Allowed' : 'Opted Out'}
+                  color={prefs.ai_data_usage ? 'info' : 'default'}
+                  sx={{ fontWeight: 800 }}
+                />
               </Stack>
             </Stack>
           </Card>
@@ -171,6 +189,16 @@ export const PrivacyCenter: React.FC = () => {
                 <Box>
                   <Typography variant="body1" sx={{ fontWeight: 700 }}>Appear in People Search</Typography>
                   <Typography variant="caption" color="text.secondary">Allow members to search for your name or title</Typography>
+                </Box>
+              }
+            />
+
+            <FormControlLabel
+              control={<Switch checked={prefs.community_visibility === 'Public'} onChange={() => handleSelectChange('community_visibility', prefs.community_visibility === 'Public' ? 'Private' : 'Public')} />}
+              label={
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 700 }}>Community Feed Activity Visibility</Typography>
+                  <Typography variant="caption" color="text.secondary">Show your posts and comments in public developer feed</Typography>
                 </Box>
               }
             />
@@ -244,6 +272,16 @@ export const PrivacyCenter: React.FC = () => {
             />
 
             <FormControlLabel
+              control={<Switch checked={prefs.search_personalization} onChange={() => handleToggle('search_personalization')} />}
+              label={
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 700 }}>Search Personalization</Typography>
+                  <Typography variant="caption" color="text.secondary">Customize search results based on past view history</Typography>
+                </Box>
+              }
+            />
+
+            <FormControlLabel
               control={<Switch checked={prefs.analytics_consent} onChange={() => handleToggle('analytics_consent')} />}
               label={
                 <Box>
@@ -299,6 +337,13 @@ export const PrivacyCenter: React.FC = () => {
           <AccountDeletionModal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)} />
         </Card>
       )}
+
+      <Snackbar
+        open={saveAlert}
+        autoHideDuration={3000}
+        onClose={() => setSaveAlert(false)}
+        message="Privacy preferences updated"
+      />
     </Box>
   );
 };

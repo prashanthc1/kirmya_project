@@ -14,6 +14,7 @@ import {
   Box,
 } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { securityApi } from '../../features/security/services/securityApi';
 
 interface AccountDeletionModalProps {
   open: boolean;
@@ -21,17 +22,27 @@ interface AccountDeletionModalProps {
 }
 
 export const AccountDeletionModal: React.FC<AccountDeletionModalProps> = ({ open, onClose }) => {
+  const [password, setPassword] = useState('');
   const [confirmPhrase, setConfirmPhrase] = useState('');
   const [reason, setReason] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleConfirmDeletion = () => {
+  const handleConfirmDeletion = async () => {
     if (confirmPhrase !== 'DELETE MY ACCOUNT') return;
 
-    setStatusMessage('Account deletion scheduled. A 14-day grace period has begun. You can cancel deletion anytime by logging back in.');
-    setTimeout(() => {
-      onClose();
-    }, 2500);
+    setLoading(true);
+    const res = await securityApi.requestAccountDeletion(reason, password);
+    setLoading(false);
+
+    if (res.success) {
+      setStatusMessage(
+        `Account deletion scheduled. A ${res.grace_period_days}-day grace period has begun. You can cancel deletion anytime by logging back in.`
+      );
+      setTimeout(() => {
+        onClose();
+      }, 2500);
+    }
   };
 
   return (
@@ -48,6 +59,15 @@ export const AccountDeletionModal: React.FC<AccountDeletionModalProps> = ({ open
           <Typography variant="body2" color="text.secondary">
             After the 14-day grace period expires, eligible personal identifiers will be permanently deleted or anonymized according to platform retention policies.
           </Typography>
+
+          <TextField
+            label="Confirm Account Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            required
+          />
 
           <TextField
             label="Optional Feedback Reason"
@@ -79,11 +99,11 @@ export const AccountDeletionModal: React.FC<AccountDeletionModalProps> = ({ open
         <Button
           variant="contained"
           color="error"
-          disabled={confirmPhrase !== 'DELETE MY ACCOUNT'}
+          disabled={confirmPhrase !== 'DELETE MY ACCOUNT' || loading}
           onClick={handleConfirmDeletion}
           sx={{ borderRadius: '12px', fontWeight: 800 }}
         >
-          Confirm Account Deletion
+          {loading ? 'Scheduling Deletion...' : 'Confirm Account Deletion'}
         </Button>
       </DialogActions>
     </Dialog>

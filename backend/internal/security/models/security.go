@@ -24,6 +24,18 @@ type PasswordChangePayload struct {
 	NewPassword     string `json:"new_password" binding:"required"`
 }
 
+// PasswordPolicyResult detail policy evaluation result.
+type PasswordPolicyResult struct {
+	IsValid        bool     `json:"is_valid"`
+	Score          int      `json:"score"` // 0 - 100
+	Feedback       []string `json:"feedback"`
+	HasMinLength   bool     `json:"has_min_length"`
+	HasUppercase   bool     `json:"has_uppercase"`
+	HasLowercase   bool     `json:"has_lowercase"`
+	HasNumber      bool     `json:"has_number"`
+	HasSpecialChar bool     `json:"has_special_char"`
+}
+
 // MFASetupResponse returns TOTP setup QR code URI & secret.
 type MFASetupResponse struct {
 	Secret        string   `json:"secret"`
@@ -63,13 +75,13 @@ type DeviceItem struct {
 
 // LoginHistoryItem represents past login telemetry.
 type LoginHistoryItem struct {
-	ID          uuid.UUID `json:"id"`
-	EventType   string    `json:"event_type"`
-	Severity    string    `json:"severity"`
-	IPAddress   string    `json:"ip_address"`
-	UserAgent   string    `json:"user_agent"`
-	Location    string    `json:"location"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	EventType string    `json:"event_type"`
+	Severity  string    `json:"severity"`
+	IPAddress string    `json:"ip_address"`
+	UserAgent string    `json:"user_agent"`
+	Location  string    `json:"location"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // APIKey represents registered API credential.
@@ -99,15 +111,56 @@ type CreateAPIKeyResponse struct {
 
 // SecurityEvent audit record.
 type SecurityEvent struct {
-	ID        uuid.UUID `json:"id"`
+	ID        uuid.UUID  `json:"id"`
 	UserID    *uuid.UUID `json:"user_id,omitempty"`
-	EventType string    `json:"event_type"`
-	Severity  string    `json:"severity"`
-	IPAddress string    `json:"ip_address"`
-	UserAgent string    `json:"user_agent"`
-	Location  string    `json:"location"`
-	Details   string    `json:"details,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
+	EventType string     `json:"event_type"`
+	Severity  string     `json:"severity"`
+	IPAddress string     `json:"ip_address"`
+	UserAgent string     `json:"user_agent"`
+	Location  string     `json:"location"`
+	Details   string     `json:"details,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+// PrivacySettings represents user privacy preferences.
+type PrivacySettings struct {
+	UserID               uuid.UUID `json:"user_id"`
+	ProfileVisibility    string    `json:"profile_visibility"` // public, connections, private
+	DataSharingOptIn     bool      `json:"data_sharing_opt_in"`
+	AnalyticsOptIn       bool      `json:"analytics_opt_in"`
+	PersonalizationOptIn bool      `json:"personalization_opt_in"`
+	SearchEngineIndexing bool      `json:"search_engine_indexing"`
+	UpdatedAt            time.Time `json:"updated_at"`
+}
+
+// PrivacySettingsPayload payload for updating privacy settings.
+type PrivacySettingsPayload struct {
+	ProfileVisibility    string `json:"profile_visibility"`
+	DataSharingOptIn     bool   `json:"data_sharing_opt_in"`
+	AnalyticsOptIn       bool   `json:"analytics_opt_in"`
+	PersonalizationOptIn bool   `json:"personalization_opt_in"`
+	SearchEngineIndexing bool   `json:"search_engine_indexing"`
+}
+
+// DataExportRequest represents user data export process.
+type DataExportRequest struct {
+	ID          uuid.UUID  `json:"id"`
+	UserID      uuid.UUID  `json:"user_id"`
+	Status      string     `json:"status"` // pending, processing, completed, failed
+	ExportURL   string     `json:"export_url,omitempty"`
+	RequestedAt time.Time  `json:"requested_at"`
+	CompletedAt *time.Time `json:"completed_at,omitempty"`
+}
+
+// AccountDeletionRequest represents GDPR/privacy account deletion request.
+type AccountDeletionRequest struct {
+	ID              uuid.UUID `json:"id"`
+	UserID          uuid.UUID `json:"user_id"`
+	Reason          string    `json:"reason,omitempty"`
+	ConfirmPassword string    `json:"confirm_password,omitempty"`
+	ScheduledFor    time.Time `json:"scheduled_for"`
+	Status          string    `json:"status"` // pending, processing, completed, cancelled
+	RequestedAt     time.Time `json:"requested_at"`
 }
 
 // SecurityIncident represents admin incident lifecycle.
