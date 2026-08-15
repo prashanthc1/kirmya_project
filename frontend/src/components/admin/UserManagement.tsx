@@ -26,6 +26,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+
+import ImpersonationDialog from './ImpersonationDialog';
 
 export const UserManagement: React.FC = () => {
   const theme = useTheme();
@@ -41,6 +44,8 @@ export const UserManagement: React.FC = () => {
   const [actionReason, setActionReason] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'suspend' | 'unsuspend' | 'verify'>('suspend');
+
+  const [impersonateTarget, setImpersonateTarget] = useState<any | null>(null);
 
   const handleOpenAction = (user: any, type: 'suspend' | 'unsuspend' | 'verify') => {
     setSelectedUser(user);
@@ -130,6 +135,15 @@ export const UserManagement: React.FC = () => {
                   </TableCell>
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
+                      <Button
+                        size="small"
+                        color="secondary"
+                        startIcon={<SupervisorAccountIcon />}
+                        onClick={() => setImpersonateTarget(u)}
+                        sx={{ fontWeight: 800 }}
+                      >
+                        Impersonate
+                      </Button>
                       {u.status === 'Active' ? (
                         <Button
                           size="small"
@@ -203,6 +217,14 @@ export const UserManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {impersonateTarget && (
+        <ImpersonationDialog
+          open={Boolean(impersonateTarget)}
+          onClose={() => setImpersonateTarget(null)}
+          targetUser={{ id: impersonateTarget.id, name: impersonateTarget.fullName, email: impersonateTarget.email }}
+        />
+      )}
     </Box>
   );
 };

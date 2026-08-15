@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"kirmya/internal/admin/models"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,12 +13,56 @@ import (
 )
 
 type AdminRepository struct {
-	db *pgxpool.Pool
+	db             *pgxpool.Pool
+	mu             sync.RWMutex
+	userRoles      map[uuid.UUID][]string
+	jobs           map[uuid.UUID]*models.BackgroundJobItem
+	incidents      map[uuid.UUID]*models.IncidentItem
+	maintConfig    *models.MaintenanceModeConfig
+	impersonations map[uuid.UUID]*models.UserImpersonationSession
 }
 
 func NewAdminRepository(db *pgxpool.Pool) *AdminRepository {
-	return &AdminRepository{db: db}
+	repo := &AdminRepository{
+		db:             db,
+		userRoles:      make(map[uuid.UUID][]string),
+		jobs:           make(map[uuid.UUID]*models.BackgroundJobItem),
+		incidents:      make(map[uuid.UUID]*models.IncidentItem),
+		maintConfig:    &models.MaintenanceModeConfig{IsEnabled: false, UpdatedAt: time.Now()},
+		impersonations: make(map[uuid.UUID]*models.UserImpersonationSession),
+	}
+
+	// Initialize default mock background job
+	mockJobID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	repo.jobs[mockJobID] = &models.BackgroundJobItem{
+		ID:         mockJobID,
+		Name:       "email_digest_worker",
+		Queue:      "notifications",
+		Status:     "Failed",
+		RetryCount: 1,
+		MaxRetries: 3,
+		LastError:  "SMTP gateway timeout",
+		Payload:    map[string]interface{}{"batchSize": 100},
+		CreatedAt:  time.Now().Add(-1 * time.Hour),
+		UpdatedAt:  time.Now().Add(-1 * time.Hour),
+	}
+
+	// Initialize default mock incident
+	mockIncidentID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	repo.incidents[mockIncidentID] = &models.IncidentItem{
+		ID:          mockIncidentID,
+		Title:       "High API Latency on Search",
+		Description: "OpenSearch cluster node 2 reporting elevated query latency",
+		Severity:    "Major",
+		Status:      "Investigating",
+		CreatedBy:   uuid.New(),
+		CreatedAt:   time.Now().Add(-30 * time.Minute),
+		UpdatedAt:   time.Now().Add(-10 * time.Minute),
+	}
+
+	return repo
 }
+
 
 // CreateAuditLog inserts an immutable audit log record.
 func (r *AdminRepository) CreateAuditLog(ctx context.Context, l *models.AdminAuditLog) error {
@@ -78,9 +124,37 @@ func (r *AdminRepository) ListAuditLogs(ctx context.Context, queryStr string, ad
 // GetUserPermissions fetches all permission codes granted to an admin user through their roles.
 func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UUID) ([]string, error) {
 	if r.db == nil {
+		r.mu.RLock()
+		roles, exists := r.userRoles[userID]
+		r.mu.RUnlock()
+
+		if exists && len(roles) > 0 {
+			var perms []string
+			for _, role := range roles {
+				switch role {
+				case "super_admin":
+					return []string{"super_admin", "*"}, nil
+				case "platform_admin":
+					perms = append(perms, "users.read", "users.update", "system_settings.manage", "feature_flags.manage")
+				case "trust_safety_admin":
+					perms = append(perms, "reports.read", "reports.resolve", "moderation.review", "trust_safety.manage", "users.suspend")
+				case "content_moderator":
+					perms = append(perms, "jobs.read", "jobs.moderate", "reports.read", "reports.resolve", "moderation.review")
+				case "support_admin":
+					perms = append(perms, "users.read", "users.impersonate", "tickets.manage", "reports.read")
+				case "analytics_admin":
+					perms = append(perms, "analytics.read", "audit_logs.read", "metrics.read")
+				case "operations_admin":
+					perms = append(perms, "system_jobs.read", "system_jobs.retry", "incidents.manage", "maintenance.manage", "health.read")
+				}
+			}
+			return perms, nil
+		}
+
 		// Mock fallback for unit testing / development
 		return []string{
-			"users.read", "users.update", "users.suspend", "users.delete",
+			"super_admin", "*",
+			"users.read", "users.update", "users.suspend", "users.delete", "users.impersonate",
 			"companies.read", "companies.verify", "companies.suspend",
 			"recruiters.read", "recruiters.manage",
 			"jobs.read", "jobs.moderate", "jobs.approve", "jobs.remove",
@@ -88,6 +162,7 @@ func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UU
 			"reports.read", "reports.resolve", "moderation.review",
 			"trust_safety.manage", "audit_logs.read", "analytics.read",
 			"system_settings.manage", "notifications.manage",
+			"system_jobs.read", "system_jobs.retry", "incidents.manage", "maintenance.manage", "health.read",
 		}, nil
 	}
 
@@ -116,6 +191,11 @@ func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UU
 // GetUserRoles fetches role codes assigned to an admin user.
 func (r *AdminRepository) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]string, error) {
 	if r.db == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if roles, exists := r.userRoles[userID]; exists && len(roles) > 0 {
+			return roles, nil
+		}
 		return []string{"super_admin"}, nil
 	}
 
@@ -439,3 +519,221 @@ func (r *AdminRepository) UpsertFeatureFlag(ctx context.Context, flag *models.Fe
 	_, err := r.db.Exec(ctx, query, flag.ID, flag.Name, flag.Description, flag.IsEnabled, flag.Environment, flag.RolloutPercentage)
 	return err
 }
+
+// AssignUserRole assigns an administrative role to a user.
+func (r *AdminRepository) AssignUserRole(ctx context.Context, userID uuid.UUID, roleCode string) error {
+	r.mu.Lock()
+	r.userRoles[userID] = append(r.userRoles[userID], roleCode)
+	r.mu.Unlock()
+
+	if r.db != nil {
+		query := `INSERT INTO admin_user_roles (user_id, role_id)
+			SELECT $1, id FROM admin_roles WHERE code = $2
+			ON CONFLICT DO NOTHING`
+		_, err := r.db.Exec(ctx, query, userID, roleCode)
+		return err
+	}
+	return nil
+}
+
+// GetRoles lists all predefined administrative roles.
+func (r *AdminRepository) GetRoles(ctx context.Context) ([]models.AdminRole, error) {
+	if r.db == nil {
+		return []models.AdminRole{
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000001"), Code: "super_admin", Name: "Super Admin", Description: "Unrestricted platform control", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000002"), Code: "platform_admin", Name: "Platform Admin", Description: "Platform infrastructure & config management", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000003"), Code: "trust_safety_admin", Name: "Trust & Safety Admin", Description: "Trust & Safety policy enforcement and user risk management", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000004"), Code: "content_moderator", Name: "Content Moderator", Description: "Content review and moderation queue handling", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000005"), Code: "support_admin", Name: "Support Admin", Description: "Customer support, ticket management, and impersonation", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000006"), Code: "analytics_admin", Name: "Analytics Admin", Description: "Platform telemetry and reporting access", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			{ID: uuid.MustParse("10000000-0000-0000-0000-000000000007"), Code: "operations_admin", Name: "Operations Admin", Description: "Background jobs, incidents, and maintenance mode controls", IsSystem: true, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+		}, nil
+	}
+
+	query := `SELECT id, code, name, description, is_system, created_at, updated_at FROM admin_roles ORDER BY name ASC`
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var roles []models.AdminRole
+	for rows.Next() {
+		var role models.AdminRole
+		if err := rows.Scan(&role.ID, &role.Code, &role.Name, &role.Description, &role.IsSystem, &role.CreatedAt, &role.UpdatedAt); err == nil {
+			roles = append(roles, role)
+		}
+	}
+	return roles, nil
+}
+
+// LogAdminAction records an admin action audit log.
+func (r *AdminRepository) LogAdminAction(ctx context.Context, l *models.AdminAuditLog) error {
+	return r.CreateAuditLog(ctx, l)
+}
+
+// ListBackgroundJobs queries asynchronous worker background tasks.
+func (r *AdminRepository) ListBackgroundJobs(ctx context.Context, status string, queue string, limit int, offset int) ([]models.BackgroundJobItem, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var result []models.BackgroundJobItem
+	for _, job := range r.jobs {
+		if status != "" && !strings.EqualFold(job.Status, status) {
+			continue
+		}
+		if queue != "" && !strings.EqualFold(job.Queue, queue) {
+			continue
+		}
+		result = append(result, *job)
+	}
+	return result, nil
+}
+
+// GetBackgroundJobByID fetches a specific background job by ID.
+func (r *AdminRepository) GetBackgroundJobByID(ctx context.Context, id uuid.UUID) (*models.BackgroundJobItem, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	job, exists := r.jobs[id]
+	if !exists {
+		return nil, errors.New("background job not found")
+	}
+	return job, nil
+}
+
+// UpdateBackgroundJobStatus updates execution state and retry count of a background job.
+func (r *AdminRepository) UpdateBackgroundJobStatus(ctx context.Context, id uuid.UUID, status string, retryCount int, lastError string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	job, exists := r.jobs[id]
+	if !exists {
+		return errors.New("background job not found")
+	}
+	job.Status = status
+	job.RetryCount = retryCount
+	if lastError != "" {
+		job.LastError = lastError
+	}
+	job.UpdatedAt = time.Now()
+	return nil
+}
+
+// ListIncidents lists system operation incidents.
+func (r *AdminRepository) ListIncidents(ctx context.Context, status string, severity string, limit int, offset int) ([]models.IncidentItem, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var result []models.IncidentItem
+	for _, inc := range r.incidents {
+		if status != "" && !strings.EqualFold(inc.Status, status) {
+			continue
+		}
+		if severity != "" && !strings.EqualFold(inc.Severity, severity) {
+			continue
+		}
+		result = append(result, *inc)
+	}
+	return result, nil
+}
+
+// GetIncidentByID retrieves an incident by ID.
+func (r *AdminRepository) GetIncidentByID(ctx context.Context, id uuid.UUID) (*models.IncidentItem, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	inc, exists := r.incidents[id]
+	if !exists {
+		return nil, errors.New("incident not found")
+	}
+	return inc, nil
+}
+
+// CreateIncident logs a new platform operational incident.
+func (r *AdminRepository) CreateIncident(ctx context.Context, incident *models.IncidentItem) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if incident.ID == uuid.Nil {
+		incident.ID = uuid.New()
+	}
+	incident.CreatedAt = time.Now()
+	incident.UpdatedAt = time.Now()
+	r.incidents[incident.ID] = incident
+	return nil
+}
+
+// UpdateIncident updates incident resolution status.
+func (r *AdminRepository) UpdateIncident(ctx context.Context, id uuid.UUID, status string, resolvedAt *time.Time) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	inc, exists := r.incidents[id]
+	if !exists {
+		return errors.New("incident not found")
+	}
+	inc.Status = status
+	if resolvedAt != nil {
+		inc.ResolvedAt = resolvedAt
+	}
+	inc.UpdatedAt = time.Now()
+	return nil
+}
+
+// GetMaintenanceModeConfig retrieves current platform maintenance configuration.
+func (r *AdminRepository) GetMaintenanceModeConfig(ctx context.Context) (*models.MaintenanceModeConfig, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return r.maintConfig, nil
+}
+
+// UpdateMaintenanceModeConfig modifies maintenance mode settings.
+func (r *AdminRepository) UpdateMaintenanceModeConfig(ctx context.Context, cfg *models.MaintenanceModeConfig) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	cfg.UpdatedAt = time.Now()
+	r.maintConfig = cfg
+	return nil
+}
+
+// CreateImpersonationSession creates a user support impersonation session.
+func (r *AdminRepository) CreateImpersonationSession(ctx context.Context, session *models.UserImpersonationSession) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if session.ID == uuid.Nil {
+		session.ID = uuid.New()
+	}
+	session.CreatedAt = time.Now()
+	r.impersonations[session.ID] = session
+	return nil
+}
+
+// GetImpersonationSession returns an active impersonation session by ID.
+func (r *AdminRepository) GetImpersonationSession(ctx context.Context, id uuid.UUID) (*models.UserImpersonationSession, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	sess, exists := r.impersonations[id]
+	if !exists {
+		return nil, errors.New("impersonation session not found")
+	}
+	return sess, nil
+}
+
+// RevokeImpersonationSession deactivates an active support impersonation token.
+func (r *AdminRepository) RevokeImpersonationSession(ctx context.Context, id uuid.UUID) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	sess, exists := r.impersonations[id]
+	if !exists {
+		return errors.New("impersonation session not found")
+	}
+	sess.IsActive = false
+	return nil
+}
+

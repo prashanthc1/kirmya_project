@@ -130,6 +130,69 @@ export interface FeatureFlagDTO {
   updatedAt: string;
 }
 
+export interface BackgroundJobDTO {
+  id: string;
+  name: string;
+  queue: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'retrying';
+  payload?: Record<string, any>;
+  attempts: number;
+  maxAttempts: number;
+  failedReason?: string;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+}
+
+export interface IncidentUpdateDTO {
+  id: string;
+  status: 'Open' | 'Investigating' | 'Mitigated' | 'Resolved';
+  message: string;
+  createdAt: string;
+  author: string;
+}
+
+export interface IncidentDTO {
+  id: string;
+  title: string;
+  description: string;
+  status: 'Open' | 'Investigating' | 'Mitigated' | 'Resolved';
+  severity: 'Critical' | 'Major' | 'Minor';
+  affectedServices: string[];
+  updates: IncidentUpdateDTO[];
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+}
+
+export interface MaintenanceModeConfigDTO {
+  enabled: boolean;
+  message: string;
+  allowedIpAddresses: string[];
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  bypassToken?: string;
+  updatedBy?: string;
+  updatedAt: string;
+}
+
+export interface UserImpersonationSessionDTO {
+  id: string;
+  adminId: string;
+  targetUserId: string;
+  targetUserEmail: string;
+  reason: string;
+  status: 'active' | 'expired' | 'terminated';
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface SupportImpersonationRequestDTO {
+  targetUserId: string;
+  reason: string;
+  durationMinutes: number;
+}
+
 export interface AdminDashboardStatsDTO {
   totalUsers: number;
   activeUsers: number;

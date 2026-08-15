@@ -50,11 +50,40 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 		admin.POST("/verifications/:id/approve", handler.UpdateCompanyStatus)
 		admin.POST("/verifications/:id/reject", handler.UpdateCompanyStatus)
 
+		// System Operations & Background Jobs
+		admin.GET("/system/jobs", handler.ListBackgroundJobs)
+		admin.GET("/system/jobs/:id", handler.GetBackgroundJobByID)
+		admin.POST("/system/jobs/:id/retry", handler.RetryBackgroundJob)
+
+		// Operational Incidents
+		admin.GET("/incidents", handler.ListIncidents)
+		admin.GET("/incidents/:id", handler.GetIncidentByID)
+		admin.POST("/incidents", handler.CreateIncident)
+		admin.PUT("/incidents/:id", handler.UpdateIncident)
+
+		// Maintenance Mode
+		admin.GET("/maintenance", handler.GetMaintenanceMode)
+		admin.PUT("/maintenance", handler.UpdateMaintenanceMode)
+
+		// Roles & Permissions & Impersonation
+		admin.GET("/roles", handler.ListRoles)
+		admin.POST("/roles/assign", handler.AssignUserRole)
+		admin.POST("/users/:id/role", handler.AssignUserRole)
+		admin.POST("/users/:id/impersonate", handler.CreateImpersonationSession)
+		admin.POST("/impersonation/:id/revoke", handler.RevokeImpersonationSession)
+
+		// System Settings & Feature Flags & Announcements
+		admin.GET("/settings", handler.GetSystemSettings)
+		admin.GET("/feature-flags", handler.ListFeatureFlags)
+		admin.POST("/feature-flags", handler.CreateFeatureFlag)
+		admin.PUT("/feature-flags/:id", handler.UpdateFeatureFlag)
+		admin.POST("/announcements", handler.CreateAnnouncement)
+
 		// Analytics, Observability & Logs
 		admin.GET("/analytics", handler.GetDashboard)
 		admin.GET("/audit-logs", handler.ListAuditLogs)
 		admin.GET("/security-events", handler.ListSecurityEvents)
-		admin.GET("/system/health", handler.GetDashboard)
+		admin.GET("/system/health", handler.GetSystemHealth)
 
 		admin.GET("/observability", handler.GetObservabilitySummary)
 		admin.GET("/observability/health", handler.GetObservabilityHealth)
@@ -62,13 +91,5 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 		admin.GET("/observability/errors", handler.GetObservabilityErrors)
 		admin.GET("/observability/incidents", handler.GetObservabilityIncidents)
 		admin.GET("/observability/dependencies", handler.GetObservabilityHealth)
-
-		// System Settings & Feature Flags & Announcements
-		admin.GET("/settings", handler.GetSystemSettings)
-		admin.GET("/feature-flags", handler.ListFeatureFlags)
-		admin.POST("/feature-flags", handler.UpdateFeatureFlag)
-		admin.PUT("/feature-flags/:id", handler.UpdateFeatureFlag)
-		admin.POST("/announcements", handler.CreateAnnouncement)
-		admin.GET("/roles", handler.ListUsers)
 	}
 }

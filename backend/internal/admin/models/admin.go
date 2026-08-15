@@ -236,3 +236,95 @@ type CreateAnnouncementPayload struct {
 	Channels []string `json:"channels"`
 }
 
+// BackgroundJobItem defines asynchronous worker system tasks.
+type BackgroundJobItem struct {
+	ID         uuid.UUID              `json:"id"`
+	Name       string                 `json:"name"`
+	Queue      string                 `json:"queue"`
+	Status     string                 `json:"status"` // Running, Queued, Failed, Completed
+	RetryCount int                    `json:"retryCount"`
+	MaxRetries int                    `json:"maxRetries"`
+	LastError  string                 `json:"lastError,omitempty"`
+	Payload    map[string]interface{} `json:"payload,omitempty"`
+	CreatedAt  time.Time              `json:"createdAt"`
+	UpdatedAt  time.Time              `json:"updatedAt"`
+}
+
+// IncidentItem defines operational platform incidents.
+type IncidentItem struct {
+	ID          uuid.UUID  `json:"id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Severity    string     `json:"severity"` // Critical, Major, Minor, Low
+	Status      string     `json:"status"`   // Open, Investigating, Mitigated, Resolved
+	CreatedBy   uuid.UUID  `json:"createdBy"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	ResolvedAt  *time.Time `json:"resolvedAt,omitempty"`
+}
+
+// MaintenanceModeConfig defines system maintenance settings.
+type MaintenanceModeConfig struct {
+	IsEnabled   bool       `json:"isEnabled"`
+	ScheduledAt *time.Time `json:"scheduledAt,omitempty"`
+	Reason      string     `json:"reason,omitempty"`
+	EnabledBy   *uuid.UUID `json:"enabledBy,omitempty"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+}
+
+// UserImpersonationSession tracks support impersonation sessions.
+type UserImpersonationSession struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"userId"`
+	AdminID   uuid.UUID `json:"adminId"`
+	Reason    string    `json:"reason"`
+	Token     string    `json:"token,omitempty"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	IsActive  bool      `json:"isActive"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// DTO Payload definitions
+
+type CreateFeatureFlagPayload struct {
+	Name              string `json:"name" binding:"required"`
+	Description       string `json:"description"`
+	IsEnabled         bool   `json:"isEnabled"`
+	Environment       string `json:"environment"`
+	RolloutPercentage int    `json:"rolloutPercentage"`
+}
+
+type AssignUserRolePayload struct {
+	UserID   uuid.UUID `json:"userId" binding:"required"`
+	RoleCode string    `json:"roleCode" binding:"required"`
+	Reason   string    `json:"reason"`
+}
+
+type SupportImpersonationRequest struct {
+	UserID uuid.UUID `json:"userId" binding:"required"`
+	Reason string    `json:"reason" binding:"required"`
+}
+
+type UpdateMaintenanceModePayload struct {
+	IsEnabled   bool       `json:"isEnabled"`
+	Reason      string     `json:"reason" binding:"required"`
+	ScheduledAt *time.Time `json:"scheduledAt,omitempty"`
+}
+
+type RetryBackgroundJobPayload struct {
+	JobID  uuid.UUID `json:"jobId" binding:"required"`
+	Reason string    `json:"reason"`
+}
+
+type CreateIncidentPayload struct {
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	Severity    string `json:"severity" binding:"required"`
+}
+
+type UpdateIncidentPayload struct {
+	Status          string `json:"status" binding:"required"`
+	ResolutionNotes string `json:"resolutionNotes"`
+}
+
+
