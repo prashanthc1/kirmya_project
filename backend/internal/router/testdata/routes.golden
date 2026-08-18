@@ -175,8 +175,6 @@ GET /api/v1/company/analytics/applications
 GET /api/v1/company/analytics/candidates
 GET /api/v1/company/analytics/jobs
 GET /api/v1/company/analytics/overview
-GET /api/v1/compliance/consent
-GET /api/v1/compliance/requests
 GET /api/v1/documents
 GET /api/v1/employer/analytics
 GET /api/v1/employer/company
@@ -419,9 +417,6 @@ POST /api/v1/companies/follow
 POST /api/v1/companies/invitations/:token/accept
 POST /api/v1/companies/invitations/:token/decline
 POST /api/v1/companies/save
-POST /api/v1/compliance/consent
-POST /api/v1/compliance/delete-account
-POST /api/v1/compliance/export
 POST /api/v1/documents/upload
 POST /api/v1/education
 POST /api/v1/employer/export

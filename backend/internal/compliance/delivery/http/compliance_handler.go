@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"kirmya/internal/compliance/domain"
@@ -11,11 +12,15 @@ import (
 )
 
 type ComplianceHandler struct {
-	svc service.ComplianceService
+	svc          service.ComplianceService
+	AdminHandler *AdminComplianceHandler
 }
 
 func NewComplianceHandler(svc service.ComplianceService) *ComplianceHandler {
-	return &ComplianceHandler{svc: svc}
+	return &ComplianceHandler{
+		svc:          svc,
+		AdminHandler: NewAdminComplianceHandler(svc),
+	}
 }
 
 // UpdateConsent handles POST /compliance/consent
@@ -63,11 +68,33 @@ func (h *ComplianceHandler) RequestDataExport(c *gin.Context) {
 	})
 }
 
+// DownloadDataExport handles GET /compliance/export/download
+func (h *ComplianceHandler) DownloadDataExport(c *gin.Context) {
+	userID := h.getUserID(c)
+	pkg, err := h.svc.GenerateDataExportPackage(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "GDPR Data Export Package retrieved successfully",
+		"data":    pkg,
+	})
+}
+
 // RequestAccountDeletion handles POST /compliance/delete-account
 func (h *ComplianceHandler) RequestAccountDeletion(c *gin.Context) {
 	userID := h.getUserID(c)
 	req, err := h.svc.RequestAccountDeletion(c.Request.Context(), userID)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserUnderLegalHold) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error":   "ACCOUNT_DELETION_BLOCKED",
+				"message": err.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -87,6 +114,37 @@ func (h *ComplianceHandler) GetUserDataRequests(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": reqs, "count": len(reqs)})
+}
+
+// CreateUserRequest handles POST /compliance/requests
+func (h *ComplianceHandler) CreateUserRequest(c *gin.Context) {
+	var payload domain.CreateDataRequestPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
+		return
+	}
+
+	userID := h.getUserID(c)
+	if payload.RequestType == domain.RequestTypeDeletion {
+		req, err := h.svc.RequestAccountDeletion(c.Request.Context(), userID)
+		if err != nil {
+			if errors.Is(err, domain.ErrUserUnderLegalHold) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "ACCOUNT_DELETION_BLOCKED", "message": err.Error()})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, gin.H{"message": "Deletion request created", "data": req})
+		return
+	}
+
+	req, err := h.svc.RequestDataExport(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"message": "Data request created", "data": req})
 }
 
 func (h *ComplianceHandler) getUserID(c *gin.Context) uuid.UUID {
