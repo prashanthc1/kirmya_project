@@ -186,3 +186,98 @@ type SecurityDashboardSummary struct {
 	ActiveIncidents      int64            `json:"active_incidents"`
 	EventsByType         map[string]int64 `json:"events_by_type"`
 }
+
+// SecurityEventDetail represents extended telemetry with trace correlation ID.
+type SecurityEventDetail struct {
+	ID            uuid.UUID              `json:"id"`
+	CorrelationID string                 `json:"correlation_id"`
+	ActorID       string                 `json:"actor_id"`
+	TargetEntity  string                 `json:"target_entity"`
+	RiskLevel     string                 `json:"risk_level"`
+	RiskScore     int                    `json:"risk_score"`
+	SafeDetails   map[string]interface{} `json:"safe_details"`
+	CreatedAt     time.Time              `json:"created_at"`
+}
+
+// SecurityAlert represents a SOC threat alert record.
+type SecurityAlert struct {
+	ID              uuid.UUID  `json:"id"`
+	Title           string     `json:"title"`
+	Severity        string     `json:"severity"` // Informational, Low, Medium, High, Critical
+	RiskScore       int        `json:"risk_score"`
+	Category        string     `json:"category"`
+	TriggerEvent    string     `json:"trigger_event"`
+	Status          string     `json:"status"` // New, Investigating, Mitigated, Resolved, False Positive, Escalated
+	AssignedAdminID *uuid.UUID `json:"assigned_admin_id,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
+	ResolvedAt      *time.Time `json:"resolved_at,omitempty"`
+	ResolutionNotes string     `json:"resolution_notes,omitempty"`
+}
+
+// SecurityRule represents real-time dynamic traffic enforcement rule.
+type SecurityRule struct {
+	RuleID             string    `json:"rule_id"`
+	Name               string    `json:"name"`
+	Category           string    `json:"category"`
+	ThresholdCount     int       `json:"threshold_count"`
+	TimeWindowSeconds int       `json:"time_window_seconds"`
+	Action             string    `json:"action"` // log, rate_limit, require_mfa, temporary_restrict, block
+	IsEnabled          bool      `json:"is_enabled"`
+	UpdatedBy          string    `json:"updated_by"`
+	UpdatedAt          time.Time `json:"updated_at"`
+}
+
+// AccountRiskScore represents user risk score (0-100) and factors.
+type AccountRiskScore struct {
+	UserID          uuid.UUID `json:"user_id"`
+	Score           int       `json:"score"`      // 0 - 100
+	RiskLevel       string    `json:"risk_level"` // Normal, Low, Medium, High, Critical
+	Factors         []string  `json:"factors"`
+	LastEvaluatedAt time.Time `json:"last_evaluated_at"`
+}
+
+// BotDetectionSignal represents bot detection analysis.
+type BotDetectionSignal struct {
+	ID                 uuid.UUID `json:"id"`
+	IPAddress          string    `json:"ip_address"`
+	UserAgent          string    `json:"user_agent"`
+	BurstRate          int       `json:"burst_rate"`
+	EndpointPattern    string    `json:"endpoint_pattern"`
+	BotConfidenceScore int       `json:"bot_confidence_score"` // 0 - 100
+	IsBot              bool      `json:"is_bot"`
+	CreatedAt          time.Time `json:"created_at"`
+}
+
+// FraudAlert represents detected fraud incident.
+type FraudAlert struct {
+	ID         uuid.UUID `json:"id"`
+	EntityType string    `json:"entity_type"` // user, job_posting, application, message
+	EntityID   string    `json:"entity_id"`
+	FraudType  string    `json:"fraud_type"`  // fake_job, mass_application, spam_messaging, registration_burst
+	Score      int       `json:"score"`
+	Reasons    []string  `json:"reasons"`
+	Status     string    `json:"status"` // New, Investigating, Mitigated, Resolved, False Positive
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// UpdateSecurityRulePayload payload for updating a security rule.
+type UpdateSecurityRulePayload struct {
+	ThresholdCount     *int    `json:"threshold_count,omitempty"`
+	TimeWindowSeconds *int    `json:"time_window_seconds,omitempty"`
+	Action             *string `json:"action,omitempty"`
+	IsEnabled          *bool   `json:"is_enabled,omitempty"`
+}
+
+// UpdateSecurityAlertPayload payload for updating an alert.
+type UpdateSecurityAlertPayload struct {
+	Status          *string    `json:"status,omitempty"`
+	AssignedAdminID *uuid.UUID `json:"assigned_admin_id,omitempty"`
+	ResolutionNotes *string    `json:"resolution_notes,omitempty"`
+}
+
+// ResolveAlertPayload payload for resolving an alert.
+type ResolveAlertPayload struct {
+	ResolutionNotes string `json:"resolution_notes" binding:"required"`
+	Status          string `json:"status"` // Resolved or False Positive
+}
+

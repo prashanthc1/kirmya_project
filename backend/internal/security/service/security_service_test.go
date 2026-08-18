@@ -276,4 +276,170 @@ func TestSecurityService(t *testing.T) {
 			t.Errorf("invalid total events count: %d", summary.TotalEvents)
 		}
 	})
+
+	t.Run("LogSecurityEvent generates correlation ID and redacts sensitive fields", func(t *testing.T) {
+		userID := uuid.New()
+		details := map[string]interface{}{
+			"user_email":       "test@kirmya.com",
+			"current_password": "supersecretpassword123",
+			"access_token":     "Bearer eyJhbGci...",
+			"credit_card":      "4111111111111111",
+		}
+
+		detail, err := svc.LogSecurityEvent(ctx, &userID, "login.failure", "auto", "192.168.1.100", "Mozilla/5.0", "Dubai", details)
+		if err != nil {
+			t.Fatalf("unexpected error logging security event: %v", err)
+		}
+
+		if detail.CorrelationID == "" || len(detail.CorrelationID) < 10 {
+			t.Errorf("expected non-empty correlation ID, got %s", detail.CorrelationID)
+		}
+		if detail.RiskLevel != "High" {
+			t.Errorf("expected computed severity 'High' for login.failure, got %s", detail.RiskLevel)
+		}
+		if detail.SafeDetails["current_password"] != "***REDACTED***" {
+			t.Errorf("expected current_password to be redacted, got %v", detail.SafeDetails["current_password"])
+		}
+		if detail.SafeDetails["access_token"] != "***REDACTED***" {
+			t.Errorf("expected access_token to be redacted, got %v", detail.SafeDetails["access_token"])
+		}
+		if detail.SafeDetails["credit_card"] != "***REDACTED***" {
+			t.Errorf("expected credit_card to be redacted, got %v", detail.SafeDetails["credit_card"])
+		}
+		if detail.SafeDetails["user_email"] != "test@kirmya.com" {
+			t.Errorf("expected non-sensitive field user_email to be preserved, got %v", detail.SafeDetails["user_email"])
+		}
+	})
+
+	t.Run("EvaluateAccountRisk computes score and triggers alert when score > 50", func(t *testing.T) {
+		userID := uuid.New()
+		// Low risk test
+		lowScore, err := svc.EvaluateAccountRisk(ctx, userID, 1, 0, 0, 0, false)
+		if err != nil {
+			t.Fatalf("unexpected risk scoring error: %v", err)
+		}
+		if lowScore.Score != 15 || lowScore.RiskLevel != "Normal" {
+			t.Errorf("expected score 15 Normal, got score=%d level=%s", lowScore.Score, lowScore.RiskLevel)
+		}
+
+		// High risk test (> 50)
+		highScore, err := svc.EvaluateAccountRisk(ctx, userID, 3, 1, 1, 1, true)
+		if err != nil {
+			t.Fatalf("unexpected risk scoring error: %v", err)
+		}
+		// 3*15 + 1*20 + 1*25 + 1*30 + 35 = 45+20+25+30+35 = 155 -> capped at 100
+		if highScore.Score != 100 || highScore.RiskLevel != "Critical" {
+			t.Errorf("expected score 100 Critical, got score=%d level=%s", highScore.Score, highScore.RiskLevel)
+		}
+		if len(highScore.Factors) == 0 {
+			t.Error("expected non-empty risk factors")
+		}
+
+		// Verify that a SecurityAlert was created
+		alerts, err := svc.GetSecurityAlerts(ctx, "New", "")
+		if err != nil {
+			t.Fatalf("unexpected error getting alerts: %v", err)
+		}
+		if len(alerts) == 0 {
+			t.Error("expected automated SecurityAlert when risk score > 50")
+		}
+	})
+
+	t.Run("EvaluateSecurityRules enforces rule thresholds", func(t *testing.T) {
+		triggered, action, err := svc.EvaluateSecurityRules(ctx, "login_failure_threshold", 6, 300)
+		if err != nil {
+			t.Fatalf("unexpected error evaluating security rule: %v", err)
+		}
+		if !triggered {
+			t.Error("expected rule to trigger when candidate count (6) >= threshold (5)")
+		}
+		if action != "temporary_restrict" {
+			t.Errorf("expected action 'temporary_restrict', got %s", action)
+		}
+
+		triggered, _, _ = svc.EvaluateSecurityRules(ctx, "login_failure_threshold", 2, 300)
+		if triggered {
+			t.Error("expected rule NOT to trigger when count (2) < threshold (5)")
+		}
+	})
+
+	t.Run("DetectBotActivity computes confidence score and flags bot traffic", func(t *testing.T) {
+		signal, err := svc.DetectBotActivity(ctx, "10.0.0.99", "Mozilla/5.0 (compatible; Python-urllib/3.8; Headless)", 35, "/api/v1/auth/register")
+		if err != nil {
+			t.Fatalf("unexpected error detecting bot activity: %v", err)
+		}
+		if !signal.IsBot {
+			t.Errorf("expected IsBot=true for headless python crawler with burst rate 35, got score=%d", signal.BotConfidenceScore)
+		}
+		if signal.BotConfidenceScore < 60 {
+			t.Errorf("expected high bot confidence score, got %d", signal.BotConfidenceScore)
+		}
+
+		signals, err := svc.GetBotSignals(ctx)
+		if err != nil || len(signals) == 0 {
+			t.Error("expected logged bot signals")
+		}
+	})
+
+	t.Run("DetectFraud flags fake jobs and mass application abuse", func(t *testing.T) {
+		fraudAlert, err := svc.DetectFraud(ctx, "job_posting", "job-999", "fake_job", map[string]interface{}{
+			"salary":           600000.0,
+			"suspicious_links": true,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error detecting fraud: %v", err)
+		}
+		if fraudAlert.Score < 80 {
+			t.Errorf("expected high fraud score for fake job posting, got %d", fraudAlert.Score)
+		}
+		if len(fraudAlert.Reasons) < 2 {
+			t.Errorf("expected multiple fraud reasons, got %v", fraudAlert.Reasons)
+		}
+
+		fraudAlerts, err := svc.GetFraudAlerts(ctx)
+		if err != nil || len(fraudAlerts) == 0 {
+			t.Error("expected logged fraud alerts")
+		}
+	})
+
+	t.Run("Alert lifecycle transitions and resolution", func(t *testing.T) {
+		userID := uuid.New()
+
+		// Trigger an alert via account risk
+		_, _ = svc.EvaluateAccountRisk(ctx, userID, 4, 1, 0, 0, false)
+
+		alerts, err := svc.GetSecurityAlerts(ctx, "New", "")
+		if err != nil || len(alerts) == 0 {
+			t.Fatalf("expected active alerts to test transitions")
+		}
+
+		targetAlert := alerts[0]
+
+		// Transition to Investigating
+		investigating := "Investigating"
+		adminID := uuid.New()
+		updated, err := svc.UpdateSecurityAlertStatus(ctx, targetAlert.ID, models.UpdateSecurityAlertPayload{
+			Status:          &investigating,
+			AssignedAdminID: &adminID,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error updating alert status: %v", err)
+		}
+		if updated.Status != "Investigating" || updated.AssignedAdminID == nil {
+			t.Errorf("alert status mismatch: %+v", updated)
+		}
+
+		// Resolve alert
+		resolved, err := svc.ResolveSecurityAlert(ctx, targetAlert.ID, models.ResolveAlertPayload{
+			ResolutionNotes: "Triaged by SOC team. User verified identity.",
+			Status:          "Resolved",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error resolving alert: %v", err)
+		}
+		if resolved.Status != "Resolved" || resolved.ResolvedAt == nil || resolved.ResolutionNotes == "" {
+			t.Errorf("resolved alert mismatch: %+v", resolved)
+		}
+	})
 }
+

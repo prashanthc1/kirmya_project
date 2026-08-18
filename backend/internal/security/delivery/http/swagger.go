@@ -126,7 +126,116 @@ func swaggerRequestDataExport() {}
 // @Router       /api/v1/privacy/delete-account [post]
 func swaggerRequestAccountDeletion() {}
 
+// @Summary      Get Account Risk Score
+// @Description  Returns user's dynamic risk score (0-100), risk level, and contributing risk factors.
+// @Tags         Security
+// @Produce      json
+// @Success      200  {object}  models.AccountRiskScore
+// @Security     BearerAuth
+// @Router       /api/v1/security/risk-score [get]
+func swaggerGetAccountRiskScore() {}
+
+// @Summary      Get Security Alerts List
+// @Description  Returns SOC security alerts filtered by status and severity.
+// @Tags         Admin Security
+// @Produce      json
+// @Param        status    query    string  false  "Alert status filter (New, Investigating, Mitigated, Resolved, False Positive, Escalated)"
+// @Param        severity  query    string  false  "Alert severity filter (Informational, Low, Medium, High, Critical)"
+// @Success      200       {array}   models.SecurityAlert
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/alerts [get]
+func swaggerGetSecurityAlerts() {}
+
+// @Summary      Get Security Alert Details
+// @Description  Returns a specific security alert by UUID.
+// @Tags         Admin Security
+// @Produce      json
+// @Param        id   path      string  true  "Alert ID (UUID)"
+// @Success      200  {object}  models.SecurityAlert
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/alerts/{id} [get]
+func swaggerGetSecurityAlertByID() {}
+
+// @Summary      Update Security Alert Status
+// @Description  Updates alert status, assigned admin, and resolution notes.
+// @Tags         Admin Security
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                            true  "Alert ID (UUID)"
+// @Param        request  body      models.UpdateSecurityAlertPayload  true  "Alert update payload"
+// @Success      200      {object}  models.SecurityAlert
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/alerts/{id} [put]
+func swaggerUpdateSecurityAlert() {}
+
+// @Summary      Resolve Security Alert
+// @Description  Resolves a security alert with mandatory resolution notes and status (Resolved or False Positive).
+// @Tags         Admin Security
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                     true  "Alert ID (UUID)"
+// @Param        request  body      models.ResolveAlertPayload  true  "Resolve alert payload"
+// @Success      200      {object}  models.SecurityAlert
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/alerts/{id}/resolve [post]
+func swaggerResolveSecurityAlert() {}
+
+// @Summary      Get Security Rules
+// @Description  Returns list of real-time security rules engine configurations.
+// @Tags         Admin Security
+// @Produce      json
+// @Success      200  {array}   models.SecurityRule
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/rules [get]
+func swaggerGetSecurityRules() {}
+
+// @Summary      Update Security Rule
+// @Description  Updates threshold, time window, action, or status for a security rule.
+// @Tags         Admin Security
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                           true  "Rule ID"
+// @Param        request  body      models.UpdateSecurityRulePayload  true  "Rule update payload"
+// @Success      200      {object}  models.SecurityRule
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/rules/{id} [put]
+func swaggerUpdateSecurityRule() {}
+
+// @Summary      Get Bot Detection Signals
+// @Description  Returns list of logged bot activity detection signals.
+// @Tags         Admin Security
+// @Produce      json
+// @Success      200  {array}   models.BotDetectionSignal
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/bot-signals [get]
+func swaggerGetBotSignals() {}
+
+// @Summary      Get Fraud Alerts
+// @Description  Returns list of logged fraud detection alerts across job postings, messages, applications, and accounts.
+// @Tags         Admin Security
+// @Produce      json
+// @Success      200  {array}   models.FraudAlert
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/fraud-alerts [get]
+func swaggerGetFraudAlerts() {}
+
+// @Summary      Get Account Risk Scores
+// @Description  Returns risk score evaluations across all platform accounts.
+// @Tags         Admin Security
+// @Produce      json
+// @Success      200  {array}   models.AccountRiskScore
+// @Security     BearerAuth
+// @Router       /api/v1/admin/security/risk-scores [get]
+func swaggerGetAccountRiskScores() {}
+
 var (
 	_ models.SecurityOverview
+	_ models.SecurityAlert
+	_ models.SecurityRule
+	_ models.AccountRiskScore
+	_ models.BotDetectionSignal
+	_ models.FraudAlert
 	_ swagger.ErrorResponse
 )
+

@@ -107,7 +107,7 @@ export const SecurityCenter: React.FC<SecurityCenterProps> = ({ initialTab = 0 }
             Security & Identity Protection Center
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            Manage your authentication credentials, multi-factor authentication, active sessions, trusted devices, and API tokens.
+            Manage your credentials, multi-factor authentication, active sessions, trusted devices, and API tokens.
           </Typography>
         </Box>
       </Stack>
@@ -187,7 +187,7 @@ export const SecurityCenter: React.FC<SecurityCenterProps> = ({ initialTab = 0 }
                 </Button>
               }
             >
-              Protect your candidate profile and company credentials by enabling Two-Factor Authentication (TOTP).
+              Protect your profile and company credentials by enabling Two-Factor Authentication (TOTP).
             </Alert>
           )}
 

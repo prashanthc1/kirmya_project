@@ -27,6 +27,7 @@ func RegisterSecurityRoutes(router *gin.RouterGroup, handler *SecurityHandler) {
 		security.POST("/api-keys", handler.CreateAPIKey)
 		security.DELETE("/api-keys/:id", handler.RevokeAPIKey)
 		security.GET("/events", handler.GetSecurityEvents)
+		security.GET("/risk-score", handler.GetAccountRiskScore)
 	}
 
 	privacy := router.Group("/privacy")
@@ -54,5 +55,14 @@ func RegisterAdminSecurityRoutes(router *gin.RouterGroup, handler *AdminSecurity
 		adminSecurity.PUT("/incidents/:id", handler.UpdateSecurityIncident)
 		adminSecurity.GET("/settings", handler.GetSecuritySettings)
 		adminSecurity.PUT("/settings", handler.UpdateSecuritySettings)
+		adminSecurity.GET("/alerts", handler.GetSecurityAlerts)
+		adminSecurity.GET("/alerts/:id", handler.GetSecurityAlertByID)
+		adminSecurity.PUT("/alerts/:id", handler.UpdateSecurityAlert)
+		adminSecurity.POST("/alerts/:id/resolve", handler.ResolveSecurityAlert)
+		adminSecurity.GET("/rules", handler.GetSecurityRules)
+		adminSecurity.PUT("/rules/:id", handler.UpdateSecurityRule)
+		adminSecurity.GET("/bot-signals", handler.GetBotSignals)
+		adminSecurity.GET("/fraud-alerts", handler.GetFraudAlerts)
+		adminSecurity.GET("/risk-scores", handler.GetAccountRiskScores)
 	}
 }

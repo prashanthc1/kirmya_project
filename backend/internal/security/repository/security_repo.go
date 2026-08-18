@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -56,6 +57,31 @@ type SecurityRepository interface {
 	GetAdminSecuritySummary(ctx context.Context) (*models.SecurityDashboardSummary, error)
 	GetSecurityIncidents(ctx context.Context) ([]models.SecurityIncident, error)
 	CreateSecurityIncident(ctx context.Context, incident *models.SecurityIncident) error
+
+	// Security Alerts & SOC Operations
+	GetSecurityAlerts(ctx context.Context, status string, severity string) ([]models.SecurityAlert, error)
+	GetSecurityAlertByID(ctx context.Context, alertID uuid.UUID) (*models.SecurityAlert, error)
+	CreateSecurityAlert(ctx context.Context, alert *models.SecurityAlert) error
+	UpdateSecurityAlert(ctx context.Context, alert *models.SecurityAlert) error
+
+	// Security Rules Engine
+	GetSecurityRules(ctx context.Context) ([]models.SecurityRule, error)
+	GetSecurityRuleByID(ctx context.Context, ruleID string) (*models.SecurityRule, error)
+	UpdateSecurityRule(ctx context.Context, rule *models.SecurityRule) error
+
+	// Account Risk Scoring
+	GetAccountRiskScore(ctx context.Context, userID uuid.UUID) (*models.AccountRiskScore, error)
+	GetAccountRiskScores(ctx context.Context) ([]models.AccountRiskScore, error)
+	UpdateAccountRiskScore(ctx context.Context, score *models.AccountRiskScore) error
+
+	// Bot & Fraud Detection Signals
+	LogBotSignal(ctx context.Context, signal *models.BotDetectionSignal) error
+	GetBotSignals(ctx context.Context) ([]models.BotDetectionSignal, error)
+	LogFraudAlert(ctx context.Context, alert *models.FraudAlert) error
+	GetFraudAlerts(ctx context.Context) ([]models.FraudAlert, error)
+
+	// Event Telemetry Detail
+	LogSecurityEventDetail(ctx context.Context, detail *models.SecurityEventDetail) error
 }
 
 type securityRepository struct {
@@ -75,9 +101,25 @@ type securityRepository struct {
 	memPrivacy        map[uuid.UUID]*models.PrivacySettings
 	memDataExports    map[uuid.UUID][]models.DataExportRequest
 	memDeletions      map[uuid.UUID]*models.AccountDeletionRequest
+
+	memAlerts       map[uuid.UUID]models.SecurityAlert
+	memRules        map[string]models.SecurityRule
+	memRiskScores   map[uuid.UUID]models.AccountRiskScore
+	memBotSignals   []models.BotDetectionSignal
+	memFraudAlerts  []models.FraudAlert
+	memEventDetails []models.SecurityEventDetail
 }
 
 func NewSecurityRepository(db *pgxpool.Pool) SecurityRepository {
+	now := time.Now()
+	defaultRules := map[string]models.SecurityRule{
+		"login_failure_threshold": {RuleID: "login_failure_threshold", Name: "Failed Login Limit", Category: "authentication", ThresholdCount: 5, TimeWindowSeconds: 300, Action: "temporary_restrict", IsEnabled: true, UpdatedBy: "system", UpdatedAt: now},
+		"message_rate_limit":      {RuleID: "message_rate_limit", Name: "Messaging Spam Prevention", Category: "communication", ThresholdCount: 30, TimeWindowSeconds: 60, Action: "rate_limit", IsEnabled: true, UpdatedBy: "system", UpdatedAt: now},
+		"connection_rate_limit":   {RuleID: "connection_rate_limit", Name: "Rapid Connection Request Guard", Category: "social", ThresholdCount: 20, TimeWindowSeconds: 60, Action: "rate_limit", IsEnabled: true, UpdatedBy: "system", UpdatedAt: now},
+		"registration_rate_limit": {RuleID: "registration_rate_limit", Name: "IP Registration Burst Shield", Category: "abuse", ThresholdCount: 10, TimeWindowSeconds: 3600, Action: "block", IsEnabled: true, UpdatedBy: "system", UpdatedAt: now},
+		"export_rate_limit":       {RuleID: "export_rate_limit", Name: "Data Export Rate Control", Category: "data_privacy", ThresholdCount: 3, TimeWindowSeconds: 86400, Action: "require_mfa", IsEnabled: true, UpdatedBy: "system", UpdatedAt: now},
+	}
+
 	return &securityRepository{
 		db:                db,
 		memSessions:       make(map[uuid.UUID][]models.SessionItem),
@@ -93,6 +135,12 @@ func NewSecurityRepository(db *pgxpool.Pool) SecurityRepository {
 		memPrivacy:        make(map[uuid.UUID]*models.PrivacySettings),
 		memDataExports:    make(map[uuid.UUID][]models.DataExportRequest),
 		memDeletions:      make(map[uuid.UUID]*models.AccountDeletionRequest),
+		memAlerts:         make(map[uuid.UUID]models.SecurityAlert),
+		memRules:          defaultRules,
+		memRiskScores:     make(map[uuid.UUID]models.AccountRiskScore),
+		memBotSignals:     make([]models.BotDetectionSignal, 0),
+		memFraudAlerts:    make([]models.FraudAlert, 0),
+		memEventDetails:   make([]models.SecurityEventDetail, 0),
 	}
 }
 
@@ -686,3 +734,181 @@ func (r *securityRepository) CreateSecurityIncident(ctx context.Context, inciden
 	r.memIncidents = append(r.memIncidents, *incident)
 	return nil
 }
+
+func (r *securityRepository) GetSecurityAlerts(ctx context.Context, status string, severity string) ([]models.SecurityAlert, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	res := make([]models.SecurityAlert, 0)
+	for _, alert := range r.memAlerts {
+		if status != "" && !strings.EqualFold(alert.Status, status) {
+			continue
+		}
+		if severity != "" && !strings.EqualFold(alert.Severity, severity) {
+			continue
+		}
+		res = append(res, alert)
+	}
+	return res, nil
+}
+
+func (r *securityRepository) GetSecurityAlertByID(ctx context.Context, alertID uuid.UUID) (*models.SecurityAlert, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	alert, exists := r.memAlerts[alertID]
+	if !exists {
+		return nil, errors.New("ALERT_NOT_FOUND: Security alert does not exist")
+	}
+	return &alert, nil
+}
+
+func (r *securityRepository) CreateSecurityAlert(ctx context.Context, alert *models.SecurityAlert) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if alert.ID == uuid.Nil {
+		alert.ID = uuid.New()
+	}
+	if alert.CreatedAt.IsZero() {
+		alert.CreatedAt = time.Now()
+	}
+	if alert.Status == "" {
+		alert.Status = "New"
+	}
+	r.memAlerts[alert.ID] = *alert
+	return nil
+}
+
+func (r *securityRepository) UpdateSecurityAlert(ctx context.Context, alert *models.SecurityAlert) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.memAlerts[alert.ID] = *alert
+	return nil
+}
+
+func (r *securityRepository) GetSecurityRules(ctx context.Context) ([]models.SecurityRule, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	res := make([]models.SecurityRule, 0, len(r.memRules))
+	for _, rule := range r.memRules {
+		res = append(res, rule)
+	}
+	return res, nil
+}
+
+func (r *securityRepository) GetSecurityRuleByID(ctx context.Context, ruleID string) (*models.SecurityRule, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	rule, exists := r.memRules[ruleID]
+	if !exists {
+		return nil, errors.New("RULE_NOT_FOUND: Security rule does not exist")
+	}
+	return &rule, nil
+}
+
+func (r *securityRepository) UpdateSecurityRule(ctx context.Context, rule *models.SecurityRule) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	rule.UpdatedAt = time.Now()
+	r.memRules[rule.RuleID] = *rule
+	return nil
+}
+
+func (r *securityRepository) GetAccountRiskScore(ctx context.Context, userID uuid.UUID) (*models.AccountRiskScore, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	score, exists := r.memRiskScores[userID]
+	if !exists {
+		return &models.AccountRiskScore{
+			UserID:          userID,
+			Score:           0,
+			RiskLevel:       "Normal",
+			Factors:         []string{},
+			LastEvaluatedAt: time.Now(),
+		}, nil
+	}
+	return &score, nil
+}
+
+func (r *securityRepository) GetAccountRiskScores(ctx context.Context) ([]models.AccountRiskScore, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	res := make([]models.AccountRiskScore, 0, len(r.memRiskScores))
+	for _, s := range r.memRiskScores {
+		res = append(res, s)
+	}
+	return res, nil
+}
+
+func (r *securityRepository) UpdateAccountRiskScore(ctx context.Context, score *models.AccountRiskScore) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	score.LastEvaluatedAt = time.Now()
+	r.memRiskScores[score.UserID] = *score
+	return nil
+}
+
+func (r *securityRepository) LogBotSignal(ctx context.Context, signal *models.BotDetectionSignal) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if signal.ID == uuid.Nil {
+		signal.ID = uuid.New()
+	}
+	if signal.CreatedAt.IsZero() {
+		signal.CreatedAt = time.Now()
+	}
+	r.memBotSignals = append(r.memBotSignals, *signal)
+	return nil
+}
+
+func (r *securityRepository) GetBotSignals(ctx context.Context) ([]models.BotDetectionSignal, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return r.memBotSignals, nil
+}
+
+func (r *securityRepository) LogFraudAlert(ctx context.Context, alert *models.FraudAlert) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if alert.ID == uuid.Nil {
+		alert.ID = uuid.New()
+	}
+	if alert.CreatedAt.IsZero() {
+		alert.CreatedAt = time.Now()
+	}
+	r.memFraudAlerts = append(r.memFraudAlerts, *alert)
+	return nil
+}
+
+func (r *securityRepository) GetFraudAlerts(ctx context.Context) ([]models.FraudAlert, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return r.memFraudAlerts, nil
+}
+
+func (r *securityRepository) LogSecurityEventDetail(ctx context.Context, detail *models.SecurityEventDetail) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if detail.ID == uuid.Nil {
+		detail.ID = uuid.New()
+	}
+	if detail.CreatedAt.IsZero() {
+		detail.CreatedAt = time.Now()
+	}
+	r.memEventDetails = append(r.memEventDetails, *detail)
+	return nil
+}
+

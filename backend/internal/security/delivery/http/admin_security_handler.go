@@ -89,3 +89,130 @@ func (h *AdminSecurityHandler) GetSecuritySettings(c *gin.Context) {
 func (h *AdminSecurityHandler) UpdateSecuritySettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Platform security policies updated successfully."})
 }
+
+func (h *AdminSecurityHandler) GetSecurityAlerts(c *gin.Context) {
+	status := c.Query("status")
+	severity := c.Query("severity")
+
+	alerts, err := h.securityService.GetSecurityAlerts(c.Request.Context(), status, severity)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, alerts)
+}
+
+func (h *AdminSecurityHandler) GetSecurityAlertByID(c *gin.Context) {
+	alertID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid alert ID"})
+		return
+	}
+
+	alert, err := h.securityService.GetSecurityAlertByID(c.Request.Context(), alertID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, alert)
+}
+
+func (h *AdminSecurityHandler) UpdateSecurityAlert(c *gin.Context) {
+	alertID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid alert ID"})
+		return
+	}
+
+	var payload models.UpdateSecurityAlertPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	alert, err := h.securityService.UpdateSecurityAlertStatus(c.Request.Context(), alertID, payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, alert)
+}
+
+func (h *AdminSecurityHandler) ResolveSecurityAlert(c *gin.Context) {
+	alertID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid alert ID"})
+		return
+	}
+
+	var payload models.ResolveAlertPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	alert, err := h.securityService.ResolveSecurityAlert(c.Request.Context(), alertID, payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, alert)
+}
+
+func (h *AdminSecurityHandler) GetSecurityRules(c *gin.Context) {
+	rules, err := h.securityService.GetSecurityRules(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rules)
+}
+
+func (h *AdminSecurityHandler) UpdateSecurityRule(c *gin.Context) {
+	ruleID := c.Param("id")
+	if ruleID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Rule ID is required"})
+		return
+	}
+
+	var payload models.UpdateSecurityRulePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rule, err := h.securityService.UpdateSecurityRule(c.Request.Context(), ruleID, payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, rule)
+}
+
+func (h *AdminSecurityHandler) GetBotSignals(c *gin.Context) {
+	signals, err := h.securityService.GetBotSignals(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, signals)
+}
+
+func (h *AdminSecurityHandler) GetFraudAlerts(c *gin.Context) {
+	alerts, err := h.securityService.GetFraudAlerts(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, alerts)
+}
+
+func (h *AdminSecurityHandler) GetAccountRiskScores(c *gin.Context) {
+	scores, err := h.securityService.GetAccountRiskScores(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, scores)
+}
+
