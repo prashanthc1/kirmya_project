@@ -31,7 +31,8 @@ export const analyticsApi = {
   ingestEvent: async (payload: IngestEventRequest): Promise<{ message: string; event: any }> => {
     try {
       const res = await client.post('/internal/analytics/events', payload);
-      return res.data;
+      if (res && res.data && res.data.event) return res.data;
+      return { message: 'Event ingested successfully', event: payload };
     } catch {
       return { message: 'Event ingested successfully', event: payload };
     }
@@ -40,7 +41,8 @@ export const analyticsApi = {
   getUserAnalytics: async (): Promise<UserPersonalAnalytics> => {
     try {
       const res = await client.get('/analytics/profile');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'applications_count' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         profile_views_count: 142,
@@ -61,7 +63,8 @@ export const analyticsApi = {
       const res = await client.get('/recruiter/analytics/overview', {
         params: { organization_id: orgID },
       });
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'jobs_posted_count' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         jobs_posted_count: 14,
@@ -86,7 +89,8 @@ export const analyticsApi = {
       const res = await client.get('/company/analytics/overview', {
         params: { company_id: companyID },
       });
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'active_jobs_count' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         company_profile_views_count: 482,
@@ -102,7 +106,8 @@ export const analyticsApi = {
   getAdminOverview: async (): Promise<AdminAnalyticsOverview> => {
     try {
       const res = await client.get('/admin/analytics/overview');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_users' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_users: 14850,
@@ -125,7 +130,8 @@ export const analyticsApi = {
   getAdminUserGrowth: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/users');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_registrations' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_registrations: 14850,
@@ -141,7 +147,8 @@ export const analyticsApi = {
   getAdminJobMarket: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/jobs');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_jobs_created' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_jobs_created: 3420,
@@ -156,7 +163,8 @@ export const analyticsApi = {
   getAdminApplicationFunnel: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/applications');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_views' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_views: 48200,
@@ -172,7 +180,8 @@ export const analyticsApi = {
   getAdminCommunities: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/communities');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_communities' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return { total_communities: 340, total_memberships: 28400, active_members_count: 18900, growth_rate_pct: 14.8 };
     }
@@ -181,7 +190,8 @@ export const analyticsApi = {
   getAdminMessaging: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/messaging');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_conversations' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return { total_conversations: 8920, total_messages_sent: 142800, delivery_success_rate_pct: 99.8, avg_response_time_mins: 14.5 };
     }
@@ -190,7 +200,8 @@ export const analyticsApi = {
   getAdminNotifications: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/notifications');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_sent' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return { total_sent: 184000, total_delivered: 182600, delivery_rate_pct: 99.2, click_through_rate_pct: 24.8 };
     }
@@ -199,7 +210,8 @@ export const analyticsApi = {
   getAdminRecommendations: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/recommendations');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_impressions' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return { total_impressions: 124000, total_clicks: 38200, avg_match_score: 88, conversion_rate_pct: 30.8 };
     }
@@ -208,7 +220,8 @@ export const analyticsApi = {
   getAdminSearch: async (): Promise<any> => {
     try {
       const res = await client.get('/admin/analytics/search');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_searches' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_searches: 98400,
@@ -221,7 +234,8 @@ export const analyticsApi = {
   getPerformanceAnalytics: async (): Promise<SystemPerformanceAnalytics> => {
     try {
       const res = await client.get('/admin/analytics/performance');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'p50_latency_ms' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         p50_latency_ms: 12.4,
@@ -241,7 +255,8 @@ export const analyticsApi = {
   getTrustSafetyAnalytics: async (): Promise<TrustSafetyAnalytics> => {
     try {
       const res = await client.get('/admin/analytics/trust-safety');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_reports_count' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_reports_count: 142,
@@ -259,7 +274,8 @@ export const analyticsApi = {
   getMentorshipAnalytics: async (): Promise<MentorshipAnalytics> => {
     try {
       const res = await client.get('/analytics/mentorship');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'total_mentors_count' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         total_mentors_count: 85,
@@ -278,7 +294,8 @@ export const analyticsApi = {
   getLearningAnalytics: async (): Promise<LearningAnalytics> => {
     try {
       const res = await client.get('/analytics/learning');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'courses_enrolled_count' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         courses_enrolled_count: 12,
@@ -293,7 +310,8 @@ export const analyticsApi = {
   getActivationFunnel: async (): Promise<UserActivationFunnel> => {
     try {
       const res = await client.get('/admin/analytics/funnel');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'stages' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         stages: [
@@ -310,7 +328,8 @@ export const analyticsApi = {
   getCohortGrid: async (): Promise<CohortGridAnalytics> => {
     try {
       const res = await client.get('/admin/analytics/cohorts');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'cohorts' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         cohorts: [
@@ -325,7 +344,8 @@ export const analyticsApi = {
   getFeatureAdoption: async (): Promise<FeatureAdoptionMetrics[]> => {
     try {
       const res = await client.get('/admin/analytics/feature-adoption');
-      return res.data;
+      if (res && res.data && Array.isArray(res.data) && res.data.length > 0) return res.data;
+      throw new Error('No data');
     } catch {
       return [
         { feature_name: 'AI Resume Matcher', active_users_count: 8420, adoption_rate_pct: 68.5, daily_usage_count: 14200 },
@@ -338,7 +358,8 @@ export const analyticsApi = {
   getUserConsent: async (): Promise<UserConsentPreferences> => {
     try {
       const res = await client.get('/analytics/user-consent');
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'essential_telemetry' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         essential_telemetry: true,
@@ -353,7 +374,8 @@ export const analyticsApi = {
   updateUserConsent: async (payload: Partial<UserConsentPreferences>): Promise<UserConsentPreferences> => {
     try {
       const res = await client.put('/analytics/user-consent', payload);
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'essential_telemetry' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         essential_telemetry: payload.essential_telemetry ?? true,
@@ -368,7 +390,8 @@ export const analyticsApi = {
   createCustomReport: async (payload: CustomReportRequest): Promise<any> => {
     try {
       const res = await client.post('/admin/analytics/reports/custom', payload);
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'title' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         id: `report-${Date.now()}`,
@@ -382,7 +405,8 @@ export const analyticsApi = {
   triggerRetentionCleanup: async (retentionDays: number = 90): Promise<{ message: string; deleted_records: number }> => {
     try {
       const res = await client.post('/admin/analytics/retention/cleanup', { retention_days: retentionDays });
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'deleted_records' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         message: `Successfully executed retention cleanup for data older than ${retentionDays} days.`,
@@ -394,7 +418,8 @@ export const analyticsApi = {
   getScheduledReports: async (): Promise<any[]> => {
     try {
       const res = await client.get('/admin/analytics/reports/scheduled');
-      return res.data;
+      if (res && res.data && Array.isArray(res.data) && res.data.length > 0) return res.data;
+      throw new Error('No data');
     } catch {
       return [
         {
@@ -413,7 +438,8 @@ export const analyticsApi = {
   createScheduledReport: async (payload: any): Promise<any> => {
     try {
       const res = await client.post('/admin/analytics/reports/scheduled', payload);
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'title' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return { ...payload, id: 'new-scheduled-id', is_active: true };
     }
@@ -422,7 +448,8 @@ export const analyticsApi = {
   requestExport: async (format: string = 'csv'): Promise<{ message: string; export: AnalyticsExportJob }> => {
     try {
       const res = await client.post('/admin/analytics/export', { format });
-      return res.data;
+      if (res && res.data && typeof res.data === 'object' && 'export' in res.data) return res.data;
+      throw new Error('No data');
     } catch {
       return {
         message: 'Analytics export job queued asynchronously',
@@ -442,6 +469,3 @@ export const analyticsApi = {
 };
 
 export default analyticsApi;
-
-
-

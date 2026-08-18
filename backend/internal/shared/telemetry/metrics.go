@@ -43,12 +43,49 @@ func GetGlobalCollector() MetricsCollector {
 	return globalMetrics
 }
 
+// collectorCounters is an atomic read of every counter, so a snapshot cannot
+// mix values from before and after a concurrent update in a way that makes a
+// derived average nonsensical.
+type collectorCounters struct {
+	requests          uint64
+	errors            uint64
+	latencySumMs      uint64
+	dbQueries         uint64
+	dbErrors          uint64
+	dbLatencySumMs    uint64
+	redisOps          uint64
+	redisErrors       uint64
+	redisLatencySumMs uint64
+	cacheHits         uint64
+	cacheMisses       uint64
+}
+
+// counters reads every counter for the performance snapshot.
+func (c *prometheusCollector) counters() collectorCounters {
+	return collectorCounters{
+		requests:          atomic.LoadUint64(&c.requestCount),
+		errors:            atomic.LoadUint64(&c.errorCount),
+		latencySumMs:      atomic.LoadUint64(&c.latencySumMs),
+		dbQueries:         atomic.LoadUint64(&c.dbQueryCount),
+		dbErrors:          atomic.LoadUint64(&c.dbErrorCount),
+		dbLatencySumMs:    atomic.LoadUint64(&c.dbLatencySumMs),
+		redisOps:          atomic.LoadUint64(&c.redisOpsCount),
+		redisErrors:       atomic.LoadUint64(&c.redisErrorCount),
+		redisLatencySumMs: atomic.LoadUint64(&c.redisLatencySumMs),
+		cacheHits:         atomic.LoadUint64(&c.cacheHits),
+		cacheMisses:       atomic.LoadUint64(&c.cacheMisses),
+	}
+}
+
 func (c *prometheusCollector) RecordHTTPRequest(method, path string, status int, duration time.Duration) {
 	atomic.AddUint64(&c.requestCount, 1)
 	if status >= 400 {
 		atomic.AddUint64(&c.errorCount, 1)
 	}
 	atomic.AddUint64(&c.latencySumMs, uint64(duration.Milliseconds()))
+	// Feed the reservoir as well as the sum: the sum gives an average, but only
+	// retained samples can yield percentiles.
+	httpLatency.observe(duration)
 }
 
 func (c *prometheusCollector) RecordDatabaseQuery(operation string, duration time.Duration, err error) {
@@ -57,6 +94,7 @@ func (c *prometheusCollector) RecordDatabaseQuery(operation string, duration tim
 		atomic.AddUint64(&c.dbErrorCount, 1)
 	}
 	atomic.AddUint64(&c.dbLatencySumMs, uint64(duration.Milliseconds()))
+	dbLatency.observe(duration)
 }
 
 func (c *prometheusCollector) RecordRedisOperation(operation string, duration time.Duration, hit bool, err error) {
@@ -70,6 +108,7 @@ func (c *prometheusCollector) RecordRedisOperation(operation string, duration ti
 		atomic.AddUint64(&c.cacheMisses, 1)
 	}
 	atomic.AddUint64(&c.redisLatencySumMs, uint64(duration.Milliseconds()))
+	cacheLatency.observe(duration)
 }
 
 func (c *prometheusCollector) RecordCacheHit() {
@@ -116,6 +155,12 @@ func (c *prometheusCollector) GetPrometheusMetrics() string {
 	if totalCacheOps > 0 {
 		hitRatio = float64(hits) / float64(totalCacheOps) * 100.0
 	}
+	// The exposition reports the same recent-window percentiles the admin
+	// performance dashboard shows, so an alert rule and the dashboard cannot
+	// disagree about whether latency has regressed.
+	quantiles, samples := httpLatency.quantiles(0.50, 0.95, 0.99)
+	p50, p95, p99 := quantiles[0], quantiles[1], quantiles[2]
+	uptime := time.Since(processStart).Seconds()
 
 	return fmt.Sprintf(`# HELP http_requests_total Total number of HTTP requests
 # TYPE http_requests_total counter
@@ -165,8 +210,19 @@ kirmya_cache_misses_total %d
 # TYPE kirmya_cache_hit_ratio gauge
 kirmya_cache_hit_ratio %.2f
 
-# HELP kirmya_active_user_sessions Current active user sessions
-# TYPE kirmya_active_user_sessions gauge
-kirmya_active_user_sessions 14250
-`, reqs, errs, avgLatency, dbReqs, dbErrs, avgDbLatency, redisOps, redisErrs, avgRedisLatency, hits, misses, hitRatio)
+# HELP kirmya_http_request_duration_milliseconds Recent HTTP latency percentiles
+# TYPE kirmya_http_request_duration_milliseconds gauge
+kirmya_http_request_duration_milliseconds{quantile="0.5"} %.2f
+kirmya_http_request_duration_milliseconds{quantile="0.95"} %.2f
+kirmya_http_request_duration_milliseconds{quantile="0.99"} %.2f
+
+# HELP kirmya_http_latency_samples Observations backing the latency percentiles
+# TYPE kirmya_http_latency_samples gauge
+kirmya_http_latency_samples %d
+
+# HELP kirmya_uptime_seconds Process uptime
+# TYPE kirmya_uptime_seconds gauge
+kirmya_uptime_seconds %.2f
+`, reqs, errs, avgLatency, dbReqs, dbErrs, avgDbLatency, redisOps, redisErrs, avgRedisLatency, hits, misses, hitRatio,
+		p50, p95, p99, samples, uptime)
 }
