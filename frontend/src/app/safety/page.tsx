@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import SafetyCenter from '@/components/safety/SafetyCenter';
+import UserSafetyCenter from '@/components/trust_safety/UserSafetyCenter';
 
 export default function SafetyHubPage() {
-  return <SafetyCenter />;
+  return <UserSafetyCenter />;
 }

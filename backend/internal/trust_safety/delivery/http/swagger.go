@@ -204,6 +204,61 @@ func swaggerGetAnalytics() {}
 // @Router       /api/v1/safety/appeals [post]
 func swaggerSubmitAppeal() {}
 
+// swaggerGetAdminQueue documents GET /api/v1/admin/trust-safety/queue.
+//
+// @Summary      Get prioritized moderation queue
+// @Description  Returns prioritized moderation queue for admins. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/trust-safety/queue [get]
+func swaggerGetAdminQueue() {}
+
+// swaggerGetSafetyPolicies documents GET /api/v1/admin/trust-safety/policies.
+//
+// @Summary      Get safety policies
+// @Description  Returns safety policy items. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/trust-safety/policies [get]
+func swaggerGetSafetyPolicies() {}
+
+// swaggerCreateSafetyPolicy documents POST /api/v1/admin/trust-safety/policies.
+//
+// @Summary      Create safety policy
+// @Description  Creates a new safety policy item. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Accept       json
+// @Produce      json
+// @Param        request  body  models.CreatePolicyPayload  true  "Request payload"
+// @Success      201  {object}  models.SafetyPolicyItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/trust-safety/policies [post]
+func swaggerCreateSafetyPolicy() {}
+
+// swaggerGetModeratorWorkloads documents GET /api/v1/admin/trust-safety/workload.
+//
+// @Summary      Get moderator workload metrics
+// @Description  Returns moderator workload and SLA metrics. Requires a valid Bearer access token.
+// @Tags         Trust & Safety
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/trust-safety/workload [get]
+func swaggerGetModeratorWorkloads() {}
+
 var (
 	_ domain.ModerationActionPayload
 	_ swagger.ErrorResponse
@@ -211,4 +266,7 @@ var (
 	_ models.AssignCasePayload
 	_ models.ResolveAppealPayload
 	_ models.UpdateReportStatusPayload
+	_ models.CreatePolicyPayload
+	_ models.UpdatePolicyPayload
+	_ models.ReinstateUserPayload
 )

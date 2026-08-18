@@ -8,6 +8,25 @@ import (
 func RegisterRoutes(router *gin.RouterGroup, handler interface{}) {
 	if h, ok := handler.(*TrustSafetyHandler); ok {
 		RegisterSafetyRoutes(router, h)
+		RegisterTrustRoutes(router, h)
+	}
+}
+
+func RegisterTrustRoutes(router *gin.RouterGroup, handler *TrustSafetyHandler) {
+	if handler == nil {
+		return
+	}
+
+	trust := router.Group("/trust")
+	trust.Use(sharedMiddleware.AuthRequired())
+	{
+		trust.POST("/reports", handler.SubmitReport)
+		trust.GET("/reports", handler.GetUserReports)
+		trust.GET("/reports/:id", handler.GetReportByID)
+		trust.POST("/users/block", handler.BlockUser)
+		trust.GET("/mutes", handler.GetUserMutes)
+		trust.POST("/mutes", handler.MuteEntity)
+		trust.DELETE("/mutes/:id", handler.UnmuteEntity)
 	}
 }
 
@@ -48,12 +67,14 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 	adminTrustSafety.Use(sharedMiddleware.AuthRequired())
 	{
 		adminTrustSafety.GET("", handler.GetAdminSummary)
+		adminTrustSafety.GET("/queue", handler.GetAdminQueue)
 		adminTrustSafety.GET("/reports", handler.GetAdminReports)
 		adminTrustSafety.GET("/reports/:id", handler.GetReportByID)
 		adminTrustSafety.PUT("/reports/:id", handler.UpdateReportStatus)
 		adminTrustSafety.POST("/reports/:id/actions", handler.ApplyAction)
 
 		adminTrustSafety.GET("/cases", handler.GetAdminCases)
+		adminTrustSafety.GET("/cases/:id", handler.GetCaseByID)
 		adminTrustSafety.POST("/cases/:id/claim", handler.ClaimCase)
 		adminTrustSafety.POST("/cases/:id/assign", handler.AssignCase)
 		adminTrustSafety.POST("/cases/:id/actions", handler.ApplyAction)
@@ -62,6 +83,13 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 		adminTrustSafety.GET("/appeals/:id", handler.GetAppealByID)
 		adminTrustSafety.PUT("/appeals/:id", handler.ResolveAppeal)
 		adminTrustSafety.POST("/appeals/:id/resolve", handler.ResolveAppeal)
+
+		adminTrustSafety.GET("/policies", handler.GetSafetyPolicies)
+		adminTrustSafety.POST("/policies", handler.CreateSafetyPolicy)
+		adminTrustSafety.PUT("/policies/:id", handler.UpdateSafetyPolicy)
+
+		adminTrustSafety.GET("/workload", handler.GetModeratorWorkloads)
+		adminTrustSafety.POST("/reinstatements", handler.ReinstateUser)
 
 		adminTrustSafety.GET("/incidents", handler.GetAdminCases)
 		adminTrustSafety.GET("/rules", handler.GetSafetyRules)

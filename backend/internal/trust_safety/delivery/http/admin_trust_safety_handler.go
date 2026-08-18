@@ -106,6 +106,32 @@ func (h *AdminTrustSafetyHandler) GetAdminCases(c *gin.Context) {
 	c.JSON(http.StatusOK, cases)
 }
 
+func (h *AdminTrustSafetyHandler) GetAdminQueue(c *gin.Context) {
+	status := c.Query("status")
+	cases, err := h.safetyService.GetAdminCases(c.Request.Context(), status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"queue": cases, "count": len(cases)})
+}
+
+func (h *AdminTrustSafetyHandler) GetCaseByID(c *gin.Context) {
+	caseID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid case ID"})
+		return
+	}
+
+	caseObj, err := h.safetyService.GetCaseByID(c.Request.Context(), caseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Case not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, caseObj)
+}
+
 func (h *AdminTrustSafetyHandler) ClaimCase(c *gin.Context) {
 	adminID, ok := getAdminID(c)
 	if !ok {
@@ -199,7 +225,7 @@ func (h *AdminTrustSafetyHandler) ApplyAction(c *gin.Context) {
 		return
 	}
 
-	decision, err := h.safetyService.ApplyModerationAction(c.Request.Context(), caseUUID, adminID, body.ActionType, body.EnforcementLevel, body.Reason, body.DurationDays)
+	decision, err := h.safetyService.ApplyModerationDecision(c.Request.Context(), caseUUID, adminID, body.ActionType, body.EnforcementLevel, body.Reason, body.PolicyVersion, body.DurationDays)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -258,6 +284,10 @@ func (h *AdminTrustSafetyHandler) ResolveAppeal(c *gin.Context) {
 
 	err = h.safetyService.ResolveAppeal(c.Request.Context(), appealUUID, adminID, body.Status, body.Notes)
 	if err != nil {
+		if err.Error() != "" && (err.Error()[:26] == "INDEPENDENT_REVIEWER_REQUIRED" || err.Error()[:11] == "INDEPENDENT") {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -288,6 +318,83 @@ func (h *AdminTrustSafetyHandler) UpdateSafetyRule(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Safety policy rule updated successfully."})
+}
+
+func (h *AdminTrustSafetyHandler) GetSafetyPolicies(c *gin.Context) {
+	policies, err := h.safetyService.GetSafetyPolicies(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": policies, "count": len(policies)})
+}
+
+func (h *AdminTrustSafetyHandler) CreateSafetyPolicy(c *gin.Context) {
+	var payload models.CreatePolicyPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	policy, err := h.safetyService.CreateSafetyPolicy(c.Request.Context(), payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, policy)
+}
+
+func (h *AdminTrustSafetyHandler) UpdateSafetyPolicy(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid policy ID"})
+		return
+	}
+
+	var payload models.UpdatePolicyPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	policy, err := h.safetyService.UpdateSafetyPolicy(c.Request.Context(), id, payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, policy)
+}
+
+func (h *AdminTrustSafetyHandler) GetModeratorWorkloads(c *gin.Context) {
+	workloads, err := h.safetyService.GetModeratorWorkloads(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": workloads, "count": len(workloads)})
+}
+
+func (h *AdminTrustSafetyHandler) ReinstateUser(c *gin.Context) {
+	adminID, ok := getAdminID(c)
+	if !ok {
+		return
+	}
+
+	var payload models.ReinstateUserPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.safetyService.ReinstateUser(c.Request.Context(), adminID, payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User reinstated successfully."})
 }
 
 func (h *AdminTrustSafetyHandler) GetAnalytics(c *gin.Context) {

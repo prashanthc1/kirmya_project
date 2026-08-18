@@ -30,7 +30,7 @@ type UserMute struct {
 // SafetyReport represents a user-submitted abuse or content report.
 type SafetyReport struct {
 	ID              uuid.UUID  `json:"id" db:"id"`
-	ReporterID      uuid.UUID  `json:"reporter_id" db:"reporter_id"`
+	ReporterID      uuid.UUID  `json:"reporter_id,omitempty" db:"reporter_id"`
 	TargetType      string     `json:"target_type" db:"target_type"` // user, profile, job, company, recruiter, message, community, comment, resume, file, link, ai_content
 	TargetID        uuid.UUID  `json:"target_id" db:"target_id"`
 	TargetTitle     string     `json:"target_title,omitempty" db:"target_title"`
@@ -124,6 +124,7 @@ type ModerationActionPayload struct {
 	ActionType       string `json:"action_type" binding:"required"`
 	EnforcementLevel string `json:"enforcement_level"`
 	Reason           string `json:"reason" binding:"required"`
+	PolicyVersion    string `json:"policy_version"`
 	DurationDays     int    `json:"duration_days"`
 }
 
@@ -223,4 +224,79 @@ type SafetyMetricsSummary struct {
 	ContentRemovals       int64            `json:"content_removals"`
 	AccountSuspensions    int64            `json:"account_suspensions"`
 	ReportsByCategory     map[string]int64 `json:"reports_by_category"`
+}
+
+// SafetyPolicyItem represents a formal trust & safety policy version item.
+type SafetyPolicyItem struct {
+	ID                  uuid.UUID `json:"id" db:"id"`
+	Code                string    `json:"code" db:"code"`
+	Title               string    `json:"title" db:"title"`
+	Category            string    `json:"category" db:"category"`
+	Description         string    `json:"description" db:"description"`
+	Severity            string    `json:"severity" db:"severity"`
+	EnforcementGuidance string    `json:"enforcement_guidance" db:"enforcement_guidance"`
+	Version             string    `json:"version" db:"version"`
+	IsActive            bool      `json:"is_active" db:"is_active"`
+	CreatedAt           time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// ReputationSignal represents user trust score and violation history.
+type ReputationSignal struct {
+	UserID                   uuid.UUID `json:"user_id" db:"user_id"`
+	Score                    float64   `json:"score" db:"score"` // 0-100
+	ConfirmedViolationsCount int       `json:"confirmed_violations_count" db:"confirmed_violations_count"`
+	ReportsCount             int       `json:"reports_count" db:"reports_count"`
+	ReinstatementsCount      int       `json:"reinstatements_count" db:"reinstatements_count"`
+	LastAssessedAt           time.Time `json:"last_assessed_at" db:"last_assessed_at"`
+}
+
+// EvidenceItem represents logged evidence for a safety case/report.
+type EvidenceItem struct {
+	ID               uuid.UUID  `json:"id" db:"id"`
+	CaseID           *uuid.UUID `json:"case_id,omitempty" db:"case_id"`
+	ReportID         *uuid.UUID `json:"report_id,omitempty" db:"report_id"`
+	Source           string     `json:"source" db:"source"`                 // user_upload, system_log, automated_scan, admin_note
+	EvidenceType     string     `json:"evidence_type" db:"evidence_type"`   // screenshot, log_file, message_transcript, document_hash
+	FileHash         string     `json:"file_hash,omitempty" db:"file_hash"`
+	ContentPreview   string     `json:"content_preview,omitempty" db:"content_preview"`
+	AccessRestricted bool       `json:"access_restricted" db:"access_restricted"`
+	CreatedAt        time.Time  `json:"created_at" db:"created_at"`
+}
+
+// ModeratorWorkload represents moderator case assignments and SLA performance.
+type ModeratorWorkload struct {
+	AdminID                uuid.UUID `json:"admin_id" db:"admin_id"`
+	AssignedCasesCount     int       `json:"assigned_cases_count" db:"assigned_cases_count"`
+	PendingAppealsCount    int       `json:"pending_appeals_count" db:"pending_appeals_count"`
+	AverageResolutionMins float64   `json:"average_resolution_mins" db:"average_resolution_mins"`
+	SLAStatus              string    `json:"sla_status" db:"sla_status"` // on_track, warning, breached
+}
+
+// CreatePolicyPayload payload for creating a safety policy.
+type CreatePolicyPayload struct {
+	Code                string `json:"code" binding:"required"`
+	Title               string `json:"title" binding:"required"`
+	Category            string `json:"category" binding:"required"`
+	Description         string `json:"description" binding:"required"`
+	Severity            string `json:"severity" binding:"required"`
+	EnforcementGuidance string `json:"enforcement_guidance" binding:"required"`
+	Version             string `json:"version"`
+}
+
+// UpdatePolicyPayload payload for updating a safety policy.
+type UpdatePolicyPayload struct {
+	Title               string `json:"title"`
+	Description         string `json:"description"`
+	Severity            string `json:"severity"`
+	EnforcementGuidance string `json:"enforcement_guidance"`
+	Version             string `json:"version"`
+	IsActive            *bool  `json:"is_active"`
+}
+
+// ReinstateUserPayload payload for reinstating a restricted user.
+type ReinstateUserPayload struct {
+	UserID           string `json:"user_id" binding:"required"`
+	Reason           string `json:"reason" binding:"required"`
+	LiftRestrictions bool   `json:"lift_restrictions"`
 }

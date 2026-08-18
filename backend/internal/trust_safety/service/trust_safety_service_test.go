@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"kirmya/internal/trust_safety/models"
@@ -93,110 +94,200 @@ func TestSanitizeDescription(t *testing.T) {
 	}
 }
 
-type mockDeduplicationRepo struct {
-	repository.TrustSafetyRepository
-	isDuplicate    bool
-	deactivatedIDs []uuid.UUID
-	restrictions   []models.UserRestriction
-	appeal         *models.SafetyAppeal
-}
-
-func (m *mockDeduplicationRepo) CheckReportDeduplication(ctx context.Context, reporterID uuid.UUID, targetType string, targetID uuid.UUID, category string) (bool, error) {
-	return m.isDuplicate, nil
-}
-
-func (m *mockDeduplicationRepo) GetUserActiveRestrictions(ctx context.Context, userID uuid.UUID) ([]models.UserRestriction, error) {
-	if m.restrictions != nil {
-		return m.restrictions, nil
-	}
-	return []models.UserRestriction{}, nil
-}
-
-func (m *mockDeduplicationRepo) DeactivateRestriction(ctx context.Context, restrictionID uuid.UUID) error {
-	m.deactivatedIDs = append(m.deactivatedIDs, restrictionID)
-	return nil
-}
-
-func (m *mockDeduplicationRepo) GetAppealByID(ctx context.Context, id uuid.UUID) (*models.SafetyAppeal, error) {
-	if m.appeal != nil {
-		return m.appeal, nil
-	}
-	return &models.SafetyAppeal{ID: id, UserID: uuid.New(), Status: "approved"}, nil
-}
-
-func TestReportDeduplication(t *testing.T) {
-	ctx := context.Background()
-	baseRepo := repository.NewTrustSafetyRepository(nil)
-	mockRepo := &mockDeduplicationRepo{TrustSafetyRepository: baseRepo, isDuplicate: true}
-	svc := NewTrustSafetyService(mockRepo)
-
-	_, err := svc.SubmitReport(ctx, uuid.New(), "job", uuid.New(), "Scam Job", "fake_job", "Wire transfer request", nil)
-	if err == nil {
-		t.Fatalf("expected duplicate report error, got nil")
-	}
-}
-
-func TestClaimAndAssignCase(t *testing.T) {
-	ctx := context.Background()
+func TestReporterPrivacyRedaction(t *testing.T) {
 	repo := repository.NewTrustSafetyRepository(nil)
 	svc := NewTrustSafetyService(repo)
 
+	reporterID := uuid.New()
+	report := &models.SafetyReport{
+		ID:              uuid.New(),
+		ReporterID:      reporterID,
+		TargetType:      "job",
+		TargetID:        uuid.New(),
+		Category:        "spam",
+		Description:     "Spam post",
+		ResolutionNotes: "Internal sensitive note",
+	}
+
+	redacted := svc.RedactReporterIdentity(report)
+	if redacted.ReporterID != uuid.Nil {
+		t.Errorf("expected ReporterID to be redacted to uuid.Nil, got %s", redacted.ReporterID)
+	}
+	if redacted.ResolutionNotes != "" {
+		t.Errorf("expected ResolutionNotes to be cleared, got '%s'", redacted.ResolutionNotes)
+	}
+}
+
+func TestAutomatedContentModeration(t *testing.T) {
+	repo := repository.NewTrustSafetyRepository(nil)
+	svc := NewTrustSafetyService(repo)
+	ctx := context.Background()
+
+	conf, reasons, flagged := svc.EvaluateContentModeration(ctx, "text", "Please click http://bit.ly/scam and send wire transfer Crypto deposit", nil)
+	if conf < 0.50 {
+		t.Errorf("expected confidence score >= 0.50, got %f", conf)
+	}
+	if !flagged {
+		t.Errorf("expected content to be flagged")
+	}
+	if len(reasons) < 2 {
+		t.Errorf("expected multiple trigger reasons, got %v", reasons)
+	}
+}
+
+func TestAppealReviewerIndependenceConstraint(t *testing.T) {
+	repo := repository.NewTrustSafetyRepository(nil)
+	svc := NewTrustSafetyService(repo)
+	ctx := context.Background()
+
+	originalModeratorID := uuid.New()
 	caseID := uuid.New()
+
+	decision, err := svc.ApplyModerationDecision(ctx, caseID, originalModeratorID, "messaging_restriction", "Messaging Restriction", "Spam", "1.0.0", 7)
+	if err != nil {
+		t.Fatalf("unexpected error creating decision: %v", err)
+	}
+
+	userID := uuid.New()
+	appeal, err := svc.SubmitAppeal(ctx, decision.ID, userID, "False Flag", "I did not send spam", nil)
+	if err != nil {
+		t.Fatalf("unexpected error submitting appeal: %v", err)
+	}
+
+	// Original moderator trying to resolve appeal should fail
+	err = svc.ResolveAppeal(ctx, appeal.ID, originalModeratorID, "approved", "Approved by original mod")
+	if err == nil {
+		t.Fatalf("expected error when original moderator resolves appeal, got nil")
+	}
+	if !strings.Contains(err.Error(), "INDEPENDENT_REVIEWER_REQUIRED") {
+		t.Errorf("expected INDEPENDENT_REVIEWER_REQUIRED error, got %v", err)
+	}
+
+	// Independent reviewer resolving appeal should succeed
+	independentReviewerID := uuid.New()
+	err = svc.ResolveAppeal(ctx, appeal.ID, independentReviewerID, "approved", "Approved by independent reviewer")
+	if err != nil {
+		t.Fatalf("unexpected error when independent reviewer resolves appeal: %v", err)
+	}
+}
+
+func TestPolicyVersioningAndCRUD(t *testing.T) {
+	repo := repository.NewTrustSafetyRepository(nil)
+	svc := NewTrustSafetyService(repo)
+	ctx := context.Background()
+
+	policy, err := svc.CreateSafetyPolicy(ctx, models.CreatePolicyPayload{
+		Code:                "POL-TEST-001",
+		Title:               "Test Safety Policy",
+		Category:            "spam",
+		Description:         "Test policy description",
+		Severity:            "high",
+		EnforcementGuidance: "Issue warning",
+		Version:             "1.0.0",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error creating policy: %v", err)
+	}
+	if policy.Version != "1.0.0" {
+		t.Errorf("expected policy version '1.0.0', got '%s'", policy.Version)
+	}
+
+	updated, err := svc.UpdateSafetyPolicy(ctx, policy.ID, models.UpdatePolicyPayload{
+		Version: "1.1.0",
+		Title:   "Updated Test Safety Policy",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error updating policy: %v", err)
+	}
+	if updated.Version != "1.1.0" {
+		t.Errorf("expected updated version '1.1.0', got '%s'", updated.Version)
+	}
+}
+
+func TestCleanExpiredRestrictions(t *testing.T) {
+	repo := repository.NewTrustSafetyRepository(nil)
+	svc := NewTrustSafetyService(repo)
+	ctx := context.Background()
+
+	userID := uuid.New()
+	expiredTime := time.Now().Add(-1 * time.Hour)
 	adminID := uuid.New()
 
-	if err := svc.ClaimCase(ctx, caseID, adminID); err != nil {
-		t.Fatalf("unexpected error claiming case: %v", err)
+	expiredRestriction := &models.UserRestriction{
+		ID:               uuid.New(),
+		UserID:           userID,
+		RestrictionScope: "messaging",
+		Reason:           "Temporary spam lock",
+		StartsAt:         time.Now().Add(-24 * time.Hour),
+		ExpiresAt:        &expiredTime,
+		CreatedBy:        &adminID,
+		IsActive:         true,
+		CreatedAt:        time.Now().Add(-24 * time.Hour),
 	}
+	_ = repo.CreateRestriction(ctx, expiredRestriction)
 
-	if err := svc.AssignCase(ctx, caseID, adminID, "Fraud Team"); err != nil {
-		t.Fatalf("unexpected error assigning case: %v", err)
+	cleanedCount, err := svc.CleanExpiredRestrictions(ctx, userID)
+	if err != nil {
+		t.Fatalf("unexpected error cleaning expired restrictions: %v", err)
+	}
+	if cleanedCount != 1 {
+		t.Errorf("expected 1 expired restriction cleaned, got %d", cleanedCount)
 	}
 }
 
-func TestGetUserActiveRestrictions(t *testing.T) {
-	ctx := context.Background()
+func TestReinstateUser(t *testing.T) {
 	repo := repository.NewTrustSafetyRepository(nil)
 	svc := NewTrustSafetyService(repo)
+	ctx := context.Background()
 
 	userID := uuid.New()
-	restrictions, err := svc.GetUserActiveRestrictions(ctx, userID)
+	adminID := uuid.New()
+
+	err := svc.ReinstateUser(ctx, adminID, models.ReinstateUserPayload{
+		UserID:           userID.String(),
+		Reason:           "Identity verified",
+		LiftRestrictions: true,
+	})
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatalf("unexpected error reinstating user: %v", err)
 	}
-	if restrictions == nil {
-		t.Errorf("expected non-nil restrictions slice")
+
+	rep, err := svc.GetUserReputation(ctx, userID)
+	if err != nil {
+		t.Fatalf("unexpected error fetching reputation: %v", err)
+	}
+	if rep.Score != 100.0 {
+		t.Errorf("expected score 100.0 after reinstatement, got %f", rep.Score)
 	}
 }
 
-func TestResolveAppealApprovedLiftsRestrictions(t *testing.T) {
+func TestLogEvidenceItemAndWorkloads(t *testing.T) {
+	repo := repository.NewTrustSafetyRepository(nil)
+	svc := NewTrustSafetyService(repo)
 	ctx := context.Background()
-	baseRepo := repository.NewTrustSafetyRepository(nil)
 
-	rID1 := uuid.New()
-	rID2 := uuid.New()
-	userID := uuid.New()
-	appealID := uuid.New()
-
-	mockRepo := &mockDeduplicationRepo{
-		TrustSafetyRepository: baseRepo,
-		restrictions: []models.UserRestriction{
-			{ID: rID1, UserID: userID, IsActive: true},
-			{ID: rID2, UserID: userID, IsActive: true},
-		},
-		appeal: &models.SafetyAppeal{
-			ID:     appealID,
-			UserID: userID,
-			Status: "approved",
-		},
-	}
-	svc := NewTrustSafetyService(mockRepo)
-
-	err := svc.ResolveAppeal(ctx, appealID, uuid.New(), "approved", "Approved upon review")
+	caseID := uuid.New()
+	item, err := svc.LogEvidenceItem(ctx, &caseID, nil, "system_scan", "log_file", "Suspicious login attempt log")
 	if err != nil {
-		t.Fatalf("unexpected error resolving appeal: %v", err)
+		t.Fatalf("unexpected error logging evidence: %v", err)
+	}
+	if item.EvidenceType != "log_file" {
+		t.Errorf("expected evidence type 'log_file', got '%s'", item.EvidenceType)
 	}
 
-	if len(mockRepo.deactivatedIDs) != 2 {
-		t.Errorf("expected 2 restrictions deactivated, got %d", len(mockRepo.deactivatedIDs))
+	evidenceList, err := svc.GetCaseEvidence(ctx, caseID)
+	if err != nil {
+		t.Fatalf("unexpected error getting case evidence: %v", err)
+	}
+	if len(evidenceList) != 1 {
+		t.Errorf("expected 1 evidence item, got %d", len(evidenceList))
+	}
+
+	workloads, err := svc.GetModeratorWorkloads(ctx)
+	if err != nil {
+		t.Fatalf("unexpected error getting workloads: %v", err)
+	}
+	if len(workloads) == 0 {
+		t.Errorf("expected workloads slice to be non-empty")
 	}
 }

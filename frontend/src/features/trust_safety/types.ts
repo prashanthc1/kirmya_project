@@ -7,8 +7,8 @@ export interface SafetyReport {
   category: string;
   description: string;
   evidence_urls?: string[];
-  status: string;
-  priority: string;
+  status: 'submitted' | 'under_review' | 'resolved' | 'dismissed';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   reporter_privacy?: boolean;
   created_at: string;
   updated_at?: string;
@@ -40,12 +40,18 @@ export interface SafetyCase {
   target_id: string;
   target_title?: string;
   category: string;
-  priority: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   risk_score: number;
-  status: string;
+  status: 'open' | 'claimed' | 'assigned' | 'investigating' | 'actioned' | 'closed' | 'dismissed';
   assigned_to?: string;
   assigned_team?: string;
+  sla_deadline?: string;
   reporter_privacy?: boolean;
+  reports_count?: number;
+  evidence?: { type: string; url?: string; note?: string }[];
+  previous_violations_count?: number;
+  target_user_id?: string;
+  target_user_name?: string;
   ai_summary?: string;
   ai_recommendation?: string;
   created_at: string;
@@ -57,11 +63,13 @@ export interface ModerationDecision {
   case_id?: string;
   target_id: string;
   target_type: string;
-  action: string;
+  action: 'warn' | 'mute' | 'restrict' | 'suspend' | 'ban' | 'content_remove' | 'dismiss';
   reason?: string;
   moderator_id: string;
+  moderator_name?: string;
   notes?: string;
   duration_days?: number;
+  appealable?: boolean;
   created_at: string;
 }
 
@@ -86,11 +94,61 @@ export interface SafetyAppeal {
   reason: string;
   explanation: string;
   evidence_urls?: string[];
-  status: string;
+  status: 'submitted' | 'under_review' | 'approved' | 'rejected' | 'escalated';
   reviewer_id?: string;
+  reviewer_name?: string;
   reviewer_notes?: string;
   submitted_at: string;
   resolved_at?: string;
+}
+
+export interface SafetyPolicyItem {
+  id: string;
+  code: string;
+  title: string;
+  category: string;
+  description: string;
+  version: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  status: 'active' | 'draft' | 'archived';
+  default_penalty: string;
+  auto_enforcement_threshold?: number;
+  updated_at: string;
+  effective_date: string;
+}
+
+export interface ReputationSignal {
+  id: string;
+  user_id: string;
+  user_name?: string;
+  signal_type: 'spam_report' | 'identity_verification' | 'successful_hire' | 'flagged_content' | 'appeal_granted' | 'account_age';
+  score_impact: number;
+  source: string;
+  details?: string;
+  timestamp: string;
+}
+
+export interface ModeratorWorkload {
+  moderator_id: string;
+  moderator_name: string;
+  assigned_cases_count: number;
+  completed_today: number;
+  avg_handle_time_mins: number;
+  sla_compliance_rate: number;
+  status: 'active' | 'break' | 'offline';
+  shift_start?: string;
+}
+
+export interface SafetyMetricsSummary {
+  total_reports: number;
+  open_cases: number;
+  resolved_today: number;
+  avg_resolution_time_hrs: number;
+  active_restrictions: number;
+  pending_appeals: number;
+  high_risk_count: number;
+  sla_breach_rate?: number;
+  automated_action_rate?: number;
 }
 
 export interface SafetyRule {
@@ -104,16 +162,6 @@ export interface SafetyRule {
   severity: 'low' | 'medium' | 'high' | 'critical';
   created_at: string;
   updated_at?: string;
-}
-
-export interface SafetyMetricsSummary {
-  total_reports: number;
-  open_cases: number;
-  resolved_today: number;
-  avg_resolution_time_hrs: number;
-  active_restrictions: number;
-  pending_appeals: number;
-  high_risk_count: number;
 }
 
 export interface ReportSubmitPayload {

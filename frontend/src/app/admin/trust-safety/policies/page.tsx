@@ -4,9 +4,9 @@ import React from 'react';
 import { Box, Button, Stack } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from 'next/link';
-import AppealsManagementDesk from '@/components/trust_safety/AppealsManagementDesk';
+import SafetyPolicyStudio from '@/components/trust_safety/SafetyPolicyStudio';
 
-export default function AdminAppealsPage() {
+export default function AdminPoliciesPage() {
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400, mx: 'auto' }}>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
@@ -17,7 +17,7 @@ export default function AdminAppealsPage() {
         </Link>
       </Stack>
 
-      <AppealsManagementDesk />
+      <SafetyPolicyStudio />
     </Box>
   );
 }
