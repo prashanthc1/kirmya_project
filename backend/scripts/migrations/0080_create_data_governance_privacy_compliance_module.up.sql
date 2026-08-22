@@ -41,7 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_dsr_events_request ON data_subject_request_events
 -- 4. Retention Policies
 CREATE TABLE IF NOT EXISTS retention_policies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    data_domain VARCHAR(100) UNIQUE NOT NULL,
+    data_domain VARCHAR(100) UNIQUE,
     retention_days INT NOT NULL DEFAULT 365,
     auto_purge_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     description TEXT,
@@ -50,18 +50,29 @@ CREATE TABLE IF NOT EXISTS retention_policies (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE retention_policies
+    ADD COLUMN IF NOT EXISTS data_domain VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS auto_purge_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS last_run_at TIMESTAMPTZ;
+
 -- 5. Legal Holds
 CREATE TABLE IF NOT EXISTS legal_holds (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    reason TEXT NOT NULL,
-    reference_case VARCHAR(100) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- 'active', 'released'
-    created_by UUID NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    reason TEXT,
+    reference_case VARCHAR(100) NOT NULL DEFAULT '',
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    created_by UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     released_at TIMESTAMPTZ,
     release_reason TEXT
 );
+
+ALTER TABLE legal_holds
+    ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    ADD COLUMN IF NOT EXISTS reference_case VARCHAR(100) NOT NULL DEFAULT '',
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'active',
+    ADD COLUMN IF NOT EXISTS release_reason TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_legal_holds_user_status ON legal_holds(user_id, status);
 

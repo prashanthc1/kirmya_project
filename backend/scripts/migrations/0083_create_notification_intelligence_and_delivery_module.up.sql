@@ -34,7 +34,7 @@ VALUES
     '<p>Hello {{userName}},</p><p>We detected a new login to your account from <strong>{{deviceName}}</strong> (IP: {{ipAddress}}).</p><p>If this was not you, please secure your account immediately.</p>',
     'Security Alert: New Login',
     'New login detected from {{deviceName}}.',
-    ARRAY['userName', 'deviceName', 'ipAddress', 'actionUrl'],
+    '["userName", "deviceName", "ipAddress", "actionUrl"]'::jsonb,
     TRUE,
     NOW(),
     NOW()
@@ -49,7 +49,7 @@ VALUES
     '<p>Hello {{userName}},</p><p>A new position matching your alert <strong>{{alertName}}</strong> is now available:</p><h3>{{jobTitle}}</h3><p>{{companyName}} - {{location}}</p>',
     'Job Alert Match',
     '{{jobTitle}} at {{companyName}} matches your alert.',
-    ARRAY['userName', 'alertName', 'jobTitle', 'companyName', 'location', 'actionUrl'],
+    '["userName", "alertName", "jobTitle", "companyName", "location", "actionUrl"]'::jsonb,
     TRUE,
     NOW(),
     NOW()

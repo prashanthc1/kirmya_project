@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"kirmya/internal/security/models"
+	"kirmya/internal/shared/persistence"
 )
 
 type RateLimitCounter struct {
@@ -111,6 +112,12 @@ type securityRepository struct {
 }
 
 func NewSecurityRepository(db *pgxpool.Pool) SecurityRepository {
+	persistence.RegisterEphemeral(persistence.Ephemeral{
+		Module:      "security",
+		Data:        "active sessions, trusted devices, login history, and security events",
+		Consequence: "active sessions and security event history reset when server restarts if database is disconnected",
+	})
+
 	now := time.Now()
 	defaultRules := map[string]models.SecurityRule{
 		"login_failure_threshold": {RuleID: "login_failure_threshold", Name: "Failed Login Limit", Category: "authentication", ThresholdCount: 5, TimeWindowSeconds: 300, Action: "temporary_restrict", IsEnabled: true, UpdatedBy: "system", UpdatedAt: now},
