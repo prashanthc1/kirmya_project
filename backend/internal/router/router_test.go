@@ -8,6 +8,16 @@ import (
 
 	authMiddleware "kirmya/internal/auth/middleware"
 	authService "kirmya/internal/auth/service"
+	adminHttp "kirmya/internal/admin/delivery/http"
+	backupHttp "kirmya/internal/backup/delivery/http"
+	billingHttp "kirmya/internal/billing/delivery/http"
+	complianceHttp "kirmya/internal/compliance/delivery/http"
+	coverLetterHttp "kirmya/internal/cover_letter/delivery/http"
+	dataOpsHttp "kirmya/internal/data_operations/delivery/http"
+	interviewPrepHttp "kirmya/internal/interview_prep/delivery/http"
+	legalHttp "kirmya/internal/legal/delivery/http"
+	securityHttp "kirmya/internal/security/delivery/http"
+	supportHttp "kirmya/internal/support/delivery/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +39,21 @@ func TestRouteTable(t *testing.T) {
 	// authenticated half of the API would drift unnoticed. The service behind
 	// it is hollow because nothing here serves a request.
 	engine := New(Handlers{
-		AuthMiddleware: authMiddleware.NewAuthMiddleware(&authService.AuthService{}),
+		AuthMiddleware:       authMiddleware.NewAuthMiddleware(&authService.AuthService{}),
+		AdminHandler:         &adminHttp.AdminHandler{},
+		BillingHandler:       &billingHttp.BillingHandler{},
+		AdminBillingHandler:  &billingHttp.AdminBillingHandler{},
+		LegalHandler:         &legalHttp.LegalHandler{},
+		AdminLegalHandler:    &legalHttp.AdminLegalHandler{},
+		SecurityHandler:      &securityHttp.SecurityHandler{},
+		AdminSecurityHandler: &securityHttp.AdminSecurityHandler{},
+		SupportHandler:       &supportHttp.SupportHandler{},
+		AdminSupportHandler:  &supportHttp.AdminSupportHandler{},
+		AdminBackupHandler:   &backupHttp.BackupHandler{},
+		DataOperationsHandler: &dataOpsHttp.DataOperationsHandler{},
+		CoverLetterHandler:   &coverLetterHttp.CoverLetterHandler{},
+		InterviewPrepHandler: &interviewPrepHttp.InterviewPrepHandler{},
+		ComplianceHandler:    &complianceHttp.ComplianceHandler{},
 	}, SwaggerConfig{})
 
 	var got []string

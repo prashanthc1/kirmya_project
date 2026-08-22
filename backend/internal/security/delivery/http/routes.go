@@ -35,11 +35,6 @@ func RegisterSecurityRoutes(router *gin.RouterGroup, handler *SecurityHandler) {
 	{
 		privacy.GET("/settings", handler.GetPrivacySettings)
 		privacy.PUT("/settings", handler.UpdatePrivacySettings)
-		privacy.POST("/export", handler.RequestDataExport)
-		privacy.GET("/export", handler.GetDataExports)
-		privacy.POST("/delete-account", handler.RequestAccountDeletion)
-		privacy.GET("/delete-account", handler.GetAccountDeletionStatus)
-		privacy.DELETE("/delete-account", handler.CancelAccountDeletion)
 	}
 }
 

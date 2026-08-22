@@ -23,17 +23,6 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ComplianceHandler) {
 		complianceGroup.POST("/requests", handler.CreateUserRequest)
 	}
 
-	privacyGroup := api.Group("/privacy")
-	privacyGroup.Use(sharedMiddleware.AuthRequired())
-	{
-		privacyGroup.POST("/consent", handler.UpdateConsent)
-		privacyGroup.GET("/consent", handler.GetUserConsents)
-		privacyGroup.POST("/export", handler.RequestDataExport)
-		privacyGroup.GET("/export/download", handler.DownloadDataExport)
-		privacyGroup.POST("/delete-account", handler.RequestAccountDeletion)
-		privacyGroup.GET("/requests", handler.GetUserDataRequests)
-	}
-
 	// Admin Governance & Compliance Routes
 	adminHandler := handler.AdminHandler
 	if adminHandler == nil {
