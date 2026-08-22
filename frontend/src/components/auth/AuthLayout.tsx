@@ -11,6 +11,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import BrandLockup from '../brand/BrandLockup';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SearchIcon from '@mui/icons-material/Search';
 import PeopleIcon from '@mui/icons-material/People';
@@ -30,7 +31,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         width: '100%',
         bgcolor: isDark ? '#090d16' : '#f8fafc',
         backgroundImage: isDark
@@ -50,26 +51,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             <Box sx={{ pr: { md: 4 } }}>
               {/* Kirmya Logo Badge */}
               <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
-                <Box
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 900,
-                    fontSize: '1.4rem',
-                    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)',
-                  }}
-                >
-                  K
-                </Box>
-                <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', color: 'text.primary' }}>
-                  KIRMYA
-                </Typography>
+                <BrandLockup size={44} variant="h5" />
                 <Chip
                   icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
                   label="Career Recovery Platform"

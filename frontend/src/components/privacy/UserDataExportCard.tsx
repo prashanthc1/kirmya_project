@@ -113,7 +113,7 @@ export default function UserDataExportCard() {
             {exports.length === 0 && !loading && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ color: '#94a3b8', py: 3 }}>
-                  No active data export requests found. Click "Request Data Export" above to generate your data archive.
+                  No active data export requests found. Click &quot;Request Data Export&quot; above to generate your data archive.
                 </TableCell>
               </TableRow>
             )}

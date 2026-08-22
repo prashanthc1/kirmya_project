@@ -60,7 +60,7 @@ export const AdminSidebar: React.FC = () => {
       sx={{
         width: 260,
         flexShrink: 0,
-        height: '100vh',
+        height: '100dvh',
         position: 'sticky',
         top: 0,
         bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',

@@ -135,7 +135,7 @@ export default function CareerCompanionPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: themeBg, minHeight: '100vh', color: textColor, py: 4, transition: surfaceTransition(0.3) }}>
+    <Box sx={{ bgcolor: themeBg, minHeight: '100dvh', color: textColor, py: 4, transition: surfaceTransition(0.3) }}>
       <Container maxWidth="xl">
         {/* Header Bar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>

@@ -13,6 +13,7 @@ import {
   Chip,
   useTheme,
 } from '@mui/material';
+import BrandLockup from '../brand/BrandLockup';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import WorkIcon from '@mui/icons-material/Work';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -45,40 +46,33 @@ export const RecruiterSidebar: React.FC = () => {
   return (
     <Box
       sx={{
-        width: 280,
-        minHeight: '100vh',
+        width: { xs: '100%', md: 280 },
+        // Only a full-height rail once it sits beside the content; stacked on a
+        // phone it should take the height of its own list, not the screen.
+        minHeight: { xs: 'auto', md: '100dvh' },
+        flexShrink: 0,
         bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRight: { xs: 'none', md: '1px solid rgba(255, 255, 255, 0.08)' },
+        borderBottom: { xs: '1px solid rgba(255, 255, 255, 0.08)', md: 'none' },
         p: 2.5,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
       {/* Brand Header */}
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <Box
-          sx={{
-            width: 42,
-            height: 42,
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
-          }}
-        >
-          <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 900 }}>
-            K
-          </Typography>
-        </Box>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.1 }}>
-            KIRMYA
-          </Typography>
-          <Chip label="RECRUITER SUITE" size="small" color="primary" sx={{ fontSize: '0.6rem', fontWeight: 800, height: 18 }} />
-        </Box>
-      </Box>
+      <BrandLockup
+        size={42}
+        variant="h6"
+        sx={{ mb: 3 }}
+        suffix={
+          <Chip
+            label="RECRUITER SUITE"
+            size="small"
+            color="primary"
+            sx={{ fontWeight: 800, height: 18 }}
+          />
+        }
+      />
 
       <Divider sx={{ mb: 2, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
 

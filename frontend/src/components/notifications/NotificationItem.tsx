@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { surfaceTransition } from '../../theme/motion';
 import {
   Box,
   Typography,
@@ -121,7 +122,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         border: '1px solid',
         borderColor: item.isRead ? 'rgba(255, 255, 255, 0.08)' : 'rgba(99, 102, 241, 0.3)',
         borderLeft: `4px solid ${getCategoryColor(item.category)}`,
-        transition: 'all 0.2s ease',
+        transition: surfaceTransition(0.2),
       }}
     >
       <Stack direction="row" spacing={2} alignItems="flex-start">

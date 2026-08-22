@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return (
       <Box
         sx={{
-          minHeight: '100vh',
+          minHeight: '100dvh',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',

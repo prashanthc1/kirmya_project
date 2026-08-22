@@ -19,11 +19,11 @@ import {
   MenuItem,
   useTheme,
 } from '@mui/material';
+import BrandLockup from '../brand/BrandLockup';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import LanguageIcon from '@mui/icons-material/Language';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import SecurityIcon from '@mui/icons-material/Security';
 import ThemeToggle from './ThemeToggle';
 
 const navLinks = [
@@ -105,34 +105,7 @@ export const Navbar: React.FC = () => {
             onClick={() => handleNavClick('Home', '#')}
             sx={{ cursor: 'pointer' }}
           >
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 6px 18px rgba(99, 102, 241, 0.35)',
-              }}
-            >
-              <SecurityIcon sx={{ color: '#ffffff', fontSize: 22 }} />
-            </Box>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 900,
-                letterSpacing: '-0.02em',
-                background: isDark
-                  ? 'linear-gradient(90deg, #ffffff 0%, #cbd5e1 100%)'
-                  : 'linear-gradient(90deg, #0f172a 0%, #334155 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              KIRMYA
-            </Typography>
+            <BrandLockup size={40} variant="h5" />
           </Stack>
 
           {/* Desktop Nav Links */}

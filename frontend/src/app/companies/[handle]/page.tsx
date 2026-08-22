@@ -255,7 +255,7 @@ export default function CompanyDetailPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: mode === 'light' ? '#f3f2f0' : '#090d16' }}>
+      <Box sx={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: mode === 'light' ? '#f3f2f0' : '#090d16' }}>
         <CircularProgress size={40} />
       </Box>
     );
@@ -263,7 +263,7 @@ export default function CompanyDetailPage({ params }: PageProps) {
 
   if (!company || !profile) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: mode === 'light' ? '#f3f2f0' : '#090d16' }}>
+      <Box sx={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: mode === 'light' ? '#f3f2f0' : '#090d16' }}>
         <Alert severity="error">Company profile not found.</Alert>
       </Box>
     );
@@ -279,7 +279,7 @@ export default function CompanyDetailPage({ params }: PageProps) {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: mode === 'light' ? '#f3f2f0' : '#090d16',
         display: 'flex',
         flexDirection: 'column',

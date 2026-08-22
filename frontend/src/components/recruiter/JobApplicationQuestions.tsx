@@ -114,7 +114,7 @@ export const JobApplicationQuestions: React.FC<Props> = ({ questions, onChange }
       {questions.length === 0 ? (
         <Card sx={{ p: 3, textAlign: 'center', borderRadius: '16px', borderStyle: 'dashed', bgcolor: 'transparent' }}>
           <Typography variant="body2" color="text.secondary">
-            No custom application questions added yet. Click "Add Screening Question" above.
+            No custom application questions added yet. Click &quot;Add Screening Question&quot; above.
           </Typography>
         </Card>
       ) : (

@@ -95,7 +95,7 @@ export default function FAQPage() {
 
       <Box sx={{ textAlign: 'center', p: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
-          Didn't find what you were looking for?
+          Didn&apos;t find what you were looking for?
         </Typography>
         <Button component={Link} href="/support" variant="contained" sx={{ borderRadius: '12px', fontWeight: 800 }}>
           Contact Support Desk
