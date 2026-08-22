@@ -22,6 +22,8 @@ const (
 	CategoryAI           = "AI"
 	CategorySupport      = "Support"
 	CategorySystem       = "System"
+	CategoryPrivacy      = "Privacy"
+	CategoryTrustSafety  = "Trust & Safety"
 )
 
 // Supported Notification Priorities
@@ -301,3 +303,41 @@ type NotificationAnalyticsDaily struct {
 	AvgLatencyMS   int       `json:"avgLatencyMs" db:"avg_latency_ms"`
 	CreatedAt      time.Time `json:"createdAt" db:"created_at"`
 }
+
+// DigestJob represents a scheduled digest rollup item.
+type DigestJob struct {
+	ID          uuid.UUID              `json:"id" db:"id"`
+	UserID      uuid.UUID              `json:"userId" db:"user_id"`
+	Frequency   string                 `json:"frequency" db:"frequency"`
+	Category    string                 `json:"category" db:"category"`
+	ItemCount   int                    `json:"itemCount" db:"item_count"`
+	DigestData  map[string]interface{} `json:"digestData" db:"digest_data"`
+	Status      string                 `json:"status" db:"status"`
+	ScheduledAt time.Time              `json:"scheduledAt" db:"scheduled_at"`
+	ProcessedAt *time.Time             `json:"processedAt,omitempty" db:"processed_at"`
+	CreatedAt   time.Time              `json:"createdAt" db:"created_at"`
+}
+
+// TemplatePreviewPayload holds template test rendering payload.
+type TemplatePreviewPayload struct {
+	TemplateCode string            `json:"templateCode" binding:"required"`
+	Variables    map[string]string `json:"variables"`
+}
+
+// TemplatePreviewResult holds rendered preview outputs.
+type TemplatePreviewResult struct {
+	TemplateCode  string `json:"templateCode"`
+	RenderedTitle string `json:"renderedTitle"`
+	RenderedBody  string `json:"renderedBody"`
+	RenderedEmail string `json:"renderedEmail,omitempty"`
+}
+
+// BroadcastAnnouncementPayload payload for mass announcements.
+type BroadcastAnnouncementPayload struct {
+	Title      string `json:"title" binding:"required"`
+	Content    string `json:"content" binding:"required"`
+	Category   string `json:"category"`
+	TargetRole string `json:"targetRole"` // All, Candidates, Recruiters, Admins
+	ActionURL  string `json:"actionUrl"`
+}
+

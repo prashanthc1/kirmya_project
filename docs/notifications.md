@@ -1,71 +1,122 @@
-# Notifications, Alerts & Communication Preferences System
+# Kirmya Notifications, Communication Preferences & Notification Intelligence Architecture
 
-## Architectural Overview
+## Overview
 
-The **Notifications, Alerts & Communication Preferences System** provides centralized event processing, multi-channel routing (In-App, Email, Push), category delivery matrices, Quiet Hours do-not-disturb schedule enforcement, Digest frequencies (Daily/Weekly), Idempotency deduplication, Dead Letter queue retry console, OpenTelemetry latency tracking, and integrations across Jobs, Applications, Networking, Mentorship, Communities, Messaging, Security, and System Announcements.
+The **Kirmya Notifications & Communication System** provides a centralized, event-driven, multi-channel notification engine for the Kirmya platform. It handles real-time in-app alerts, email notifications, push notifications, digest aggregations, user preference controls, quiet hours schedules, timezones, idempotency deduplication, exponential backoff retries, dead-letter queues, admin template versioning, and privacy-preserving data handling.
 
 ---
 
-## Event Bus & Delivery Pipeline
+## 1. Domain Event Taxonomy
+
+Notifications are triggered asynchronously by domain events published to NATS/Event Bus:
+
+| Event Type | Category | Priority | Default Channels | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `user.created` | `System` | `Normal` | In-App, Email | Account registration welcome |
+| `user.email_verified` | `Security` | `High` | In-App, Email | Email verification confirmation |
+| `security.new_login` | `Security` | `Critical` | In-App, Email, Push | New device/IP login alert |
+| `security.password_changed` | `Security` | `Critical` | In-App, Email | Account password updated |
+| `job.recommended` | `Jobs` | `Normal` | In-App, Push | AI job match recommendation |
+| `job.alert_match_found` | `Jobs` | `Normal` | In-App, Email | Saved search job alert match |
+| `job.application_submitted` | `Applications` | `Normal` | In-App, Email | Application receipt confirmation |
+| `job.application_status_changed` | `Applications` | `High` | In-App, Email, Push | Interview invite / status update |
+| `connection.requested` | `Networking` | `Normal` | In-App, Push | Connection invitation received |
+| `connection.accepted` | `Networking` | `Normal` | In-App | Connection invitation accepted |
+| `message.received` | `Messaging` | `Normal` | In-App, Push | Direct message received |
+| `community.invited` | `Communities` | `Normal` | In-App | Community group invite |
+| `community.mentioned` | `Communities` | `Normal` | In-App, Push | Post comment mention |
+| `trust.restriction_created` | `Trust & Safety` | `High` | In-App, Email | Account feature restriction applied |
+| `trust.report_updated` | `Trust & Safety` | `Normal` | In-App | User report status updated |
+| `trust.appeal_updated` | `Trust & Safety` | `High` | In-App, Email | Moderation appeal decision ready |
+| `privacy.export_completed` | `Privacy` | `High` | In-App, Email | Personal DSAR data export download ready |
+| `privacy.deletion_completed` | `Privacy` | `Critical` | Email | Account deletion confirmation |
+
+---
+
+## 2. Category Map & Priority Levels
+
+### Categories
+1. `Security`: Authentication, sessions, MFA, password updates. *(Mandatory override enabled)*
+2. `Jobs`: Recommended jobs, job alerts, saved searches.
+3. `Applications`: Application submissions, status changes, interview invites.
+4. `Interviews`: Interview scheduling, reminders, feedback requests.
+5. `Networking`: Connection requests, acceptances, profile views.
+6. `Messaging`: Direct chat messages, unread reminders.
+7. `Communities`: Group invitations, mentions, discussions.
+8. `Career`: Skill recommendations, career goals, mentorship requests.
+9. `Resume`: ATS analysis complete, resume optimization tips.
+10. `Support`: Helpdesk ticket updates, support agent responses.
+11. `System`: System maintenance, platform announcements.
+12. `Privacy`: DSAR export downloads, privacy policy updates, consent changes. *(Mandatory override enabled)*
+13. `Trust & Safety`: Account restrictions, report updates, appeal outcomes.
+
+### Priority Levels & Overrides
+- **`Critical`**: Bypasses Quiet Hours and user preference opt-outs (e.g. security breach alerts, unauthorized login attempts).
+- **`High`**: High urgency (e.g. interview invitations, offer letters).
+- **`Normal`**: Standard activity (e.g. connection requests, job alerts).
+- **`Low`**: Low priority background updates.
+
+---
+
+## 3. Channel Provider Abstraction
+
+The notification engine decouples domain logic from delivery providers:
 
 ```
-Platform Event (NATS)
-       │
-       ▼
-[ Notification Consumer ]
-       │
-       ├─► Idempotency Deduplication (Redis/In-Memory Key)
-       ├─► Quiet Hours Check (Security/Critical bypasses)
-       ├─► User Preference Check (In-App, Email, Push)
-       │
-       ├─► [ In-App Store ] (PostgreSQL + Real-Time WebSocket Publish)
-       ├─► [ Email Adapter ] (Transactional Mail Template)
-       └─► [ Push Adapter ] (FCM / Web Push Minimal Payload)
+[Domain Event] ➔ [Service / Pref Evaluator] ➔ [Channel Router]
+                                                  ├── In-App Persistence (PostgreSQL / Redis WS)
+                                                  ├── Email Provider (SendGrid / SMTP Abstraction)
+                                                  └── Push Provider (FCM / WebPush Abstraction)
 ```
 
 ---
 
-## Priority & Quiet Hours Policy
+## 4. Quiet Hours & Timezone Schedule
 
-- **Critical & Security Priority**: Security alerts (`security_alert`, `new_login`, `password_changed`, `email_verification`) strictly bypass Quiet Hours schedules and cannot be disabled by user opt-outs.
-- **High Priority**: Time-sensitive events (`interview_scheduled`, `interview_reminder`, `offer_received`, `application_status_changed`).
-- **Normal & Low Priority**: Deferred during user-configured Quiet Hours.
-
----
-
-## Deep Link Navigation & Security
-
-Notifications include deep links to authorized application destinations:
-- **Connection Request**: `/network/requests`
-- **New Message**: `/messages`
-- **Mentorship Session**: `/mentorship`
-- **Community Update**: `/communities`
-- **Job Alert Match**: `/jobs`
-- **Application Status**: `/applications`
-- **Career Milestone**: `/analytics/career`
-
-> **Security Enforcement**: Destination pages re-authorize user access independently upon navigation to ensure no unauthorized access via notification links.
+- Users can configure a Do Not Disturb schedule (e.g. `22:00` to `07:00` in `America/New_York` timezone).
+- During quiet hours, optional `Normal` and `Low` priority notifications are queued for morning delivery.
+- `Critical` and `Security` alerts bypass quiet hours unconditionally.
 
 ---
 
-## API Endpoint Reference
+## 5. Digest Notifications
 
-### Notifications Management
-- `GET /api/v1/notifications` — Fetch user notification history (filterable by category and unread status).
-- `GET /api/v1/notifications/unread-count` — Get total unread badge count.
-- `PATCH /api/v1/notifications/:id/read` — Mark notification as read.
-- `PATCH /api/v1/notifications/:id/unread` — Mark notification as unread.
-- `POST /api/v1/notifications/mark-all-read` — Mark all user notifications as read.
-- `DELETE /api/v1/notifications/clear-read` — Clear read notifications.
-- `DELETE /api/v1/notifications/:id` — Dismiss/delete notification.
+- **Digest Frequencies**: `Instant`, `Daily Digest`, `Weekly Digest`, `Never`.
+- **Digest Aggregator Worker**: Groups non-urgent job, networking, and community alerts into a single formatted daily or weekly summary email.
 
-### Preferences & Schedules
-- `GET /api/v1/notifications/preferences` — Get category & channel delivery preferences.
-- `PATCH /api/v1/notifications/preferences` — Update channel preference settings.
-- `GET /api/v1/notifications/quiet-hours` — Get Quiet Hours schedule.
-- `PATCH /api/v1/notifications/quiet-hours` — Update Quiet Hours schedule.
+---
 
-### Admin & Dead Letter Queue
-- `GET /api/v1/notifications/admin/dead-letters` — Fetch failed delivery queue.
-- `POST /api/v1/notifications/admin/dead-letters/:id/retry` — Retry failed delivery.
-- `POST /api/v1/notifications/admin/announcements` — Broadcast platform-wide system announcement.
+## 6. Deduplication & Idempotency
+
+- Every incoming event accepts an `IdempotencyKey` (e.g. `evt-msg-rec-12345`).
+- The system checks Redis / PostgreSQL deduplication store prior to processing.
+- Duplicate events within a 24-hour window are safely suppressed.
+
+---
+
+## 7. Retries & Dead-Letter Queue (DLQ)
+
+- Transient delivery failures (e.g. SMTP 503, FCM timeout) are retried up to 3 times with exponential backoff (`2s`, `8s`, `32s`).
+- Exhausted deliveries are moved to `notification_dead_letters` table for administrator inspection and manual retry.
+
+---
+
+## 8. Admin Templates & System Announcements
+
+- **Template Versioning**: Admin templates support version tracking (`v1.0`, `v1.1`), subject formatters, HTML body templates, and variable validation (`{{actorName}}`, `{{actionUrl}}`).
+- **Safe Previews**: Template previews render with mock data.
+- **System Announcements**: Controlled broadcast console with target role filtering (`All`, `Candidates`, `Recruiters`, `Admins`), audit logging, and rate limiting.
+
+---
+
+## 9. Privacy Safeguards (Prompt 63 Integration)
+
+- Notifications **never** contain passwords, MFA secrets, private message body text, or sensitive moderation evidence.
+- User account deletion automatically purges in-app notification logs, push tokens, and digest preferences.
+
+---
+
+## 10. OpenTelemetry Observability & OpenAPI Specs
+
+- Telemetry traces spans for `notification.process_event`, `notification.deliver_email`, `notification.deliver_push`.
+- Metrics track `notifications_created_total`, `notifications_sent_total`, `delivery_failure_total`, `dead_letter_queue_depth`.

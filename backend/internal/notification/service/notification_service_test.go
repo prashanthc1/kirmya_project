@@ -237,3 +237,50 @@ func TestAdminAnalyticsAndAnnouncements(t *testing.T) {
 	}, adminID)
 	assert.NoError(t, err)
 }
+
+func TestDomainEventsAndMandatorySecurityOverrides(t *testing.T) {
+	ps := pubsub.NewInMemoryPubSub()
+	repo := repository.NewNotificationRepository(nil)
+	svc := NewNotificationService(repo, ps)
+
+	userID := uuid.New()
+
+	// 1. Trust & Safety event processing
+	trustEvt := models.NotificationEvent{
+		ID:           uuid.New(),
+		EventType:    "trust.restriction_created",
+		TargetUserID: userID,
+	}
+	trustNotif, err := svc.ProcessEvent(context.Background(), trustEvt)
+	assert.NoError(t, err)
+	assert.NotNil(t, trustNotif)
+	assert.Equal(t, models.CategoryTrustSafety, trustNotif.Category)
+	assert.Equal(t, models.PriorityHigh, trustNotif.Priority)
+	assert.Equal(t, "/safety", trustNotif.ActionURL)
+
+	// 2. Privacy export completed event processing
+	privacyEvt := models.NotificationEvent{
+		ID:           uuid.New(),
+		EventType:    "privacy.export_completed",
+		TargetUserID: userID,
+	}
+	privNotif, err := svc.ProcessEvent(context.Background(), privacyEvt)
+	assert.NoError(t, err)
+	assert.NotNil(t, privNotif)
+	assert.Equal(t, models.CategoryPrivacy, privNotif.Category)
+	assert.Equal(t, "/settings/privacy/download-data", privNotif.ActionURL)
+
+	// 3. Security new login event processing -> Critical priority
+	secEvt := models.NotificationEvent{
+		ID:           uuid.New(),
+		EventType:    "security.new_login",
+		TargetUserID: userID,
+	}
+	secNotif, err := svc.ProcessEvent(context.Background(), secEvt)
+	assert.NoError(t, err)
+	assert.NotNil(t, secNotif)
+	assert.Equal(t, models.CategorySecurity, secNotif.Category)
+	assert.Equal(t, models.PriorityCritical, secNotif.Priority)
+	assert.Equal(t, "/settings/security", secNotif.ActionURL)
+}
+

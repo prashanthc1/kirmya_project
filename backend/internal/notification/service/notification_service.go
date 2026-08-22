@@ -332,21 +332,25 @@ func (s *NotificationService) ListDeliveryAnalytics(ctx context.Context) ([]mode
 // Helper Functions
 func deriveCategory(nType string) string {
 	switch nType {
-	case "security_alert", "password_changed", "new_login", "email_verification", "2fa_enabled", "2fa_disabled", "security_device_added":
+	case "security_alert", "password_changed", "new_login", "email_verification", "2fa_enabled", "2fa_disabled", "security_device_added", "security.new_login", "security.password_changed":
 		return models.CategorySecurity
-	case "recommended_job", "job_alert", "saved_search_match", "job_expiring", "company_hiring", "job_recommendation":
+	case "privacy.export_completed", "privacy.deletion_completed", "privacy_request_updated":
+		return models.CategoryPrivacy
+	case "trust.report_updated", "trust.restriction_created", "trust.appeal_updated", "trust_action_taken":
+		return models.CategoryTrustSafety
+	case "recommended_job", "job_alert", "saved_search_match", "job_expiring", "company_hiring", "job_recommendation", "job.created", "job.recommended", "job.alert_match_found":
 		return models.CategoryJobs
-	case "application_submitted", "application_viewed", "application_status_changed", "application_shortlisted", "application_rejected", "offer_received":
+	case "application_submitted", "application_viewed", "application_status_changed", "application_shortlisted", "application_rejected", "offer_received", "job.application_submitted", "job.application_status_changed":
 		return models.CategoryApplications
 	case "interview_scheduled", "interview_rescheduled", "interview_cancelled", "interview_reminder", "interview_feedback":
 		return models.CategoryInterviews
 	case "new_candidate", "candidate_response", "candidate_match", "candidate_assignment", "recruiter_invitation":
 		return models.CategoryRecruiter
-	case "connection_request", "connection_accepted", "profile_view", "recommendation":
+	case "connection_request", "connection_accepted", "profile_view", "recommendation", "connection.requested", "connection.accepted":
 		return models.CategoryNetworking
-	case "new_message", "message_received", "direct_message", "chat_mention":
+	case "new_message", "message_received", "direct_message", "chat_mention", "message.received":
 		return models.CategoryMessaging
-	case "community_invitation", "community_update", "community_activity", "community_post":
+	case "community_invitation", "community_update", "community_activity", "community_post", "community.invited", "community.mentioned":
 		return models.CategoryCommunities
 	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder", "mentorship_request", "mentorship_accepted":
 		return models.CategoryCareer
@@ -365,11 +369,11 @@ func deriveCategory(nType string) string {
 
 func derivePriority(nType string) string {
 	switch nType {
-	case "security_alert", "new_login", "2fa_disabled", "system_emergency":
+	case "security_alert", "new_login", "2fa_disabled", "system_emergency", "security.new_login", "security.password_changed", "privacy.deletion_completed":
 		return models.PriorityCritical
-	case "interview_reminder", "interview_scheduled", "offer_received", "application_status_changed", "password_changed", "mentorship_request":
+	case "interview_reminder", "interview_scheduled", "offer_received", "application_status_changed", "password_changed", "mentorship_request", "trust.restriction_created", "trust.appeal_updated", "privacy.export_completed":
 		return models.PriorityHigh
-	case "job_recommendation", "connection_request", "candidate_match", "new_message", "community_invitation", "support.ticket.updated":
+	case "job_recommendation", "connection_request", "candidate_match", "new_message", "community_invitation", "support.ticket.updated", "trust.report_updated":
 		return models.PriorityNormal
 	default:
 		return models.PriorityLow
@@ -383,18 +387,24 @@ func formatTitle(nType string, payload map[string]interface{}) string {
 	switch nType {
 	case "interview_scheduled":
 		return "Interview Scheduled"
-	case "application_status_changed":
+	case "application_status_changed", "job.application_status_changed":
 		return "Application Status Updated"
-	case "job_alert":
+	case "job_alert", "job.alert_match_found":
 		return "New Job Alert Match"
-	case "connection_request":
+	case "connection_request", "connection.requested":
 		return "New Connection Request"
-	case "security_alert":
+	case "security_alert", "security.new_login":
 		return "Security Alert"
-	case "new_message":
+	case "new_message", "message.received":
 		return "New Message Received"
 	case "mentorship_request":
 		return "Mentorship Request"
+	case "trust.restriction_created":
+		return "Account Safety Notice"
+	case "trust.appeal_updated":
+		return "Moderation Appeal Decision"
+	case "privacy.export_completed":
+		return "Data Export Ready"
 	default:
 		return "Kirmya Notification"
 	}
@@ -409,20 +419,26 @@ func formatContent(nType string, payload map[string]interface{}) string {
 
 func formatActionURL(nType string, resourceID string) string {
 	switch nType {
-	case "connection_request", "connection_accepted":
+	case "connection_request", "connection_accepted", "connection.requested", "connection.accepted":
 		return "/network/requests"
-	case "new_message", "message_received", "direct_message", "chat_mention":
+	case "new_message", "message_received", "direct_message", "chat_mention", "message.received":
 		return "/messages"
 	case "mentorship_request", "mentorship_accepted":
 		return "/mentorship"
-	case "community_invitation", "community_update", "community_activity", "community_post":
+	case "community_invitation", "community_update", "community_activity", "community_post", "community.invited", "community.mentioned":
 		return "/communities"
-	case "job_alert", "recommended_job", "saved_search_match", "company_hiring", "job_recommendation":
+	case "job_alert", "recommended_job", "saved_search_match", "company_hiring", "job_recommendation", "job.recommended", "job.alert_match_found":
 		return "/jobs"
-	case "application_status_changed", "application_submitted", "application_viewed", "application_shortlisted", "application_rejected", "offer_received":
+	case "application_status_changed", "application_submitted", "application_viewed", "application_shortlisted", "application_rejected", "offer_received", "job.application_submitted", "job.application_status_changed":
 		return "/applications"
 	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder", "ai_analysis_complete", "ai_recommendation":
 		return "/analytics/career"
+	case "trust.restriction_created", "trust.report_updated", "trust.appeal_updated":
+		return "/safety"
+	case "privacy.export_completed", "privacy.deletion_completed":
+		return "/settings/privacy/download-data"
+	case "security.new_login", "security.password_changed", "security_alert":
+		return "/settings/security"
 	default:
 		return "/notifications"
 	}
