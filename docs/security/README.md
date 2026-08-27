@@ -1,30 +1,20 @@
-# Kirmya Security Hardening & Zero-Trust Documentation Hub
+# Kirmya Security Engineering & Application Hardening Documentation Hub
 
-Welcome to the Security Hardening, Zero-Trust Architecture, RBAC, Vulnerability Management, and Incident Response documentation for Kirmya.
+Welcome to the Security Hardening, Threat Modeling, Cryptographic Standards, and Penetration Testing Readiness documentation for Kirmya.
 
 ## Documentation Index
 
-- [`security-architecture.md`](security-architecture.md): Zero-Trust Core Pillars, Defense-in-Depth layer controls, and threat models.
-- [`security-hardening.md`](security-hardening.md): Security headers (CSP, HSTS), XSS protection, Bluemonday HTML sanitization, SQL/Search/SSRF injection defenses.
-- [`secrets-management.md`](secrets-management.md): Secrets isolation policies, key rotation schedules, and Next.js environment variable security.
-- [`vulnerability-management.md`](vulnerability-management.md): Automated Go/Node.js/Container dependency scanning and risk acceptance states.
-- [`incident-response.md`](incident-response.md): Incident playbooks for Account Takeover, Secret Leaks, and Malicious File Uploads.
-- [`data-inventory.md`](data-inventory.md): Sensitive data classification matrix, storage encryption standards, and access policies.
-- [`security-testing.md`](security-testing.md): Automated negative security test suite, IDOR matrix, and rate-limiting enforcement.
-- [`authorization-audit.md`](authorization-audit.md): Authorization audit findings, role mappings, and IDOR prevention rules.
-- [`authorization.md`](authorization.md): Complete authorization architecture and permission matrix.
-- [`rbac.md`](rbac.md): Role hierarchies, permission scopes, and role-to-permission mappings.
-- [`permissions.md`](permissions.md): Centralized permission catalog (`resource:action` taxonomy).
-- [`resource-ownership.md`](resource-ownership.md): SQL-layer resource ownership filters (`WHERE owner_id = caller_id`).
-- [`admin-authorization.md`](admin-authorization.md): Privileged admin authorization and break-glass logging.
-- [`tenant-isolation.md`](tenant-isolation.md): Multi-tenant organization isolation boundaries and data shielding.
-- [`access-control-testing.md`](access-control-testing.md): Automated negative test cases and IDOR matrices.
-- [`authentication.md`](authentication.md): Authentication hardening, Bcrypt cost 12, TOTP MFA, and session security.
-- [`account-security.md`](account-security.md): Device management desk, active session revocation, and security events.
-
-## Admin Security UI
-
-- Security Center Dashboard: `/admin/security`
-- Role & Permission Desk: `/admin/roles`
-- Vulnerability Manager: `/admin/security/vulnerabilities`
-- Incident Response Desk: `/admin/incidents`
+- [`security-audit.md`](security-audit.md): Comprehensive security audit and OWASP Top 10 defense matrix.
+- [`security-and-privacy-audit.md`](security-and-privacy-audit.md): Zero-trust architecture, input sanitization, and output masking.
+- [`security-architecture.md`](security-architecture.md): Defense-in-depth architecture, trust boundaries, and encryption standards.
+- [`security-hardening.md`](security-hardening.md): Container hardening, non-root execution, and security headers.
+- [`api-security.md`](api-security.md): Threat protection, error response normalization, and IDOR prevention.
+- [`authentication.md`](authentication.md): Authentication flows, Bcrypt cost 12, TOTP MFA, and lockout throttles.
+- [`authorization.md`](authorization.md): Server-side RBAC, ABAC resource ownership, and tenant boundary isolation.
+- [`data-protection.md`](data-protection.md): TLS 1.3, AES-256 at rest, and PII log redaction.
+- [`file-security.md`](file-security.md): Magic byte verification, sandboxed UUID storage, and signed download URLs.
+- [`ai-security.md`](ai-security.md): Prompt injection defenses, XML context fencing, and output schema validation.
+- [`dependency-security.md`](dependency-security.md): Automated `govulncheck`, `npm audit`, and Trivy container scanning.
+- [`pentest-scope.md`](pentest-scope.md): In-scope penetration testing targets, rules of engagement, and validation criteria.
+- [`incident-response.md`](incident-response.md): Severity classification (SEV-1 to SEV-3) and blameless RCA templates.
+- [`vulnerability-management.md`](vulnerability-management.md): Vulnerability triage, severity SLAs, and remediation verification.
