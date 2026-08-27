@@ -1,10 +1,12 @@
-# Kirmya Security Engineering & Application Hardening Documentation Hub
+# Kirmya Security Engineering & Identity Protection Documentation Hub
 
-Welcome to the Security Hardening, Threat Modeling, Cryptographic Standards, and Penetration Testing Readiness documentation for Kirmya.
+Welcome to the Security Hardening, Identity Architecture, Authentication Security, Authorization Models, and Incident Runbooks for Kirmya.
 
 ## Documentation Index
 
 - [`security-audit.md`](security-audit.md): Comprehensive security audit and OWASP Top 10 defense matrix.
+- [`identity-architecture.md`](identity-architecture.md): Identity lifecycle, session management, and ephemeral token security.
+- [`authorization-model.md`](authorization-model.md): Multi-tier RBAC/ABAC permission matrix and tenant isolation.
 - [`threat-model.md`](threat-model.md): STRIDE threat model, attack surface map, and mitigation catalog.
 - [`security-architecture.md`](security-architecture.md): Defense-in-depth architecture, trust boundaries, and encryption standards.
 - [`authentication-security.md`](authentication-security.md): Adaptive password hashing, TOTP MFA, and progressive lockout throttles.
@@ -19,3 +21,5 @@ Welcome to the Security Hardening, Threat Modeling, Cryptographic Standards, and
 - [`pentest-scope.md`](pentest-scope.md): In-scope penetration testing targets, rules of engagement, and validation criteria.
 - [`incident-response.md`](incident-response.md): Severity classification (SEV-1 to SEV-3) and blameless RCA templates.
 - [`vulnerability-management.md`](vulnerability-management.md): Vulnerability triage, severity SLAs, and remediation verification.
+- [`authentication-runbook.md`](authentication-runbook.md): Credential stuffing and brute-force mitigation runbook.
+- [`authorization-runbook.md`](authorization-runbook.md): Privilege escalation and unauthorized probing mitigation runbook.
