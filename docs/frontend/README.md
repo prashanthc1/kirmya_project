@@ -1,26 +1,16 @@
-# Kirmya Frontend Architecture & Design System Documentation
+# Kirmya Frontend Architecture & MUI v6 Design System Hub
 
-Welcome to the Frontend Architecture, MUI v6 Design System, Glassmorphism Styling, and Accessibility documentation for Kirmya.
+Welcome to the Next.js App Router Architecture, MUI v6 Design System, Glassmorphic Aesthetic Tokens, Accessibility, and State Management documentation for Kirmya.
 
 ## Documentation Index
 
-- [`frontend-audit.md`](frontend-audit.md): Complete audit of Next.js structure, MUI v6 tokens, and feature modules.
-- [`frontend-architecture.md`](frontend-architecture.md): App Router boundaries, feature organization, and presentation layers.
-- [`design-system.md`](design-system.md): Centralized MUI v6 theme tokens, dark/light mode, and glassmorphism.
-- [`component-guidelines.md`](component-guidelines.md): Component reusability governance and MUI system props.
-- [`accessibility.md`](accessibility.md): WCAG 2.2 AA compliance, contrast, focus traps, and keyboard navigation.
-- [`responsive-design.md`](responsive-design.md): Breakpoint grid strategy and mobile card adaptations.
-
-## Quick Execution Commands
-
-### Component & Page Tests
-```bash
-# Run Vitest frontend test suite (37 files / 423 tests)
-npx vitest run
-
-# Run TypeScript type safety check
-npx tsc --noEmit
-
-# Run Next.js production build check
-npm run build
-```
+- [`frontend-audit.md`](frontend-audit.md): Complete audit of Next.js routes, layouts, MUI components, and bundle performance.
+- [`frontend-architecture.md`](frontend-architecture.md): Next.js App Router layout structure and feature-based directory organization.
+- [`design-system.md`](design-system.md): Centralized MUI v6 design tokens, glassmorphism tokens, and light/dark theme palettes.
+- [`component-guidelines.md`](component-guidelines.md): Component reuse guidelines, naming conventions, and props interfaces.
+- [`accessibility.md`](accessibility.md): WCAG 2.2 AA standards, keyboard navigation, focus trap management, and screen-reader support.
+- [`responsive-design.md`](responsive-design.md): MUI breakpoint strategies (`xs`, `sm`, `md`, `lg`, `xl`) and mobile navigation drawer.
+- [`performance.md`](performance.md): Dynamic route splitting, lazy loading, and Core Web Vitals targets.
+- [`frontend-security.md`](frontend-security.md): XSS DOMPurify sanitization, CSRF tokens, and `NEXT_PUBLIC_*` env secret hygiene.
+- [`state-management.md`](state-management.md): Server state vs. local UI state, SWR/React Query caching, and cross-tab auth sync.
+- [`testing.md`](testing.md): Vitest component test suites, `@axe-core/react` accessibility tests, and execution commands.
