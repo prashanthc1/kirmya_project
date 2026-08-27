@@ -1,18 +1,17 @@
-# Kirmya Quality Engineering & Automated Testing Hub
+# Kirmya Quality Assurance & Automated Testing Documentation Hub
 
-Welcome to the Quality Engineering, Automated Testing Pyramid, CI/CD Quality Gates, and Release Validation documentation for Kirmya.
+Welcome to the Automated Testing Strategy, E2E User Journeys, Security Probing, and Release Verification documentation for Kirmya.
 
 ## Documentation Index
 
-- [`testing-strategy.md`](testing-strategy.md): Testing pyramid (Unit, Integration, E2E, Contract, Accessibility, Security, Performance).
-- [`testing-audit.md`](testing-audit.md): Testing audit findings, coverage baselines, and test infrastructure analysis.
-- [`test-matrix.md`](test-matrix.md): Complete feature to test type matrix across all platform domains.
-- [`critical-paths.md`](critical-paths.md): Critical business path test coverage matrix.
-- [`e2e.md`](e2e.md): Playwright/Vitest E2E testing architecture and candidate/recruiter user flows.
-- [`test-data.md`](test-data.md): Synthetic test data management, transaction rollbacks, and developer test commands.
-- [`ci-quality-gates.md`](ci-quality-gates.md): CI/CD quality gate rules, build failure thresholds, and PR validation steps.
-- [`release-validation.md`](release-validation.md): Post-deployment smoke suite, release readiness checklist, and canary validation.
-
-## Admin Quality UI
-
-- Quality Dashboard: `/admin/quality`
+- [`qa-audit.md`](qa-audit.md): Complete audit of testing pyramid, test harnesses, and CI quality gates.
+- [`testing-strategy.md`](testing-strategy.md): Holistic test strategy across unit, integration, API contract, and E2E layers.
+- [`qa-checklist.md`](qa-checklist.md): Pre-release QA checklist covering automated and manual verification gates.
+- [`e2e-tests.md`](e2e-tests.md): End-to-end critical user journeys for candidates, recruiters, and community members.
+- [`api-tests.md`](api-tests.md): API contract validation, status code consistency, and error response standards.
+- [`security-tests.md`](security-tests.md): Automated security regression scenarios (IDOR, SQLi, XSS, tenant isolation).
+- [`performance-tests.md`](performance-tests.md): k6 load testing profiles, stress tests, and SLO latency baselines.
+- [`accessibility-tests.md`](accessibility-tests.md): WCAG 2.1 AA verification, keyboard navigation, and ARIA semantics.
+- [`release-validation.md`](release-validation.md): Release candidate verification and post-deployment smoke testing.
+- [`test-matrix.md`](test-matrix.md): Multi-environment test matrix across Go, Node.js, and PostgreSQL.
+- [`ci-quality-gates.md`](ci-quality-gates.md): GitHub Actions test automation gates and failure policies.
