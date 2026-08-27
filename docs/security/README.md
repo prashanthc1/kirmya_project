@@ -1,19 +1,23 @@
-# Kirmya Authentication & Application Security Documentation
+# Kirmya Security Hardening & Zero-Trust Documentation Hub
 
-Welcome to the Authentication, Identity Lifecycle, Session Security, and Threat Model documentation for Kirmya.
+Welcome to the Security Hardening, Zero-Trust Architecture, Vulnerability Management, and Incident Response documentation for Kirmya.
 
 ## Documentation Index
 
-- [`authentication-audit.md`](authentication-audit.md): Complete audit of identity lifecycle, password hashing, and token hygiene.
-- [`authentication.md`](authentication.md): Decoupled identity architecture, session fixation prevention, and MFA workflows.
-- [`session-management.md`](session-management.md): Token rotation, refresh replay detection, and device revocation controls.
-- [`password-policy.md`](password-policy.md): Password strength rules, Bcrypt cost 12 parameters, and transparent rehashing.
-- [`email-verification.md`](email-verification.md): Cryptographic token generation, hashed storage, and single-use enforcement.
-- [`password-reset.md`](password-reset.md): Reset token workflow and automated session revocation upon password update.
-- [`account-security.md`](account-security.md): Brute-force lockout thresholds, 0-100 account risk scoring, and security alerts.
-- [`auth-threat-model.md`](auth-threat-model.md): STRIDE-aligned threat matrix and mitigation mappings.
+- [`security-architecture.md`](security-architecture.md): Zero-Trust Core Pillars, Defense-in-Depth layer controls, and threat models.
+- [`security-hardening.md`](security-hardening.md): Security headers (CSP, HSTS), XSS protection, Bluemonday HTML sanitization, SQL/Search/SSRF injection defenses.
+- [`secrets-management.md`](secrets-management.md): Secrets isolation policies, key rotation schedules, and Next.js environment variable security.
+- [`vulnerability-management.md`](vulnerability-management.md): Automated Go/Node.js/Container dependency scanning and risk acceptance states.
+- [`incident-response.md`](incident-response.md): Incident playbooks for Account Takeover, Secret Leaks, and Malicious File Uploads.
+- [`data-inventory.md`](data-inventory.md): Sensitive data classification matrix, storage encryption standards, and access policies.
+- [`security-testing.md`](security-testing.md): Automated negative security test suite, IDOR matrix, and rate-limiting enforcement.
+- [`authorization.md`](authorization.md): Complete authorization architecture and permission matrix.
+- [`authentication.md`](authentication.md): Authentication hardening, Bcrypt cost 12, TOTP MFA, and session security.
+- [`account-security.md`](account-security.md): Device management desk, active session revocation, and security events.
 
-## User Security Center UI
+## Admin Security UI
 
-- User Security Dashboard: `/settings/security` (Password Manager, Session Manager, MFA Setup, Security Event Log).
-- Admin SOC Control Desk: `/admin/security` (Executive Threat Desk, Brute-Force Monitor, Active Incident Stream).
+- Security Center Dashboard: `/admin/security`
+- Vulnerability Manager: `/admin/security/vulnerabilities`
+- Security Configuration Audit: `/admin/security/configuration`
+- Incident Response Desk: `/admin/incidents`
