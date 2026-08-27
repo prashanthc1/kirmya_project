@@ -1,0 +1,22 @@
+# Kirmya Performance Engineering & Capacity Planning Hub
+
+Welcome to the Performance Engineering, Database Optimization, Caching Strategy, Load Testing, and Capacity Planning documentation for Kirmya.
+
+## Documentation Index
+
+- [`performance-audit.md`](performance-audit.md): Performance audit findings, SLO latency baselines, and `pgxpool` connection settings.
+- [`database-optimization.md`](database-optimization.md): N+1 query elimination, explicit column selection, and index catalog.
+- [`caching.md`](caching.md): Redis caching strategy, single-flight stampede protection, and DB fallback.
+- [`api-performance.md`](api-performance.md): HTTP compression, cursor pagination, and middleware cost control.
+- [`frontend-performance.md`](frontend-performance.md): Next.js App Router lazy loading, MUI v6 memoization, and Core Web Vitals targets.
+- [`load-testing.md`](load-testing.md): k6 load testing profiles, synthetic account rules, and regression gating.
+- [`capacity-planning.md`](capacity-planning.md): Resource scaling projections (10K to 1M users) and HPA triggers.
+- [`performance-runbooks.md`](performance-runbooks.md): Performance incident runbooks for DB pool saturation, Redis memory, and OpenSearch degradation.
+
+## Admin Performance UI
+
+- Performance Overview Dashboard: `/admin/performance`
+- Slow APIs Studio: `/admin/performance/apis`
+- Database Query Performance: `/admin/performance/database`
+- Cache Hit Ratio Desk: `/admin/performance/cache`
+- Worker Queue Performance: `/admin/performance/workers`
