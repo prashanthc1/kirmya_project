@@ -1,19 +1,20 @@
-# Kirmya Disaster Recovery & Business Continuity Hub
+# Kirmya Disaster Recovery (DR) & Business Continuity Hub
 
-Welcome to the Disaster Recovery, Backup Verification, Failure Matrix, and Business Continuity documentation for Kirmya.
+Welcome to the Disaster Recovery (DR), Business Continuity Planning (BCP), Automated Backups, Regional Failover, and Game-Day Simulation documentation for Kirmya.
 
 ## Documentation Index
 
-- [`backup-strategy.md`](backup-strategy.md): Production backup strategy, data classification tiers, encryption standards, and retention policies.
-- [`restore-procedure.md`](restore-procedure.md): Restore procedures, two-person approval safeguards, and emergency checklists.
-- [`failure-matrix.md`](failure-matrix.md): Single Points of Failure (SPOF) component impact matrix and mitigation steps.
-- [`business-continuity.md`](business-continuity.md): Business continuity policies and degraded mode operations.
-- [`recovery-testing.md`](recovery-testing.md): Automated recovery drills, RPO/RTO tracking, and readiness scoring.
+- [`dr-audit.md`](dr-audit.md): Complete DR audit, criticality tiers, and RTO/RPO targets across services.
+- [`business-continuity-plan.md`](business-continuity-plan.md): Business continuity protocols and crisis operational sequences.
+- [`backup-strategy.md`](backup-strategy.md): Automated PostgreSQL PITR backup schedules, encryption, and bucket replication.
+- [`restore-procedure.md`](restore-procedure.md): Standard operating procedures for full database and storage restore.
+- [`failure-matrix.md`](failure-matrix.md): Single points of failure, dependency failure modes, and graceful degradation.
+- [`incident-communications.md`](incident-communications.md): Crisis communication templates and status page broadcasting protocols.
+- [`dr-test-report.md`](dr-test-report.md): Game Day disaster simulation results, measured RTO/RPO, and postmortem findings.
 
-## Admin Recovery UI
-
-- Admin Recovery Dashboard: `/admin/disaster-recovery`
-- Backups Catalog: `/admin/disaster-recovery/backups`
-- Restore Management: `/admin/disaster-recovery/restores`
-- RPO/RTO Objectives: `/admin/disaster-recovery/objectives`
-- DR Testing Console: `/admin/disaster-recovery/tests`
+### Operational Recovery Runbooks
+- [`failover-runbook.md`](failover-runbook.md): Controlled regional failover to secondary cloud cluster.
+- [`failback-runbook.md`](failback-runbook.md): Post-incident failback switchover to primary cloud cluster.
+- [`database-restore-runbook.md`](database-restore-runbook.md): PostgreSQL point-in-time recovery (PITR) execution.
+- [`search-recovery-runbook.md`](search-recovery-runbook.md): OpenSearch cluster reindexing with zero-downtime DB fallback.
+- [`event-recovery-runbook.md`](event-recovery-runbook.md): NATS JetStream stream recovery and idempotent message replay.
