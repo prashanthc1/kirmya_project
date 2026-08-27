@@ -1,20 +1,27 @@
-# Kirmya Infrastructure & SRE Documentation
+# Kirmya Production Infrastructure & Networking Hub
 
-Welcome to the Infrastructure Engineering, Container Hardening, and Production Topology documentation for Kirmya.
+Welcome to the Infrastructure Engineering, Docker Hardening, Network Segmentation, and Cloudflare Architecture documentation for Kirmya.
 
 ## Documentation Index
 
-- [`infrastructure-audit.md`](infrastructure-audit.md): Production topology, network boundaries, and port audit.
-- [`architecture.md`](architecture.md): Infrastructure design principles and network segmentation.
-- [`networking.md`](networking.md): Forwarded headers, TLS 1.3, and HSTS security policy.
-- [`docker.md`](docker.md): Container resource limits, CPU/memory allocations, and graceful shutdown.
-- [`scaling.md`](scaling.md): Stateless scaling, database pool sizing, and memory management.
-- [`cloudflare.md`](cloudflare.md): Edge WAF rules, CDN caching policy, and origin protection.
-- [`runbooks.md`](runbooks.md): Step-by-step SRE infrastructure incident runbooks.
+- [`infrastructure-audit.md`](infrastructure-audit.md): Complete audit of container configurations, network boundaries, and port exposures.
+- [`architecture.md`](architecture.md): Top-level production topology (Internet → Cloudflare → Nginx → Frontend → Backend → DB/Cache/Bus).
+- [`networking.md`](networking.md): Network isolation tiers, private Docker bridges, and internal DNS service resolution.
+- [`docker.md`](docker.md): Multi-stage Dockerfiles, image optimization, non-root execution, and health checks.
+- [`security.md`](security.md): Container hardening standards, Linux capability drops, read-only root filesystems, and secret protection.
+- [`scaling.md`](scaling.md): Horizontal pod autoscaling, resource limits (CPU/Memory), and database connection scaling.
+- [`cloudflare.md`](cloudflare.md): Cloudflare WAF rules, SSL/TLS full mode, CDN static asset caching, and origin IP protection.
+- [`disaster-recovery.md`](disaster-recovery.md): Infrastructure failover procedures, persistent volume snapshotting, and DNS cutover.
+- [`runbooks.md`](runbooks.md): Step-by-step infrastructure troubleshooting runbooks for container restart loops, disk space, and network degradation.
 
-## Infrastructure Orchestration
+## Core Infrastructure Commands
 
+### Production Stack Orchestration
 ```bash
-# Start Production Orchestration Stack
 docker-compose -f docker-compose.production.yml up -d
+```
+
+### Health & Readiness Check
+```bash
+curl -f http://localhost:8080/api/v1/system/health
 ```
