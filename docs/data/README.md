@@ -1,21 +1,16 @@
-# Kirmya Data Governance & Architecture Documentation
+# Kirmya Data Architecture, Governance & Privacy Hub
 
-Welcome to the Data Architecture, Data Governance, PII Protection, Data Lifecycle, and Privacy Operations documentation for Kirmya.
+Welcome to the Data Architecture, Classification, Lineage, Retention, DSAR Export, and Privacy-by-Design documentation for Kirmya.
 
 ## Documentation Index
 
-- [`data-audit.md`](data-audit.md): Database schema overview, constraints, and audit analysis.
-- [`data-domains.md`](data-domains.md): Domain definitions, owners, primary tables, and APIs.
-- [`data-classification.md`](data-classification.md): Sensitivity tiers (Public, Private, Sensitive, Highly Sensitive).
-- [`data-lineage.md`](data-lineage.md): End-to-end data lifecycle flow mapping.
-- [`retention-policy.md`](retention-policy.md): Domain retention schedules and legal hold overrides.
-- [`deletion-policy.md`](deletion-policy.md): Account deletion workflow, grace period, and anonymization.
-- [`export-policy.md`](export-policy.md): User DSAR data export contents and security controls.
-- [`data-quality.md`](data-quality.md): Automated data quality checks and search synchronization rules.
-- [`data-access.md`](data-access.md): RBAC data access controls, least privilege, and masking.
-- [`developer-guidelines.md`](developer-guidelines.md): Developer data governance rules and logging hygiene.
-
-## Admin Governance Dashboards
-
-- `/admin/data-governance`: Data domain catalog, retention status, DSR queue, and anonymization jobs.
-- `/admin/compliance`: Privacy risk matrix, legal holds desk, access reviews, and compliance overview.
+- [`data-architecture-audit.md`](data-architecture-audit.md): Comprehensive data architecture audit and 5-tier classification hierarchy.
+- [`data-access-matrix.md`](data-access-matrix.md): Multi-role domain access matrix and least-privilege scoping.
+- [`data-classification.md`](data-classification.md): Detailed classification definitions (L1 Public to L5 Highly Sensitive).
+- [`data-lineage.md`](data-lineage.md): End-to-end data lineage across candidate, recruiter, and community pipelines.
+- [`data-deletion.md`](data-deletion.md): 30-day graceful account deletion, hard erasure cascades, and anonymization.
+- [`data-export.md`](data-export.md): Machine-readable JSON export archives (DSAR) and delivery security.
+- [`data-retention.md`](data-retention.md): Automated retention schedules, raw event purging, and partition cleanup.
+- [`privacy-by-design.md`](privacy-by-design.md): Technical controls for data minimization, private defaults, and cohort thresholding ($k \ge 5$).
+- [`data-quality.md`](data-quality.md): Data validation, normalization, and integrity monitoring.
+- [`data-audit.md`](data-audit.md): Authoritative PostgreSQL schema and referential integrity audit.
