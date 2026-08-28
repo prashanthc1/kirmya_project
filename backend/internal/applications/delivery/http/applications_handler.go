@@ -19,26 +19,36 @@ func NewApplicationsHandler(svc *service.ApplicationsService) *ApplicationsHandl
 	return &ApplicationsHandler{svc: svc}
 }
 
-func (h *ApplicationsHandler) getCandidateID(c *gin.Context) uuid.UUID {
-	val, exists := c.Get("user_id")
+func (h *ApplicationsHandler) getCandidateID(c *gin.Context) (uuid.UUID, bool) {
+	val, exists := c.Get("userID")
 	if !exists {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+		val, exists = c.Get("user_id")
+	}
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
+		return uuid.Nil, false
 	}
 	switch v := val.(type) {
 	case string:
 		u, err := uuid.Parse(v)
-		if err == nil {
-			return u
+		if err == nil && u != uuid.Nil {
+			return u, true
 		}
 	case uuid.UUID:
-		return v
+		if v != uuid.Nil {
+			return v, true
+		}
 	}
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized user context"})
+	return uuid.Nil, false
 }
 
 // GET /api/v1/applications
 func (h *ApplicationsHandler) GetApplications(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	status := c.Query("status")
 	search := c.Query("search")
 
@@ -52,7 +62,10 @@ func (h *ApplicationsHandler) GetApplications(c *gin.Context) {
 
 // GET /api/v1/applications/:id
 func (h *ApplicationsHandler) GetApplicationByID(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	appID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -70,7 +83,10 @@ func (h *ApplicationsHandler) GetApplicationByID(c *gin.Context) {
 
 // PUT /api/v1/applications/:id/withdraw
 func (h *ApplicationsHandler) WithdrawApplication(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	appID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -88,7 +104,10 @@ func (h *ApplicationsHandler) WithdrawApplication(c *gin.Context) {
 
 // GET /api/v1/applications/:id/timeline
 func (h *ApplicationsHandler) GetApplicationTimeline(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	appID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -106,7 +125,10 @@ func (h *ApplicationsHandler) GetApplicationTimeline(c *gin.Context) {
 
 // GET /api/v1/jobs/saved
 func (h *ApplicationsHandler) GetSavedJobs(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	jobs, err := h.svc.GetSavedJobs(c.Request.Context(), candID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -117,7 +139,10 @@ func (h *ApplicationsHandler) GetSavedJobs(c *gin.Context) {
 
 // POST /api/v1/jobs/:id/save
 func (h *ApplicationsHandler) SaveJob(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	jobIDStr := c.Param("id")
 	jobID, err := uuid.Parse(jobIDStr)
 	if err != nil {
@@ -140,7 +165,10 @@ func (h *ApplicationsHandler) SaveJob(c *gin.Context) {
 
 // DELETE /api/v1/jobs/:id/save
 func (h *ApplicationsHandler) RemoveSavedJob(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	jobIDStr := c.Param("id")
 	jobID, err := uuid.Parse(jobIDStr)
 	if err != nil {
@@ -158,7 +186,10 @@ func (h *ApplicationsHandler) RemoveSavedJob(c *gin.Context) {
 
 // GET /api/v1/job-alerts
 func (h *ApplicationsHandler) GetJobAlerts(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	alerts, err := h.svc.GetJobAlerts(c.Request.Context(), candID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -169,7 +200,10 @@ func (h *ApplicationsHandler) GetJobAlerts(c *gin.Context) {
 
 // POST /api/v1/job-alerts
 func (h *ApplicationsHandler) CreateJobAlert(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	var payload models.CreateJobAlertPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -186,7 +220,10 @@ func (h *ApplicationsHandler) CreateJobAlert(c *gin.Context) {
 
 // DELETE /api/v1/job-alerts/:id
 func (h *ApplicationsHandler) DeleteJobAlert(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	alertIDStr := c.Param("id")
 	alertID, err := uuid.Parse(alertIDStr)
 	if err != nil {
@@ -204,7 +241,10 @@ func (h *ApplicationsHandler) DeleteJobAlert(c *gin.Context) {
 
 // GET /api/v1/interviews
 func (h *ApplicationsHandler) GetCandidateInterviews(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	interviews, err := h.svc.GetCandidateInterviews(c.Request.Context(), candID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -215,7 +255,10 @@ func (h *ApplicationsHandler) GetCandidateInterviews(c *gin.Context) {
 
 // GET /api/v1/documents
 func (h *ApplicationsHandler) GetCandidateDocuments(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	docs, err := h.svc.GetCandidateDocuments(c.Request.Context(), candID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -226,7 +269,10 @@ func (h *ApplicationsHandler) GetCandidateDocuments(c *gin.Context) {
 
 // POST /api/v1/documents/upload
 func (h *ApplicationsHandler) UploadDocument(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	var payload struct {
 		Title        string `json:"title"`
 		DocumentType string `json:"document_type"`
@@ -254,7 +300,10 @@ func (h *ApplicationsHandler) UploadDocument(c *gin.Context) {
 
 // DELETE /api/v1/documents/:id
 func (h *ApplicationsHandler) DeleteDocument(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	docIDStr := c.Param("id")
 	docID, err := uuid.Parse(docIDStr)
 	if err != nil {
@@ -272,7 +321,10 @@ func (h *ApplicationsHandler) DeleteDocument(c *gin.Context) {
 
 // GET /api/v1/applications/analytics
 func (h *ApplicationsHandler) GetAnalytics(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	stats, err := h.svc.GetApplicationStats(c.Request.Context(), candID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -287,7 +339,10 @@ func (h *ApplicationsHandler) GetAnalytics(c *gin.Context) {
 
 // GET /api/v1/applications/ai-insights
 func (h *ApplicationsHandler) GetAIInsights(c *gin.Context) {
-	candID := h.getCandidateID(c)
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
 	insights, err := h.svc.GetAIInsights(c.Request.Context(), candID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
