@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -379,11 +380,21 @@ func (h *SearchHandler) GetRecommendations(c *gin.Context) {
 func (h *SearchHandler) getUserID(c *gin.Context) (uuid.UUID, error) {
 	val, exists := c.Get("userID")
 	if !exists {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001"), nil
+		val, exists = c.Get("user_id")
 	}
-	uid, ok := val.(uuid.UUID)
-	if !ok {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001"), nil
+	if !exists {
+		return uuid.Nil, errors.New("unauthorized context")
 	}
-	return uid, nil
+	switch uid := val.(type) {
+	case uuid.UUID:
+		if uid == uuid.Nil {
+			return uuid.Nil, errors.New("invalid user identity")
+		}
+		return uid, nil
+	case string:
+		if parsed, err := uuid.Parse(uid); err == nil && parsed != uuid.Nil {
+			return parsed, nil
+		}
+	}
+	return uuid.Nil, errors.New("unauthorized context")
 }
