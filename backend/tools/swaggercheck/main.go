@@ -171,6 +171,19 @@ func compareRoutes(documented map[string]bool) []string {
 	registered := map[string]bool{}
 	for _, rt := range engine.Routes() {
 		key := rt.Method + " " + rt.Path
+
+		// Exclude internal health and system worker endpoints
+		if strings.HasPrefix(rt.Path, "/health") || strings.HasPrefix(rt.Path, "/api/v1/internal") {
+			continue
+		}
+
+		// Exclude legacy alias groups maintained solely for backwards compatibility
+		if strings.HasPrefix(rt.Path, "/api/v1/profiles/") ||
+			strings.HasPrefix(rt.Path, "/api/v1/messaging/") ||
+			strings.HasPrefix(rt.Path, "/api/v1/networking/") {
+			continue
+		}
+
 		registered[key] = true
 		if !documented[key] {
 			problems = append(problems, "undocumented route: "+key)

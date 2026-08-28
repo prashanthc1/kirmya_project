@@ -2,6 +2,7 @@ package http
 
 import (
 	"kirmya/internal/common/swagger"
+	"kirmya/internal/networking/models"
 )
 
 // This file carries the OpenAPI (swagger) contract for the networking module.
@@ -63,7 +64,7 @@ func swaggerListIncomingRequests() {}
 // @Tags         Communities
 // @Accept       json
 // @Produce      json
-// @Param        request  body  SendRequestPayload  true  "Request payload"
+// @Param        request  body  models.SendConnectionRequestDTO  true  "Request payload"
 // @Success      201  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
@@ -80,7 +81,6 @@ func swaggerSendRequest() {}
 // @Accept       json
 // @Produce      json
 // @Param        id  path  string  true  "Id"
-// @Param        request  body  UpdateRequestPayload  true  "Request payload"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
@@ -96,7 +96,6 @@ func swaggerUpdateRequest() {}
 // @Tags         Communities
 // @Accept       json
 // @Produce      json
-// @Param        request  body  BlockUserPayload  true  "Request payload"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
@@ -295,4 +294,5 @@ func swaggerGetFollowers() {}
 // modules, so the imports have to be explicit rather than inferred.
 var (
 	_ swagger.ErrorResponse
+	_ models.SendConnectionRequestDTO
 )

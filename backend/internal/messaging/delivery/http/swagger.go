@@ -2,6 +2,7 @@ package http
 
 import (
 	"kirmya/internal/common/swagger"
+	"kirmya/internal/messaging/models"
 )
 
 // This file carries the OpenAPI (swagger) contract for the messaging module.
@@ -47,7 +48,7 @@ func swaggerListConversations() {}
 // @Tags         Messaging
 // @Accept       json
 // @Produce      json
-// @Param        request  body  StartConversationPayload  true  "Request payload"
+// @Param        request  body  models.CreateConversationDTO  true  "Request payload"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
@@ -79,7 +80,7 @@ func swaggerListMessages() {}
 // @Accept       json
 // @Produce      json
 // @Param        id  path  string  true  "Id"
-// @Param        request  body  SendMessagePayload  true  "Request payload"
+// @Param        request  body  models.SendMessageDTO  true  "Request payload"
 // @Success      201  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
@@ -94,4 +95,6 @@ func swaggerSendMessage() {}
 // modules, so the imports have to be explicit rather than inferred.
 var (
 	_ swagger.ErrorResponse
+	_ models.CreateConversationDTO
+	_ models.SendMessageDTO
 )
