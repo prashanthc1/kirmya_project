@@ -1,18 +1,14 @@
-# Kirmya Interview Management & Scheduling Documentation Hub
+# Kirmya Interview Management & Scheduling Platform Hub
 
-Welcome to the Interview Scheduling, Scorecards, Assessment Tracking, and Privacy-Shielded Hiring Workflows documentation for Kirmya.
+Welcome to the Interview Scheduling, Time-Zone Coordination, Video Meeting Integration, and Private Scorecard Documentation for Kirmya.
 
 ## Documentation Index
 
-- [`interview-system-audit.md`](interview-system-audit.md): Complete audit of interview entities, candidate workflows, and scorecard privacy.
-- [`interview-architecture.md`](interview-architecture.md): Entity relationships, REST API endpoints, and participant role definitions.
-- [`interview-lifecycle.md`](interview-lifecycle.md): State transitions (`Scheduled`, `Confirmed`, `Completed`, `Cancelled`), and ATS synchronization.
-- [`scorecards-and-feedback.md`](scorecards-and-feedback.md): 5-category evaluation criteria, scoring rubrics, and recruiter feedback shielding.
-- [`timezone-and-scheduling.md`](timezone-and-scheduling.md): UTC normalization, IANA time-zone rendering, and SQL range conflict detection.
-- [`interview-privacy-security.md`](interview-privacy-security.md): Meeting link authorization, notification privacy, and dual-ownership IDOR prevention.
-
-## User & Recruiter Interview UI
-
-- Candidate Interviews Hub: `/applications/[id]/interviews`
-- Recruiter Interview Dashboard: `/recruiter/interviews`
-- Interview Evaluation Desk: `/recruiter/interviews/[id]/scorecard`
+- [`interview-platform-audit.md`](interview-platform-audit.md): Comprehensive audit of interview scheduling workflows, video rooms, and scorecard security.
+- [`interview-platform-architecture.md`](interview-platform-architecture.md): Lifecycle state machines for interview scheduling, candidate confirmation, and feedback collection.
+- [`interview-system-audit.md`](interview-system-audit.md): Initial interview system audit report and requirements mapping.
+- [`interview-architecture.md`](interview-architecture.md): Domain models and scheduling pipeline architecture.
+- [`interview-lifecycle.md`](interview-lifecycle.md): State transitions from draft proposals to completed interviews.
+- [`timezone-and-scheduling.md`](timezone-and-scheduling.md): Multi-timezone math, UTC normalization, and calendar sync.
+- [`scorecards-and-feedback.md`](scorecards-and-feedback.md): Structured interviewer scorecards and candidate evaluation rubrics.
+- [`interview-privacy-security.md`](interview-privacy-security.md): Private notes shielding, video link authorization, and tenant isolation.
