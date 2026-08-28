@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"io/fs"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -309,10 +314,35 @@ func main() {
 	}
 	addr := ":" + cfg.ServerPort
 	slog.Info("Kirmya API Monolith active", slog.String("addr", addr))
-	if err := r.Run(addr); err != nil {
-		slog.Error("Failed to run HTTP server", slog.String("error", err.Error()))
-		os.Exit(1)
+
+	srv := &http.Server{
+		Addr:           addr,
+		Handler:        r,
+		ReadTimeout:    15 * time.Second,
+		WriteTimeout:   30 * time.Second,
+		IdleTimeout:    60 * time.Second,
+		MaxHeaderBytes: 1 << 20, // 1 MB
 	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("Failed to run HTTP server", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	slog.Info("Shutdown signal received, draining active connections...")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Error("Server forced to shutdown", slog.String("error", err.Error()))
+	}
+	slog.Info("Kirmya API Monolith gracefully stopped")
 }
 
 func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cachePkg.Cache) router.RouterDependencies {
