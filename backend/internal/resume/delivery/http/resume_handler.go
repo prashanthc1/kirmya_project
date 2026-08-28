@@ -18,27 +18,36 @@ func NewResumeHandler(s *service.ResumeService) *ResumeHandler {
 	return &ResumeHandler{service: s}
 }
 
-func (h *ResumeHandler) getUserID(c *gin.Context) uuid.UUID {
-	val, exists := c.Get("user_id")
+func (h *ResumeHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	val, exists := c.Get("userID")
 	if !exists {
-		val, exists = c.Get("userID")
+		val, exists = c.Get("user_id")
 	}
 	if !exists {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
+		return uuid.Nil, false
 	}
-	if uid, ok := val.(uuid.UUID); ok {
-		return uid
-	}
-	if uidStr, ok := val.(string); ok {
-		if parsed, err := uuid.Parse(uidStr); err == nil {
-			return parsed
+	switch uid := val.(type) {
+	case uuid.UUID:
+		if uid == uuid.Nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user identity"})
+			return uuid.Nil, false
+		}
+		return uid, true
+	case string:
+		if parsed, err := uuid.Parse(uid); err == nil && parsed != uuid.Nil {
+			return parsed, true
 		}
 	}
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized user context"})
+	return uuid.Nil, false
 }
 
 func (h *ResumeHandler) ListResumes(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	list, err := h.service.ListResumes(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -78,7 +87,10 @@ type CreateResumeRequest struct {
 }
 
 func (h *ResumeHandler) CreateResume(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req CreateResumeRequest
 	_ = c.ShouldBindJSON(&req)
 	if req.Title == "" {
@@ -154,7 +166,10 @@ func (h *ResumeHandler) DuplicateResume(c *gin.Context) {
 }
 
 func (h *ResumeHandler) SetDefaultResume(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -184,7 +199,10 @@ func (h *ResumeHandler) ListVersions(c *gin.Context) {
 }
 
 func (h *ResumeHandler) ImportResume(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.ImportResumeRequest
 	_ = c.ShouldBindJSON(&req)
 	res, err := h.service.ImportResume(c.Request.Context(), userID, req)
@@ -284,7 +302,10 @@ func (h *ResumeHandler) DownloadResume(c *gin.Context) {
 }
 
 func (h *ResumeHandler) ShareResume(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -307,7 +328,10 @@ func (h *ResumeHandler) ShareResume(c *gin.Context) {
 }
 
 func (h *ResumeHandler) DeleteShare(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
