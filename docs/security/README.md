@@ -1,25 +1,31 @@
-# Kirmya Security Engineering & Identity Protection Documentation Hub
+# Kirmya Security, Privacy, Compliance & Data Protection Hub
 
-Welcome to the Security Hardening, Identity Architecture, Authentication Security, Authorization Models, and Incident Runbooks for Kirmya.
+Welcome to the Complete Security Architecture, Threat Modeling, PII Inventory, Privacy Center, and Compliance Framework for Kirmya.
 
 ## Documentation Index
 
-- [`security-audit.md`](security-audit.md): Comprehensive security audit and OWASP Top 10 defense matrix.
-- [`identity-architecture.md`](identity-architecture.md): Identity lifecycle, session management, and ephemeral token security.
-- [`authorization-model.md`](authorization-model.md): Multi-tier RBAC/ABAC permission matrix and tenant isolation.
-- [`threat-model.md`](threat-model.md): STRIDE threat model, attack surface map, and mitigation catalog.
-- [`security-architecture.md`](security-architecture.md): Defense-in-depth architecture, trust boundaries, and encryption standards.
-- [`authentication-security.md`](authentication-security.md): Adaptive password hashing, TOTP MFA, and progressive lockout throttles.
-- [`authorization-security.md`](authorization-security.md): Server-authoritative RBAC, ABAC resource ownership, and tenant boundary isolation.
-- [`security-hardening.md`](security-hardening.md): Container hardening, non-root execution, and security headers.
-- [`api-security.md`](api-security.md): Threat protection, error response normalization, and IDOR prevention.
-- [`data-protection.md`](data-protection.md): TLS 1.3, AES-256 at rest, and PII log redaction.
-- [`file-security.md`](file-security.md): Magic byte verification, sandboxed UUID storage, and signed download URLs.
-- [`ai-security.md`](ai-security.md): Prompt injection defenses, XML context fencing, and output schema validation.
-- [`supply-chain-security.md`](supply-chain-security.md): Automated `govulncheck`, `npm audit`, and dependency pinning.
-- [`container-security.md`](container-security.md): Non-root execution (`appuser` UID 10001), capability dropping, and Trivy scans.
-- [`pentest-scope.md`](pentest-scope.md): In-scope penetration testing targets, rules of engagement, and validation criteria.
-- [`incident-response.md`](incident-response.md): Severity classification (SEV-1 to SEV-3) and blameless RCA templates.
-- [`vulnerability-management.md`](vulnerability-management.md): Vulnerability triage, severity SLAs, and remediation verification.
-- [`authentication-runbook.md`](authentication-runbook.md): Credential stuffing and brute-force mitigation runbook.
-- [`authorization-runbook.md`](authorization-runbook.md): Privilege escalation and unauthorized probing mitigation runbook.
+- [`security-audit.md`](security-audit.md): Comprehensive repository-wide security and authorization audit.
+- [`threat-model.md`](threat-model.md): Threat modeling across account takeover, IDOR, prompt injection, and credential abuse.
+- [`security-architecture.md`](security-architecture.md): Trust boundaries, cryptographic safeguards, and network isolation topology.
+- [`pii-inventory.md`](pii-inventory.md): Personally Identifiable Information (PII) catalog, classification, and encryption keys.
+- [`data-flow.md`](data-flow.md): End-to-end data flow maps across Next.js, Gin, PostgreSQL, Redis, NATS, and OpenSearch.
+- [`security-baseline.md`](security-baseline.md): Environment security baselines, TLS 1.3 standards, and CSP header configurations.
+- [`secure-development-guide.md`](secure-development-guide.md): Secure Software Development Lifecycle (SSDLC) and parameterized query rules.
+- [`authentication-security.md`](authentication-security.md): Authentication hardening, password hashing, and brute-force defenses.
+- [`authorization-security.md`](authorization-security.md): Server-side authorization, IDOR protection, and multi-tenant isolation.
+- [`api-security.md`](api-security.md): REST API validation, rate limiting, and output encoding standards.
+- [`session-security.md`](session-security.md): Session token security, HttpOnly/Secure cookies, and instant revocation.
+- [`file-upload-security.md`](file-upload-security.md): Magic byte validation, non-executable storage, and upload size ceilings.
+- [`storage-security.md`](storage-security.md): Object storage security, pre-signed expiring download URLs, and KMS encryption.
+- [`database-security.md`](database-security.md): Database connection encryption, least-privilege roles, and pool timeouts.
+- [`secrets-management.md`](secrets-management.md): Server-side secret segregation and automated secret scanning.
+- [`privacy-center-guide.md`](privacy-center-guide.md): User-facing Privacy Center, search discoverability, and cookie consent.
+- [`data-retention-guide.md`](data-retention-guide.md): Data retention schedules, automated purging jobs, and legal hold rules.
+- [`data-deletion-guide.md`](data-deletion-guide.md): Account erasure pipelines, right-to-be-forgotten, and cascading anonymization.
+- [`data-export-guide.md`](data-export-guide.md): Data portability archives, pre-signed export delivery, and rate limiting.
+- [`security-monitoring-guide.md`](security-monitoring-guide.md): Security event monitoring, SIEM telemetry, and automated lockout tripwires.
+- [`incident-response.md`](incident-response.md): Security incident response lifecycles, triage runbooks, and postmortems.
+- [`disaster-recovery.md`](disaster-recovery.md): Backup snapshots, WAL replication, RTO/RPO targets, and failover verification.
+- [`compliance-readiness.md`](compliance-readiness.md): GDPR/CCPA alignment, non-discrimination guarantees, and audit readiness.
+- [`vulnerability-management.md`](vulnerability-management.md): Vulnerability tracking, dependency patching, and remediation SLAs.
+- [`security-testing.md`](security-testing.md): Automated security test suites, authorization boundaries, and fuzz testing.
