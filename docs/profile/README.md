@@ -1,20 +1,23 @@
-# Kirmya User Profile & Professional Identity Documentation Hub
+# Kirmya Candidate Career Identity & Profile Platform Hub
 
-Welcome to the Professional Identity, Career Profile, Resume Management, and Privacy Controls documentation for Kirmya.
+Welcome to the Candidate Profile, Experience & Skills Taxonomy, Resume Builder, Privacy Controls, and Recruiter Visibility Documentation for Kirmya.
 
 ## Documentation Index
 
-- [`profile-audit.md`](profile-audit.md): Complete audit of profile database entities, sub-resources, and privacy safeguards.
-- [`profile-architecture.md`](profile-architecture.md): Entity relationships, domain separation, and CRUD API endpoints.
-- [`profile-fields.md`](profile-fields.md): Field constraints, validation rules, and character limits.
-- [`profile-privacy.md`](profile-privacy.md): Visibility tiers (Public, Connections Only, Private) and blocklist enforcement.
-- [`profile-search.md`](profile-search.md): OpenSearch index mappings, sanitized fields, and NATS event synchronization.
-- [`profile-completeness.md`](profile-completeness.md): Profile completeness scoring algorithm and recommendation engine.
-- [`resume-management.md`](resume-management.md): Multi-resume uploads, 10MB limits, and 15-minute expiring signed download URLs.
-- [`profile-security.md`](profile-security.md): Anti-XSS Bluemonday sanitization, magic byte file validation, and anti-scraping rate limits.
-
-## Profile Frontend Pages
-
-- User Profile Hub: `/profile`
-- Public Profile View: `/profile/[username]`
-- Profile Settings & Privacy: `/settings/privacy`
+- [`candidate-profile-audit.md`](candidate-profile-audit.md): Complete audit of candidate profiles, resume management, and search indexing.
+- [`candidate-profile-architecture.md`](candidate-profile-architecture.md): Lifecycle state machines for career identity, skills taxonomy, and resume builders.
+- [`candidate-profile-user-guide.md`](candidate-profile-user-guide.md): User guide for profile completeness, resume customization, and privacy controls.
+- [`candidate-profile-developer-guide.md`](candidate-profile-developer-guide.md): API contracts and transactional update models for developer integration.
+- [`resume-management-guide.md`](resume-management-guide.md): Multi-version resume storage, pre-signed download security, and MIME verification.
+- [`resume-builder-guide.md`](resume-builder-guide.md): ATS-friendly dual-pane resume builder and PDF compilation engine.
+- [`profile-privacy-guide.md`](profile-privacy-guide.md): Granular field-level privacy settings, recruiter visibility toggles, and block enforcement.
+- [`profile-search-guide.md`](profile-search-guide.md): OpenSearch index mappings, de-indexing triggers, and PostgreSQL full-text search fallback.
+- [`profile-security-guide.md`](profile-security-guide.md): IDOR prevention, anti-scraping rate limits, and input sanitization standards.
+- [`profile-audit.md`](profile-audit.md): Profile domain audit report and field catalog.
+- [`profile-architecture.md`](profile-architecture.md): System architecture and data flow specifications.
+- [`profile-completeness.md`](profile-completeness.md): Profile score calculation engine and optimization tips.
+- [`profile-fields.md`](profile-fields.md): Field definitions for experience, education, skills, and certifications.
+- [`profile-privacy.md`](profile-privacy.md): Privacy level configurations and visibility matrices.
+- [`profile-search.md`](profile-search.md): Candidate discovery algorithms and search indexing pipelines.
+- [`profile-security.md`](profile-security.md): Threat modeling, authorization boundaries, and security rules.
+- [`resume-management.md`](resume-management.md): Resume parsing, versioning, and document storage policies.
