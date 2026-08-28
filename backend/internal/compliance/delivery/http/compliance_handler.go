@@ -23,6 +23,30 @@ func NewComplianceHandler(svc service.ComplianceService) *ComplianceHandler {
 	}
 }
 
+func (h *ComplianceHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	val, exists := c.Get("userID")
+	if !exists {
+		val, exists = c.Get("user_id")
+	}
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
+		return uuid.Nil, false
+	}
+	switch v := val.(type) {
+	case string:
+		u, err := uuid.Parse(v)
+		if err == nil && u != uuid.Nil {
+			return u, true
+		}
+	case uuid.UUID:
+		if v != uuid.Nil {
+			return v, true
+		}
+	}
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized user context"})
+	return uuid.Nil, false
+}
+
 // UpdateConsent handles POST /compliance/consent
 func (h *ComplianceHandler) UpdateConsent(c *gin.Context) {
 	var payload domain.UpdateConsentPayload
@@ -31,7 +55,10 @@ func (h *ComplianceHandler) UpdateConsent(c *gin.Context) {
 		return
 	}
 
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	ipAddress := c.ClientIP()
 
 	if err := h.svc.UpdateConsent(c.Request.Context(), userID, payload, ipAddress); err != nil {
@@ -44,7 +71,10 @@ func (h *ComplianceHandler) UpdateConsent(c *gin.Context) {
 
 // GetUserConsents handles GET /compliance/consent
 func (h *ComplianceHandler) GetUserConsents(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	consents, err := h.svc.GetUserConsents(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -55,7 +85,10 @@ func (h *ComplianceHandler) GetUserConsents(c *gin.Context) {
 
 // RequestDataExport handles POST /compliance/export
 func (h *ComplianceHandler) RequestDataExport(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	req, err := h.svc.RequestDataExport(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -70,7 +103,10 @@ func (h *ComplianceHandler) RequestDataExport(c *gin.Context) {
 
 // DownloadDataExport handles GET /compliance/export/download
 func (h *ComplianceHandler) DownloadDataExport(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	pkg, err := h.svc.GenerateDataExportPackage(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -85,7 +121,10 @@ func (h *ComplianceHandler) DownloadDataExport(c *gin.Context) {
 
 // RequestAccountDeletion handles POST /compliance/delete-account
 func (h *ComplianceHandler) RequestAccountDeletion(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	req, err := h.svc.RequestAccountDeletion(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, domain.ErrUserUnderLegalHold) {
@@ -107,7 +146,10 @@ func (h *ComplianceHandler) RequestAccountDeletion(c *gin.Context) {
 
 // GetUserDataRequests handles GET /compliance/requests
 func (h *ComplianceHandler) GetUserDataRequests(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	reqs, err := h.svc.GetUserDataRequests(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -124,7 +166,10 @@ func (h *ComplianceHandler) CreateUserRequest(c *gin.Context) {
 		return
 	}
 
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	if payload.RequestType == domain.RequestTypeDeletion {
 		req, err := h.svc.RequestAccountDeletion(c.Request.Context(), userID)
 		if err != nil {
@@ -145,13 +190,4 @@ func (h *ComplianceHandler) CreateUserRequest(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Data request created", "data": req})
-}
-
-func (h *ComplianceHandler) getUserID(c *gin.Context) uuid.UUID {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		return uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
-	}
-	return userID
 }
