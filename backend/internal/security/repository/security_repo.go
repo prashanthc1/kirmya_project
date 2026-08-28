@@ -83,6 +83,7 @@ type SecurityRepository interface {
 
 	// Event Telemetry Detail
 	LogSecurityEventDetail(ctx context.Context, detail *models.SecurityEventDetail) error
+	UpdateUserPasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error
 }
 
 type securityRepository struct {
@@ -916,6 +917,17 @@ func (r *securityRepository) LogSecurityEventDetail(ctx context.Context, detail 
 		detail.CreatedAt = time.Now()
 	}
 	r.memEventDetails = append(r.memEventDetails, *detail)
+	return nil
+}
+
+func (r *securityRepository) UpdateUserPasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	if r.db != nil {
+		query := `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`
+		_, err := r.db.Exec(ctx, query, passwordHash, userID)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

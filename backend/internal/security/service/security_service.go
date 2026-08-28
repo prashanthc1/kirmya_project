@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"kirmya/internal/security/models"
 	"kirmya/internal/security/repository"
 )
@@ -141,6 +142,15 @@ func (s *securityService) ChangePassword(ctx context.Context, userID uuid.UUID, 
 	policyResult := s.EvaluatePasswordPolicy(newPassword)
 	if !policyResult.IsValid {
 		return fmt.Errorf("INVALID_PASSWORD: %s", strings.Join(policyResult.Feedback, " "))
+	}
+
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(newPassword), 12)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.UpdateUserPasswordHash(ctx, userID, string(hashBytes)); err != nil {
+		return err
 	}
 
 	event := &models.SecurityEvent{

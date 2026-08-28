@@ -155,6 +155,26 @@ func (r *AuthRepository) UpdateUserEmailVerified(ctx context.Context, id uuid.UU
 	return nil
 }
 
+func (r *AuthRepository) UpdateUserPasswordHash(ctx context.Context, id uuid.UUID, passwordHash string) error {
+	if r.db != nil {
+		query := `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`
+		_, err := r.db.Exec(ctx, query, passwordHash, id)
+		if err != nil {
+			return err
+		}
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, u := range r.memUsers {
+		if u.ID == id {
+			u.PasswordHash = passwordHash
+			u.UpdatedAt = time.Now()
+		}
+	}
+	return nil
+}
+
 // Session methods
 func (r *AuthRepository) CreateSession(ctx context.Context, s *models.Session) error {
 	if s.ID == uuid.Nil {
