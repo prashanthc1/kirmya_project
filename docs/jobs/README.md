@@ -1,18 +1,21 @@
-# Kirmya Jobs, Recruitment, ATS & Hiring Operations Hub
+# Kirmya Jobs Marketplace & Recruitment Platform Hub
 
-Welcome to the Job Market Architecture, Applicant Tracking System (ATS), Recruiter Operations, Interview Scheduling, and Fraud Prevention documentation for Kirmya.
+Welcome to the Jobs Marketplace, Candidate Discovery, ATS Pipeline, Recruiter Workflows, and Search Indexing Documentation for Kirmya.
 
 ## Documentation Index
 
-- [`jobs-platform-audit.md`](jobs-platform-audit.md): Complete audit of job search, ATS pipelines, and candidate workflows.
-- [`job-domain-architecture.md`](job-domain-architecture.md): Domain lifecycles, state machine diagrams, and data relationships.
-- [`job-architecture.md`](job-architecture.md): Multi-tier search architecture (OpenSearch + PostgreSQL fallback).
-- [`job-platform-guide.md`](job-platform-guide.md): Search query syntax, dynamic faceting, and candidate bookmarking.
-- [`ats-guide.md`](ats-guide.md): Kanban candidate board, assessment rubrics, and internal notes governance.
-- [`recruiter-guide.md`](recruiter-guide.md): Multi-seat organization collaboration, recruiter assignment, and bulk stage changes.
-- [`recruiter-workflows.md`](recruiter-workflows.md): Requisition management and candidate evaluation lifecycle.
-- [`hiring-workflow.md`](hiring-workflow.md): Interview scheduling, timezone normalization, and scorecard recording.
-- [`job-moderation-guide.md`](job-moderation-guide.md): Automated fraud signals, suspicious job detection, and moderator queues.
-- [`job-security-anti-fraud.md`](job-security-anti-fraud.md): Threat protection, scam prevention, and recruiter verification.
-- [`job-matching-recommendations.md`](job-matching-recommendations.md): AI job matching, explainable recommendations, and bias-free ranking.
-- [`job-privacy.md`](job-privacy.md): Candidate privacy controls, recruiter discoverability toggles, and tenant isolation.
+- [`jobs-platform-audit.md`](jobs-platform-audit.md): Complete audit of job postings, ATS pipelines, recruiter operations, and search.
+- [`jobs-platform-architecture.md`](jobs-platform-architecture.md): Lifecycle state machines for jobs, applications, and recruiter workflows.
+- [`job-domain-architecture.md`](job-domain-architecture.md): Data modeling, repository abstraction, and PostgreSQL source-of-truth governance.
+- [`job-platform-guide.md`](job-platform-guide.md): Platform overview, zero-cost guarantee, and job posting lifecycles.
+- [`jobs-user-guide.md`](jobs-user-guide.md): Candidate guide for job discovery, application tracking, saved searches, and alerts.
+- [`recruiter-guide.md`](recruiter-guide.md): Recruiter operations manual for posting jobs, reviewing candidates, and scheduling interviews.
+- [`application-guide.md`](application-guide.md): Candidate tracking (ATS) stage progression, interview management, and hiring decisions.
+- [`job-search-guide.md`](job-search-guide.md): OpenSearch & PostgreSQL full-text search, filter taxonomy, and keyset pagination.
+- [`job-matching-guide.md`](job-matching-guide.md): Explainable skill-matching algorithms, recommendation ranking, and bias prevention.
+- [`jobs-operations-guide.md`](jobs-operations-guide.md): SRE runbook for OpenSearch indexing failures, fallback modes, and queue processing.
+- [`ats-guide.md`](ats-guide.md): Applicant tracking system architecture and pipeline transition management.
+- [`job-moderation-guide.md`](job-moderation-guide.md): Job post moderation triage, fraud detection, and fake recruitment defense.
+- [`hiring-workflow.md`](hiring-workflow.md): Offer issuance, acceptance, and candidate onboarding state machines.
+- [`job-security-anti-fraud.md`](job-security-anti-fraud.md): Anti-scam tripwires, fee-charging prevention, and domain verification.
+- [`job-privacy.md`](job-privacy.md): Resume authorization checks, recruiter note privacy, and PII shielding.
