@@ -25,18 +25,23 @@ func NewProfileHandler(s *service.ProfileService) *ProfileHandler {
 func getUserID(c *gin.Context) (uuid.UUID, bool) {
 	val, exists := c.Get("userID")
 	if !exists {
-		// Fallback for demo context
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001"), true
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
+		return uuid.Nil, false
 	}
 	switch uid := val.(type) {
 	case uuid.UUID:
+		if uid == uuid.Nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user identity"})
+			return uuid.Nil, false
+		}
 		return uid, true
 	case string:
-		if parsed, err := uuid.Parse(uid); err == nil {
+		if parsed, err := uuid.Parse(uid); err == nil && parsed != uuid.Nil {
 			return parsed, true
 		}
 	}
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001"), true
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized user context"})
+	return uuid.Nil, false
 }
 
 func parseDate(dateStr string) *time.Time {
