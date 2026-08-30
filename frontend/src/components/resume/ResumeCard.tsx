@@ -13,7 +13,7 @@ import {
   ListItemText,
   Button,
   Stack,
-  CircularProgress,
+  Divider,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
@@ -25,8 +25,11 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import Link from 'next/link';
 
-import { Resume } from '@/features/resume/types';
+import { Resume } from '../../features/resume/types';
+import { tokens } from '../../theme/tokens';
 
 interface ResumeCardProps {
   resume: Resume;
@@ -59,107 +62,164 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({
     setAnchorEl(null);
   };
 
+  const updatedDate = resume.updatedAt
+    ? new Date(resume.updatedAt).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : 'Recently';
+
   return (
     <Paper
       elevation={0}
+      data-testid={`resume-card-${resume.id}`}
       sx={{
-        p: 3,
-        borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
-        border: resume.isDefault ? '1.5px solid #0066FF' : '1px solid rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'blur(16px)',
-        transition: 'transform 0.2s ease, border-color 0.2s ease',
+        p: { xs: 2.5, sm: 3 },
+        borderRadius: `${tokens.radius.lg}px`,
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: resume.isDefault ? 'primary.main' : 'divider',
+        transition: 'all 0.2s ease',
         '&:hover': {
           borderColor: 'primary.main',
-          transform: 'translateY(-2px)',
+          boxShadow: (theme) =>
+            theme.palette.mode === 'dark'
+              ? '0 8px 24px rgba(0,0,0,0.3)'
+              : '0 8px 24px rgba(99, 102, 241, 0.08)',
         },
-        position: 'relative',
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-        <Box sx={{ pr: 2 }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+      {/* Top Row: Title, Default Chip, Actions */}
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
+        <Box sx={{ pr: 1, minWidth: 0 }}>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 800,
+                color: 'text.primary',
+                letterSpacing: '-0.01em',
+              }}
+            >
               {resume.title}
             </Typography>
+
             {resume.isDefault && (
               <Chip
-                icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#0066FF' }} />}
-                label="Default Resume"
+                icon={<CheckCircleIcon sx={{ fontSize: '14px !important' }} />}
+                label="Primary Default"
                 size="small"
+                color="primary"
                 sx={{
-                  bgcolor: 'rgba(0, 102, 255, 0.12)',
-                  color: '#0066FF',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: '0.7rem',
-                  border: '1px solid rgba(0, 102, 255, 0.3)',
+                  borderRadius: `${tokens.radius.pill}px`,
+                  height: 22,
                 }}
               />
             )}
           </Stack>
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-            Template: {resume.templateName.toUpperCase()} • Updated{' '}
-            {new Date(resume.updatedAt).toLocaleDateString()}
+
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>
+            Template: <strong style={{ textTransform: 'capitalize' }}>{resume.templateName || 'Classic'}</strong> • Updated {updatedDate}
           </Typography>
         </Box>
 
-        <IconButton onClick={handleOpenMenu} size="small" sx={{ color: 'text.secondary' }}>
-          <MoreVertIcon />
+        <IconButton size="small" onClick={handleOpenMenu} aria-label="More actions">
+          <MoreVertIcon fontSize="small" />
         </IconButton>
-      </Box>
-
-      <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-            ATS Score
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#00CC66' }}>
-            {resume.atsScore}%
-          </Typography>
-        </Box>
-
-        <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-            Completion
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0066FF' }}>
-            {resume.completionPercentage}%
-          </Typography>
-        </Box>
-
-        <Box sx={{ flex: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-            Applications
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#9933FF' }}>
-            {resume.applicationCount || 3}
-          </Typography>
-        </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1.5}>
+      {/* ATS & Completeness Badges */}
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+        {resume.atsScore !== undefined && (
+          <Chip
+            label={`ATS Score: ${resume.atsScore}%`}
+            size="small"
+            color={resume.atsScore >= 80 ? 'success' : resume.atsScore >= 60 ? 'warning' : 'default'}
+            sx={{ fontWeight: 700, fontSize: '0.75rem', borderRadius: `${tokens.radius.sm}px` }}
+          />
+        )}
+
+        {resume.completionPercentage !== undefined && (
+          <Chip
+            label={`${resume.completionPercentage}% Complete`}
+            size="small"
+            variant="outlined"
+            sx={{ fontWeight: 600, fontSize: '0.75rem', borderRadius: `${tokens.radius.sm}px` }}
+          />
+        )}
+      </Stack>
+
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Action Buttons */}
+      <Stack direction="row" spacing={1} justifyContent="space-between" alignItems="center">
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<EditIcon fontSize="small" />}
+            onClick={() => onEdit(resume)}
+            sx={{
+              borderRadius: `${tokens.radius.sm}px`,
+              fontWeight: 700,
+              textTransform: 'none',
+              fontSize: '0.8rem',
+            }}
+          >
+            Edit Resume
+          </Button>
+
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<VisibilityIcon fontSize="small" />}
+            onClick={() => onPreview(resume)}
+            sx={{
+              borderRadius: `${tokens.radius.sm}px`,
+              fontWeight: 700,
+              textTransform: 'none',
+              fontSize: '0.8rem',
+            }}
+          >
+            Preview
+          </Button>
+        </Stack>
+
         <Button
-          variant="contained"
+          variant="text"
           size="small"
-          startIcon={<EditIcon />}
-          onClick={() => onEdit(resume)}
-          sx={{ flex: 1, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+          startIcon={<DownloadIcon fontSize="small" />}
+          onClick={() => onDownload(resume)}
+          sx={{
+            borderRadius: `${tokens.radius.sm}px`,
+            fontWeight: 700,
+            textTransform: 'none',
+            fontSize: '0.8rem',
+          }}
         >
-          Edit
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<VisibilityIcon />}
-          onClick={() => onPreview(resume)}
-          sx={{ flex: 1, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
-        >
-          Preview
+          Download
         </Button>
       </Stack>
 
-      {/* Action Menu */}
+      {/* Dropdown Menu */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
+        {!resume.isDefault && (
+          <MenuItem
+            onClick={() => {
+              handleCloseMenu();
+              onSetDefault(resume);
+            }}
+          >
+            <ListItemIcon>
+              <StarIcon fontSize="small" color="primary" />
+            </ListItemIcon>
+            <ListItemText primary="Set as Primary Default" />
+          </MenuItem>
+        )}
+
         <MenuItem
           onClick={() => {
             handleCloseMenu();
@@ -169,31 +229,7 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({
           <ListItemIcon>
             <ContentCopyIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Duplicate</ListItemText>
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            handleCloseMenu();
-            onDownload(resume);
-          }}
-        >
-          <ListItemIcon>
-            <DownloadIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Download PDF</ListItemText>
-        </MenuItem>
-
-        <MenuItem
-          onClick={() => {
-            handleCloseMenu();
-            onSetDefault(resume);
-          }}
-        >
-          <ListItemIcon>
-            {resume.isDefault ? <StarIcon fontSize="small" color="warning" /> : <StarBorderIcon fontSize="small" />}
-          </ListItemIcon>
-          <ListItemText>{resume.isDefault ? 'Is Default' : 'Set As Default'}</ListItemText>
+          <ListItemText primary="Duplicate Version" />
         </MenuItem>
 
         <MenuItem
@@ -205,8 +241,10 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({
           <ListItemIcon>
             <ShareIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Share Link</ListItemText>
+          <ListItemText primary="Share Public Link" />
         </MenuItem>
+
+        <Divider />
 
         <MenuItem
           onClick={() => {
@@ -218,9 +256,11 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({
           <ListItemIcon>
             <DeleteOutlineIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
+          <ListItemText primary="Delete Resume" />
         </MenuItem>
       </Menu>
     </Paper>
   );
 };
+
+export default ResumeCard;

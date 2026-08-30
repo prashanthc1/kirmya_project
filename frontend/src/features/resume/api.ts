@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { authApiClient } from '../../services/authService';
 import {
   Resume,
   ResumeSection,
@@ -10,85 +10,104 @@ import {
   TailorJobResponse,
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+export * from './types';
+
+const apiClient = authApiClient;
 
 export const resumeApi = {
   getResumes: async (): Promise<Resume[]> => {
-    const res = await axios.get<Resume[]>(`${API_BASE}/resumes`);
+    const res = await apiClient.get<Resume[]>('/resumes');
+    return res.data;
+  },
+
+  listResumes: async (): Promise<Resume[]> => {
+    const res = await apiClient.get<Resume[]>('/resumes');
     return res.data;
   },
 
   getResume: async (id: string): Promise<Resume> => {
-    const res = await axios.get<Resume>(`${API_BASE}/resumes/${id}`);
+    const res = await apiClient.get<Resume>(`/resumes/${id}`);
     return res.data;
   },
 
   createResume: async (payload: { title: string; templateName?: string }): Promise<Resume> => {
-    const res = await axios.post<Resume>(`${API_BASE}/resumes`, payload);
+    const res = await apiClient.post<Resume>('/resumes', payload);
     return res.data;
   },
 
   updateSections: async (id: string, sections: ResumeSection[]): Promise<Resume> => {
-    const res = await axios.put<Resume>(`${API_BASE}/resumes/${id}`, { sections });
+    const res = await apiClient.put<Resume>(`/resumes/${id}`, { sections });
+    return res.data;
+  },
+
+  updateResumeSections: async (id: string, sections: { sectionType: string; content: string; sortOrder: number }[]): Promise<Resume> => {
+    const res = await apiClient.put<Resume>(`/resumes/${id}`, { sections });
     return res.data;
   },
 
   deleteResume: async (id: string): Promise<void> => {
-    await axios.delete(`${API_BASE}/resumes/${id}`);
+    await apiClient.delete(`/resumes/${id}`);
   },
 
   duplicateResume: async (id: string): Promise<Resume> => {
-    const res = await axios.post<Resume>(`${API_BASE}/resumes/${id}/duplicate`);
+    const res = await apiClient.post<Resume>(`/resumes/${id}/duplicate`);
     return res.data;
   },
 
   setDefaultResume: async (id: string): Promise<void> => {
-    await axios.post(`${API_BASE}/resumes/${id}/default`);
+    await apiClient.post(`/resumes/${id}/default`);
   },
 
   getVersions: async (id: string): Promise<ResumeVersion[]> => {
-    const res = await axios.get<ResumeVersion[]>(`${API_BASE}/resumes/${id}/versions`);
+    const res = await apiClient.get<ResumeVersion[]>(`/resumes/${id}/versions`);
+    return res.data;
+  },
+
+  listVersions: async (id: string): Promise<ResumeVersion[]> => {
+    const res = await apiClient.get<ResumeVersion[]>(`/resumes/${id}/versions`);
     return res.data;
   },
 
   importResume: async (payload: { fileName: string; fileData?: string; fileType?: string }): Promise<Resume> => {
-    const res = await axios.post<Resume>(`${API_BASE}/resumes/import`, payload);
+    const res = await apiClient.post<Resume>('/resumes/import', payload);
     return res.data;
   },
 
   getTemplates: async (): Promise<ResumeTemplate[]> => {
-    const res = await axios.get<ResumeTemplate[]>(`${API_BASE}/resumes/templates`);
+    const res = await apiClient.get<ResumeTemplate[]>('/resumes/templates');
     return res.data;
   },
 
   analyzeResume: async (id: string): Promise<ATSAnalysis> => {
-    const res = await axios.post<ATSAnalysis>(`${API_BASE}/resumes/${id}/analyze`);
+    const res = await apiClient.post<ATSAnalysis>(`/resumes/${id}/analyze`);
     return res.data;
   },
 
   optimizeResume: async (id: string): Promise<Resume> => {
-    const res = await axios.post<Resume>(`${API_BASE}/resumes/${id}/optimize`);
+    const res = await apiClient.post<Resume>(`/resumes/${id}/optimize`);
     return res.data;
   },
 
   tailorResume: async (id: string, payload: { jobId?: string; jobDescription?: string }): Promise<TailorJobResponse> => {
-    const res = await axios.post<TailorJobResponse>(`${API_BASE}/resumes/${id}/tailor`, payload);
+    const res = await apiClient.post<TailorJobResponse>(`/resumes/${id}/tailor`, payload);
     return res.data;
   },
 
   shareResume: async (id: string, privacyLevel: string): Promise<ResumeShare> => {
-    const res = await axios.post<ResumeShare>(`${API_BASE}/resumes/${id}/share`, { privacyLevel });
+    const res = await apiClient.post<ResumeShare>(`/resumes/${id}/share`, { privacyLevel });
     return res.data;
   },
 
   deleteShare: async (id: string): Promise<void> => {
-    await axios.delete(`${API_BASE}/resumes/${id}/share`);
+    await apiClient.delete(`/resumes/${id}/share`);
   },
 
   getAnalytics: async (id: string): Promise<ResumeAnalytics> => {
-    const res = await axios.get<ResumeAnalytics>(`${API_BASE}/resumes/${id}/analytics`);
+    const res = await apiClient.get<ResumeAnalytics>(`/resumes/${id}/analytics`);
     return res.data;
   },
 
-  downloadResumeUrl: (id: string) => `${API_BASE}/resumes/${id}/download`,
+  downloadResumeUrl: (id: string) => `/api/v1/resumes/${id}/download`,
 };
+
+export default resumeApi;

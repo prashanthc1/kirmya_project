@@ -103,13 +103,13 @@ export const ResumePreviewToolbar: React.FC<ResumePreviewToolbarProps> = ({
 
       {/* Zoom Control */}
       <Stack direction="row" spacing={1} alignItems="center">
-        <IconButton size="small" onClick={onZoomOut}>
+        <IconButton size="small" onClick={onZoomOut} aria-label="Zoom out">
           <ZoomOutIcon fontSize="small" />
         </IconButton>
         <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 40, textAlign: 'center' }}>
           {Math.round(zoom * 100)}%
         </Typography>
-        <IconButton size="small" onClick={onZoomIn}>
+        <IconButton size="small" onClick={onZoomIn} aria-label="Zoom in">
           <ZoomInIcon fontSize="small" />
         </IconButton>
       </Stack>

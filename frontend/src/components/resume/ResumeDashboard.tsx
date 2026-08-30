@@ -1,19 +1,26 @@
 'use client';
 
 import React from 'react';
-import { Container, Box, Typography, Grid, Paper, Button, Stack } from '@mui/material';
+import {
+  Container,
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Button,
+  Stack,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import StyleIcon from '@mui/icons-material/Style';
 import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import DownloadIcon from '@mui/icons-material/Download';
-import WorkIcon from '@mui/icons-material/Work';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import Link from 'next/link';
 
-import { Resume } from '@/features/resume/types';
+import { Resume } from '../../features/resume/types';
 import { ResumeCard } from './ResumeCard';
+import { tokens } from '../../theme/tokens';
 
 interface ResumeDashboardProps {
   resumes: Resume[];
@@ -30,7 +37,7 @@ interface ResumeDashboardProps {
 }
 
 export const ResumeDashboard: React.FC<ResumeDashboardProps> = ({
-  resumes,
+  resumes = [],
   onCreate,
   onImport,
   onBrowseTemplates,
@@ -42,92 +49,211 @@ export const ResumeDashboard: React.FC<ResumeDashboardProps> = ({
   onShare,
   onDelete,
 }) => {
-  const defaultResume = resumes.find((r) => r.isDefault) || resumes[0];
-  const totalViews = resumes.reduce((acc, r) => acc + (r.viewCount || 12), 0);
-  const totalDownloads = resumes.reduce((acc, r) => acc + (r.downloadCount || 4), 0);
-  const totalApplications = resumes.reduce((acc, r) => acc + (r.applicationCount || 3), 0);
-  const avgATS = resumes.length > 0 ? Math.round(resumes.reduce((acc, r) => acc + r.atsScore, 0) / resumes.length) : 85;
+  const totalViews = resumes.reduce((acc, r) => acc + (r.viewCount || 0), 0);
+  const totalDownloads = resumes.reduce((acc, r) => acc + (r.downloadCount || 0), 0);
+  const totalApplications = resumes.reduce((acc, r) => acc + (r.applicationCount || 0), 0);
+  const avgATS =
+    resumes.length > 0
+      ? Math.round(resumes.reduce((acc, r) => acc + (r.atsScore || 0), 0) / resumes.length)
+      : 0;
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <DescriptionIcon sx={{ color: 'primary.main', fontSize: 36 }} /> Resume Studio & Management Workspace
-          </Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Build ATS-friendly resumes, manage version snapshots, tailor for specific job postings, and track application performance.
-          </Typography>
-        </Box>
+    <Box data-testid="resume-dashboard" sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Header Banner */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2.5, md: 3.5 },
+          borderRadius: `${tokens.radius.lg}px`,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', md: 'center' }}
+          spacing={2}
+        >
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.02em', mb: 0.5 }}>
+              Resume Studio & Document Management
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 680 }}>
+              Build ATS-optimized resumes, manage versions, import existing PDF documents, and tailor profiles for job applications.
+            </Typography>
+          </Box>
 
-        <Stack direction="row" spacing={2}>
-          <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={onImport} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
-            Import Resume
-          </Button>
-          <Button variant="outlined" startIcon={<StyleIcon />} onClick={onBrowseTemplates} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
-            Templates
-          </Button>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={onCreate} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800, px: 3 }}>
-            Create Resume
-          </Button>
+          <Stack direction="row" spacing={1.5} flexWrap="wrap">
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={onImport}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, textTransform: 'none', fontWeight: 700 }}
+            >
+              Import PDF/Doc
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<StyleIcon />}
+              onClick={onBrowseTemplates}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, textTransform: 'none', fontWeight: 700 }}
+            >
+              Templates
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={onCreate}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, textTransform: 'none', fontWeight: 800, px: 2.5 }}
+            >
+              Create Resume
+            </Button>
+          </Stack>
         </Stack>
-      </Box>
 
-      {/* KPI Cards */}
-      <Grid container spacing={2.5} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Total Resumes</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#0066FF' }}>{resumes.length}</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Avg ATS Score</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#00CC66' }}>{avgATS}%</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Job Applications Used</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#9933FF' }}>{totalApplications}</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Recruiter Views</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#FF9900' }}>{totalViews}</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>PDF Downloads</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#FF3366' }}>{totalDownloads}</Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Resume Cards Grid */}
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-        Your Resume Documents ({resumes.length})
-      </Typography>
-
-      <Grid container spacing={3}>
-        {resumes.map((resume) => (
-          <Grid item xs={12} md={6} lg={4} key={resume.id}>
-            <ResumeCard
-              resume={resume}
-              onEdit={onEdit}
-              onPreview={onPreview}
-              onDuplicate={onDuplicate}
-              onDownload={onDownload}
-              onSetDefault={onSetDefault}
-              onShare={onShare}
-              onDelete={onDelete}
-            />
+        {/* Real Metrics Grid */}
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          <Grid item xs={6} sm={3}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: `${tokens.radius.md}px`,
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              }}
+            >
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                Total Resumes
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mt: 0.5 }}>
+                {resumes.length}
+              </Typography>
+            </Paper>
           </Grid>
-        ))}
-      </Grid>
-    </Container>
+
+          <Grid item xs={6} sm={3}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: `${tokens.radius.md}px`,
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.04)',
+              }}
+            >
+              <Typography variant="caption" color="success.main" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                Average ATS Score
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main', mt: 0.5 }}>
+                {avgATS > 0 ? `${avgATS}%` : '—'}
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: `${tokens.radius.md}px`,
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.04)',
+              }}
+            >
+              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                Applications Used
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.5 }}>
+                {totalApplications}
+              </Typography>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={6} sm={3}>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: `${tokens.radius.md}px`,
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(234,179,8,0.08)' : 'rgba(234,179,8,0.04)',
+              }}
+            >
+              <Typography variant="caption" color="warning.main" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                Recruiter Views
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'warning.main', mt: 0.5 }}>
+                {totalViews}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Resumes Grid */}
+      {resumes.length === 0 ? (
+        <Paper
+          elevation={0}
+          sx={{
+            py: 8,
+            px: 3,
+            textAlign: 'center',
+            borderRadius: `${tokens.radius.lg}px`,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <DescriptionIcon sx={{ fontSize: 52, color: 'text.secondary', opacity: 0.5, mb: 1.5 }} />
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            No Resumes Created Yet
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 460, mx: 'auto', mt: 0.5, mb: 3 }}>
+            Create your first ATS-friendly resume using our builder templates, or import an existing PDF document.
+          </Typography>
+
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={onImport}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700, textTransform: 'none' }}
+            >
+              Import PDF
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={onCreate}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700, textTransform: 'none' }}
+            >
+              Create Resume
+            </Button>
+          </Stack>
+        </Paper>
+      ) : (
+        <Grid container spacing={2.5}>
+          {resumes.map((res) => (
+            <Grid item xs={12} md={6} key={res.id}>
+              <ResumeCard
+                resume={res}
+                onEdit={onEdit}
+                onPreview={onPreview}
+                onDuplicate={onDuplicate}
+                onDownload={onDownload}
+                onSetDefault={onSetDefault}
+                onShare={onShare}
+                onDelete={onDelete}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Box>
   );
 };
+
+export default ResumeDashboard;
