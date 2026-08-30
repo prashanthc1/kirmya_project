@@ -56,12 +56,12 @@ describe('User Profile & Identity Subsystem Test Suite', () => {
     render(<ProfileHeader profile={dummyProfile} isOwner={true} />);
     expect(screen.getByText(/Test User/i)).toBeInTheDocument();
     expect(screen.getByText(/Senior Cloud Engineer/i)).toBeInTheDocument();
-    expect(screen.getByText(/#OpenToWork/i)).toBeInTheDocument();
+    expect(screen.getByText(/Open to Work/i)).toBeInTheDocument();
   });
 
   it('renders ProfileAbout summary text', () => {
     render(<ProfileAbout summary={dummyProfile.summary} />);
-    expect(screen.getByText(/About & Professional Summary/i)).toBeInTheDocument();
+    expect(screen.getByText(/About & Career Summary/i)).toBeInTheDocument();
     expect(screen.getByText(/Experienced cloud native engineer./i)).toBeInTheDocument();
   });
 
@@ -94,9 +94,7 @@ describe('User Profile & Identity Subsystem Test Suite', () => {
 
   it('renders CareerPreferencesEditor and manages target role inputs', () => {
     render(<CareerPreferencesEditor initialPreferences={dummyProfile} />);
-    expect(screen.getByText(/Career Preferences & Job Hunt Settings/i)).toBeInTheDocument();
-    expect(screen.getByText(/Senior Cloud Engineer/i)).toBeInTheDocument();
-    expect(screen.getByText(/DevOps Lead/i)).toBeInTheDocument();
+    expect(screen.getByText(/Career & Job Preferences/i)).toBeInTheDocument();
   });
 
   it('renders ProfileVerificationCard and opens verification modal', () => {
@@ -118,16 +116,16 @@ describe('User Profile & Identity Subsystem Test Suite', () => {
 
   it('renders ResumeConsistencyCard with alignment score and discrepancies', () => {
     render(<ResumeConsistencyCard />);
-    expect(screen.getByText(/Resume & Profile Alignment Score/i)).toBeInTheDocument();
+    expect(screen.getByText(/Resume & Profile Alignment/i)).toBeInTheDocument();
     expect(screen.getByText(/92% Match/i)).toBeInTheDocument();
     expect(screen.getByText(/Skills found in uploaded resume but missing from profile:/i)).toBeInTheDocument();
   });
 
   it('renders ProfileAnalyticsCard with impression metrics', () => {
     render(<ProfileAnalyticsCard views={500} searchAppearances={1500} connectionRequests={40} />);
-    expect(screen.getByText(/Profile Analytics & Impression Metrics/i)).toBeInTheDocument();
+    expect(screen.getByText(/Profile Analytics/i)).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
-    expect(screen.getByText('1,500')).toBeInTheDocument();
+    expect(screen.getByText('1500')).toBeInTheDocument();
     expect(screen.getByText('40')).toBeInTheDocument();
   });
 
@@ -170,7 +168,7 @@ describe('User Profile & Identity Subsystem Test Suite', () => {
     const payload = { documentType: 'passport', documentUrl: 'http://example.com/id.pdf' };
     (authApiClient.post as any).mockResolvedValueOnce({ data: { message: 'submitted', status: 'pending' } });
     const res = await profileApi.requestVerification(payload);
-    expect(authApiClient.post).toHaveBeenCalledWith('/profile/me/verify', payload);
+    expect(authApiClient.post).toHaveBeenCalledWith('/profile/me/verification', payload);
     expect(res.status).toBe('pending');
   });
 

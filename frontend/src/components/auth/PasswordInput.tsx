@@ -8,14 +8,15 @@ import {
   Alert,
   TextFieldProps,
 } from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 export interface PasswordInputProps extends Omit<TextFieldProps, 'type'> {
   label?: string;
   error?: boolean;
   helperText?: React.ReactNode;
+  autoComplete?: string;
 }
 
 export const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -23,6 +24,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   error,
   helperText,
   disabled,
+  autoComplete = 'current-password',
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,6 +36,14 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
     } else {
       setCapsLockActive(false);
     }
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  const handleMouseDownPassword = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
   };
 
   return (
@@ -56,23 +66,33 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         error={error}
         helperText={helperText}
         disabled={disabled}
+        autoComplete={autoComplete}
         onKeyDown={handleKeyDown}
         InputProps={{
-          ...props.InputProps,
           endAdornment: (
             <InputAdornment position="end">
               <IconButton
-                onClick={() => setShowPassword((prev) => !prev)}
-                onMouseDown={(e) => e.preventDefault()}
-                edge="end"
+                type="button"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={handleClickShowPassword}
+                onMouseDown={handleMouseDownPassword}
+                edge="end"
                 size="small"
-                disabled={disabled}
+                sx={{
+                  color: 'text.secondary',
+                  minWidth: 40,
+                  minHeight: 40,
+                }}
               >
-                {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                {showPassword ? (
+                  <VisibilityOffOutlinedIcon fontSize="small" />
+                ) : (
+                  <VisibilityOutlinedIcon fontSize="small" />
+                )}
               </IconButton>
             </InputAdornment>
           ),
+          ...props.InputProps,
         }}
       />
     </>

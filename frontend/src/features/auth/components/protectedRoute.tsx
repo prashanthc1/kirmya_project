@@ -1,19 +1,21 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../context/authContext';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '../../../hooks/useAuth';
 import { Box, CircularProgress } from '@mui/material';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/login');
+      const returnUrl = pathname && pathname !== '/' ? `?returnUrl=${encodeURIComponent(pathname)}` : '';
+      router.push(`/login${returnUrl}`);
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, pathname, router]);
 
   if (loading || !isAuthenticated) {
     return (
@@ -23,10 +25,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          bgcolor: '#090d16',
+          bgcolor: 'background.default',
         }}
       >
-        <CircularProgress size={50} color="primary" />
+        <CircularProgress size={44} color="primary" />
       </Box>
     );
   }

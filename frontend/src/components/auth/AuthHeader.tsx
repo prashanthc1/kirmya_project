@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, IconButton, Stack, useTheme } from '@mui/material';
+import { Box, Typography, IconButton, Stack } from '@mui/material';
 import BrandLockup from '../brand/BrandLockup';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -14,22 +14,21 @@ interface AuthHeaderProps {
 
 export const AuthHeader: React.FC<AuthHeaderProps> = ({ title, subtitle }) => {
   const { mode, toggleColorMode } = useColorMode();
-  const theme = useTheme();
 
   return (
     <Box sx={{ mb: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <BrandLockup size={44} variant="h5" />
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
+        <BrandLockup size={40} variant="h5" />
 
         <IconButton
           onClick={toggleColorMode}
           aria-label="Toggle color mode"
+          size="small"
           sx={{
-            color: mode === 'light' ? 'text.secondary' : '#f8fafc',
-            backdropFilter: 'blur(8px)',
-            backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+            color: 'text.secondary',
+            bgcolor: 'action.hover',
             '&:hover': {
-              backgroundColor: mode === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.15)',
+              bgcolor: 'action.selected',
             },
           }}
         >
@@ -37,10 +36,10 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({ title, subtitle }) => {
         </IconButton>
       </Stack>
 
-      <Typography variant="h5" component="h1" sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary' }}>
+      <Typography variant="h5" component="h1" sx={{ fontWeight: 800, mb: 0.75, letterSpacing: '-0.02em' }}>
         {title}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
         {subtitle}
       </Typography>
     </Box>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,13 +17,14 @@ import {
   CircularProgress,
   Link as MuiLink,
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Link from 'next/link';
 
 import AuthHeader from './AuthHeader';
 import PasswordInput from './PasswordInput';
-import SocialLoginButtons from './SocialLoginButtons';
 import AuthFooter from './AuthFooter';
 import { useLogin } from '../../hooks/useLogin';
+import { tokens } from '../../theme/tokens';
+import { ROUTES } from '../../shared/routes';
 
 // Zod Validation Schema
 const signInSchema = z.object({
@@ -40,8 +41,26 @@ const signInSchema = z.object({
 
 type SignInFormInputs = z.infer<typeof signInSchema>;
 
+// Validate returnUrl to avoid open redirects
+function getSafeReturnUrl(returnUrl: string | null): string {
+  if (!returnUrl) return ROUTES.FEED;
+  // Disallow absolute URLs, scheme-relative URLs, or protocol specifications
+  if (
+    returnUrl.startsWith('/') &&
+    !returnUrl.startsWith('//') &&
+    !returnUrl.includes('://')
+  ) {
+    return returnUrl;
+  }
+  return ROUTES.FEED;
+}
+
 export const SignInForm: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawReturnUrl = searchParams.get('returnUrl') || searchParams.get('redirect');
+  const safeReturnUrl = getSafeReturnUrl(rawReturnUrl);
+
   const { login, submitting, error, setError } = useLogin();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -63,7 +82,6 @@ export const SignInForm: React.FC = () => {
       setError(null);
       setSuccessMessage(null);
 
-      // Lowercase normalization
       const normalizedEmail = data.email.trim().toLowerCase();
 
       const res = await login({
@@ -74,42 +92,54 @@ export const SignInForm: React.FC = () => {
 
       setSuccessMessage('Authentication successful. Redirecting...');
 
-      // Role-based navigation
       const userRole = (res?.user?.roleId || 'candidate').toLowerCase();
       setTimeout(() => {
-        if (userRole.includes('admin') || userRole === 'platform_admin') {
-          router.push('/admin');
+        if (rawReturnUrl) {
+          router.push(safeReturnUrl);
+        } else if (userRole.includes('admin') || userRole === 'platform_admin') {
+          router.push(ROUTES.ADMIN.ROOT);
         } else if (userRole.includes('company')) {
-          router.push('/company');
+          router.push(ROUTES.COMPANY_DASHBOARD);
         } else if (userRole.includes('recruiter')) {
-          router.push('/recruiter');
+          router.push(ROUTES.RECRUITER.DASHBOARD);
         } else {
-          router.push('/dashboard');
+          router.push(ROUTES.FEED);
         }
-      }, 500);
+      }, 400);
     } catch {
-      // Error is caught and set inside useLogin hook
+      // Handled via useLogin error state
     }
   };
 
   return (
     <Box>
-      <AuthHeader title="Sign In to Kirmya" subtitle="Enter your credentials to access your professional workspace" />
+      <AuthHeader
+        title="Sign In to Kirmya"
+        subtitle="Enter your credentials to access your professional workspace."
+      />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setError(null)}>
+        <Alert
+          severity="error"
+          sx={{ mb: 2.5, borderRadius: `${tokens.radius.sm}px` }}
+          onClose={() => setError(null)}
+        >
           {error}
         </Alert>
       )}
 
       {successMessage && (
-        <Alert severity="success" sx={{ mb: 2.5, borderRadius: '12px' }}>
+        <Alert
+          severity="success"
+          sx={{ mb: 2.5, borderRadius: `${tokens.radius.sm}px` }}
+        >
           {successMessage}
         </Alert>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
+          {/* Email Input */}
           <Controller
             name="email"
             control={control}
@@ -117,17 +147,19 @@ export const SignInForm: React.FC = () => {
               <TextField
                 {...field}
                 label="Email Address"
-                type="email"
+                placeholder="name@company.com"
                 fullWidth
                 variant="outlined"
-                error={!!errors.email}
+                autoComplete="email"
+                autoFocus
+                error={Boolean(errors.email)}
                 helperText={errors.email?.message}
                 disabled={submitting}
-                autoComplete="email"
               />
             )}
           />
 
+          {/* Password Input */}
           <Controller
             name="password"
             control={control}
@@ -135,76 +167,98 @@ export const SignInForm: React.FC = () => {
               <PasswordInput
                 {...field}
                 label="Password"
-                error={!!errors.password}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                error={Boolean(errors.password)}
                 helperText={errors.password?.message}
                 disabled={submitting}
-                autoComplete="current-password"
               />
             )}
           />
 
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
+          {/* Remember Me & Forgot Password */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ mt: -0.5 }}
+          >
             <Controller
               name="rememberMe"
               control={control}
               render={({ field }) => (
                 <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value} color="primary" size="small" />}
-                  label={<Typography variant="body2">Remember me</Typography>}
+                  control={
+                    <Checkbox
+                      {...field}
+                      checked={field.value}
+                      color="primary"
+                      size="small"
+                      disabled={submitting}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color="text.secondary">
+                      Remember me
+                    </Typography>
+                  }
                 />
               )}
             />
 
             <MuiLink
-              component="button"
-              type="button"
+              component={Link}
+              href="/forgot-password"
               variant="body2"
-              onClick={() => router.push('/forgot-password')}
-              sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none' }}
+              color="primary"
+              underline="hover"
+              sx={{ fontWeight: 600 }}
             >
               Forgot password?
             </MuiLink>
           </Stack>
 
+          {/* Submit Button */}
           <Button
             type="submit"
             variant="contained"
-            fullWidth
             size="large"
+            fullWidth
             disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <LockOutlinedIcon />}
             sx={{
-              py: 1.5,
-              borderRadius: '12px',
+              py: 1.4,
               fontWeight: 700,
-              fontSize: '1rem',
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-              boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-              },
+              fontSize: '0.95rem',
+              borderRadius: `${tokens.radius.md}px`,
             }}
           >
-            {submitting ? 'Authenticating...' : 'Sign In'}
+            {submitting ? (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CircularProgress size={18} color="inherit" />
+                <span>Signing in...</span>
+              </Stack>
+            ) : (
+              'Sign In'
+            )}
           </Button>
+
+          {/* Sign Up Link */}
+          <Box sx={{ textAlign: 'center', mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Don&apos;t have an account?{' '}
+              <MuiLink
+                component={Link}
+                href="/signup"
+                color="primary"
+                underline="hover"
+                sx={{ fontWeight: 700 }}
+              >
+                Create Account
+              </MuiLink>
+            </Typography>
+          </Box>
         </Stack>
       </form>
-
-      <SocialLoginButtons />
-
-      <Box sx={{ mt: 3, textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Don&apos;t have an account yet?{' '}
-          <MuiLink
-            component="button"
-            type="button"
-            onClick={() => router.push('/register')}
-            sx={{ color: 'primary.main', fontWeight: 700, textDecoration: 'none' }}
-          >
-            Create an Account
-          </MuiLink>
-        </Typography>
-      </Box>
 
       <AuthFooter />
     </Box>

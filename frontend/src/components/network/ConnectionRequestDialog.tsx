@@ -9,8 +9,10 @@ import {
   Button,
   TextField,
   Typography,
-  Box,
+  Stack,
 } from '@mui/material';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
+import { tokens } from '../../theme/tokens';
 
 interface ConnectionRequestDialogProps {
   open: boolean;
@@ -47,42 +49,66 @@ export const ConnectionRequestDialog: React.FC<ConnectionRequestDialogProps> = (
       maxWidth="xs"
       PaperProps={{
         sx: {
-          borderRadius: '24px',
-          p: 1,
-          backdropFilter: 'blur(16px)',
-          bgcolor: (theme) =>
-            theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          borderRadius: `${tokens.radius.lg}px`,
+          p: 1.5,
+          bgcolor: 'background.paper',
           border: '1px solid',
           borderColor: 'divider',
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: 900 }}>
-        Connect with {targetName}
+      <DialogTitle sx={{ fontWeight: 800, letterSpacing: '-0.01em', pb: 1 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <PersonAddOutlinedIcon color="primary" />
+          <span>Connect with {targetName}</span>
+        </Stack>
       </DialogTitle>
+
       <DialogContent>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Adding a personal note increases acceptance rate. Notes are optional (max 500 characters).
-        </Typography>
-        <TextField
-          fullWidth
-          multiline
-          rows={3}
-          placeholder="Ex: Hi! I noticed we both work in cloud engineering in Dubai and wanted to connect..."
-          value={note}
-          onChange={(e) => setNote(e.target.value.slice(0, 500))}
-        />
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'right', mt: 0.5, fontWeight: 700 }}>
-          {note.length}/500
-        </Typography>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+            You can include an optional personalized note to introduce yourself or mention shared interests.
+          </Typography>
+
+          <TextField
+            label="Add a note (optional)"
+            placeholder="Hi, I noticed your work in..."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            variant="outlined"
+            inputProps={{ maxLength: 300 }}
+            helperText={`${note.length}/300 characters`}
+          />
+        </Stack>
       </DialogContent>
-      <DialogActions sx={{ p: 2, justifyContent: 'space-between' }}>
-        <Button onClick={handleSubmitWithoutNote} variant="outlined" sx={{ borderRadius: '12px', fontWeight: 700 }}>
-          Send Without Note
+
+      <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
+        <Button
+          onClick={handleSubmitWithoutNote}
+          variant="text"
+          sx={{ fontWeight: 600 }}
+        >
+          Send without note
         </Button>
-        <Button onClick={handleSubmitWithNote} variant="contained" sx={{ borderRadius: '12px', fontWeight: 800 }}>
-          Send Invitation
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmitWithNote}
+            variant="contained"
+            sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700 }}
+          >
+            Send Invitation
+          </Button>
+        </Stack>
       </DialogActions>
     </Dialog>
   );

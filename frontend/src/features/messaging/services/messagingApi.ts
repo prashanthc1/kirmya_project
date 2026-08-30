@@ -1,66 +1,23 @@
 import { authApiClient, getAccessToken } from '../../../services/authService';
+import {
+  MessageAttachment,
+  MessageReaction,
+  MessageItem,
+  ConversationItem,
+  MessageRequestItem,
+  WSEvent,
+  AdminMessagingAnalytics,
+} from '../types';
+
+export * from '../types';
 
 const client = authApiClient;
 
-export interface MessageAttachment {
-  id: string;
-  messageId: string;
-  fileName: string;
-  fileUrl: string;
-  fileSize: number;
-  createdAt: string;
-}
-
-export interface ConversationItem {
-  id: string;
-  userId1: string;
-  userId2: string;
-  lastMessageText: string;
-  lastMessageTime: string;
-  createdAt: string;
-  isArchived?: boolean;
-  isMuted?: boolean;
-  isPinned?: boolean;
-  unreadCount?: number;
-  participantName?: string;
-  participantAvatar?: string;
-  participantStatus?: string;
-}
-
-export interface MessageItem {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  senderName?: string;
-  content: string;
-  isRead: boolean;
-  createdAt: string;
-  attachments?: MessageAttachment[];
-  reactions?: any[];
-}
-
-export interface MessageRequestItem {
-  id: string;
-  senderId: string;
-  senderName?: string;
-  senderHeadline?: string;
-  senderAvatar?: string;
-  receiverId: string;
-  initialMessage: string;
-  status: string;
-  createdAt: string;
-}
-
-export interface AdminMessagingAnalytics {
-  totalConversationsCount: number;
-  totalMessagesSent: number;
-  pendingRequestsCount: number;
-  reportedMessagesCount: number;
-}
-
 export const messagingApi = {
-  getCurrentUserId: () => getAccessToken() || '',
-  getMockUserId: () => getAccessToken() || '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
+  getCurrentUserId: (): string => {
+    // In production, user details are in memory/token payload or fetched from /profile/me
+    return 'me';
+  },
 
   // Conversations
   listConversations: async (): Promise<ConversationItem[]> => {
@@ -68,23 +25,26 @@ export const messagingApi = {
     return res.data;
   },
 
-  getOrCreateConversation: async (participantId: string): Promise<ConversationItem> => {
-    const res = await client.post<ConversationItem>('/messages/conversations', { participantId });
+  getOrCreateConversation: async (participantId: string, initialNote?: string): Promise<ConversationItem> => {
+    const res = await client.post<ConversationItem>('/messages/conversations', {
+      participantId,
+      initialNote,
+    });
     return res.data;
   },
 
   archiveConversation: async (conversationId: string): Promise<{ message: string }> => {
-    const res = await client.post(`/messages/conversations/${conversationId}/archive`);
+    const res = await client.post<{ message: string }>(`/messages/conversations/${conversationId}/archive`);
     return res.data;
   },
 
   muteConversation: async (conversationId: string): Promise<{ message: string }> => {
-    const res = await client.post(`/messages/conversations/${conversationId}/mute`);
+    const res = await client.post<{ message: string }>(`/messages/conversations/${conversationId}/mute`);
     return res.data;
   },
 
   pinConversation: async (conversationId: string): Promise<{ message: string }> => {
-    const res = await client.post(`/messages/conversations/${conversationId}/pin`);
+    const res = await client.post<{ message: string }>(`/messages/conversations/${conversationId}/pin`);
     return res.data;
   },
 
@@ -94,18 +54,25 @@ export const messagingApi = {
     return res.data;
   },
 
-  sendMessage: async (conversationId: string, content: string, attachments?: MessageAttachment[]): Promise<MessageItem> => {
-    const res = await client.post<MessageItem>(`/messages/conversations/${conversationId}/messages`, { content, attachments });
+  sendMessage: async (
+    conversationId: string,
+    content: string,
+    attachments?: MessageAttachment[]
+  ): Promise<MessageItem> => {
+    const res = await client.post<MessageItem>(`/messages/conversations/${conversationId}/messages`, {
+      content,
+      attachments,
+    });
     return res.data;
   },
 
   markRead: async (conversationId: string): Promise<{ message: string }> => {
-    const res = await client.post(`/messages/conversations/${conversationId}/read`);
+    const res = await client.post<{ message: string }>(`/messages/conversations/${conversationId}/read`);
     return res.data;
   },
 
   addReaction: async (messageId: string, emoji: string): Promise<{ message: string }> => {
-    const res = await client.post(`/messages/messages/${messageId}/reaction`, { emoji });
+    const res = await client.post<{ message: string }>(`/messages/messages/${messageId}/reaction`, { emoji });
     return res.data;
   },
 
@@ -114,14 +81,17 @@ export const messagingApi = {
     return res.data;
   },
 
-  // Requests
+  // Message Requests (Outreach from Non-Connections)
   listRequests: async (): Promise<MessageRequestItem[]> => {
     const res = await client.get<MessageRequestItem[]>('/messages/requests');
     return res.data;
   },
 
   sendRequest: async (receiverId: string, initialMessage: string): Promise<MessageRequestItem> => {
-    const res = await client.post<MessageRequestItem>('/messages/requests', { receiverId, initialMessage });
+    const res = await client.post<MessageRequestItem>('/messages/requests', {
+      receiverId,
+      initialMessage,
+    });
     return res.data;
   },
 
@@ -131,12 +101,17 @@ export const messagingApi = {
   },
 
   declineRequest: async (requestId: string): Promise<{ message: string }> => {
-    const res = await client.post(`/messages/requests/${requestId}/decline`);
+    const res = await client.post<{ message: string }>(`/messages/requests/${requestId}/decline`);
     return res.data;
   },
 
-  reportMessage: async (payload: { conversationId: string; messageId?: string; reason: string; details?: string }): Promise<{ message: string }> => {
-    const res = await client.post('/messages/report', payload);
+  reportMessage: async (payload: {
+    conversationId: string;
+    messageId?: string;
+    reason: string;
+    details?: string;
+  }): Promise<{ message: string }> => {
+    const res = await client.post<{ message: string }>('/messages/report', payload);
     return res.data;
   },
 
@@ -147,26 +122,89 @@ export const messagingApi = {
   },
 
   getAdminReports: async (): Promise<any[]> => {
-    const res = await client.get('/admin/messaging/reports');
+    const res = await client.get<any[]>('/admin/messaging/reports');
     return res.data;
   },
 
   // WebSocket Connection Handshake
-  connectWebSocket: (onMessage: (data: any) => void): WebSocket => {
-    const token = getAccessToken() || '';
-    const baseWs = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/v1/messages/ws';
-    const wsUrl = token ? `${baseWs}?token=${token}` : baseWs;
-    const socket = new WebSocket(wsUrl);
+  connectWebSocket: (
+    onMessage: (event: WSEvent) => void,
+    onStatusChange?: (status: 'connecting' | 'connected' | 'disconnected' | 'reconnecting') => void
+  ): { socket: WebSocket | null; send: (data: any) => void; close: () => void } => {
+    if (typeof window === 'undefined') {
+      return { socket: null, send: () => {}, close: () => {} };
+    }
 
-    socket.onmessage = (event) => {
+    let socket: WebSocket | null = null;
+    let reconnectTimer: NodeJS.Timeout | null = null;
+    let isClosedExplicitly = false;
+    let retryCount = 0;
+    const maxRetries = 5;
+
+    const connect = () => {
+      if (isClosedExplicitly) return;
+      if (onStatusChange) onStatusChange(retryCount === 0 ? 'connecting' : 'reconnecting');
+
+      const token = getAccessToken() || '';
+      const baseWs = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/v1/messages/ws';
+      const wsUrl = token ? `${baseWs}?token=${encodeURIComponent(token)}` : baseWs;
+
       try {
-        const data = JSON.parse(event.data);
-        onMessage(data);
-      } catch (e) {
-        console.warn('WebSocket message payload parse failed:', event.data);
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+          retryCount = 0;
+          if (onStatusChange) onStatusChange('connected');
+        };
+
+        socket.onmessage = (event) => {
+          try {
+            const data: WSEvent = JSON.parse(event.data);
+            onMessage(data);
+          } catch (e) {
+            console.warn('Failed to parse WebSocket event payload:', event.data);
+          }
+        };
+
+        socket.onclose = () => {
+          if (!isClosedExplicitly) {
+            if (onStatusChange) onStatusChange('disconnected');
+            if (retryCount < maxRetries) {
+              const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+              retryCount++;
+              reconnectTimer = setTimeout(connect, delay);
+            }
+          }
+        };
+
+        socket.onerror = () => {
+          if (socket) socket.close();
+        };
+      } catch (err) {
+        if (onStatusChange) onStatusChange('disconnected');
       }
     };
 
-    return socket;
+    connect();
+
+    return {
+      get socket() {
+        return socket;
+      },
+      send: (data: any) => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(typeof data === 'string' ? data : JSON.stringify(data));
+        }
+      },
+      close: () => {
+        isClosedExplicitly = true;
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        if (socket) {
+          socket.close();
+          socket = null;
+        }
+        if (onStatusChange) onStatusChange('disconnected');
+      },
+    };
   },
 };

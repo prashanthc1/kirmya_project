@@ -164,6 +164,7 @@ export interface UserProfile {
   resumeConsistency?: ResumeConsistency;
   profileAnalytics?: ProfileAnalytics;
   privacySettings?: ProfilePrivacySettingsData;
+  connectionStatus?: 'none' | 'pending_sent' | 'pending_received' | 'connected' | 'blocked' | string;
 }
 
 export type ProfileData = UserProfile;

@@ -17,6 +17,12 @@ export const ROUTES = {
   FAQS: '/faqs',
 
   // Authentication
+  LOGIN: '/login',
+  SIGNIN: '/signin',
+  SIGNUP: '/signup',
+  REGISTER: '/register',
+  ONBOARDING: '/onboarding',
+  VERIFICATION: '/verification',
   AUTH: {
     LOGIN: '/login',
     SIGNIN: '/signin',

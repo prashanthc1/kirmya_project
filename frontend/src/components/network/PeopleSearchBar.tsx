@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { TextField, InputAdornment, IconButton, Box } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import ClearIcon from '@mui/icons-material/Clear';
+import { tokens } from '../../theme/tokens';
 
 interface PeopleSearchBarProps {
   onSearch: (query: string) => void;
@@ -13,7 +14,7 @@ interface PeopleSearchBarProps {
 
 export const PeopleSearchBar: React.FC<PeopleSearchBarProps> = ({
   onSearch,
-  placeholder = 'Search by name, headline, company, or skills...',
+  placeholder = 'Search professionals by name, title, company, or skills...',
   initialValue = '',
 }) => {
   const [searchTerm, setSearchTerm] = useState(initialValue);
@@ -26,6 +27,11 @@ export const PeopleSearchBar: React.FC<PeopleSearchBarProps> = ({
     return () => clearTimeout(handler);
   }, [searchTerm, onSearch]);
 
+  const handleClear = () => {
+    setSearchTerm('');
+    onSearch('');
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <TextField
@@ -33,20 +39,31 @@ export const PeopleSearchBar: React.FC<PeopleSearchBarProps> = ({
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder={placeholder}
+        variant="outlined"
+        inputProps={{
+          'aria-label': 'Search professionals',
+        }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon color="primary" />
+              <SearchOutlinedIcon color="action" />
             </InputAdornment>
           ),
           endAdornment: searchTerm ? (
             <InputAdornment position="end">
-              <IconButton size="small" onClick={() => setSearchTerm('')}>
+              <IconButton
+                size="small"
+                onClick={handleClear}
+                aria-label="Clear search query"
+              >
                 <ClearIcon fontSize="small" />
               </IconButton>
             </InputAdornment>
           ) : null,
-          sx: { borderRadius: '16px', bgcolor: 'background.paper' },
+          sx: {
+            borderRadius: `${tokens.radius.md}px`,
+            bgcolor: 'background.paper',
+          },
         }}
       />
     </Box>

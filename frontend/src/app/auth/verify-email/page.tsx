@@ -2,14 +2,22 @@
 
 import React, { Suspense } from 'react';
 import { Skeleton, Stack } from '@mui/material';
-import AuthLayout from '../../components/auth/AuthLayout';
-import AuthCard from '../../components/auth/AuthCard';
-import SignInForm from '../../components/auth/SignInForm';
-import AuthErrorBoundary from '../../components/auth/ErrorBoundary';
+import AuthLayout from '../../../components/auth/AuthLayout';
+import AuthCard from '../../../components/auth/AuthCard';
+import EmailVerificationView from '../../../components/auth/EmailVerificationView';
+import AuthErrorBoundary from '../../../components/auth/ErrorBoundary';
 
 export const dynamic = 'force-dynamic';
 
-export default function LoginPage() {
+function VerifyEmailContent() {
+  return (
+    <AuthCard>
+      <EmailVerificationView />
+    </AuthCard>
+  );
+}
+
+export default function VerifyEmailPage() {
   return (
     <AuthErrorBoundary>
       <AuthLayout>
@@ -18,15 +26,13 @@ export default function LoginPage() {
             <AuthCard>
               <Stack spacing={2}>
                 <Skeleton variant="rounded" height={40} />
-                <Skeleton variant="rounded" height={160} />
+                <Skeleton variant="rounded" height={120} />
                 <Skeleton variant="rounded" height={48} />
               </Stack>
             </AuthCard>
           }
         >
-          <AuthCard>
-            <SignInForm />
-          </AuthCard>
+          <VerifyEmailContent />
         </Suspense>
       </AuthLayout>
     </AuthErrorBoundary>

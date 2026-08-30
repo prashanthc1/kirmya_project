@@ -7,17 +7,19 @@ import {
   Avatar,
   Typography,
   Stack,
-  Button,
   Chip,
   IconButton,
   Tooltip,
 } from '@mui/material';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import Link from 'next/link';
-import ConnectionRequestDialog from './ConnectionRequestDialog';
+
+import ConnectionActionButton from './ConnectionActionButton';
 import { ConnectionRecommendation, networkingApi } from '../../features/networking/services/networkingApi';
+import { tokens } from '../../theme/tokens';
 
 interface RecommendationCardProps {
   cand: ConnectionRecommendation;
@@ -25,19 +27,10 @@ interface RecommendationCardProps {
 }
 
 export const RecommendationCard: React.FC<RecommendationCardProps> = ({ cand, onDismiss }) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [status, setStatus] = useState<string>(cand.connectionStatus || 'none');
-
-  const handleSendRequest = async (note?: string) => {
-    try {
-      await networkingApi.sendRequest(cand.userId, note);
-      setStatus('pending_sent');
-    } catch {
-      alert('Failed to send request.');
-    }
-  };
+  const [dismissed, setDismissed] = useState(false);
 
   const handleDismiss = async () => {
+    setDismissed(true);
     try {
       await networkingApi.dismissRecommendation(cand.userId);
       if (onDismiss) onDismiss();
@@ -46,101 +39,136 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({ cand, on
     }
   };
 
+  if (dismissed) return null;
+
+  const profileHref = `/profile/${encodeURIComponent(cand.username || cand.userId)}`;
+
   return (
     <Card
+      elevation={0}
       sx={{
         p: 2.5,
-        borderRadius: '20px',
-        backdropFilter: 'blur(12px)',
-        bgcolor: (theme) =>
-          theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+        borderRadius: `${tokens.radius.lg}px`,
+        bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        transition: 'all 0.2s ease-in-out',
+        transition: 'all 0.2s ease',
         '&:hover': {
-          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          borderColor: 'primary.main',
+          boxShadow: (theme) =>
+            theme.palette.mode === 'dark'
+              ? '0 8px 24px rgba(0, 0, 0, 0.4)'
+              : '0 8px 24px rgba(0, 0, 0, 0.06)',
         },
       }}
     >
       <Box>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar src={cand.avatarUrl} sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800 }}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
+            <Avatar
+              component={Link}
+              href={profileHref}
+              src={cand.avatarUrl}
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
               {cand.name ? cand.name[0].toUpperCase() : 'K'}
             </Avatar>
-            <Box>
+
+            <Box sx={{ minWidth: 0 }}>
               <Typography
                 component={Link}
-                href={`/profile/${cand.username || cand.userId}`}
+                href={profileHref}
                 variant="subtitle1"
-                sx={{ fontWeight: 800, textDecoration: 'none', color: 'text.primary', '&:hover': { color: 'primary.main' } }}
+                sx={{
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  color: 'text.primary',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block',
+                  '&:hover': { color: 'primary.main' },
+                }}
               >
                 {cand.name || cand.username}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                {cand.headline}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {cand.location} • {cand.industry}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: '0.85rem',
+                  lineHeight: 1.3,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {cand.headline || 'Professional Suggestion'}
               </Typography>
             </Box>
           </Stack>
 
-          <Tooltip title="Dismiss Suggestion">
-            <IconButton size="small" onClick={handleDismiss}>
+          <Tooltip title="Dismiss recommendation">
+            <IconButton size="small" onClick={handleDismiss} aria-label="Dismiss recommendation">
               <CloseIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Stack>
 
-        <Stack direction="row" spacing={1} sx={{ my: 1.5 }} flexWrap="wrap" gap={0.5}>
-          {cand.matchScore > 0 && (
+        {/* Suggestion reason & mutuals */}
+        <Stack direction="row" spacing={1} flexWrap="wrap" gap={0.5} sx={{ my: 1.5 }}>
+          {cand.reason && (
             <Chip
-              icon={<AutoAwesomeIcon sx={{ fontSize: '14px !important' }} />}
-              label={`${cand.matchScore}% Match`}
-              color="secondary"
-              variant="outlined"
+              icon={<AutoAwesomeIcon sx={{ fontSize: 13 }} />}
+              label={cand.reason}
               size="small"
-              sx={{ fontWeight: 800 }}
+              color="primary"
+              variant="outlined"
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontSize: '0.75rem', fontWeight: 600 }}
             />
           )}
-          {cand.reason && (
-            <Chip label={cand.reason} size="small" sx={{ fontWeight: 700 }} />
+
+          {cand.mutualCount > 0 && !cand.reason?.includes('Mutual') && (
+            <Chip
+              icon={<PeopleAltOutlinedIcon sx={{ fontSize: 13 }} />}
+              label={`${cand.mutualCount} mutual`}
+              size="small"
+              variant="outlined"
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontSize: '0.75rem' }}
+            />
           )}
-          {cand.mutualCount > 0 && (
-            <Chip label={`${cand.mutualCount} Mutual Connections`} size="small" variant="outlined" sx={{ fontWeight: 700 }} />
+
+          {cand.location && (
+            <Chip
+              icon={<LocationOnOutlinedIcon sx={{ fontSize: 13 }} />}
+              label={cand.location}
+              size="small"
+              variant="outlined"
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontSize: '0.75rem' }}
+            />
           )}
         </Stack>
       </Box>
 
-      <Box sx={{ mt: 2 }}>
-        {status === 'pending_sent' ? (
-          <Button fullWidth variant="outlined" color="warning" disabled sx={{ borderRadius: '12px', fontWeight: 800 }}>
-            Invitation Pending
-          </Button>
-        ) : (
-          <Button
-            fullWidth
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-            onClick={() => setDialogOpen(true)}
-            sx={{ borderRadius: '12px', fontWeight: 800 }}
-          >
-            Connect
-          </Button>
-        )}
+      {/* Action Button */}
+      <Box sx={{ pt: 1.5, borderTop: '1px solid', borderColor: 'divider', mt: 1 }}>
+        <ConnectionActionButton
+          userId={cand.userId}
+          userName={cand.name}
+          userUsername={cand.username}
+          initialStatus={cand.connectionStatus || 'none'}
+        />
       </Box>
-
-      <ConnectionRequestDialog
-        open={dialogOpen}
-        targetName={cand.name || cand.username}
-        onClose={() => setDialogOpen(false)}
-        onSubmit={handleSendRequest}
-      />
     </Card>
   );
 };

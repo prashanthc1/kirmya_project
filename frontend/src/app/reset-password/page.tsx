@@ -4,19 +4,27 @@ import React, { useState, Suspense } from 'react';
 import {
   Box,
   Button,
-  CircularProgress,
-  Container,
-  Paper,
   Stack,
-  TextField,
   Typography,
   Alert,
-  Link as MuiLink,
+  CircularProgress,
+  Skeleton,
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { apiClient } from '@/services/api';
+import Link from 'next/link';
+
+import AuthLayout from '../../components/auth/AuthLayout';
+import AuthCard from '../../components/auth/AuthCard';
+import AuthHeader from '../../components/auth/AuthHeader';
+import AuthFooter from '../../components/auth/AuthFooter';
+import PasswordInput from '../../components/auth/PasswordInput';
+import PasswordStrengthIndicator from '../../components/auth/PasswordStrength';
+import AuthErrorBoundary from '../../components/auth/ErrorBoundary';
+import { authApiClient } from '../../services/authService';
+import { tokens } from '../../theme/tokens';
+
+export const dynamic = 'force-dynamic';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -33,163 +41,157 @@ function ResetPasswordForm() {
     e.preventDefault();
     if (!password || !confirmPassword) return;
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    if (password.length < 12) {
+      setError('Password must be at least 12 characters long');
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
 
     setLoading(true);
     setError(null);
     try {
-      await apiClient.post('/auth/reset-password', {
+      await authApiClient.post('/auth/reset-password', {
         token,
+        password,
         new_password: password,
       });
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to reset password. The link may have expired.');
+      setError(
+        err.response?.data?.error ||
+          'Failed to reset password. The link may have expired or is invalid.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)',
-        p: 2,
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, sm: 5 },
-            borderRadius: '24px',
-            background: 'rgba(30, 41, 59, 0.7)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-          }}
-        >
-          {success ? (
-            <Stack spacing={3} alignItems="center" textAlign="center">
-              <CheckCircleOutlineIcon sx={{ fontSize: 64, color: 'success.main' }} />
-              <Typography variant="h5" fontWeight={700} color="text.primary">
-                Password updated successfully
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Your password has been changed. You can now sign in with your new credentials.
-              </Typography>
-              <Button
-                variant="contained"
-                fullWidth
-                size="large"
-                onClick={() => router.push('/auth/signin')}
-                sx={{ mt: 2, borderRadius: '12px', py: 1.5, fontWeight: 700 }}
+    <AuthCard>
+      <AuthHeader
+        title="Reset Password"
+        subtitle="Create a new secure password for your Kirmya account."
+      />
+
+      {success ? (
+        <Box sx={{ textAlign: 'center', py: 2 }}>
+          <CheckCircleOutlineIcon color="success" sx={{ fontSize: 56, mb: 1.5 }} />
+          <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
+            Password Reset Successfully
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Your password has been updated. You can now sign in with your new credentials.
+          </Typography>
+
+          <Button
+            component={Link}
+            href="/login"
+            variant="contained"
+            fullWidth
+            sx={{ py: 1.3, fontWeight: 700, borderRadius: `${tokens.radius.md}px` }}
+          >
+            Sign In
+          </Button>
+        </Box>
+      ) : (
+        <form onSubmit={handleSubmit} noValidate>
+          <Stack spacing={2.5}>
+            {error && (
+              <Alert
+                severity="error"
+                sx={{ borderRadius: `${tokens.radius.sm}px` }}
+                onClose={() => setError(null)}
               >
-                Sign in to Kirmya
-              </Button>
-            </Stack>
-          ) : (
-            <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={3}>
-                <Box textAlign="center">
-                  <Typography variant="h5" fontWeight={700} color="text.primary" gutterBottom>
-                    Set a new password
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Enter and confirm your new secure password.
-                  </Typography>
-                </Box>
+                {error}
+              </Alert>
+            )}
 
-                {error && <Alert severity="error">{error}</Alert>}
-
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="New password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  InputProps={{
-                    startAdornment: <LockOutlinedIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                    },
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Confirm new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  InputProps={{
-                    startAdornment: <LockOutlinedIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                    },
-                  }}
-                />
-
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  disabled={loading || !password || !confirmPassword}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: '12px',
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                  }}
-                >
-                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Update password'}
-                </Button>
-
-                <Box textAlign="center">
-                  <MuiLink
-                    component="button"
-                    type="button"
-                    variant="body2"
-                    onClick={() => router.push('/auth/signin')}
-                    sx={{ color: 'primary.main', fontWeight: 600, textDecoration: 'none' }}
-                  >
-                    ← Back to sign in
-                  </MuiLink>
-                </Box>
-              </Stack>
+            <Box>
+              <PasswordInput
+                label="New Password (min 12 characters)"
+                placeholder="Enter new password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+                disabled={loading}
+              />
+              <PasswordStrengthIndicator password={password} />
             </Box>
-          )}
-        </Paper>
-      </Container>
-    </Box>
+
+            <PasswordInput
+              label="Confirm New Password"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+              disabled={loading}
+            />
+
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={loading || !password || !confirmPassword}
+              sx={{
+                py: 1.4,
+                fontWeight: 700,
+                fontSize: '0.95rem',
+                borderRadius: `${tokens.radius.md}px`,
+              }}
+            >
+              {loading ? (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CircularProgress size={18} color="inherit" />
+                  <span>Resetting password...</span>
+                </Stack>
+              ) : (
+                'Set New Password'
+              )}
+            </Button>
+
+            <Button
+              component={Link}
+              href="/login"
+              variant="outlined"
+              fullWidth
+              sx={{ py: 1.2, fontWeight: 600, borderRadius: `${tokens.radius.md}px` }}
+            >
+              Back to Sign In
+            </Button>
+          </Stack>
+        </form>
+      )}
+
+      <AuthFooter />
+    </AuthCard>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Box>}>
-      <ResetPasswordForm />
-    </Suspense>
+    <AuthErrorBoundary>
+      <AuthLayout>
+        <Suspense
+          fallback={
+            <AuthCard>
+              <Stack spacing={2}>
+                <Skeleton variant="rounded" height={40} />
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={48} />
+              </Stack>
+            </AuthCard>
+          }
+        >
+          <ResetPasswordForm />
+        </Suspense>
+      </AuthLayout>
+    </AuthErrorBoundary>
   );
 }

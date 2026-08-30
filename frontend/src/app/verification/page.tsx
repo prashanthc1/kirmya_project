@@ -38,22 +38,44 @@ import {
   PrivacySetting,
   VerificationType,
 } from '../../features/verification/types';
+import { useSearchParams } from 'next/navigation';
+import AuthLayout from '../../components/auth/AuthLayout';
+import AuthCard from '../../components/auth/AuthCard';
+import EmailVerificationView from '../../components/auth/EmailVerificationView';
 
-export default function VerificationPage() {
+function VerificationHubContent() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+  const emailParam = searchParams.get('email');
+
+  if (token || emailParam) {
+    return (
+      <AuthLayout>
+        <AuthCard>
+          <EmailVerificationView />
+        </AuthCard>
+      </AuthLayout>
+    );
+  }
+
+  return <VerificationDashboardContent />;
+}
+
+function VerificationDashboardContent() {
   const [activeTab, setActiveTab] = useState(0);
   const [status, setStatus] = useState<VerificationStatus | null>(null);
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Form states for creating verification requests
-  const [workEmail, setWorkEmail] = useState('alex.rivera@techcorp.com');
-  const [companyName, setCompanyName] = useState('TechCorp Global');
-  const [jobTitle, setJobTitle] = useState('Senior Software Engineer');
-  const [skillTitle, setSkillTitle] = useState('Go & Full-Stack Architecture');
-  const [certTitle, setCertTitle] = useState('AWS Certified Solutions Architect');
-  const [certOrg, setCertOrg] = useState('Amazon Web Services');
-  const [certID, setCertID] = useState('AWS-987123-SA');
-  const [certURL, setCertURL] = useState('https://aws.amazon.com/verify/AWS-987123-SA');
+  const [workEmail, setWorkEmail] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [skillTitle, setSkillTitle] = useState('');
+  const [certTitle, setCertTitle] = useState('');
+  const [certOrg, setCertOrg] = useState('');
+  const [certID, setCertID] = useState('');
+  const [certURL, setCertURL] = useState('');
 
   const fetchData = async () => {
     try {
@@ -457,5 +479,13 @@ export default function VerificationPage() {
         </Grid>
       </Container>
     </Box>
+  );
+}
+
+export default function VerificationPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <VerificationHubContent />
+    </React.Suspense>
   );
 }

@@ -29,6 +29,7 @@ import Link from 'next/link';
 
 import { UserProfile } from '../../features/profile/types';
 import { profileApi } from '../../features/profile/api';
+import ConnectionActionButton from '../network/ConnectionActionButton';
 import { tokens } from '../../theme/tokens';
 import { ROUTES } from '../../shared/routes';
 
@@ -294,15 +295,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </Button>
           ) : (
             <>
-              <Button
-                component={Link}
-                href={`/messages?userId=${profile.userId}`}
-                variant="contained"
-                size="medium"
-                sx={{ borderRadius: `${tokens.radius.md}px`, px: 2.5 }}
-              >
-                Connect / Message
-              </Button>
+              <ConnectionActionButton
+                userId={profile.userId || profile.id}
+                userName={fullName}
+                userUsername={profile.username}
+                initialStatus={profile.connectionStatus || 'none'}
+              />
               {onReport && (
                 <Tooltip title="Report Profile">
                   <IconButton onClick={onReport} size="small" aria-label="Report this profile">

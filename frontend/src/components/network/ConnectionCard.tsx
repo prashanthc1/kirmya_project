@@ -7,30 +7,29 @@ import {
   Avatar,
   Typography,
   Stack,
-  Button,
   IconButton,
-  Tooltip,
   Chip,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  Button,
 } from '@mui/material';
-import MessageIcon from '@mui/icons-material/Message';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import NoteAltIcon from '@mui/icons-material/NoteAlt';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import BlockIcon from '@mui/icons-material/Block';
-import FlagIcon from '@mui/icons-material/Flag';
-import PersonIcon from '@mui/icons-material/Person';
+import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
+import PersonRemoveOutlinedIcon from '@mui/icons-material/PersonRemoveOutlined';
+import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined';
+import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import Link from 'next/link';
+
 import ConnectionNoteModal from './ConnectionNoteModal';
+import BlockUserModal from './BlockUserModal';
+import ReportUserModal from './ReportUserModal';
 import { ConnectionRecommendation, Connection, networkingApi } from '../../features/networking/services/networkingApi';
+import { tokens } from '../../theme/tokens';
 
 interface ConnectionCardProps {
   connection: ConnectionRecommendation | Connection;
@@ -40,11 +39,11 @@ interface ConnectionCardProps {
 export const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection, onRemove }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  const [reportDetails, setReportDetails] = useState('');
+
   const [notes, setNotes] = useState<string>((connection as Connection).notes?.[0]?.text || '');
-  const [labels, setLabels] = useState<string[]>((connection as Connection).labels as string[] || []);
+  const [labels, setLabels] = useState<string[]>(((connection as Connection).labels as string[]) || []);
 
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(e.currentTarget);
@@ -56,150 +55,228 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection, onRe
 
   const handleRemove = async () => {
     handleMenuClose();
-    if (confirm(`Remove 1st-degree connection with ${connection.name}?`)) {
-      try {
-        await networkingApi.removeConnection(connection.userId);
-        if (onRemove) onRemove();
-      } catch {
-        alert('Failed to remove connection.');
-      }
-    }
-  };
-
-  const handleBlock = async () => {
-    handleMenuClose();
-    if (confirm(`Block ${connection.name}? You will no longer be able to message or view each other.`)) {
-      try {
-        await networkingApi.blockUser(connection.userId);
-        if (onRemove) onRemove();
-      } catch {
-        alert('Failed to block user.');
-      }
-    }
-  };
-
-  const handleSendReport = async () => {
-    if (!reportReason) return;
     try {
-      await networkingApi.reportUser(connection.userId, reportReason, reportDetails);
-      alert('Report submitted to network moderation team.');
-      setReportModalOpen(false);
-      setReportReason('');
-      setReportDetails('');
+      await networkingApi.removeConnection(connection.userId);
+      if (onRemove) onRemove();
     } catch {
-      alert('Failed to send report.');
+      // Handled
     }
   };
+
+  const profileHref = `/profile/${encodeURIComponent(connection.username || connection.userId)}`;
 
   return (
     <Card
+      elevation={0}
       sx={{
         p: 2.5,
-        borderRadius: '20px',
-        backdropFilter: 'blur(12px)',
-        bgcolor: (theme) =>
-          theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+        borderRadius: `${tokens.radius.lg}px`,
+        bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
-        transition: 'all 0.2s ease-in-out',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        transition: 'all 0.2s ease',
         '&:hover': {
-          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
           borderColor: 'primary.main',
+          boxShadow: (theme) =>
+            theme.palette.mode === 'dark'
+              ? '0 8px 24px rgba(0, 0, 0, 0.4)'
+              : '0 8px 24px rgba(0, 0, 0, 0.06)',
         },
       }}
     >
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ flexGrow: 1 }}>
-          <Avatar
-            src={connection.avatarUrl}
-            sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontWeight: 800, fontSize: '1.25rem' }}
-          >
-            {connection.name ? connection.name[0].toUpperCase() : 'K'}
-          </Avatar>
-
-          <Box>
-            <Typography
+      <Box>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
+            <Avatar
               component={Link}
-              href={`/profile/${connection.username || connection.userId}`}
-              variant="subtitle1"
-              sx={{ fontWeight: 800, textDecoration: 'none', color: 'text.primary', '&:hover': { color: 'primary.main' } }}
+              href={profileHref}
+              src={connection.avatarUrl}
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
             >
-              {connection.name || connection.username}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-              {connection.headline || 'Professional Member'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {connection.location} {connection.industry ? `• ${connection.industry}` : ''}
-            </Typography>
+              {connection.name ? connection.name[0].toUpperCase() : 'K'}
+            </Avatar>
 
-            {labels && labels.length > 0 && (
-              <Stack direction="row" spacing={0.5} sx={{ mt: 1 }} flexWrap="wrap">
-                {labels.map((lbl) => (
-                  <Chip key={lbl} label={lbl} size="small" variant="outlined" color="primary" sx={{ height: 20, fontSize: '0.7rem', fontWeight: 700 }} />
-                ))}
-              </Stack>
-            )}
-
-            {notes && (
-              <Typography variant="caption" color="primary" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
-                Note: &quot;{notes.slice(0, 60)}{notes.length > 60 ? '...' : ''}&quot;
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                component={Link}
+                href={profileHref}
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  color: 'text.primary',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block',
+                  '&:hover': { color: 'primary.main' },
+                }}
+              >
+                {connection.name}
               </Typography>
-            )}
-          </Box>
-        </Stack>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  fontSize: '0.85rem',
+                  lineHeight: 1.3,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {connection.headline || '1st-Degree Connection'}
+              </Typography>
+            </Box>
+          </Stack>
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: 'flex-end' }}>
-          <Tooltip title="Private Note & Labels">
-            <IconButton color={notes ? 'primary' : 'default'} onClick={() => setNoteModalOpen(true)}>
-              <NoteAltIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Button
-            component={Link}
-            href={`/messaging?user=${connection.userId}`}
-            variant="outlined"
-            startIcon={<MessageIcon />}
-            size="small"
-            sx={{ borderRadius: '12px', fontWeight: 800 }}
-          >
-            Message
-          </Button>
-
-          <IconButton size="small" onClick={handleMenuOpen}>
-            <MoreVertIcon />
+          <IconButton size="small" onClick={handleMenuOpen} aria-label="Connection options">
+            <MoreHorizIcon fontSize="small" />
           </IconButton>
         </Stack>
+
+        <Stack direction="row" spacing={1} flexWrap="wrap" gap={0.5} sx={{ my: 1 }}>
+          {connection.location && (
+            <Chip
+              icon={<LocationOnOutlinedIcon sx={{ fontSize: 13 }} />}
+              label={connection.location}
+              size="small"
+              variant="outlined"
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontSize: '0.75rem' }}
+            />
+          )}
+
+          {((connection as Connection).company || (connection as ConnectionRecommendation).currentCompany) && (
+            <Chip
+              icon={<BusinessOutlinedIcon sx={{ fontSize: 13 }} />}
+              label={(connection as Connection).company || (connection as ConnectionRecommendation).currentCompany}
+              size="small"
+              variant="outlined"
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontSize: '0.75rem' }}
+            />
+          )}
+
+          {labels.map((lbl, idx) => (
+            <Chip
+              key={idx}
+              label={lbl}
+              size="small"
+              color="secondary"
+              variant="outlined"
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontSize: '0.75rem' }}
+            />
+          ))}
+        </Stack>
+
+        {notes && (
+          <Box
+            sx={{
+              p: 1.25,
+              borderRadius: `${tokens.radius.sm}px`,
+              bgcolor: 'action.hover',
+              mb: 1.5,
+            }}
+          >
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <NoteAltOutlinedIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+              <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                &ldquo;{notes}&rdquo;
+              </Typography>
+            </Stack>
+          </Box>
+        )}
+      </Box>
+
+      {/* Bottom Actions */}
+      <Stack direction="row" spacing={1.5} sx={{ pt: 1.5, borderTop: '1px solid', borderColor: 'divider', mt: 1 }}>
+        <Button
+          component={Link}
+          href={`/messages?userId=${encodeURIComponent(connection.userId)}`}
+          variant="contained"
+          size="small"
+          fullWidth
+          startIcon={<ChatBubbleOutlineOutlinedIcon />}
+          sx={{
+            borderRadius: `${tokens.radius.sm}px`,
+            fontWeight: 700,
+            textTransform: 'none',
+          }}
+        >
+          Message
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setNoteModalOpen(true)}
+          startIcon={<NoteAltOutlinedIcon />}
+          sx={{
+            borderRadius: `${tokens.radius.sm}px`,
+            fontWeight: 600,
+            textTransform: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Notes & Tags
+        </Button>
       </Stack>
 
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{ sx: { borderRadius: '16px', minWidth: 180 } }}>
-        <MenuItem component={Link} href={`/profile/${connection.username || connection.userId}`} onClick={handleMenuClose}>
-          <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="View Profile" primaryTypographyProps={{ fontWeight: 700 }} />
+      {/* Dropdown Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: `${tokens.radius.md}px`,
+            minWidth: 190,
+          },
+        }}
+      >
+        <MenuItem component={Link} href={profileHref} onClick={handleMenuClose}>
+          <ListItemText primary="View Public Profile" />
         </MenuItem>
-
-        <MenuItem onClick={() => { handleMenuClose(); setNoteModalOpen(true); }}>
-          <ListItemIcon><NoteAltIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primary="Edit Private Note" primaryTypographyProps={{ fontWeight: 700 }} />
+        <MenuItem onClick={handleRemove}>
+          <ListItemIcon>
+            <PersonRemoveOutlinedIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText primary="Remove Connection" sx={{ color: 'error.main' }} />
         </MenuItem>
-
-        <MenuItem onClick={handleRemove} sx={{ color: 'error.main' }}>
-          <ListItemIcon><PersonRemoveIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText primary="Remove Connection" primaryTypographyProps={{ fontWeight: 700 }} />
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            setBlockModalOpen(true);
+          }}
+        >
+          <ListItemIcon>
+            <BlockOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Block User" />
         </MenuItem>
-
-        <MenuItem onClick={handleBlock} sx={{ color: 'error.main' }}>
-          <ListItemIcon><BlockIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText primary="Block Member" primaryTypographyProps={{ fontWeight: 700 }} />
-        </MenuItem>
-
-        <MenuItem onClick={() => { handleMenuClose(); setReportModalOpen(true); }} sx={{ color: 'warning.main' }}>
-          <ListItemIcon><FlagIcon fontSize="small" color="warning" /></ListItemIcon>
-          <ListItemText primary="Report User" primaryTypographyProps={{ fontWeight: 700 }} />
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            setReportModalOpen(true);
+          }}
+        >
+          <ListItemIcon>
+            <FlagOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Report User" />
         </MenuItem>
       </Menu>
 
+      {/* Dialogs */}
       <ConnectionNoteModal
         open={noteModalOpen}
         connectionId={connection.userId}
@@ -207,45 +284,28 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection, onRe
         initialNote={notes}
         initialLabels={labels}
         onClose={() => setNoteModalOpen(false)}
-        onSave={(newNote, newLabels) => {
+        onSave={(newNote: string, newLabels: string[]) => {
           setNotes(newNote);
           setLabels(newLabels);
         }}
       />
 
-      <Dialog open={reportModalOpen} onClose={() => setReportModalOpen(false)} PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 900 }}>Report {connection.name}</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Please specify why you are reporting this user.
-          </Typography>
-          <TextField
-            fullWidth
-            label="Reason"
-            placeholder="Ex: Harassment, Spam, Inappropriate behavior"
-            value={reportReason}
-            onChange={(e) => setReportReason(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="Details (Optional)"
-            placeholder="Provide additional details for moderation team..."
-            value={reportDetails}
-            onChange={(e) => setReportDetails(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setReportModalOpen(false)} variant="outlined" sx={{ borderRadius: '12px', fontWeight: 700 }}>
-            Cancel
-          </Button>
-          <Button onClick={handleSendReport} variant="contained" color="warning" sx={{ borderRadius: '12px', fontWeight: 800 }}>
-            Submit Report
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <BlockUserModal
+        open={blockModalOpen}
+        userId={connection.userId}
+        userName={connection.name}
+        onClose={() => setBlockModalOpen(false)}
+        onBlocked={() => {
+          if (onRemove) onRemove();
+        }}
+      />
+
+      <ReportUserModal
+        open={reportModalOpen}
+        userId={connection.userId}
+        userName={connection.name}
+        onClose={() => setReportModalOpen(false)}
+      />
     </Card>
   );
 };
