@@ -1,13 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Container } from '@mui/material';
-import ProfilePrivacySettings from '@/components/profile/ProfilePrivacySettings';
+import { AuthenticatedLayout } from '../../components/shell';
+import ProfilePrivacySettings from '../../components/profile/ProfilePrivacySettings';
+
+export const dynamic = 'force-dynamic';
 
 export default function ProfileSettingsPage() {
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <AuthenticatedLayout maxWidth="standard">
       <ProfilePrivacySettings />
-    </Container>
+    </AuthenticatedLayout>
   );
 }

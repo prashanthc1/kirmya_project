@@ -15,12 +15,16 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  Snackbar,
+  Alert,
 } from '@mui/material';
-import WorkIcon from '@mui/icons-material/Work';
-import SaveIcon from '@mui/icons-material/Save';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import AddIcon from '@mui/icons-material/Add';
+
 import { CareerPreferences } from '../../features/profile/types';
 import { profileApi } from '../../features/profile/api';
+import { tokens } from '../../theme/tokens';
 
 interface CareerPreferencesEditorProps {
   initialPreferences?: CareerPreferences;
@@ -31,21 +35,22 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
   initialPreferences,
   onSave,
 }) => {
-  const [openToWork, setOpenToWork] = useState(initialPreferences?.openToWork ?? true);
-  const [openToRecruiters, setOpenToRecruiters] = useState(initialPreferences?.openToRecruiters ?? true);
+  const [openToWork, setOpenToWork] = useState(initialPreferences?.openToWork ?? false);
+  const [openToRecruiters, setOpenToRecruiters] = useState(initialPreferences?.openToRecruiters ?? false);
   const [availabilityStatus, setAvailabilityStatus] = useState(
     initialPreferences?.availabilityStatus ?? 'open_to_work'
   );
   const [targetRoles, setTargetRoles] = useState<string[]>(
-    initialPreferences?.targetRoles ?? ['Senior Software Engineer', 'Engineering Lead']
+    initialPreferences?.targetRoles ?? []
   );
   const [preferredLocations, setPreferredLocations] = useState<string[]>(
-    initialPreferences?.preferredLocations ?? ['Dubai, UAE', 'Remote']
+    initialPreferences?.preferredLocations ?? []
   );
 
   const [roleInput, setRoleInput] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleAddRole = () => {
     if (roleInput.trim() && !targetRoles.includes(roleInput.trim())) {
@@ -71,18 +76,20 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
 
   const handleSave = async () => {
     setSaving(true);
-    const prefs: CareerPreferences = {
+    const updated: CareerPreferences = {
       openToWork,
       openToRecruiters,
       availabilityStatus,
       targetRoles,
       preferredLocations,
     };
+
     try {
-      await profileApi.updateCareerPreferences(prefs);
-      if (onSave) onSave(prefs);
-    } catch (e) {
-      console.error('Failed to update career preferences', e);
+      await profileApi.updateCareerPreferences(updated);
+      setToastMessage('Career preferences saved successfully.');
+      onSave?.(updated);
+    } catch {
+      setToastMessage('Failed to save career preferences.');
     } finally {
       setSaving(false);
     }
@@ -90,48 +97,33 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
 
   return (
     <Card
+      elevation={1}
       sx={{
-        p: 3.5,
-        borderRadius: '24px',
-        mb: 3,
-        bgcolor: 'background.paper',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+        borderRadius: `${tokens.radius.lg}px`,
+        p: { xs: 2.5, sm: 3.5 },
+        mb: 4,
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-        <WorkIcon color="primary" sx={{ fontSize: 28 }} />
-        <Typography variant="h6" sx={{ fontWeight: 900 }}>
-          Career Preferences & Job Hunt Settings
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2.5 }}>
+        <WorkOutlineIcon color="primary" sx={{ fontSize: 24 }} />
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+          Career & Job Preferences
         </Typography>
       </Stack>
 
       <Stack spacing={3}>
-        <Box sx={{ p: 2, borderRadius: '16px', bgcolor: 'action.hover' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
           <FormControlLabel
             control={
               <Switch
                 checked={openToWork}
                 onChange={(e) => setOpenToWork(e.target.checked)}
-                color="success"
+                color="primary"
               />
             }
-            label={
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                  #OpenToWork Badge Visibility
-                </Typography>
-
-                <Typography variant="body2" color="text.secondary">
-                  Display the green #OpenToWork frame on your profile photo for all recruiters and connections.
-                </Typography>
-              </Box>
-            }
+            label="Open to Work (Display badge on profile)"
           />
-        </Box>
 
-        <Box sx={{ p: 2, borderRadius: '16px', bgcolor: 'action.hover' }}>
           <FormControlLabel
             control={
               <Switch
@@ -140,46 +132,35 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
                 color="primary"
               />
             }
-            label={
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                  Private Recruiter Signal
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Signal confidentially to verified corporate recruiters that you are open to new career opportunities.
-                </Typography>
-              </Box>
-            }
+            label="Visible to Verified Recruiters"
           />
-        </Box>
+        </Stack>
 
-        <FormControl fullWidth>
-          <InputLabel id="availability-label">Availability Status</InputLabel>
+        <FormControl fullWidth size="small">
+          <InputLabel id="availability-status-label">Current Availability Status</InputLabel>
           <Select
-            labelId="availability-label"
+            labelId="availability-status-label"
+            label="Current Availability Status"
             value={availabilityStatus}
-            label="Availability Status"
             onChange={(e) => setAvailabilityStatus(e.target.value)}
-            sx={{ borderRadius: '12px', fontWeight: 700 }}
           >
-            <MenuItem value="open_to_work">Immediately Available</MenuItem>
-            <MenuItem value="1_month">1 Month Notice Period</MenuItem>
-            <MenuItem value="2_months">2 Months Notice Period</MenuItem>
-            <MenuItem value="casually_looking">Casually Exploring</MenuItem>
-            <MenuItem value="not_looking">Not Looking Currently</MenuItem>
+            <MenuItem value="open_to_work">Actively looking for work</MenuItem>
+            <MenuItem value="open_to_offers">Open to opportunities (Passive)</MenuItem>
+            <MenuItem value="available_for_freelance">Available for consulting / freelance</MenuItem>
+            <MenuItem value="looking_for_networking">Networking & mentorship only</MenuItem>
+            <MenuItem value="not_available">Not available for new roles</MenuItem>
           </Select>
         </FormControl>
 
         {/* Target Roles */}
         <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-            Target Job Roles
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+            Target Roles & Titles
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
             <TextField
               size="small"
-              fullWidth
-              placeholder="Add job title (e.g. Solutions Architect)"
+              placeholder="e.g. Staff Engineer, Product Manager"
               value={roleInput}
               onChange={(e) => setRoleInput(e.target.value)}
               onKeyDown={(e) => {
@@ -188,19 +169,20 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
                   handleAddRole();
                 }
               }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              fullWidth
             />
             <Button
               variant="outlined"
+              size="small"
               onClick={handleAddRole}
               startIcon={<AddIcon />}
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800, px: 2 }}
+              sx={{ flexShrink: 0 }}
             >
-              Add
+              Add Role
             </Button>
           </Stack>
 
-          <Stack direction="row" spacing={1} flexWrap="wrap">
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ rowGap: 1 }}>
             {targetRoles.map((role) => (
               <Chip
                 key={role}
@@ -208,7 +190,6 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
                 onDelete={() => handleRemoveRole(role)}
                 color="primary"
                 variant="outlined"
-                sx={{ fontWeight: 700, borderRadius: '8px', mb: 1 }}
               />
             ))}
           </Stack>
@@ -216,14 +197,13 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
 
         {/* Preferred Locations */}
         <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-            Preferred Work Locations
+          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+            Preferred Work Locations & Modes
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
             <TextField
               size="small"
-              fullWidth
-              placeholder="Add location (e.g. Dubai, Remote)"
+              placeholder="e.g. San Francisco, Remote, Hybrid"
               value={locationInput}
               onChange={(e) => setLocationInput(e.target.value)}
               onKeyDown={(e) => {
@@ -232,42 +212,54 @@ export const CareerPreferencesEditor: React.FC<CareerPreferencesEditorProps> = (
                   handleAddLocation();
                 }
               }}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              fullWidth
             />
             <Button
               variant="outlined"
+              size="small"
               onClick={handleAddLocation}
               startIcon={<AddIcon />}
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800, px: 2 }}
+              sx={{ flexShrink: 0 }}
             >
-              Add
+              Add Location
             </Button>
           </Stack>
 
-          <Stack direction="row" spacing={1} flexWrap="wrap">
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ rowGap: 1 }}>
             {preferredLocations.map((loc) => (
               <Chip
                 key={loc}
                 label={loc}
                 onDelete={() => handleRemoveLocation(loc)}
-                color="secondary"
                 variant="outlined"
-                sx={{ fontWeight: 700, borderRadius: '8px', mb: 1 }}
               />
             ))}
           </Stack>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<SaveIcon />}
-          onClick={handleSave}
-          disabled={saving}
-          sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none', py: 1.2 }}
-        >
-          {saving ? 'Saving Preferences...' : 'Save Career Preferences'}
-        </Button>
+        <Box sx={{ pt: 1 }}>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={saving}
+            startIcon={<SaveOutlinedIcon />}
+            sx={{ borderRadius: `${tokens.radius.md}px`, px: 3 }}
+          >
+            {saving ? 'Saving...' : 'Save Preferences'}
+          </Button>
+        </Box>
       </Stack>
+
+      <Snackbar
+        open={Boolean(toastMessage)}
+        autoHideDuration={4000}
+        onClose={() => setToastMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="info" onClose={() => setToastMessage(null)}>
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };

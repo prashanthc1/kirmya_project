@@ -2,21 +2,36 @@
 
 import React from 'react';
 import { Card, Typography, Box, Stack, Divider, Chip } from '@mui/material';
-import WorkIcon from '@mui/icons-material/Work';
-import { WorkExperienceItem } from '../../features/profile/services/profileApi';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import { WorkExperienceItem } from '../../features/profile/types';
+import { tokens } from '../../theme/tokens';
 
-export const ProfileExperience: React.FC<{ experiences?: WorkExperienceItem[] }> = ({ experiences = [] }) => {
+export const ProfileExperience: React.FC<{ experiences?: WorkExperienceItem[]; isOwner?: boolean }> = ({
+  experiences = [],
+  isOwner = false,
+}) => {
+  if (experiences.length === 0 && !isOwner) {
+    return null;
+  }
+
   return (
-    <Card sx={{ borderRadius: '24px', p: 3, mb: 3, bgcolor: 'background.paper' }}>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <WorkIcon color="primary" />
-        <Typography variant="h6" sx={{ fontWeight: 900 }}>
+    <Card
+      elevation={1}
+      sx={{
+        borderRadius: `${tokens.radius.lg}px`,
+        p: { xs: 2.5, sm: 3.5 },
+        mb: 3,
+      }}
+    >
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2.5 }}>
+        <WorkOutlineIcon color="primary" sx={{ fontSize: 22 }} />
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
           Work Experience
         </Typography>
       </Stack>
 
       {experiences.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>
           No work experiences added yet.
         </Typography>
       ) : (
@@ -25,20 +40,23 @@ export const ProfileExperience: React.FC<{ experiences?: WorkExperienceItem[] }>
             <Box key={exp.id || idx}>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     {exp.jobTitle}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700 }}>
-                    {exp.company} • {exp.employmentType || 'Full-time'}
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    {exp.company} {exp.employmentType ? `• ${exp.employmentType}` : ''}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {exp.startDate} - {exp.isCurrentJob ? 'Present' : exp.endDate || 'Present'} • {exp.location || 'Remote'}
+                    {exp.startDate} – {exp.isCurrentJob ? 'Present' : exp.endDate || 'Present'}
+                    {exp.location ? ` • ${exp.location}` : ''}
                   </Typography>
                 </Box>
-                {exp.isCurrentJob && <Chip label="Current" color="success" size="small" sx={{ fontWeight: 800 }} />}
+                {exp.isCurrentJob && (
+                  <Chip label="Current" color="success" size="small" variant="outlined" sx={{ fontWeight: 700 }} />
+                )}
               </Stack>
               {exp.description && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, whiteSpace: 'pre-line' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1.25, whiteSpace: 'pre-line', lineHeight: 1.6 }}>
                   {exp.description}
                 </Typography>
               )}

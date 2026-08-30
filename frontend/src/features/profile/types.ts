@@ -44,6 +44,24 @@ export interface UserCertification {
   credentialUrl?: string;
 }
 
+export interface UserProject {
+  id?: string;
+  name: string;
+  title?: string;
+  description?: string;
+  role?: string;
+  technologies?: string[];
+  url?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface UserLanguage {
+  id?: string;
+  name: string;
+  proficiency: string; // Native, Fluent, Professional, Conversational, Basic
+}
+
 export interface UserAchievement {
   id?: string;
   title: string;
@@ -138,8 +156,8 @@ export interface UserProfile {
   educations?: Education[];
   skills?: UserSkill[];
   certifications?: UserCertification[];
-  projects?: any[];
-  languages?: any[];
+  projects?: UserProject[];
+  languages?: UserLanguage[];
   achievements?: UserAchievement[];
   careerPreferences?: CareerPreferences;
   profileCompleteness?: ProfileCompleteness;

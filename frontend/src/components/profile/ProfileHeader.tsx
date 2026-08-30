@@ -12,21 +12,25 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
+  Snackbar,
+  Alert,
+  useTheme,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import PendingIcon from '@mui/icons-material/HourglassEmpty';
 import CancelIcon from '@mui/icons-material/Cancel';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import BusinessIcon from '@mui/icons-material/Business';
-import ShareIcon from '@mui/icons-material/Share';
-import QrCodeIcon from '@mui/icons-material/QrCode';
-import FlagIcon from '@mui/icons-material/Flag';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import CollectionsIcon from '@mui/icons-material/Collections';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
+import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
 import Link from 'next/link';
+
 import { UserProfile } from '../../features/profile/types';
 import { profileApi } from '../../features/profile/api';
+import { tokens } from '../../theme/tokens';
+import { ROUTES } from '../../shared/routes';
 
 interface ProfileHeaderProps {
   profile: UserProfile;
@@ -41,14 +45,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isOwner = true,
   onReport,
   onPhotoUpload,
-  onCoverUpload,
 }) => {
+  const theme = useTheme();
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const coverInputRef = useRef<HTMLInputElement>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const status = profile.verificationStatus || 'unverified';
+  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.username || 'Candidate';
 
   const renderVerificationBadge = () => {
     switch (status) {
@@ -56,23 +60,23 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         return (
           <Tooltip title="Official Verified Professional">
             <Chip
-              icon={<VerifiedIcon style={{ color: '#fff' }} />}
+              icon={<VerifiedIcon style={{ color: '#fff', fontSize: 16 }} />}
               label="Verified"
               color="primary"
               size="small"
-              sx={{ fontWeight: 800 }}
+              sx={{ fontWeight: 700, height: 24 }}
             />
           </Tooltip>
         );
       case 'pending':
         return (
-          <Tooltip title="Verification Request Pending Audit">
+          <Tooltip title="Verification Request Pending Review">
             <Chip
-              icon={<PendingIcon />}
-              label="Pending Verification"
+              icon={<PendingIcon style={{ fontSize: 16 }} />}
+              label="Pending"
               color="warning"
               size="small"
-              sx={{ fontWeight: 800 }}
+              sx={{ fontWeight: 700, height: 24 }}
             />
           </Tooltip>
         );
@@ -80,270 +84,253 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         return (
           <Tooltip title="Verification Application Rejected">
             <Chip
-              icon={<CancelIcon />}
+              icon={<CancelIcon style={{ fontSize: 16 }} />}
               label="Rejected"
               color="error"
               size="small"
-              sx={{ fontWeight: 800 }}
+              sx={{ fontWeight: 700, height: 24 }}
             />
           </Tooltip>
         );
       default:
-        return (
-          <Tooltip title="Unverified Candidate Profile">
-            <Chip
-              label="Unverified"
-              variant="outlined"
-              size="small"
-              sx={{ fontWeight: 700, color: 'text.secondary' }}
-            />
-          </Tooltip>
-        );
+        return null;
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setToastMessage('Please select a valid image file (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setToastMessage('Image size must not exceed 5MB.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('photo', file);
+
     setUploadingAvatar(true);
     try {
-      const formData = new FormData();
-      formData.append('photo', file);
       const res = await profileApi.uploadPhoto(formData);
-      if (onPhotoUpload && res.photo_url) {
-        onPhotoUpload(res.photo_url);
-      }
-    } catch (err) {
-      console.error('Avatar upload failed', err);
+      onPhotoUpload?.(res.photo_url);
+      setToastMessage('Profile photo updated successfully.');
+    } catch {
+      setToastMessage('Failed to upload photo. Please try again.');
     } finally {
       setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
     }
   };
 
-  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingCover(true);
-    try {
-      const formData = new FormData();
-      formData.append('cover', file);
-      const res = await profileApi.uploadCoverPhoto(formData);
-      if (onCoverUpload && res.cover_url) {
-        onCoverUpload(res.cover_url);
-      }
-    } catch (err) {
-      console.error('Cover upload failed', err);
-    } finally {
-      setUploadingCover(false);
+  const handleShare = () => {
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/profile/${profile.username}` : '';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      setToastMessage('Profile link copied to clipboard!');
     }
   };
 
   return (
     <Card
+      component="header"
+      elevation={1}
       sx={{
-        borderRadius: '24px',
-        overflow: 'hidden',
-        mb: 3,
-        bgcolor: 'background.paper',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.12)',
+        borderRadius: `${tokens.radius.lg}px`,
+        mb: 3.5,
+        p: { xs: 2.5, sm: 3.5 },
+        position: 'relative',
       }}
     >
-      {/* Cover Banner */}
-      <Box
-        sx={{
-          height: 200,
-          background: profile.coverUrl
-            ? `url(${profile.coverUrl}) center/cover no-repeat`
-            : 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-          position: 'relative',
-        }}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={{ xs: 2.5, sm: 3.5 }}
+        alignItems={{ xs: 'center', sm: 'flex-start' }}
       >
-        {isOwner && (
-          <>
-            <input
-              type="file"
-              accept="image/*"
-              ref={coverInputRef}
-              style={{ display: 'none' }}
-              onChange={handleCoverChange}
-            />
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={uploadingCover ? <CircularProgress size={16} color="inherit" /> : <CollectionsIcon />}
-              onClick={() => coverInputRef.current?.click()}
+        {/* Avatar & Photo Upload */}
+        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          <Avatar
+            src={profile.avatarUrl || undefined}
+            sx={{
+              width: { xs: 96, sm: 112 },
+              height: { xs: 96, sm: 112 },
+              fontSize: '2.5rem',
+              fontWeight: 800,
+              bgcolor: theme.palette.primary.main,
+              color: '#ffffff',
+              border: `3px solid ${theme.palette.background.paper}`,
+              boxShadow: theme.shadows[2],
+            }}
+          >
+            {fullName.charAt(0).toUpperCase()}
+          </Avatar>
+
+          {isOwner && (
+            <>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                style={{ display: 'none' }}
+                onChange={handleAvatarFileChange}
+              />
+              <Tooltip title="Upload new photo">
+                <IconButton
+                  size="small"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    bgcolor: 'background.paper',
+                    boxShadow: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
+                  aria-label="Upload profile photo"
+                >
+                  {uploadingAvatar ? <CircularProgress size={16} /> : <PhotoCameraOutlinedIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+        </Box>
+
+        {/* Profile Info Details */}
+        <Box sx={{ flexGrow: 1, minWidth: 0, textAlign: { xs: 'center', sm: 'left' } }}>
+          <Stack
+            direction="row"
+            spacing={1.25}
+            alignItems="center"
+            justifyContent={{ xs: 'center', sm: 'flex-start' }}
+            flexWrap="wrap"
+            sx={{ mb: 0.5 }}
+          >
+            <Typography
+              variant="h4"
+              component="h1"
               sx={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                borderRadius: '12px',
-                bgcolor: 'rgba(15, 23, 42, 0.75)',
-                backdropFilter: 'blur(8px)',
-                textTransform: 'none',
-                fontWeight: 700,
-                '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.9)' },
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                fontSize: { xs: '1.5rem', sm: '1.75rem' },
               }}
             >
-              {uploadingCover ? 'Uploading...' : 'Change Cover'}
-            </Button>
-          </>
-        )}
-      </Box>
-
-      <Box sx={{ p: { xs: 2.5, md: 3.5 }, pt: 0, position: 'relative' }}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          justifyContent="space-between"
-          alignItems={{ xs: 'flex-start', sm: 'flex-end' }}
-          spacing={2}
-          sx={{ mt: -7, mb: 2 }}
-        >
-          <Box sx={{ position: 'relative' }}>
-            <Avatar
-              src={profile.avatarUrl}
-              sx={{
-                width: 128,
-                height: 128,
-                border: '4px solid white',
-                boxShadow: 4,
-                fontSize: '2.5rem',
-                bgcolor: 'primary.main',
-              }}
-            >
-              {profile.username ? profile.username[0].toUpperCase() : 'K'}
-            </Avatar>
-
-            {isOwner && (
-              <>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={avatarInputRef}
-                  style={{ display: 'none' }}
-                  onChange={handleAvatarChange}
-                />
-                <Tooltip title="Upload Profile Photo">
-                  <IconButton
-                    onClick={() => avatarInputRef.current?.click()}
-                    sx={{
-                      position: 'absolute',
-                      bottom: 4,
-                      right: 4,
-                      bgcolor: 'primary.main',
-                      color: 'white',
-                      boxShadow: 2,
-                      '&:hover': { bgcolor: 'primary.dark' },
-                    }}
-                  >
-                    {uploadingAvatar ? <CircularProgress size={18} color="inherit" /> : <PhotoCameraIcon fontSize="small" />}
-                  </IconButton>
-                </Tooltip>
-              </>
-            )}
-          </Box>
-
-          <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ pt: { xs: 1, sm: 0 } }}>
-            {isOwner ? (
-              <>
-                <Button
-                  component={Link}
-                  href="/profile/edit"
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
-                >
-                  Edit Profile
-                </Button>
-                <Button
-                  component={Link}
-                  href="/profile/preview"
-                  variant="outlined"
-                  sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
-                >
-                  Preview Public View
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="contained" sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}>
-                  Connect
-                </Button>
-                <Button variant="outlined" sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}>
-                  Message
-                </Button>
-                {onReport && (
-                  <Tooltip title="Report Profile">
-                    <IconButton onClick={onReport} color="warning">
-                      <FlagIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </>
-            )}
-            <Tooltip title="Share Profile">
-              <IconButton sx={{ bgcolor: 'action.hover' }}>
-                <ShareIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Profile QR Code">
-              <IconButton sx={{ bgcolor: 'action.hover' }}>
-                <QrCodeIcon />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        </Stack>
-
-        <Box sx={{ mt: 1 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-            <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {profile.firstName && profile.lastName
-                ? `${profile.firstName} ${profile.lastName}`
-                : profile.username || 'Kirmya Professional'}
+              {fullName}
             </Typography>
             {renderVerificationBadge()}
+            {profile.openToWork && (
+              <Chip
+                label="Open to Work"
+                color="success"
+                size="small"
+                variant="outlined"
+                sx={{ fontWeight: 700, height: 24 }}
+              />
+            )}
           </Stack>
 
-          <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 700, mt: 0.5 }}>
-            {profile.headline || 'Professional at Kirmya'}
-          </Typography>
+          {/* Headline */}
+          {profile.headline && (
+            <Typography
+              variant="subtitle1"
+              color="text.secondary"
+              sx={{ fontWeight: 500, lineHeight: 1.4, mb: 1 }}
+            >
+              {profile.headline}
+            </Typography>
+          )}
 
-          <Stack direction="row" spacing={2.5} flexWrap="wrap" sx={{ mt: 1.5 }}>
-            {profile.location && (
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <LocationOnIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  {profile.location}
-                </Typography>
-              </Stack>
-            )}
+          {/* Location & Current Role Metadata */}
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            justifyContent={{ xs: 'center', sm: 'flex-start' }}
+            flexWrap="wrap"
+            sx={{ color: 'text.secondary', fontSize: '0.875rem', rowGap: 0.5 }}
+          >
             {profile.currentPosition && (
               <Stack direction="row" spacing={0.5} alignItems="center">
-                <BusinessIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  {profile.currentPosition}
+                <BusinessOutlinedIcon sx={{ fontSize: 16 }} />
+                <Typography variant="body2">{profile.currentPosition}</Typography>
+              </Stack>
+            )}
+            {profile.location && (
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
+                <Typography variant="body2">
+                  {profile.location}
+                  {profile.country ? `, ${profile.country}` : ''}
                 </Typography>
               </Stack>
             )}
           </Stack>
-
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap">
-            {profile.openToWork && (
-              <Chip label="#OpenToWork" color="success" size="small" sx={{ fontWeight: 800 }} />
-            )}
-            {profile.openToRecruiters && (
-              <Chip label="Open to Recruiters" color="info" size="small" sx={{ fontWeight: 800 }} />
-            )}
-            <Chip
-              label={`${profile.profileCompletedPercentage}% Complete`}
-              variant="outlined"
-              size="small"
-              sx={{ fontWeight: 800 }}
-            />
-          </Stack>
         </Box>
-      </Box>
+
+        {/* Action Controls */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          justifyContent={{ xs: 'center', sm: 'flex-end' }}
+          sx={{ flexShrink: 0, pt: { xs: 1, sm: 0 } }}
+        >
+          {isOwner ? (
+            <Button
+              component={Link}
+              href={ROUTES.EDIT_PROFILE}
+              variant="contained"
+              size="medium"
+              startIcon={<EditOutlinedIcon />}
+              sx={{ borderRadius: `${tokens.radius.md}px`, px: 2.5 }}
+            >
+              Edit Profile
+            </Button>
+          ) : (
+            <>
+              <Button
+                component={Link}
+                href={`/messages?userId=${profile.userId}`}
+                variant="contained"
+                size="medium"
+                sx={{ borderRadius: `${tokens.radius.md}px`, px: 2.5 }}
+              >
+                Connect / Message
+              </Button>
+              {onReport && (
+                <Tooltip title="Report Profile">
+                  <IconButton onClick={onReport} size="small" aria-label="Report this profile">
+                    <FlagOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </>
+          )}
+
+          <Tooltip title="Share Profile Link">
+            <IconButton onClick={handleShare} size="small" aria-label="Share profile link">
+              <ShareOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Stack>
+
+      <Snackbar
+        open={Boolean(toastMessage)}
+        autoHideDuration={4000}
+        onClose={() => setToastMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="info" onClose={() => setToastMessage(null)} sx={{ width: '100%' }}>
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };

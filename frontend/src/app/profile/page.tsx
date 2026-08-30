@@ -1,155 +1,146 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Container, Grid, Box, CircularProgress, Typography, Stack, Button } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileAbout from '@/components/profile/ProfileAbout';
-import ProfileExperience from '@/components/profile/ProfileExperience';
-import ProfileEducation from '@/components/profile/ProfileEducation';
-import ProfileSkills from '@/components/profile/ProfileSkills';
-import ProfileCertifications from '@/components/profile/ProfileCertifications';
-import ProfileLanguages from '@/components/profile/ProfileLanguages';
-import ProfileProjects from '@/components/profile/ProfileProjects';
-import ProfileAchievements from '@/components/profile/ProfileAchievements';
-import ProfileCompletenessCard from '@/components/profile/ProfileCompletenessCard';
-import ProfileAnalyticsCard from '@/components/profile/ProfileAnalyticsCard';
-import ResumeConsistencyCard from '@/components/profile/ResumeConsistencyCard';
-import ProfileVerificationCard from '@/components/profile/ProfileVerificationCard';
-import ProfilePublicPreviewModal from '@/components/profile/ProfilePublicPreviewModal';
-import { UserProfile, profileApi } from '@/features/profile/services/profileApi';
+import {
+  Grid,
+  Box,
+  Skeleton,
+  Stack,
+} from '@mui/material';
+
+import { AuthenticatedLayout } from '../../components/shell';
+import ProfileHeader from '../../components/profile/ProfileHeader';
+import ProfileAbout from '../../components/profile/ProfileAbout';
+import ProfileExperience from '../../components/profile/ProfileExperience';
+import ProfileEducation from '../../components/profile/ProfileEducation';
+import ProfileSkills from '../../components/profile/ProfileSkills';
+import ProfileCertifications from '../../components/profile/ProfileCertifications';
+import ProfileLanguages from '../../components/profile/ProfileLanguages';
+import ProfileProjects from '../../components/profile/ProfileProjects';
+import ProfileAchievements from '../../components/profile/ProfileAchievements';
+import ProfileCompletenessCard from '../../components/profile/ProfileCompletenessCard';
+import ProfileAnalyticsCard from '../../components/profile/ProfileAnalyticsCard';
+import { ErrorState } from '../../components/common';
+import { UserProfile } from '../../features/profile/types';
+import { profileApi } from '../../features/profile/api';
+import { tokens } from '../../theme/tokens';
+
+export const dynamic = 'force-dynamic';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    profileApi
-      .getMyProfile()
-      .then((data) => setProfile(data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  const dummyProfile: UserProfile = profile || {
-    id: 'demo-profile',
-    userId: 'demo-user',
-    username: 'johndoe',
-    firstName: 'John',
-    lastName: 'Doe',
-    avatarUrl: '',
-    coverUrl: '',
-    headline: 'Senior Distributed Systems Engineer & Cloud Architect',
-    summary: 'Passionate engineering lead specializing in Go, React, PostgreSQL, and scalable microservices.',
-    location: 'Dubai, UAE',
-    country: 'United Arab Emirates',
-    industry: 'Information Technology',
-    currentPosition: 'Staff Software Engineer @ TechVentures',
-    availabilityStatus: 'open_to_work',
-    openToWork: true,
-    openToRecruiters: true,
-    targetRoles: ['Staff Software Engineer', 'Engineering Manager'],
-    preferredLocations: ['Dubai', 'Remote'],
-    profileCompletedPercentage: 85,
-    volunteering: '',
-    publications: '',
-    licenses: '',
-    verificationStatus: 'verified',
-    isRestricted: false,
-    isPrivate: false,
-    profileViewsCount: 420,
-    searchAppearancesCount: 1280,
-    connectionRequestsCount: 35,
-    workExperiences: [
-      {
-        id: 'w1',
-        company: 'TechVentures Inc.',
-        jobTitle: 'Senior Software Engineer',
-        employmentType: 'Full-time',
-        location: 'Dubai, UAE',
-        startDate: '2022-01-15',
-        isCurrentJob: true,
-        description: 'Led architecture for real-time candidate search engine serving 500K daily active queries.',
-      },
-    ],
-    educations: [
-      {
-        id: 'e1',
-        institution: 'University of Technology',
-        degree: 'Bachelor of Science',
-        fieldOfStudy: 'Computer Science',
-      },
-    ],
-    skills: [
-      { id: 's1', name: 'Golang', proficiencyLevel: 'Expert' },
-      { id: 's2', name: 'React & Next.js', proficiencyLevel: 'Expert' },
-      { id: 's3', name: 'PostgreSQL', proficiencyLevel: 'Advanced' },
-    ],
-    certifications: [
-      { id: 'c1', name: 'AWS Certified Solutions Architect', issuingOrganization: 'Amazon Web Services' },
-    ],
-    projects: [
-      { id: 'p1', title: 'Kirmya Platform Monolith', description: 'High performance professional networking platform.' },
-    ],
-    languages: [
-      { id: 'l1', name: 'English', proficiency: 'Native' },
-      { id: 'l2', name: 'Arabic', proficiency: 'Bilingual' },
-    ],
-    achievements: [
-      { id: 'a1', title: 'Top Engineering Contributor Award 2024' },
-    ],
+  const fetchProfile = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const data = await profileApi.getMyProfile();
+      setProfile(data);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <ProfileHeader
-        profile={dummyProfile}
-        isOwner={true}
-        onPhotoUpload={(url) => setProfile((prev) => (prev ? { ...prev, avatarUrl: url } : prev))}
-        onCoverUpload={(url) => setProfile((prev) => (prev ? { ...prev, coverUrl: url } : prev))}
-      />
+    <AuthenticatedLayout maxWidth="standard">
+      {loading && (
+        <Stack spacing={3}>
+          <Skeleton variant="rounded" height={160} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Stack spacing={3}>
+                <Skeleton variant="rounded" height={140} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+                <Skeleton variant="rounded" height={220} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+                <Skeleton variant="rounded" height={180} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+              </Stack>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Stack spacing={3}>
+                <Skeleton variant="rounded" height={200} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+                <Skeleton variant="rounded" height={180} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+              </Stack>
+            </Grid>
+          </Grid>
+        </Stack>
+      )}
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <ProfileAbout summary={dummyProfile.summary} />
-          <ResumeConsistencyCard
-            onSyncSkills={() => alert('Missing skills synced to profile!')}
-            onReanalyze={() => alert('Re-analyzing uploaded resume...')}
+      {!loading && error && (
+        <ErrorState
+          title="Unable to load profile"
+          message="We could not retrieve your professional profile. Please check your connection and try again."
+          onRetry={fetchProfile}
+        />
+      )}
+
+      {!loading && !error && profile && (
+        <Box component="div">
+          {/* Profile Header */}
+          <ProfileHeader
+            profile={profile}
+            isOwner={true}
+            onPhotoUpload={(url) => setProfile({ ...profile, avatarUrl: url })}
           />
-          <ProfileExperience experiences={dummyProfile.workExperiences} />
-          <ProfileEducation educations={dummyProfile.educations} />
-          <ProfileProjects projects={dummyProfile.projects} />
-        </Grid>
 
-        <Grid item xs={12} md={4}>
-          <ProfileCompletenessCard percentage={dummyProfile.profileCompletedPercentage} />
-          <ProfileAnalyticsCard
-            views={dummyProfile.profileViewsCount}
-            searchAppearances={dummyProfile.searchAppearancesCount}
-            connectionRequests={dummyProfile.connectionRequestsCount}
-          />
-          <ProfileVerificationCard status={dummyProfile.verificationStatus} />
-          <ProfileSkills skills={dummyProfile.skills} />
-          <ProfileCertifications certifications={dummyProfile.certifications} />
-          <ProfileLanguages languages={dummyProfile.languages} />
-          <ProfileAchievements achievements={dummyProfile.achievements} />
-        </Grid>
-      </Grid>
+          {/* Two-Column Responsive Layout */}
+          <Grid container spacing={3}>
+            {/* Main Content Column */}
+            <Grid item xs={12} md={8}>
+              <Stack spacing={0}>
+                {/* 1. About & Career Summary */}
+                <ProfileAbout summary={profile.summary} isOwner={true} />
 
-      <ProfilePublicPreviewModal
-        open={previewOpen}
-        profile={dummyProfile}
-        onClose={() => setPreviewOpen(false)}
-      />
-    </Container>
+                {/* 2. Work Experience */}
+                <ProfileExperience experiences={profile.workExperiences} isOwner={true} />
+
+                {/* 3. Education */}
+                <ProfileEducation educations={profile.educations} isOwner={true} />
+
+                {/* 4. Skills & Competencies */}
+                <ProfileSkills skills={profile.skills} isOwner={true} />
+
+                {/* 5. Projects & Portfolio */}
+                <ProfileProjects projects={profile.projects} isOwner={true} />
+
+                {/* 6. Certifications */}
+                <ProfileCertifications certifications={profile.certifications} isOwner={true} />
+
+                {/* 7. Languages */}
+                <ProfileLanguages languages={profile.languages} isOwner={true} />
+
+                {/* 8. Honors & Achievements */}
+                <ProfileAchievements achievements={profile.achievements} isOwner={true} />
+              </Stack>
+            </Grid>
+
+            {/* Sidebar Column */}
+            <Grid item xs={12} md={4}>
+              <Stack spacing={0}>
+                {/* Profile Completeness Guidance */}
+                <ProfileCompletenessCard
+                  completeness={profile.profileCompleteness}
+                  percentage={profile.profileCompletedPercentage}
+                />
+
+                {/* Profile Analytics & Impressions */}
+                <ProfileAnalyticsCard
+                  analytics={profile.profileAnalytics}
+                  views={profile.profileViewsCount}
+                  searchAppearances={profile.searchAppearancesCount}
+                  connectionRequests={profile.connectionRequestsCount}
+                />
+              </Stack>
+            </Grid>
+          </Grid>
+        </Box>
+      )}
+    </AuthenticatedLayout>
   );
 }

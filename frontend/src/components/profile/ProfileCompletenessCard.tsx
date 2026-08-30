@@ -14,11 +14,14 @@ import {
   Button,
   Chip,
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Link from 'next/link';
+
 import { ProfileCompleteness } from '../../features/profile/types';
+import { tokens } from '../../theme/tokens';
+import { ROUTES } from '../../shared/routes';
 
 interface ProfileCompletenessCardProps {
   completeness?: ProfileCompleteness;
@@ -27,39 +30,37 @@ interface ProfileCompletenessCardProps {
 
 export const ProfileCompletenessCard: React.FC<ProfileCompletenessCardProps> = ({
   completeness,
-  percentage = 85,
+  percentage = 0,
 }) => {
   const currentPercentage = completeness?.percentage ?? percentage;
 
   const defaultMissingSections = [
-    { key: 'experience', label: 'Add Work Experience', actionUrl: '/profile/edit#experience', weight: 15 },
-    { key: 'skills', label: 'Add at least 3 Key Skills', actionUrl: '/profile/edit#skills', weight: 10 },
-    { key: 'certification', label: 'Add Certifications', actionUrl: '/profile/edit#certifications', weight: 10 },
-    { key: 'resume', label: 'Upload Updated Resume', actionUrl: '/profile/edit#resume', weight: 15 },
+    { key: 'experience', label: 'Add Work Experience', actionUrl: `${ROUTES.EDIT_PROFILE}#experience`, weight: 20 },
+    { key: 'skills', label: 'Add Key Skills', actionUrl: `${ROUTES.EDIT_PROFILE}#skills`, weight: 15 },
+    { key: 'education', label: 'Add Education Details', actionUrl: `${ROUTES.EDIT_PROFILE}#education`, weight: 15 },
+    { key: 'preferences', label: 'Set Career Preferences', actionUrl: `${ROUTES.EDIT_PROFILE}#preferences`, weight: 15 },
   ];
 
   const missing = completeness?.missingSections ?? defaultMissingSections;
 
   return (
     <Card
+      elevation={1}
       sx={{
-        p: 3,
-        borderRadius: '24px',
+        p: { xs: 2.5, sm: 3 },
+        borderRadius: `${tokens.radius.lg}px`,
         mb: 3,
-        bgcolor: 'background.paper',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 800 }}>
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
           Profile Completeness
         </Typography>
         <Chip
           label={`${currentPercentage}%`}
-          color={currentPercentage >= 80 ? 'success' : currentPercentage >= 50 ? 'warning' : 'error'}
-          sx={{ fontWeight: 900, borderRadius: '10px' }}
+          color={currentPercentage >= 80 ? 'success' : currentPercentage >= 50 ? 'warning' : 'default'}
+          size="small"
+          sx={{ fontWeight: 700 }}
         />
       </Stack>
 
@@ -68,52 +69,46 @@ export const ProfileCompletenessCard: React.FC<ProfileCompletenessCardProps> = (
           variant="determinate"
           value={currentPercentage}
           sx={{
-            height: 10,
-            borderRadius: 5,
+            height: 8,
+            borderRadius: 4,
             bgcolor: 'action.hover',
-            '& .MuiLinearProgress-bar': {
-              borderRadius: 5,
-              background: currentPercentage >= 80
-                ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
-                : 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)',
-            },
           }}
         />
       </Box>
 
-      {missing.length > 0 ? (
+      {currentPercentage < 100 && missing.length > 0 ? (
         <>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, mb: 1 }}>
-            Complete these items to boost recruiter search visibility:
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 1 }}>
+            Complete missing areas to maximize recruiter discovery:
           </Typography>
           <List disablePadding>
             {missing.map((item) => (
               <ListItem
                 key={item.key}
+                disableGutters
                 sx={{
-                  px: 0,
                   py: 0.75,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                 }}
               >
-                <Stack direction="row" spacing={1.5} alignItems="center">
+                <Stack direction="row" spacing={1} alignItems="center">
                   <ListItemIcon sx={{ minWidth: 'auto', color: 'text.secondary' }}>
-                    <RadioButtonUncheckedIcon fontSize="small" />
+                    <RadioButtonUncheckedIcon sx={{ fontSize: 16 }} />
                   </ListItemIcon>
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{ variant: 'body2', fontWeight: 600 }}
+                    primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
                   />
                 </Stack>
 
                 <Button
                   component={Link}
-                  href={item.actionUrl || '/profile/edit'}
+                  href={item.actionUrl || ROUTES.EDIT_PROFILE}
                   size="small"
-                  endIcon={<ArrowForwardIcon fontSize="small" />}
-                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '8px' }}
+                  endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
                 >
                   Add
                 </Button>
@@ -123,9 +118,9 @@ export const ProfileCompletenessCard: React.FC<ProfileCompletenessCardProps> = (
         </>
       ) : (
         <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'success.main', mt: 1 }}>
-          <CheckCircleIcon fontSize="small" />
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            Your candidate profile is fully complete and optimized!
+          <CheckCircleOutlinedIcon fontSize="small" />
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Your candidate profile is fully complete and optimized.
           </Typography>
         </Stack>
       )}

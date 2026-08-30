@@ -2,31 +2,47 @@
 
 import React from 'react';
 import { Card, Typography, Stack, Chip, Box } from '@mui/material';
-import BuildIcon from '@mui/icons-material/Build';
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
+import { UserSkill } from '../../features/profile/types';
+import { tokens } from '../../theme/tokens';
 
-export const ProfileSkills: React.FC<{ skills?: any[] }> = ({ skills = [] }) => {
+export const ProfileSkills: React.FC<{ skills?: UserSkill[]; isOwner?: boolean }> = ({
+  skills = [],
+  isOwner = false,
+}) => {
+  if (skills.length === 0 && !isOwner) {
+    return null;
+  }
+
   return (
-    <Card sx={{ borderRadius: '24px', p: 3, mb: 3, bgcolor: 'background.paper' }}>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <BuildIcon color="primary" />
-        <Typography variant="h6" sx={{ fontWeight: 900 }}>
-          Top Skills & Competencies
+    <Card
+      elevation={1}
+      sx={{
+        borderRadius: `${tokens.radius.lg}px`,
+        p: { xs: 2.5, sm: 3.5 },
+        mb: 3,
+      }}
+    >
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2 }}>
+        <BuildOutlinedIcon color="primary" sx={{ fontSize: 22 }} />
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+          Skills & Competencies
         </Typography>
       </Stack>
 
       {skills.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          No skills listed yet.
+        <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+          No skills added yet.
         </Typography>
       ) : (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ gap: 1 }}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ rowGap: 1 }}>
           {skills.map((s, idx) => (
             <Chip
               key={s.id || idx}
-              label={`${s.name} ${s.proficiencyLevel ? `• ${s.proficiencyLevel}` : ''}`}
+              label={s.proficiencyLevel ? `${s.name} • ${s.proficiencyLevel}` : s.name}
               variant="outlined"
               color="primary"
-              sx={{ fontWeight: 800, borderRadius: '10px' }}
+              sx={{ fontWeight: 600, borderRadius: `${tokens.radius.md}px` }}
             />
           ))}
         </Stack>

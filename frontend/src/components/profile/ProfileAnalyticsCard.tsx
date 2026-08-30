@@ -7,13 +7,14 @@ import {
   Grid,
   Box,
   Stack,
-  Chip,
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import SearchIcon from '@mui/icons-material/Search';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
+import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
+
 import { ProfileAnalytics } from '../../features/profile/types';
+import { tokens } from '../../theme/tokens';
 
 interface ProfileAnalyticsCardProps {
   analytics?: ProfileAnalytics;
@@ -24,9 +25,9 @@ interface ProfileAnalyticsCardProps {
 
 export const ProfileAnalyticsCard: React.FC<ProfileAnalyticsCardProps> = ({
   analytics,
-  views = 420,
-  searchAppearances = 1280,
-  connectionRequests = 35,
+  views = 0,
+  searchAppearances = 0,
+  connectionRequests = 0,
 }) => {
   const profileViews = analytics?.profileViews ?? views;
   const searchApps = analytics?.searchAppearances ?? searchAppearances;
@@ -34,93 +35,84 @@ export const ProfileAnalyticsCard: React.FC<ProfileAnalyticsCardProps> = ({
 
   return (
     <Card
+      elevation={1}
       sx={{
-        p: 3,
-        borderRadius: '24px',
+        p: { xs: 2.5, sm: 3 },
+        borderRadius: `${tokens.radius.lg}px`,
         mb: 3,
-        bgcolor: 'background.paper',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <TrendingUpIcon color="primary" sx={{ fontSize: 28 }} />
-          <Typography variant="h6" sx={{ fontWeight: 900 }}>
-            Profile Analytics & Impression Metrics
-          </Typography>
-        </Stack>
-        <Chip
-          icon={<TrendingUpIcon />}
-          label="+18% this month"
-          color="success"
-          size="small"
-          sx={{ fontWeight: 800, borderRadius: '8px' }}
-        />
+      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2.5 }}>
+        <TrendingUpOutlinedIcon color="primary" sx={{ fontSize: 24 }} />
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+          Profile Analytics
+        </Typography>
       </Stack>
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={4}>
           <Box
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
-              bgcolor: 'action.hover',
-              border: '1px solid',
-              borderColor: 'divider',
-              textAlign: 'center',
+              p: 2,
+              borderRadius: `${tokens.radius.md}px`,
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.03)'),
             }}
           >
-            <VisibilityIcon color="primary" sx={{ mb: 0.5 }} />
-            <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {profileViews.toLocaleString()}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              Profile Views
-            </Typography>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <VisibilityOutlinedIcon color="primary" sx={{ fontSize: 24 }} />
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                  {profileViews}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Profile Views
+                </Typography>
+              </Box>
+            </Stack>
           </Box>
         </Grid>
 
         <Grid item xs={12} sm={4}>
           <Box
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
-              bgcolor: 'action.hover',
-              border: '1px solid',
-              borderColor: 'divider',
-              textAlign: 'center',
+              p: 2,
+              borderRadius: `${tokens.radius.md}px`,
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.03)'),
             }}
           >
-            <SearchIcon color="secondary" sx={{ mb: 0.5 }} />
-            <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {searchApps.toLocaleString()}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              Search Appearances
-            </Typography>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <SearchOutlinedIcon color="primary" sx={{ fontSize: 24 }} />
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                  {searchApps}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Search Appearances
+                </Typography>
+              </Box>
+            </Stack>
           </Box>
         </Grid>
 
         <Grid item xs={12} sm={4}>
           <Box
             sx={{
-              p: 2.5,
-              borderRadius: '16px',
-              bgcolor: 'action.hover',
-              border: '1px solid',
-              borderColor: 'divider',
-              textAlign: 'center',
+              p: 2,
+              borderRadius: `${tokens.radius.md}px`,
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.03)'),
             }}
           >
-            <PersonAddIcon color="success" sx={{ mb: 0.5 }} />
-            <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              {connRequests.toLocaleString()}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-              Connection Requests
-            </Typography>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <PersonAddOutlinedIcon color="primary" sx={{ fontSize: 24 }} />
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                  {connRequests}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Connection Requests
+                </Typography>
+              </Box>
+            </Stack>
           </Box>
         </Grid>
       </Grid>

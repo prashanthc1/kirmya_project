@@ -5,6 +5,8 @@ import {
   Education,
   UserSkill,
   UserCertification,
+  UserProject,
+  UserLanguage,
   UserAchievement,
   CareerPreferences,
   ProfileCompleteness,
@@ -22,7 +24,7 @@ export const profileApi = {
   },
 
   getPublicProfile: async (identifier: string): Promise<UserProfile> => {
-    const res = await client.get<UserProfile>(`/profile/${identifier}`);
+    const res = await client.get<UserProfile>(`/profile/${encodeURIComponent(identifier)}`);
     return res.data;
   },
 
@@ -83,7 +85,7 @@ export const profileApi = {
     documentUrl: string;
     notes?: string;
   }): Promise<{ message: string; status: string }> => {
-    const res = await client.post<{ message: string; status: string }>('/profile/me/verify', data);
+    const res = await client.post<{ message: string; status: string }>('/profile/me/verification', data);
     return res.data;
   },
 
@@ -98,8 +100,8 @@ export const profileApi = {
     return res.data;
   },
 
-  updatePrivacy: async (profileVisibility: string): Promise<any> => {
-    const res = await client.put('/profile/me/privacy', { profileVisibility });
+  updatePrivacy: async (profileVisibility: string): Promise<ProfilePrivacySettingsData> => {
+    const res = await client.put<ProfilePrivacySettingsData>('/profile/me/privacy', { profileVisibility });
     return res.data;
   },
 
@@ -176,8 +178,8 @@ export const profileApi = {
   },
 
   // Projects
-  addProject: async (proj: any): Promise<any[]> => {
-    const res = await client.post<any[]>('/profile/me/projects', proj);
+  addProject: async (proj: UserProject): Promise<UserProject[]> => {
+    const res = await client.post<UserProject[]>('/profile/me/projects', proj);
     return res.data;
   },
 
@@ -187,8 +189,8 @@ export const profileApi = {
   },
 
   // Languages & Achievements
-  addLanguage: async (name: string, proficiency: string): Promise<any[]> => {
-    const res = await client.post<any[]>('/profile/me/languages', { name, proficiency });
+  addLanguage: async (name: string, proficiency: string): Promise<UserLanguage[]> => {
+    const res = await client.post<UserLanguage[]>('/profile/me/languages', { name, proficiency });
     return res.data;
   },
 

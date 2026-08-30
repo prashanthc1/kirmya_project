@@ -1,88 +1,117 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Container, Typography, Card, Stack, Button, Box } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileAbout from '@/components/profile/ProfileAbout';
-import ProfilePublicPreviewModal from '@/components/profile/ProfilePublicPreviewModal';
-import { UserProfile } from '@/features/profile/types';
+import React, { useEffect, useState } from 'react';
+import { Typography, Stack, Button, Box, Skeleton, Card } from '@mui/material';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+
+import { AuthenticatedLayout } from '../../components/shell';
+import ProfileHeader from '../../components/profile/ProfileHeader';
+import ProfileAbout from '../../components/profile/ProfileAbout';
+import ProfileExperience from '../../components/profile/ProfileExperience';
+import ProfileEducation from '../../components/profile/ProfileEducation';
+import ProfileSkills from '../../components/profile/ProfileSkills';
+import { ErrorState } from '../../components/common';
+import { UserProfile } from '../../features/profile/types';
+import { profileApi } from '../../features/profile/api';
+import { tokens } from '../../theme/tokens';
+
+export const dynamic = 'force-dynamic';
 
 export default function ProfilePreviewPage() {
   const [viewMode, setViewMode] = useState<'public' | 'members' | 'connections'>('public');
-  const [modalOpen, setModalOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const previewData: UserProfile = {
-    id: 'preview-1',
-    userId: 'user-1',
-    username: 'johndoe',
-    firstName: 'John',
-    lastName: 'Doe',
-    avatarUrl: '',
-    coverUrl: '',
-    headline: 'Senior Distributed Systems Engineer & Cloud Architect',
-    summary: 'This is how your candidate profile appears to external viewers under your configured privacy settings.',
-    location: 'Dubai, UAE',
-    availabilityStatus: 'open_to_work',
-    openToWork: true,
-    openToRecruiters: true,
-    targetRoles: ['Senior Software Engineer'],
-    preferredLocations: ['Dubai'],
-    profileCompletedPercentage: 85,
-    verificationStatus: 'verified',
+  const fetchPreview = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const data = await profileApi.getProfilePreview(viewMode);
+      setProfile(data.profile || null);
+    } catch {
+      // Fallback to getMyProfile if preview endpoint fails
+      try {
+        const myData = await profileApi.getMyProfile();
+        setProfile(myData);
+      } catch {
+        setError(true);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchPreview();
+  }, [viewMode]);
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} flexWrap="wrap" gap={2}>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <VisibilityIcon color="primary" sx={{ fontSize: 32 }} />
-          <Typography variant="h5" sx={{ fontWeight: 900 }}>
-            Profile Privacy & Viewer Preview Mode
-          </Typography>
+    <AuthenticatedLayout maxWidth="standard">
+      <Stack spacing={3}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} gap={2}>
+          <Box>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 800, mb: 0.5 }}>
+              Profile Privacy Preview
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              See how your professional identity appears to different visitor audiences.
+            </Typography>
+          </Box>
+
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant={viewMode === 'public' ? 'contained' : 'outlined'}
+              size="small"
+              onClick={() => setViewMode('public')}
+              sx={{ borderRadius: `${tokens.radius.md}px` }}
+            >
+              Public
+            </Button>
+            <Button
+              variant={viewMode === 'members' ? 'contained' : 'outlined'}
+              size="small"
+              onClick={() => setViewMode('members')}
+              sx={{ borderRadius: `${tokens.radius.md}px` }}
+            >
+              Members
+            </Button>
+            <Button
+              variant={viewMode === 'connections' ? 'contained' : 'outlined'}
+              size="small"
+              onClick={() => setViewMode('connections')}
+              sx={{ borderRadius: `${tokens.radius.md}px` }}
+            >
+              Connections
+            </Button>
+          </Stack>
         </Stack>
 
-        <Stack direction="row" spacing={1.5}>
-          <Button
-            variant={viewMode === 'public' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('public')}
-            sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
-          >
-            Public View
-          </Button>
-          <Button
-            variant={viewMode === 'members' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('members')}
-            sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
-          >
-            Kirmya Members View
-          </Button>
-          <Button
-            variant={viewMode === 'connections' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('connections')}
-            sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
-          >
-            Connections View
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => setModalOpen(true)}
-            sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none' }}
-          >
-            Open Modal Preview
-          </Button>
-        </Stack>
+        {loading && (
+          <Stack spacing={2}>
+            <Skeleton variant="rounded" height={160} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+            <Skeleton variant="rounded" height={200} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+          </Stack>
+        )}
+
+        {!loading && error && (
+          <ErrorState
+            title="Unable to generate preview"
+            message="We could not render your profile preview under the selected audience mode."
+            onRetry={fetchPreview}
+          />
+        )}
+
+        {!loading && !error && profile && (
+          <Box>
+            <ProfileHeader profile={profile} isOwner={false} />
+            <ProfileAbout summary={profile.summary} isOwner={false} />
+            <ProfileExperience experiences={profile.workExperiences} isOwner={false} />
+            <ProfileEducation educations={profile.educations} isOwner={false} />
+            <ProfileSkills skills={profile.skills} isOwner={false} />
+          </Box>
+        )}
       </Stack>
-
-      <ProfileHeader profile={previewData} isOwner={false} />
-      <ProfileAbout summary={previewData.summary} />
-
-      <ProfilePublicPreviewModal
-        open={modalOpen}
-        profile={previewData}
-        onClose={() => setModalOpen(false)}
-      />
-    </Container>
+    </AuthenticatedLayout>
   );
 }
