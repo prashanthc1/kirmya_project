@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -9,185 +9,255 @@ import {
   Tabs,
   Stack,
   Button,
+  IconButton,
+  Tooltip,
   useTheme,
+  Alert,
 } from '@mui/material';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import DeleteSweepOutlinedIcon from '@mui/icons-material/DeleteSweepOutlined';
+import Link from 'next/link';
+
 import NotificationList from './NotificationList';
-import NotificationPreferences from './NotificationPreferences';
-import QuietHours from './QuietHours';
-import DigestSettings from './DigestSettings';
-import NotificationHistory from './NotificationHistory';
 import { notificationApi } from '../../features/notifications/services/notificationApi';
 import { NotificationItemDTO } from '../../features/notifications/types';
+import { useAuthContext } from '../../context/AuthContext';
+import { tokens } from '../../theme/tokens';
 
 interface NotificationCenterProps {
   initialCategory?: string;
   initialUnreadOnly?: boolean;
 }
 
+const CATEGORIES = [
+  { key: 'all', label: 'All' },
+  { key: 'unread', label: 'Unread' },
+  { key: 'jobs', label: 'Jobs' },
+  { key: 'applications', label: 'Applications' },
+  { key: 'networking', label: 'Network' },
+  { key: 'messaging', label: 'Messages' },
+  { key: 'interviews', label: 'Interviews' },
+  { key: 'security', label: 'Security' },
+];
+
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   initialCategory = 'all',
   initialUnreadOnly = false,
 }) => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+  const { setNotificationsCount } = useAuthContext();
 
-  const [activeTab, setActiveTab] = useState(initialUnreadOnly ? 1 : 0);
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [activeCategory, setActiveCategory] = useState<string>(
+    initialUnreadOnly ? 'unread' : initialCategory
+  );
   const [notifications, setNotifications] = useState<NotificationItemDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrorMsg(null);
+
+      const isUnread = activeCategory === 'unread';
+      const categoryParam =
+        activeCategory === 'all' || activeCategory === 'unread'
+          ? undefined
+          : activeCategory;
+
+      const data = await notificationApi.listNotifications({
+        category: categoryParam,
+        unreadOnly: isUnread ? true : undefined,
+      });
+
+      setNotifications(data || []);
+
+      // Also update unread count
+      const unreadRes = await notificationApi.getUnreadCount().catch(() => ({ unreadCount: 0 }));
+      if (setNotificationsCount) {
+        setNotificationsCount(unreadRes.unreadCount || 0);
+      }
+    } catch (err: any) {
+      setErrorMsg('Failed to load notifications. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeCategory, setNotificationsCount]);
 
   useEffect(() => {
-    notificationApi
-      .listNotifications()
-      .then((data) => {
-        setNotifications(data || []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    loadNotifications();
+  }, [loadNotifications]);
 
   const handleMarkRead = async (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
+    if (setNotificationsCount) {
+      setNotificationsCount((prev) => Math.max(0, prev - 1));
+    }
     try {
       await notificationApi.markRead(id);
-    } catch {}
+    } catch {
+      // Revert if error
+      loadNotifications();
+    }
   };
 
   const handleMarkUnread = async (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: false } : n))
+    );
+    if (setNotificationsCount) {
+      setNotificationsCount((prev) => prev + 1);
+    }
     try {
       await notificationApi.markUnread(id);
-    } catch {}
+    } catch {
+      loadNotifications();
+    }
   };
 
   const handleMarkAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    if (setNotificationsCount) {
+      setNotificationsCount(0);
+    }
     try {
       await notificationApi.markAllRead();
-    } catch {}
+    } catch {
+      loadNotifications();
+    }
   };
 
   const handleDelete = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     try {
       await notificationApi.deleteNotification(id);
-    } catch {}
+    } catch {
+      loadNotifications();
+    }
   };
 
   const handleArchive = async (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isArchived: true } : n)));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
     try {
       await notificationApi.archiveNotification(id);
-    } catch {}
+    } catch {
+      loadNotifications();
+    }
   };
 
-  const filteredNotifications = notifications.filter((n) => {
-    if (n.isArchived) return false;
-    if (activeTab === 1 && n.isRead) return false;
-    if (selectedCategory !== 'all') {
-      const catLower = selectedCategory.toLowerCase();
-      const itemCatLower = n.category.toLowerCase();
-      if (catLower === 'network' && itemCatLower === 'networking') return true;
-      if (catLower !== itemCatLower) return false;
+  const handleClearRead = async () => {
+    setNotifications((prev) => prev.filter((n) => !n.isRead));
+    try {
+      await notificationApi.clearRead();
+    } catch {
+      loadNotifications();
     }
-    return true;
-  });
-
-  const categories = [
-    { key: 'all', label: 'All Categories' },
-    { key: 'jobs', label: 'Jobs' },
-    { key: 'applications', label: 'Applications' },
-    { key: 'interviews', label: 'Interviews' },
-    { key: 'networking', label: 'Networking' },
-    { key: 'messages', label: 'Messages' },
-    { key: 'career', label: 'Career' },
-    { key: 'security', label: 'Security' },
-  ];
-
-  const unreadCount = notifications.filter((n) => !n.isRead && !n.isArchived).length;
+  };
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: 'auto', p: { xs: 2, md: 4 } }}>
-      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <NotificationsIcon sx={{ color: 'primary.main', fontSize: 36 }} />
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              Centralized Notification Center
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              Manage your real-time alerts, job notifications, interview updates, and communication preferences.
-            </Typography>
-          </Box>
-        </Stack>
-
-        {unreadCount > 0 && (activeTab === 0 || activeTab === 1) && (
-          <Button
-            startIcon={<DoneAllIcon />}
-            variant="outlined"
-            onClick={handleMarkAllRead}
-            sx={{ fontWeight: 800, borderRadius: '12px', textTransform: 'none' }}
+    <Box>
+      {/* Header Bar */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        gap={1.5}
+        sx={{ mb: 3 }}
+      >
+        <Box>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}
           >
-            Mark All Read
+            Notifications
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Stay updated with your job alerts, network requests, applications, and security.
+          </Typography>
+        </Box>
+
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<DoneAllIcon />}
+            onClick={handleMarkAllRead}
+            sx={{
+              borderRadius: `${tokens.radius.sm}px`,
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              textTransform: 'none',
+            }}
+          >
+            Mark all read
           </Button>
-        )}
+
+          <Tooltip title="Notification Settings">
+            <IconButton
+              component={Link}
+              href="/settings/notifications"
+              size="small"
+              sx={{ border: '1px solid', borderColor: 'divider' }}
+              aria-label="Notification settings"
+            >
+              <SettingsOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </Stack>
 
-      <Card
+      {/* Category Tabs */}
+      <Box
         sx={{
-          borderRadius: '24px',
-          p: 1,
-          mb: 4,
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          mb: 3,
         }}
       >
-        <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)}>
-          <Tab label={`All Feed (${notifications.filter((n) => !n.isArchived).length})`} sx={{ fontWeight: 800 }} />
-          <Tab label={`Unread (${unreadCount})`} sx={{ fontWeight: 800 }} />
-          <Tab label="Channel Preferences" sx={{ fontWeight: 800 }} />
-          <Tab label="Quiet Hours" sx={{ fontWeight: 800 }} />
-          <Tab label="Digest & History" sx={{ fontWeight: 800 }} />
+        <Tabs
+          value={activeCategory}
+          onChange={(_, newVal) => setActiveCategory(newVal)}
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="Notification category filter tabs"
+          sx={{
+            minHeight: 44,
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              minHeight: 44,
+              minWidth: 'auto',
+              px: 2,
+            },
+          }}
+        >
+          {CATEGORIES.map((cat) => (
+            <Tab key={cat.key} value={cat.key} label={cat.label} />
+          ))}
         </Tabs>
-      </Card>
+      </Box>
 
-      {(activeTab === 0 || activeTab === 1) && (
-        <Box>
-          <Card sx={{ borderRadius: '20px', p: 1.5, mb: 3 }}>
-            <Tabs
-              value={selectedCategory}
-              onChange={(_, val) => setSelectedCategory(val)}
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              {categories.map((c) => (
-                <Tab key={c.key} value={c.key} label={c.label} sx={{ fontWeight: 800, textTransform: 'none' }} />
-              ))}
-            </Tabs>
-          </Card>
-
-          <NotificationList
-            notifications={filteredNotifications}
-            onMarkRead={handleMarkRead}
-            onMarkUnread={handleMarkUnread}
-            onMarkAllRead={handleMarkAllRead}
-            onDelete={handleDelete}
-            onArchive={handleArchive}
-          />
-        </Box>
+      {errorMsg && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: `${tokens.radius.md}px` }}>
+          {errorMsg}
+        </Alert>
       )}
 
-      {activeTab === 2 && <NotificationPreferences />}
-      {activeTab === 3 && <QuietHours />}
-      {activeTab === 4 && (
-        <Stack spacing={4}>
-          <DigestSettings />
-          <NotificationHistory />
-        </Stack>
-      )}
+      {/* Notification List Content */}
+      <NotificationList
+        notifications={notifications}
+        loading={loading}
+        onMarkRead={handleMarkRead}
+        onMarkUnread={handleMarkUnread}
+        onMarkAllRead={handleMarkAllRead}
+        onDelete={handleDelete}
+        onArchive={handleArchive}
+      />
     </Box>
   );
 };

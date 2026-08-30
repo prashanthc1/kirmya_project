@@ -1,32 +1,38 @@
 'use client';
 
-import React from 'react';
-import { surfaceTransition } from '../../theme/motion';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   Stack,
   Avatar,
-  Chip,
   IconButton,
   Button,
-  useTheme,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  Tooltip,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EventIcon from '@mui/icons-material/Event';
-import WorkIcon from '@mui/icons-material/Work';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import SecurityIcon from '@mui/icons-material/Security';
-import PeopleIcon from '@mui/icons-material/People';
-import ForumIcon from '@mui/icons-material/Forum';
-import SchoolIcon from '@mui/icons-material/School';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ArchiveOutlinedIcon from '@mui/icons-material/ArchiveOutlined';
 import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import PersonIcon from '@mui/icons-material/Person';
+import MarkEmailUnreadOutlinedIcon from '@mui/icons-material/MarkEmailUnreadOutlined';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 import { NotificationItemDTO } from '../../features/notifications/types';
+import { tokens } from '../../theme/tokens';
 
 interface NotificationItemProps {
   item: NotificationItemDTO;
@@ -43,177 +49,270 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
   onDelete,
   onArchive,
 }) => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const router = useRouter();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'Security':
-        return '#ef4444';
+        return <SecurityIcon sx={{ color: '#ef4444', fontSize: 20 }} />;
       case 'Interviews':
-        return '#ec4899';
+        return <EventIcon sx={{ color: '#ec4899', fontSize: 20 }} />;
       case 'Jobs':
-        return '#6366f1';
+        return <WorkOutlineIcon sx={{ color: '#6366f1', fontSize: 20 }} />;
       case 'Applications':
-        return '#f59e0b';
+        return <WorkOutlineIcon sx={{ color: '#f59e0b', fontSize: 20 }} />;
       case 'Networking':
-      case 'Communities':
-        return '#10b981';
+        return <PeopleOutlineIcon sx={{ color: '#10b981', fontSize: 20 }} />;
+      case 'Messaging':
+        return <ChatBubbleOutlineIcon sx={{ color: '#06b6d4', fontSize: 20 }} />;
       case 'Career':
       case 'Resume':
       case 'Cover Letters':
-        return '#8b5cf6';
-      case 'System':
-      case 'Support':
-        return '#06b6d4';
+        return <SchoolOutlinedIcon sx={{ color: '#8b5cf6', fontSize: 20 }} />;
       default:
-        return '#3b82f6';
+        return <NotificationsIcon sx={{ color: '#3b82f6', fontSize: 20 }} />;
     }
   };
 
-  const getIcon = (category: string) => {
-    switch (category) {
-      case 'Security':
-        return <SecurityIcon sx={{ color: '#ef4444' }} />;
-      case 'Interviews':
-        return <EventIcon sx={{ color: '#ec4899' }} />;
-      case 'Jobs':
-        return <WorkIcon sx={{ color: '#6366f1' }} />;
+  const getRelativeTime = (isoString: string) => {
+    try {
+      const diffMs = Date.now() - new Date(isoString).getTime();
+      const diffSec = Math.floor(diffMs / 1000);
+      const diffMin = Math.floor(diffSec / 60);
+      const diffHour = Math.floor(diffMin / 60);
+      const diffDay = Math.floor(diffHour / 24);
+
+      if (diffSec < 60) return 'Just now';
+      if (diffMin < 60) return `${diffMin}m ago`;
+      if (diffHour < 24) return `${diffHour}h ago`;
+      if (diffDay === 1) return 'Yesterday';
+      if (diffDay < 7) return `${diffDay}d ago`;
+      return new Date(isoString).toLocaleDateString();
+    } catch {
+      return '';
+    }
+  };
+
+  // Determine canonical target URL
+  const resolveTargetUrl = (): string => {
+    if (item.actionUrl) return item.actionUrl;
+    switch (item.category) {
       case 'Networking':
-        return <PeopleIcon sx={{ color: '#10b981' }} />;
-      case 'Career':
-        return <SchoolIcon sx={{ color: '#8b5cf6' }} />;
-      case 'Support':
-      case 'System':
-        return <ForumIcon sx={{ color: '#06b6d4' }} />;
+        return '/network/requests';
+      case 'Messaging':
+        return '/messages';
+      case 'Jobs':
+        return '/jobs';
+      case 'Applications':
+        return '/dashboard/applications';
+      case 'Interviews':
+        return '/dashboard/interviews';
+      case 'Security':
+        return '/settings/security';
       default:
-        return <NotificationsIcon sx={{ color: '#3b82f6' }} />;
+        return '/notifications';
     }
   };
 
-  const getPriorityChip = (priority: string) => {
-    switch (priority) {
-      case 'Critical':
-        return <Chip label="CRITICAL" size="small" color="error" sx={{ fontWeight: 900, height: 18, fontSize: '0.6rem' }} />;
-      case 'High':
-        return <Chip label="HIGH" size="small" color="warning" sx={{ fontWeight: 800, height: 18, fontSize: '0.6rem' }} />;
-      case 'Normal':
-        return <Chip label="NORMAL" size="small" color="primary" sx={{ fontWeight: 700, height: 18, fontSize: '0.6rem' }} />;
-      default:
-        return null;
+  const targetUrl = resolveTargetUrl();
+
+  const handleRowClick = () => {
+    if (!item.isRead && onMarkRead) {
+      onMarkRead(item.id);
+    }
+    if (targetUrl) {
+      router.push(targetUrl);
     }
   };
 
   return (
-    <Paper
-      elevation={0}
+    <Box
+      onClick={handleRowClick}
       sx={{
-        p: 2.5,
-        borderRadius: '16px',
-        bgcolor: item.isRead
-          ? isDark
-            ? 'rgba(30, 41, 59, 0.5)'
-            : 'rgba(255, 255, 255, 0.8)'
-          : isDark
-          ? 'rgba(99, 102, 241, 0.12)'
-          : 'rgba(99, 102, 241, 0.06)',
-        backdropFilter: 'blur(20px)',
+        p: 2,
+        borderRadius: `${tokens.radius.md}px`,
+        bgcolor: item.isRead ? 'background.paper' : (theme) => (theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.04)'),
         border: '1px solid',
-        borderColor: item.isRead ? 'rgba(255, 255, 255, 0.08)' : 'rgba(99, 102, 241, 0.3)',
-        borderLeft: `4px solid ${getCategoryColor(item.category)}`,
-        transition: surfaceTransition(0.2),
+        borderColor: item.isRead ? 'divider' : 'primary.main',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 2,
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        position: 'relative',
+        '&:hover': {
+          bgcolor: 'action.hover',
+          borderColor: 'primary.main',
+        },
       }}
     >
-      <Stack direction="row" spacing={2} alignItems="flex-start">
-        <Avatar
-          sx={{
-            bgcolor: `${getCategoryColor(item.category)}15`,
-            width: 44,
-            height: 44,
-            borderRadius: '12px',
-          }}
-        >
-          {getIcon(item.category)}
-        </Avatar>
+      {/* Category Icon / Actor Avatar */}
+      <Avatar
+        sx={{
+          width: 44,
+          height: 44,
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+          border: '1px solid',
+          borderColor: 'divider',
+          flexShrink: 0,
+        }}
+      >
+        {getCategoryIcon(item.category)}
+      </Avatar>
 
-        <Box sx={{ flexGrow: 1 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+      {/* Main Content Area */}
+      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+          <Box sx={{ minWidth: 0 }}>
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-              <Typography variant="subtitle1" sx={{ fontWeight: item.isRead ? 700 : 900 }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: item.isRead ? 600 : 800,
+                  color: 'text.primary',
+                  lineHeight: 1.3,
+                }}
+              >
                 {item.title}
               </Typography>
-              <Chip
-                label={item.category}
-                size="small"
+
+              {item.priority === 'Critical' && (
+                <Chip label="Critical" size="small" color="error" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 800 }} />
+              )}
+            </Stack>
+
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                mt: 0.5,
+                lineHeight: 1.4,
+                wordBreak: 'break-word',
+                fontSize: '0.875rem',
+              }}
+            >
+              {item.content}
+            </Typography>
+
+            {item.actorName && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontWeight: 500 }}>
+                From: <strong>{item.actorName}</strong>
+              </Typography>
+            )}
+          </Box>
+
+          {/* Time & Options Menu */}
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: item.isRead ? 500 : 700, fontSize: '0.75rem' }}>
+              {getRelativeTime(item.createdAt)}
+            </Typography>
+
+            {!item.isRead && (
+              <Box
                 sx={{
-                  bgcolor: `${getCategoryColor(item.category)}15`,
-                  color: getCategoryColor(item.category),
-                  fontWeight: 800,
-                  fontSize: '0.65rem',
-                  height: 20,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: 'primary.main',
+                  ml: 0.5,
                 }}
               />
-              {getPriorityChip(item.priority)}
-            </Stack>
-
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-              {new Date(item.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
-            </Typography>
-          </Stack>
-
-          {item.actorName && (
-            <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mb: 1 }}>
-              <Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem', bgcolor: 'primary.main' }}>
-                {item.actorName.charAt(0)}
-              </Avatar>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                {item.actorName}
-              </Typography>
-            </Stack>
-          )}
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.5 }}>
-            {item.content}
-          </Typography>
-
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            {item.actionUrl ? (
-              <Button
-                variant="outlined"
-                size="small"
-                endIcon={<OpenInNewIcon fontSize="small" />}
-                onClick={() => router.push(item.actionUrl!)}
-                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
-              >
-                View Target
-              </Button>
-            ) : (
-              <Box />
             )}
 
-            <Stack direction="row" spacing={0.5}>
-              {item.isRead ? (
-                <IconButton size="small" title="Mark as unread" onClick={() => onMarkUnread?.(item.id)}>
-                  <MarkEmailReadOutlinedIcon fontSize="small" />
-                </IconButton>
-              ) : (
-                <IconButton size="small" title="Mark as read" onClick={() => onMarkRead?.(item.id)}>
-                  <MarkEmailReadOutlinedIcon fontSize="small" color="primary" />
-                </IconButton>
-              )}
-
-              <IconButton size="small" title="Archive" onClick={() => onArchive?.(item.id)}>
-                <ArchiveOutlinedIcon fontSize="small" />
-              </IconButton>
-              <IconButton size="small" color="error" title="Delete" onClick={() => onDelete?.(item.id)}>
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
-            </Stack>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                setAnchorEl(e.currentTarget);
+              }}
+              aria-label="Notification options"
+              sx={{ p: 0.5 }}
+            >
+              <MoreHorizIcon fontSize="small" />
+            </IconButton>
           </Stack>
-        </Box>
-      </Stack>
-    </Paper>
+        </Stack>
+      </Box>
+
+      {/* Context Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={(e: any) => {
+          if (e?.stopPropagation) e.stopPropagation();
+          setAnchorEl(null);
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: `${tokens.radius.md}px`,
+            minWidth: 160,
+          },
+        }}
+      >
+        {item.isRead ? (
+          onMarkUnread && (
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setAnchorEl(null);
+                onMarkUnread(item.id);
+              }}
+            >
+              <ListItemIcon>
+                <MarkEmailUnreadOutlinedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Mark as unread" />
+            </MenuItem>
+          )
+        ) : (
+          onMarkRead && (
+            <MenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setAnchorEl(null);
+                onMarkRead(item.id);
+              }}
+            >
+              <ListItemIcon>
+                <MarkEmailReadOutlinedIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Mark as read" />
+            </MenuItem>
+          )
+        )}
+
+        {onArchive && (
+          <MenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              setAnchorEl(null);
+              onArchive(item.id);
+            }}
+          >
+            <ListItemIcon>
+              <ArchiveOutlinedIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Archive" />
+          </MenuItem>
+        )}
+
+        {onDelete && (
+          <MenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              setAnchorEl(null);
+              onDelete(item.id);
+            }}
+          >
+            <ListItemIcon>
+              <DeleteOutlineIcon fontSize="small" color="error" />
+            </ListItemIcon>
+            <ListItemText primary="Delete" sx={{ color: 'error.main' }} />
+          </MenuItem>
+        )}
+      </Menu>
+    </Box>
   );
 };
 

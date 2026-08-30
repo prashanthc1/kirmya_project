@@ -6,6 +6,7 @@ export type NotificationCategory =
   | 'Recruiter'
   | 'Companies'
   | 'Networking'
+  | 'Messaging'
   | 'Communities'
   | 'Career'
   | 'Resume'
@@ -13,6 +14,8 @@ export type NotificationCategory =
   | 'AI'
   | 'System'
   | 'Support'
+  | 'Privacy'
+  | 'Trust & Safety'
   | 'Marketing';
 
 export type NotificationPriority = 'Critical' | 'High' | 'Normal' | 'Low';

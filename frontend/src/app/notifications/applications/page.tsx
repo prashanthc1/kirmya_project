@@ -1,8 +1,18 @@
 'use client';
 
 import React from 'react';
-import NotificationCenter from '@/components/notifications/NotificationCenter';
+import { Container } from '@mui/material';
+import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
+import NotificationCenter from '../../../components/notifications/NotificationCenter';
+
+export const dynamic = 'force-dynamic';
 
 export default function ApplicationsNotificationsSubPage() {
-  return <NotificationCenter initialCategory="applications" initialUnreadOnly={false} />;
+  return (
+    <AuthenticatedLayout>
+      <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
+        <NotificationCenter initialCategory="applications" initialUnreadOnly={false} />
+      </Container>
+    </AuthenticatedLayout>
+  );
 }

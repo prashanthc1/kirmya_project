@@ -1,220 +1,319 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { ThemeProvider } from '@mui/material/styles';
+import { getTheme } from '../theme';
+
+import { NotificationBell } from '../components/notifications/NotificationBell';
+import { NotificationCenter } from '../components/notifications/NotificationCenter';
+import { NotificationItem } from '../components/notifications/NotificationItem';
+import { NotificationList } from '../components/notifications/NotificationList';
+import { NotificationPreferences } from '../components/notifications/NotificationPreferences';
+import { notificationApi } from '../features/notifications/services/notificationApi';
+import { authApiClient } from '../services/authService';
+
+const mockPush = vi.fn();
+const mockReplace = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
+    push: mockPush,
+    replace: mockReplace,
     prefetch: vi.fn(),
     back: vi.fn(),
   }),
+  usePathname: () => '/notifications',
+  useSearchParams: () => new URLSearchParams(''),
 }));
 
-import NotificationBell from '../components/notifications/NotificationBell';
-import NotificationCenter from '../components/notifications/NotificationCenter';
-import NotificationItem from '../components/notifications/NotificationItem';
-import NotificationPreferences from '../components/notifications/NotificationPreferences';
-import QuietHours from '../components/notifications/QuietHours';
-import DigestSettings from '../components/notifications/DigestSettings';
-import AdminNotificationCenter from '../components/notifications/AdminNotificationCenter';
-import { notificationApi } from '../features/notifications/services/notificationApi';
+vi.mock('../services/authService', () => ({
+  authApiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+  getAccessToken: () => 'mock-jwt-token',
+}));
 
-import NotificationsMainPage from '../app/notifications/page';
-import AllNotificationsPage from '../app/notifications/all/page';
-import UnreadNotificationsPage from '../app/notifications/unread/page';
-import JobsNotificationsSubPage from '../app/notifications/jobs/page';
-import ApplicationsNotificationsSubPage from '../app/notifications/applications/page';
-import NetworkNotificationsSubPage from '../app/notifications/network/page';
-import MessagesNotificationsSubPage from '../app/notifications/messages/page';
-import InterviewsNotificationsSubPage from '../app/notifications/interviews/page';
-import CareerNotificationsSubPage from '../app/notifications/career/page';
+const mockSetNotificationsCount = vi.fn();
 
-describe('Notifications & Real-Time Alerts Module Test Suite', () => {
-  describe('API Service Layer Tests', () => {
-    it('fetches notification list and unread count', async () => {
-      const list = await notificationApi.listNotifications();
-      expect(list.length).toBeGreaterThan(0);
+vi.mock('../context/AuthContext', () => ({
+  useAuthContext: () => ({
+    user: { id: 'u1', email: 'test@kirmya.com', name: 'Test User' },
+    notificationsCount: 3,
+    setNotificationsCount: mockSetNotificationsCount,
+    authenticated: true,
+    isAuthenticated: true,
+    loading: false,
+    permissions: [],
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
-      const unreadCount = await notificationApi.getUnreadCount();
-      expect(unreadCount).toHaveProperty('unreadCount');
+const theme = getTheme('light');
+
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+};
+
+describe('Notifications, Activity Center & Notification Preferences (Prompt 21/50)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('NotificationItem Component', () => {
+    const mockNotification = {
+      id: 'notif-1',
+      userId: 'u1',
+      category: 'Security' as const,
+      type: 'security_alert',
+      priority: 'Critical' as const,
+      title: 'New Login Detected',
+      content: 'Successful login from Chrome on macOS (Dubai, UAE).',
+      actorName: 'Security Engine',
+      actionUrl: '/settings/security',
+      isRead: false,
+      isArchived: false,
+      createdAt: '2026-08-30T15:00:00Z',
+    };
+
+    it('renders notification title, content, actor, and critical badge', () => {
+      renderWithTheme(<NotificationItem item={mockNotification} />);
+      expect(screen.getByText('New Login Detected')).toBeDefined();
+      expect(screen.getByText(/Successful login from Chrome on macOS/i)).toBeDefined();
+      expect(screen.getByText('Security Engine')).toBeDefined();
+      expect(screen.getByText('Critical')).toBeDefined();
     });
 
-    it('marks notification as read and unread', async () => {
-      const markReadRes = await notificationApi.markRead('n1');
-      expect(markReadRes.message).toBeDefined();
+    it('navigates to action URL and marks as read on click', () => {
+      const mockMarkRead = vi.fn();
+      renderWithTheme(<NotificationItem item={mockNotification} onMarkRead={mockMarkRead} />);
 
-      const markUnreadRes = await notificationApi.markUnread('n1');
-      expect(markUnreadRes.message).toBeDefined();
-    });
+      const card = screen.getByText('New Login Detected').closest('div');
+      if (card) fireEvent.click(card);
 
-    it('fetches preferences and updates preference', async () => {
-      const prefs = await notificationApi.getPreferences();
-      expect(prefs.length).toBeGreaterThan(0);
-
-      const updateRes = await notificationApi.updatePreference({ category: 'Jobs', emailEnabled: true });
-      expect(updateRes.message).toContain('updated');
-    });
-
-    it('fetches and updates quiet hours settings', async () => {
-      const quietHours = await notificationApi.getQuietHours();
-      expect(quietHours).toHaveProperty('enabled');
-
-      const updateRes = await notificationApi.updateQuietHours({ enabled: true, startTime: '23:00' });
-      expect(updateRes.message).toContain('updated');
-    });
-
-    it('fetches and updates digest settings', async () => {
-      const digest = await notificationApi.getDigestSettings();
-      expect(digest).toHaveProperty('frequency');
-
-      const updateRes = await notificationApi.updateDigestSettings({ frequency: 'Daily Digest' });
-      expect(updateRes.message).toContain('updated');
-    });
-
-    it('fetches dead letters and triggers retry safely', async () => {
-      const deadLetters = await notificationApi.adminGetDeadLetters();
-      expect(deadLetters.length).toBeGreaterThan(0);
-
-      const retryRes = await notificationApi.adminRetryDeadLetter(deadLetters[0].id);
-      expect(retryRes.message).toContain('initiated successfully');
-    });
-
-    it('sends admin broadcast announcement', async () => {
-      const announceRes = await notificationApi.adminSendAnnouncement({
-        title: 'System Update',
-        content: 'Scheduled downtime tonight.',
-      });
-      expect(announceRes.message).toContain('sent successfully');
+      expect(mockMarkRead).toHaveBeenCalledWith('notif-1');
+      expect(mockPush).toHaveBeenCalledWith('/settings/security');
     });
   });
 
-  describe('Notification Components Tests', () => {
-    it('renders NotificationBell button and opens popover on click', () => {
-      render(<NotificationBell />);
-      const bellBtn = screen.getByRole('button');
-      expect(bellBtn).toBeInTheDocument();
-
-      fireEvent.click(bellBtn);
-      expect(screen.getByText(/View All Notifications/i)).toBeInTheDocument();
-    });
-
-    it('renders NotificationCenter tabs and feed header', async () => {
-      render(<NotificationCenter />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
-      expect(screen.getByText(/All Feed/i)).toBeInTheDocument();
-      expect(screen.getByText(/Channel Preferences/i)).toBeInTheDocument();
-      expect(screen.getByText(/Quiet Hours/i)).toBeInTheDocument();
-      expect(screen.getByText(/Digest & History/i)).toBeInTheDocument();
-    });
-
-    it('switches tabs in NotificationCenter', () => {
-      render(<NotificationCenter />);
-      const prefsTab = screen.getByRole('tab', { name: /Channel Preferences/i });
-      fireEvent.click(prefsTab);
-      expect(screen.getByText(/Communication Channel Preferences/i)).toBeInTheDocument();
-
-      const quietTab = screen.getByRole('tab', { name: /Quiet Hours/i });
-      fireEvent.click(quietTab);
-      expect(screen.getByText(/Quiet Hours & Do-Not-Disturb Schedule/i)).toBeInTheDocument();
-    });
-
-    it('renders NotificationItem with priority chip and actor name', () => {
-      const mockItem = {
-        id: 'n-test',
+  describe('NotificationList Component', () => {
+    const mockList = [
+      {
+        id: 'n1',
         userId: 'u1',
-        category: 'Interviews' as const,
-        type: 'interview_scheduled',
-        priority: 'Critical' as const,
-        title: 'System Security Alert',
-        content: 'Unusual login pattern detected.',
-        actorName: 'Security Bot',
+        category: 'Jobs' as const,
+        type: 'job_match',
+        priority: 'Normal' as const,
+        title: 'New Job Match',
+        content: 'Lead Go Engineer position matches your profile.',
+        actionUrl: '/jobs/123',
         isRead: false,
         isArchived: false,
-        createdAt: new Date().toISOString(),
-      };
+        createdAt: '2026-08-30T12:00:00Z',
+      },
+      {
+        id: 'n2',
+        userId: 'u1',
+        category: 'Networking' as const,
+        type: 'connection_request',
+        priority: 'Normal' as const,
+        title: 'Connection Request',
+        content: 'Fatima Al-Nuaimi sent you a connection request.',
+        actionUrl: '/network/requests',
+        isRead: true,
+        isArchived: false,
+        createdAt: '2026-08-29T10:00:00Z',
+      },
+    ];
 
-      render(<NotificationItem item={mockItem} />);
-      expect(screen.getByText('System Security Alert')).toBeInTheDocument();
-      expect(screen.getByText('Security Bot')).toBeInTheDocument();
-      expect(screen.getByText('CRITICAL')).toBeInTheDocument();
+    it('renders list items and unread count header', () => {
+      renderWithTheme(<NotificationList notifications={mockList} />);
+      expect(screen.getByText('New Job Match')).toBeDefined();
+      expect(screen.getByText('Connection Request')).toBeDefined();
+      expect(screen.getByText(/1 UNREAD NOTIFICATION/i)).toBeDefined();
     });
 
-    it('renders NotificationPreferences matrix', () => {
-      render(<NotificationPreferences />);
-      expect(screen.getByText(/Communication Channel Preferences/i)).toBeInTheDocument();
-      expect(screen.getByText(/Security & Account Protection/i)).toBeInTheDocument();
-      expect(screen.getByText(/Job Alerts & Matches/i)).toBeInTheDocument();
+    it('renders empty state when list is empty', () => {
+      renderWithTheme(<NotificationList notifications={[]} />);
+      expect(screen.getByText(/You're all caught up!/i)).toBeDefined();
     });
+  });
 
-    it('renders QuietHours configuration card', () => {
-      render(<QuietHours />);
-      expect(screen.getByText(/Quiet Hours & Do-Not-Disturb Schedule/i)).toBeInTheDocument();
-      expect(screen.getByText(/Save Quiet Hours/i)).toBeInTheDocument();
-    });
+  describe('NotificationCenter Component', () => {
+    it('renders header, category tabs, and calls listNotifications API', async () => {
+      const mockData = [
+        {
+          id: 'n10',
+          userId: 'u1',
+          category: 'Jobs' as const,
+          type: 'job_alert',
+          priority: 'Normal' as const,
+          title: 'Senior Architect Role',
+          content: 'New job posted in Dubai.',
+          actionUrl: '/jobs',
+          isRead: false,
+          isArchived: false,
+          createdAt: new Date().toISOString(),
+        },
+      ];
 
-    it('renders DigestSettings card', () => {
-      render(<DigestSettings />);
-      expect(screen.getByText(/Notification Email Digest Summaries/i)).toBeInTheDocument();
-      expect(screen.getByText(/Save Digest Settings/i)).toBeInTheDocument();
-    });
+      (authApiClient.get as any).mockImplementation((url: string) => {
+        if (url === '/notifications/unread-count') {
+          return Promise.resolve({ data: { unreadCount: 1, count: 1 } });
+        }
+        return Promise.resolve({ data: mockData });
+      });
 
-    it('renders AdminNotificationCenter control panel and dead letter queue', async () => {
-      render(<AdminNotificationCenter />);
-      expect(screen.getByText(/Admin Notification Control Console/i)).toBeInTheDocument();
-      expect(screen.getAllByText(/Broadcast System Announcement/i).length).toBeGreaterThan(0);
-      expect(screen.getByText(/Dead Letter Queue Management/i)).toBeInTheDocument();
+      renderWithTheme(<NotificationCenter />);
+
+      expect(screen.getByText('Notifications')).toBeDefined();
+      expect(screen.getByText('All')).toBeDefined();
+      expect(screen.getByText('Unread')).toBeDefined();
+      expect(screen.getByText('Jobs')).toBeDefined();
 
       await waitFor(() => {
-        expect(screen.getByText(/SMTP TLS Handshake Timeout/i)).toBeInTheDocument();
+        expect(screen.getByText('Senior Architect Role')).toBeDefined();
+      });
+    });
+
+    it('handles Mark All Read click and updates state', async () => {
+      (authApiClient.get as any).mockImplementation((url: string) => {
+        if (url === '/notifications/unread-count') {
+          return Promise.resolve({ data: { unreadCount: 0, count: 0 } });
+        }
+        return Promise.resolve({ data: [] });
+      });
+      (authApiClient.post as any).mockResolvedValueOnce({ data: { message: 'All marked read' } });
+
+      renderWithTheme(<NotificationCenter />);
+
+      const markAllBtn = screen.getByRole('button', { name: /Mark all read/i });
+      fireEvent.click(markAllBtn);
+
+      await waitFor(() => {
+        expect(authApiClient.post).toHaveBeenCalledWith('/notifications/read-all');
+        expect(mockSetNotificationsCount).toHaveBeenCalledWith(0);
       });
     });
   });
 
-  describe('App Router Notifications Subpages', () => {
-    it('renders NotificationsMainPage (/notifications)', () => {
-      render(<NotificationsMainPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
+  describe('NotificationBell Component', () => {
+    it('renders bell button with unread count badge and opens popover', async () => {
+      (authApiClient.get as any).mockImplementation((url: string) => {
+        if (url === '/notifications/unread-count') {
+          return Promise.resolve({ data: { unreadCount: 3, count: 3 } });
+        }
+        return Promise.resolve({
+          data: [
+            {
+              id: 'n-bell-1',
+              userId: 'u1',
+              category: 'Messaging' as const,
+              type: 'chat_message',
+              priority: 'Normal' as const,
+              title: 'New message from Salim',
+              content: 'Let us connect tomorrow.',
+              actionUrl: '/messages',
+              isRead: false,
+              isArchived: false,
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        });
+      });
+
+      renderWithTheme(<NotificationBell />);
+
+      const bellBtn = screen.getByRole('button', { name: /Open notifications menu/i });
+      expect(bellBtn).toBeDefined();
+
+      fireEvent.click(bellBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText(/New message from Salim/i)).toBeDefined();
+        expect(screen.getByText(/View all notifications/i)).toBeDefined();
+      });
+    });
+  });
+
+  describe('NotificationPreferences Component', () => {
+    it('renders channel preferences matrix and quiet hours schedule', async () => {
+      (authApiClient.get as any).mockImplementation((url: string) => {
+        if (url === '/notifications/preferences') {
+          return Promise.resolve({
+            data: [
+              {
+                category: 'Jobs',
+                inAppEnabled: true,
+                emailEnabled: true,
+                pushEnabled: false,
+                smsEnabled: false,
+              },
+            ],
+          });
+        }
+        if (url === '/notifications/quiet-hours') {
+          return Promise.resolve({
+            data: {
+              enabled: true,
+              startTime: '22:00',
+              endTime: '07:00',
+              timezone: 'Asia/Dubai (GST)',
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      renderWithTheme(<NotificationPreferences />);
+
+      expect(screen.getByText('Notification Preferences')).toBeDefined();
+      expect(screen.getByText('Security & Account Protection')).toBeDefined();
+      expect(screen.getByText('Job Alerts & Matches')).toBeDefined();
+      expect(screen.getByText(/Do Not Disturb & Quiet Hours/i)).toBeDefined();
+
+      await waitFor(() => {
+        expect(authApiClient.get).toHaveBeenCalledWith('/notifications/preferences');
+      });
+    });
+  });
+
+  describe('notificationApi Methods', () => {
+    it('listNotifications calls GET /notifications with params', async () => {
+      const mockResult = [{ id: 'n1' }];
+      (authApiClient.get as any).mockResolvedValueOnce({ data: mockResult });
+
+      const res = await notificationApi.listNotifications({ category: 'Jobs', unreadOnly: true });
+      expect(authApiClient.get).toHaveBeenCalledWith('/notifications', {
+        params: { category: 'Jobs', unreadOnly: true },
+      });
+      expect(res).toEqual(mockResult);
     });
 
-    it('renders AllNotificationsPage (/notifications/all)', () => {
-      render(<AllNotificationsPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
+    it('getUnreadCount calls GET /notifications/unread-count', async () => {
+      (authApiClient.get as any).mockResolvedValueOnce({ data: { count: 4, unreadCount: 4 } });
+
+      const res = await notificationApi.getUnreadCount();
+      expect(authApiClient.get).toHaveBeenCalledWith('/notifications/unread-count');
+      expect(res.unreadCount).toBe(4);
     });
 
-    it('renders UnreadNotificationsPage (/notifications/unread)', () => {
-      render(<UnreadNotificationsPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
+    it('markRead calls POST /notifications/:id/read', async () => {
+      (authApiClient.post as any).mockResolvedValueOnce({ data: { message: 'read' } });
+
+      const res = await notificationApi.markRead('n1');
+      expect(authApiClient.post).toHaveBeenCalledWith('/notifications/n1/read');
+      expect(res.message).toBe('read');
     });
 
-    it('renders JobsNotificationsSubPage (/notifications/jobs)', () => {
-      render(<JobsNotificationsSubPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
-    });
+    it('markAllRead calls POST /notifications/read-all', async () => {
+      (authApiClient.post as any).mockResolvedValueOnce({ data: { message: 'all read' } });
 
-    it('renders ApplicationsNotificationsSubPage (/notifications/applications)', () => {
-      render(<ApplicationsNotificationsSubPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
-    });
-
-    it('renders NetworkNotificationsSubPage (/notifications/network)', () => {
-      render(<NetworkNotificationsSubPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
-    });
-
-    it('renders MessagesNotificationsSubPage (/notifications/messages)', () => {
-      render(<MessagesNotificationsSubPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
-    });
-
-    it('renders InterviewsNotificationsSubPage (/notifications/interviews)', () => {
-      render(<InterviewsNotificationsSubPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
-    });
-
-    it('renders CareerNotificationsSubPage (/notifications/career)', () => {
-      render(<CareerNotificationsSubPage />);
-      expect(screen.getByText(/Centralized Notification Center/i)).toBeInTheDocument();
+      const res = await notificationApi.markAllRead();
+      expect(authApiClient.post).toHaveBeenCalledWith('/notifications/read-all');
+      expect(res.message).toBe('all read');
     });
   });
 });

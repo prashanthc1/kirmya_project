@@ -16,80 +16,55 @@ import {
   ListItemIcon,
   Avatar,
   Chip,
-  useTheme,
+  CircularProgress,
+  Tooltip,
 } from '@mui/material';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
-import SettingsIcon from '@mui/icons-material/Settings';
-import WorkIcon from '@mui/icons-material/Work';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import EventIcon from '@mui/icons-material/Event';
 import SecurityIcon from '@mui/icons-material/Security';
-import ForumIcon from '@mui/icons-material/Forum';
-import PeopleIcon from '@mui/icons-material/People';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 import { notificationApi } from '../../features/notifications/services/notificationApi';
 import { NotificationItemDTO } from '../../features/notifications/types';
+import { useAuthContext } from '../../context/AuthContext';
+import { tokens } from '../../theme/tokens';
 
 export const NotificationBell: React.FC = () => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const router = useRouter();
+  const { notificationsCount, setNotificationsCount } = useAuthContext();
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [unreadCount, setUnreadCount] = useState(3);
-  const [notifications, setNotifications] = useState<NotificationItemDTO[]>([
-    {
-      id: 'n1',
-      userId: 'u1',
-      category: 'Interviews',
-      type: 'interview_scheduled',
-      priority: 'High',
-      title: 'Technical Interview Scheduled',
-      content: 'Your Senior Go Architect interview with Emaar is set for tomorrow at 10:00 AM.',
-      actionUrl: '/dashboard/interviews',
-      isRead: false,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 1800000).toISOString(),
-    },
-    {
-      id: 'n2',
-      userId: 'u1',
-      category: 'Jobs',
-      type: 'job_alert',
-      priority: 'Normal',
-      title: 'New Matching Job Opportunity',
-      content: 'Kirmya AI matched a new Lead Backend Role in Dubai (96% Match).',
-      actionUrl: '/jobs',
-      isRead: false,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-    },
-    {
-      id: 'n3',
-      userId: 'u1',
-      category: 'Security',
-      type: 'security_alert',
-      priority: 'Critical',
-      title: 'New Login Detected',
-      content: 'Successful login from Chrome on Windows (Dubai, UAE).',
-      actionUrl: '/notifications',
-      isRead: false,
-      isArchived: false,
-      createdAt: new Date(Date.now() - 14400000).toISOString(),
-    },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItemDTO[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     notificationApi
       .getUnreadCount()
       .then((res) => {
-        if (res.unreadCount !== undefined) setUnreadCount(res.unreadCount);
+        if (res.unreadCount !== undefined && setNotificationsCount) {
+          setNotificationsCount(res.unreadCount);
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [setNotificationsCount]);
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+    setLoading(true);
+    try {
+      const data = await notificationApi.listNotifications({ limit: 5 });
+      setNotifications(data || []);
+    } catch {
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -98,36 +73,41 @@ export const NotificationBell: React.FC = () => {
 
   const handleMarkAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    setUnreadCount(0);
+    if (setNotificationsCount) {
+      setNotificationsCount(0);
+    }
     try {
       await notificationApi.markAllRead();
     } catch {}
   };
 
   const handleItemClick = (item: NotificationItemDTO) => {
-    if (!item.isRead) {
-      setNotifications((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
-      setUnreadCount((c) => Math.max(0, c - 1));
-      notificationApi.markRead(item.id).catch(() => {});
-    }
     handleClose();
-    if (item.actionUrl) {
-      router.push(item.actionUrl);
+    if (!item.isRead) {
+      notificationApi.markRead(item.id).catch(() => {});
+      if (setNotificationsCount) {
+        setNotificationsCount((prev) => Math.max(0, prev - 1));
+      }
     }
+    const target = item.actionUrl || '/notifications';
+    router.push(target);
   };
 
-  const getIcon = (category: string) => {
+  const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Interviews':
-        return <EventIcon sx={{ color: '#ec4899' }} />;
-      case 'Jobs':
-        return <WorkIcon sx={{ color: '#6366f1' }} />;
       case 'Security':
-        return <SecurityIcon sx={{ color: '#ef4444' }} />;
+        return <SecurityIcon sx={{ color: '#ef4444', fontSize: 18 }} />;
+      case 'Interviews':
+        return <EventIcon sx={{ color: '#ec4899', fontSize: 18 }} />;
+      case 'Jobs':
+      case 'Applications':
+        return <WorkOutlineIcon sx={{ color: '#6366f1', fontSize: 18 }} />;
       case 'Networking':
-        return <PeopleIcon sx={{ color: '#10b981' }} />;
+        return <PeopleOutlineIcon sx={{ color: '#10b981', fontSize: 18 }} />;
+      case 'Messaging':
+        return <ChatBubbleOutlineIcon sx={{ color: '#06b6d4', fontSize: 18 }} />;
       default:
-        return <NotificationsIcon sx={{ color: '#3b82f6' }} />;
+        return <NotificationsNoneIcon sx={{ color: '#3b82f6', fontSize: 18 }} />;
     }
   };
 
@@ -135,9 +115,14 @@ export const NotificationBell: React.FC = () => {
 
   return (
     <>
-      <IconButton onClick={handleClick} sx={{ color: 'text.secondary' }}>
-        <Badge badgeContent={unreadCount} color="error">
-          <NotificationsIcon />
+      <IconButton
+        onClick={handleClick}
+        aria-label="Open notifications menu"
+        size="small"
+        sx={{ color: 'text.primary' }}
+      >
+        <Badge badgeContent={notificationsCount > 99 ? '99+' : notificationsCount} color="error">
+          <NotificationsNoneIcon fontSize="small" />
         </Badge>
       </IconButton>
 
@@ -149,89 +134,152 @@ export const NotificationBell: React.FC = () => {
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{
           sx: {
-            width: 380,
-            borderRadius: '20px',
-            bgcolor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+            width: { xs: 320, sm: 380 },
+            maxHeight: 520,
+            borderRadius: `${tokens.radius.lg}px`,
+            boxShadow: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '0 12px 36px rgba(0,0,0,0.6)'
+                : '0 12px 36px rgba(0,0,0,0.12)',
+            border: '1px solid',
+            borderColor: 'divider',
+            overflow: 'hidden',
           },
         }}
       >
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>
-              Notifications
+        {/* Header */}
+        <Box sx={{ p: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+              Notifications {notificationsCount > 0 && `(${notificationsCount})`}
             </Typography>
-            {unreadCount > 0 && <Chip label={`${unreadCount} New`} size="small" color="primary" sx={{ fontWeight: 800 }} />}
-          </Stack>
-          <Stack direction="row" spacing={0.5}>
-            {unreadCount > 0 && (
-              <IconButton size="small" onClick={handleMarkAllRead} title="Mark all read">
-                <DoneAllIcon fontSize="small" />
-              </IconButton>
-            )}
-            <IconButton size="small" onClick={() => { handleClose(); router.push('/settings/notifications'); }} title="Settings">
-              <SettingsIcon fontSize="small" />
-            </IconButton>
+            <Stack direction="row" spacing={0.5}>
+              <Tooltip title="Mark all read">
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={handleMarkAllRead}
+                    disabled={notificationsCount === 0}
+                    aria-label="Mark all notifications as read"
+                  >
+                    <DoneAllIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title="Settings">
+                <IconButton
+                  component={Link}
+                  href="/settings/notifications"
+                  onClick={handleClose}
+                  size="small"
+                  aria-label="Notification preferences"
+                >
+                  <SettingsOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Stack>
         </Box>
 
-        <Divider />
-
-        <List sx={{ p: 0, maxH: 340, overflowY: 'auto' }}>
-          {notifications.length === 0 ? (
-            <Box sx={{ p: 4, textAlign: 'center', opacity: 0.7 }}>
-              <Typography variant="body2">No recent notifications</Typography>
+        {/* List */}
+        <Box sx={{ maxHeight: 360, overflowY: 'auto' }}>
+          {loading ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <CircularProgress size={24} />
             </Box>
+          ) : notifications.length > 0 ? (
+            <List disablePadding>
+              {notifications.map((n) => (
+                <ListItem
+                  key={n.id}
+                  onClick={() => handleItemClick(n)}
+                  sx={{
+                    py: 1.5,
+                    px: 2,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    cursor: 'pointer',
+                    bgcolor: n.isRead ? 'transparent' : 'action.hover',
+                    '&:hover': { bgcolor: 'action.selected' },
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      {getCategoryIcon(n.category)}
+                    </Avatar>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: n.isRead ? 600 : 800,
+                          lineHeight: 1.3,
+                          fontSize: '0.85rem',
+                        }}
+                      >
+                        {n.title}
+                      </Typography>
+                    }
+                    secondary={
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: 'block',
+                          mt: 0.25,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: 240,
+                        }}
+                      >
+                        {n.content}
+                      </Typography>
+                    }
+                  />
+                  {!n.isRead && (
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: 'primary.main',
+                        ml: 1,
+                      }}
+                    />
+                  )}
+                </ListItem>
+              ))}
+            </List>
           ) : (
-            notifications.map((n) => (
-              <ListItem
-                key={n.id}
-                onClick={() => handleItemClick(n)}
-                sx={{
-                  p: 2,
-                  cursor: 'pointer',
-                  bgcolor: n.isRead ? 'transparent' : isDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.05)',
-                  borderLeft: n.isRead ? '3px solid transparent' : '3px solid #6366f1',
-                  '&:hover': { bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)' },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 42 }}>
-                  <Avatar sx={{ width: 36, height: 36, bgcolor: 'transparent', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    {getIcon(n.category)}
-                  </Avatar>
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="subtitle2" sx={{ fontWeight: n.isRead ? 600 : 800, fontSize: '0.85rem' }}>
-                      {n.title}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography variant="caption" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {n.content}
-                    </Typography>
-                  }
-                />
-              </ListItem>
-            ))
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                No notifications to display
+              </Typography>
+            </Box>
           )}
-        </List>
+        </Box>
 
-        <Divider />
-
-        <Box sx={{ p: 1.5, textAlign: 'center' }}>
+        {/* Footer */}
+        <Box sx={{ p: 1.5, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
           <Button
-            fullWidth
+            component={Link}
+            href="/notifications"
+            onClick={handleClose}
             size="small"
-            onClick={() => {
-              handleClose();
-              router.push('/notifications');
-            }}
-            sx={{ fontWeight: 800, borderRadius: '10px' }}
+            fullWidth
+            sx={{ fontWeight: 700, borderRadius: `${tokens.radius.sm}px` }}
           >
-            View All Notifications
+            View all notifications
           </Button>
         </Box>
       </Popover>

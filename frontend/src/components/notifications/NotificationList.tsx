@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Stack, Button, CircularProgress } from '@mui/material';
+import { Box, Typography, Stack, Button, Skeleton } from '@mui/material';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import NotificationItem from './NotificationItem';
 import { NotificationItemDTO } from '../../features/notifications/types';
+import { tokens } from '../../theme/tokens';
 
 interface NotificationListProps {
   notifications: NotificationItemDTO[];
@@ -30,21 +31,38 @@ export const NotificationList: React.FC<NotificationListProps> = ({
 
   if (loading) {
     return (
-      <Box sx={{ p: 8, textAlign: 'center' }}>
-        <CircularProgress />
-      </Box>
+      <Stack spacing={1.5}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton
+            key={i}
+            variant="rounded"
+            height={88}
+            sx={{ borderRadius: `${tokens.radius.md}px` }}
+          />
+        ))}
+      </Stack>
     );
   }
 
   if (notifications.length === 0) {
     return (
-      <Box sx={{ p: 8, textAlign: 'center', opacity: 0.7 }}>
-        <NotificationsIcon sx={{ fontSize: 56, color: 'text.secondary', mb: 2 }} />
-        <Typography variant="h6" sx={{ fontWeight: 800 }}>
+      <Box
+        sx={{
+          py: 8,
+          px: 3,
+          textAlign: 'center',
+          borderRadius: `${tokens.radius.lg}px`,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <NotificationsNoneIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1.5, opacity: 0.5 }} />
+        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
           You&apos;re all caught up!
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          No notifications found matching your current filter.
+          No notifications found in this view. New activity will appear here.
         </Typography>
       </Box>
     );
@@ -53,22 +71,29 @@ export const NotificationList: React.FC<NotificationListProps> = ({
   return (
     <Box>
       {unreadCount > 0 && (
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-            {unreadCount} UNREAD NOTIFICATIONS
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2, px: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: '0.05em' }}>
+            {unreadCount} UNREAD NOTIFICATION{unreadCount > 1 ? 'S' : ''}
           </Typography>
-          <Button
-            startIcon={<DoneAllIcon />}
-            size="small"
-            onClick={onMarkAllRead}
-            sx={{ fontWeight: 800, textTransform: 'none' }}
-          >
-            Mark all as read
-          </Button>
+          {onMarkAllRead && (
+            <Button
+              startIcon={<DoneAllIcon fontSize="small" />}
+              size="small"
+              onClick={onMarkAllRead}
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                textTransform: 'none',
+                borderRadius: `${tokens.radius.sm}px`,
+              }}
+            >
+              Mark all as read
+            </Button>
+          )}
         </Stack>
       )}
 
-      <Stack spacing={2}>
+      <Stack spacing={1.5}>
         {notifications.map((n) => (
           <NotificationItem
             key={n.id}

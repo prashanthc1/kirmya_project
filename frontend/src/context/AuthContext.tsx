@@ -7,6 +7,7 @@ interface AuthContextType {
   user: UserProfile | null;
   permissions: string[];
   notificationsCount: number;
+  setNotificationsCount: React.Dispatch<React.SetStateAction<number>>;
   loading: boolean;
   authenticated: boolean;
   isAuthenticated: boolean;
@@ -104,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         permissions,
         notificationsCount,
+        setNotificationsCount,
         loading,
         authenticated: isAuthed,
         isAuthenticated: isAuthed,
