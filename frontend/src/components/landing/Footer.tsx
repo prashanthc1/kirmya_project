@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Box,
   Container,
@@ -19,13 +19,12 @@ import {
 import BrandLockup from '../brand/BrandLockup';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import InstagramIcon from '@mui/icons-material/Instagram';
 import XIcon from '@mui/icons-material/X';
 import SendIcon from '@mui/icons-material/Send';
+import { ROUTES } from '../../shared/routes';
+import { tokens } from '../../theme/tokens';
 
 export const Footer: React.FC = () => {
-  const router = useRouter();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -44,13 +43,13 @@ export const Footer: React.FC = () => {
     <Box
       id="footer"
       component="footer"
+      aria-label="Site footer"
       sx={{
-        bgcolor: isDark ? '#05070d' : '#f1f5f9',
+        bgcolor: isDark ? '#05070d' : '#f8fafc',
         color: 'text.primary',
-        pt: 10,
+        pt: { xs: 8, md: 10 },
         pb: 6,
-        borderTop: '1px solid',
-        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+        borderTop: `1px solid ${theme.palette.divider}`,
       }}
     >
       <Container maxWidth="xl">
@@ -58,19 +57,21 @@ export const Footer: React.FC = () => {
           {/* Brand & Newsletter Column */}
           <Grid item xs={12} md={4}>
             <Stack spacing={2.5}>
-              <BrandLockup size={36} variant="h5" />
+              <Link href={ROUTES.HOME} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <BrandLockup size={36} variant="h5" />
+              </Link>
 
               <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65, maxWidth: 340 }}>
-                Kirmya is a professional networking and AI-powered career platform dedicated to helping job seekers find opportunities, build connections, receive referrals, and accelerate career growth.
+                Kirmya is a professional networking and career platform dedicated to helping job seekers recover after transitions, connect with peer communities, receive verified referrals, and match with verified employers.
               </Typography>
 
               {/* Newsletter Subscription */}
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
-                  Subscribe to Career Advice & Job Alerts
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                  Subscribe to Career Advice & Updates
                 </Typography>
                 {subscribed ? (
-                  <Alert severity="success" sx={{ borderRadius: '10px' }}>
+                  <Alert severity="success" sx={{ borderRadius: `${tokens.radius.sm}px` }}>
                     Subscribed successfully!
                   </Alert>
                 ) : (
@@ -86,8 +87,8 @@ export const Footer: React.FC = () => {
                         fullWidth
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            borderRadius: '10px',
-                            bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.9)',
+                            borderRadius: `${tokens.radius.sm}px`,
+                            bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
                           },
                         }}
                       />
@@ -95,9 +96,8 @@ export const Footer: React.FC = () => {
                         type="submit"
                         variant="contained"
                         sx={{
-                          borderRadius: '10px',
+                          borderRadius: `${tokens.radius.sm}px`,
                           px: 2.5,
-                          background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                         }}
                       >
                         <SendIcon fontSize="small" />
@@ -110,22 +110,22 @@ export const Footer: React.FC = () => {
               {/* Social Icons */}
               <Stack direction="row" spacing={1}>
                 {[
-                  { icon: <LinkedInIcon fontSize="small" />, href: 'https://linkedin.com' },
-                  { icon: <GitHubIcon fontSize="small" />, href: 'https://github.com' },
-                  { icon: <XIcon fontSize="small" />, href: 'https://x.com' },
-                  { icon: <FacebookIcon fontSize="small" />, href: 'https://facebook.com' },
-                  { icon: <InstagramIcon fontSize="small" />, href: 'https://instagram.com' },
+                  { icon: <LinkedInIcon fontSize="small" />, href: 'https://linkedin.com', label: 'LinkedIn' },
+                  { icon: <GitHubIcon fontSize="small" />, href: 'https://github.com', label: 'GitHub' },
+                  { icon: <XIcon fontSize="small" />, href: 'https://x.com', label: 'X' },
                 ].map((s, idx) => (
                   <IconButton
                     key={idx}
                     component="a"
                     href={s.href}
                     target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
                     size="small"
                     sx={{
                       color: 'text.secondary',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      '&:hover': { color: 'primary.main', bgcolor: 'rgba(99, 102, 241, 0.1)' },
+                      border: `1px solid ${theme.palette.divider}`,
+                      '&:hover': { color: 'primary.main', bgcolor: isDark ? 'rgba(129, 140, 248, 0.1)' : 'rgba(99, 102, 241, 0.08)' },
                     }}
                   >
                     {s.icon}
@@ -137,113 +137,95 @@ export const Footer: React.FC = () => {
 
           {/* Links Column 1: Platform */}
           <Grid item xs={6} sm={3} md={2}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
               Platform
             </Typography>
             <Stack spacing={1.2}>
-              <MuiLink onClick={() => router.push('/jobs')} variant="body2" color="text.secondary" underline="hover" sx={{ cursor: 'pointer' }}>
-                Jobs
+              <MuiLink component={Link} href={ROUTES.JOBS} variant="body2" color="text.secondary" underline="hover">
+                Find Jobs
               </MuiLink>
-              <MuiLink onClick={() => router.push('/companies')} variant="body2" color="text.secondary" underline="hover" sx={{ cursor: 'pointer' }}>
+              <MuiLink component={Link} href={ROUTES.COMPANIES} variant="body2" color="text.secondary" underline="hover">
                 Companies
               </MuiLink>
-              <MuiLink onClick={() => router.push('/communities')} variant="body2" color="text.secondary" underline="hover" sx={{ cursor: 'pointer' }}>
+              <MuiLink component={Link} href={ROUTES.COMMUNITIES} variant="body2" color="text.secondary" underline="hover">
                 Communities
               </MuiLink>
-              <MuiLink href="#ai-assistant" variant="body2" color="text.secondary" underline="hover">
-                AI Features
-              </MuiLink>
-              <MuiLink href="#features" variant="body2" color="text.secondary" underline="hover">
-                Resources
+              <MuiLink component={Link} href={ROUTES.ABOUT} variant="body2" color="text.secondary" underline="hover">
+                About Us
               </MuiLink>
             </Stack>
           </Grid>
 
           {/* Links Column 2: Resources */}
           <Grid item xs={6} sm={3} md={2}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
-              Help & Resources
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
+              Support
             </Typography>
             <Stack spacing={1.2}>
-              <MuiLink href="#faq" variant="body2" color="text.secondary" underline="hover">
-                Help Center
+              <MuiLink component={Link} href={ROUTES.HELP} variant="body2" color="text.secondary" underline="hover">
+                Help & FAQ
               </MuiLink>
-              <MuiLink href="#" variant="body2" color="text.secondary" underline="hover">
-                Blog
+              <MuiLink component={Link} href={ROUTES.SUPPORT} variant="body2" color="text.secondary" underline="hover">
+                Contact Support
               </MuiLink>
-              <MuiLink href="#" variant="body2" color="text.secondary" underline="hover">
-                Career Advice
-              </MuiLink>
-              <MuiLink href="#" variant="body2" color="text.secondary" underline="hover">
-                Resume Tips
-              </MuiLink>
-              <MuiLink href="#" variant="body2" color="text.secondary" underline="hover">
-                Interview Tips
-              </MuiLink>
-            </Stack>
-          </Grid>
-
-          {/* Links Column 3: Legal */}
-          <Grid item xs={6} sm={3} md={2}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
-              Legal & Policy
-            </Typography>
-            <Stack spacing={1.2}>
-              <MuiLink href="/privacy" variant="body2" color="text.secondary" underline="hover">
-                Privacy Policy
-              </MuiLink>
-              <MuiLink href="/terms" variant="body2" color="text.secondary" underline="hover">
-                Terms of Service
-              </MuiLink>
-              <MuiLink href="/cookies" variant="body2" color="text.secondary" underline="hover">
-                Cookie Policy
-              </MuiLink>
-              <MuiLink href="/guidelines" variant="body2" color="text.secondary" underline="hover">
-                Community Guidelines
-              </MuiLink>
-            </Stack>
-          </Grid>
-
-          {/* Links Column 4: Company */}
-          <Grid item xs={6} sm={3} md={2}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
-              Company
-            </Typography>
-            <Stack spacing={1.2}>
-              <MuiLink href="#why-kirmya" variant="body2" color="text.secondary" underline="hover">
-                About Us
-              </MuiLink>
-              <MuiLink href="#footer" variant="body2" color="text.secondary" underline="hover">
-                Contact
-              </MuiLink>
-              <MuiLink href="/jobs" variant="body2" color="text.secondary" underline="hover">
+              <MuiLink component={Link} href={ROUTES.CAREERS} variant="body2" color="text.secondary" underline="hover">
                 Careers
               </MuiLink>
-              <MuiLink href="#" variant="body2" color="text.secondary" underline="hover">
-                Press & Media
+            </Stack>
+          </Grid>
+
+          {/* Links Column 3: Legal & Trust */}
+          <Grid item xs={6} sm={3} md={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
+              Legal & Trust
+            </Typography>
+            <Stack spacing={1.2}>
+              <MuiLink component={Link} href={ROUTES.PRIVACY} variant="body2" color="text.secondary" underline="hover">
+                Privacy Policy
+              </MuiLink>
+              <MuiLink component={Link} href={ROUTES.TERMS} variant="body2" color="text.secondary" underline="hover">
+                Terms of Service
+              </MuiLink>
+              <MuiLink component={Link} href="/cookies" variant="body2" color="text.secondary" underline="hover">
+                Cookie Policy
+              </MuiLink>
+            </Stack>
+          </Grid>
+
+          {/* Links Column 4: Account */}
+          <Grid item xs={6} sm={3} md={2}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
+              Account
+            </Typography>
+            <Stack spacing={1.2}>
+              <MuiLink component={Link} href={ROUTES.AUTH.LOGIN} variant="body2" color="text.secondary" underline="hover">
+                Sign In
+              </MuiLink>
+              <MuiLink component={Link} href={ROUTES.AUTH.SIGNUP} variant="body2" color="text.secondary" underline="hover">
+                Create Account
+              </MuiLink>
+              <MuiLink component={Link} href={ROUTES.AUTH.FORGOT_PASSWORD} variant="body2" color="text.secondary" underline="hover">
+                Forgot Password
               </MuiLink>
             </Stack>
           </Grid>
         </Grid>
 
-        <Divider sx={{ mb: 4, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+        <Divider sx={{ mb: 4 }} />
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2}>
+        {/* Copyright */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems="center"
+          spacing={2}
+        >
           <Typography variant="caption" color="text.secondary">
             © {new Date().getFullYear()} Kirmya Technologies Inc. All rights reserved.
           </Typography>
-
-          <Stack direction="row" spacing={3}>
-            <MuiLink href="/privacy" variant="caption" color="text.secondary" underline="hover">
-              Privacy
-            </MuiLink>
-            <MuiLink href="/terms" variant="caption" color="text.secondary" underline="hover">
-              Terms
-            </MuiLink>
-            <MuiLink href="/cookies" variant="caption" color="text.secondary" underline="hover">
-              Cookies
-            </MuiLink>
-          </Stack>
+          <Typography variant="caption" color="text.secondary">
+            Designed for professional momentum and career recovery.
+          </Typography>
         </Stack>
       </Container>
     </Box>

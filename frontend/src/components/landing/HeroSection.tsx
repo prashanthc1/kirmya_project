@@ -19,9 +19,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import SearchIcon from '@mui/icons-material/Search';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import { motion } from 'framer-motion';
 import { springs } from '../../theme/motion';
-import GlassCard from './GlassCard';
+import { tokens } from '../../theme/tokens';
+import { ROUTES } from '../../shared/routes';
 
 export const HeroSection: React.FC = () => {
   const router = useRouter();
@@ -30,242 +32,191 @@ export const HeroSection: React.FC = () => {
 
   return (
     <Box
+      component="section"
+      aria-labelledby="hero-heading"
       sx={{
-        pt: { xs: 6, md: 10 },
-        pb: { xs: 10, md: 14 },
+        pt: { xs: 4, sm: 6, md: 8 },
+        pb: { xs: 8, sm: 10, md: 12 },
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Animated Background Gradients & Blobs */}
+      {/* Subtle Ambient Glow */}
       <Box
         sx={{
           position: 'absolute',
           top: '-10%',
-          left: '10%',
-          width: 500,
-          height: 500,
+          left: '20%',
+          width: 600,
+          height: 600,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(236, 72, 153, 0.08) 70%, transparent 100%)',
-          filter: 'blur(70px)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '5%',
-          right: '5%',
-          width: 450,
-          height: 450,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(236, 72, 153, 0.18) 0%, rgba(99, 102, 241, 0.05) 70%, transparent 100%)',
-          filter: 'blur(80px)',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(129, 140, 248, 0.12) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
+          filter: 'blur(90px)',
           zIndex: 0,
           pointerEvents: 'none',
         }}
       />
 
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
-        <Grid container spacing={6} alignItems="center">
-          {/* Left Column: Headlines & CTAs */}
+        <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
+          {/* Left Column: Value Proposition & CTAs */}
           <Grid item xs={12} md={7}>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
               <Chip
-                icon={<AutoAwesomeIcon sx={{ color: isDark ? '#a5b4fc !important' : '#4f46e5 !important' }} />}
-                label="AI-Powered Career Recovery & Growth Platform"
+                icon={<AutoAwesomeIcon sx={{ fontSize: 16, color: `${theme.palette.primary.main} !important` }} />}
+                label="AI-Powered Career Recovery & Professional Network"
+                size="small"
                 sx={{
                   fontWeight: 700,
                   px: 1,
                   py: 0.5,
-                  mb: 3,
-                  background: 'linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  color: isDark ? '#a5b4fc' : '#4f46e5',
+                  mb: 2.5,
+                  bgcolor: isDark ? 'rgba(129, 140, 248, 0.12)' : 'rgba(99, 102, 241, 0.08)',
+                  border: `1px solid ${isDark ? 'rgba(129, 140, 248, 0.25)' : 'rgba(99, 102, 241, 0.2)'}`,
+                  color: theme.palette.primary.main,
                 }}
               />
 
               <Typography
+                id="hero-heading"
                 variant="h1"
                 sx={{
-                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.2rem' },
-                  fontWeight: 900,
-                  lineHeight: 1.12,
-                  letterSpacing: '-0.03em',
+                  fontSize: { xs: '2.25rem', sm: '3.25rem', md: '3.75rem' },
+                  fontWeight: 800,
+                  lineHeight: 1.05,
+                  letterSpacing: '-0.035em',
                   mb: 2.5,
                   color: 'text.primary',
                 }}
               >
-                Restart Your Career With{' '}
-                <Box
-                  component="span"
-                  sx={{
-                    background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
-                >
-                  Confidence.
-                </Box>
+                Restart your career with confidence.
               </Typography>
 
               <Typography
-                variant="h6"
-                color="text.secondary"
+                variant="body1"
                 sx={{
-                  fontWeight: 400,
-                  lineHeight: 1.65,
+                  fontSize: { xs: '1rem', md: '1.15rem' },
+                  lineHeight: 1.6,
+                  color: 'text.secondary',
                   mb: 4,
-                  maxWidth: 620,
-                  fontSize: { xs: '1rem', md: '1.2rem' },
+                  maxWidth: 580,
                 }}
               >
-                Find jobs, build professional connections, receive referrals, improve your skills, and accelerate your career with AI-powered guidance.
+                Kirmya helps professionals recover from career transitions, connect with peer communities, receive verified employee referrals, and match with verified employers through AI guidance.
               </Typography>
 
-              {/* CTAs */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 6 }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+              >
                 <Button
                   variant="contained"
+                  color="primary"
                   size="large"
-                  onClick={() => router.push('/jobs')}
+                  onClick={() => router.push(ROUTES.AUTH.SIGNUP)}
                   endIcon={<ArrowForwardIcon />}
                   sx={{
-                    py: 1.8,
-                    px: 4,
-                    borderRadius: '14px',
-                    fontSize: '1.05rem',
-                    fontWeight: 800,
-                    textTransform: 'none',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                    boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-                    },
+                    py: 1.5,
+                    px: 3.5,
+                    fontSize: '1rem',
+                    borderRadius: `${tokens.radius.md}px`,
                   }}
                 >
-                  Find Jobs
+                  Get Started Free
                 </Button>
 
                 <Button
                   variant="outlined"
+                  color="inherit"
                   size="large"
-                  onClick={() => router.push('/signup')}
+                  onClick={() => router.push(ROUTES.JOBS)}
+                  startIcon={<SearchIcon />}
                   sx={{
-                    py: 1.8,
-                    px: 4,
-                    borderRadius: '14px',
-                    fontSize: '1.05rem',
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    borderColor: 'rgba(99, 102, 241, 0.3)',
-                    color: 'text.primary',
-                    backdropFilter: 'blur(8px)',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: 'rgba(99, 102, 241, 0.08)',
-                    },
+                    py: 1.5,
+                    px: 3,
+                    fontSize: '1rem',
+                    borderRadius: `${tokens.radius.md}px`,
+                    borderColor: theme.palette.divider,
                   }}
                 >
-                  Create Free Account
+                  Explore Jobs
                 </Button>
               </Stack>
 
-              {/* Live Statistics Pills */}
-              <Grid container spacing={2} sx={{ pt: 3, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                {[
-                  { value: '150K+', label: 'Active Professionals' },
-                  { value: '25K+', label: 'Open Jobs' },
-                  { value: '4.8K+', label: 'Hiring Companies' },
-                  { value: '94%', label: 'Successful Placements' },
-                ].map((stat, idx) => (
-                  <Grid item xs={6} sm={3} key={idx}>
-                    <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main' }}>
-                      {stat.value}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      {stat.label}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
+              {/* Trust Indicators */}
+              <Stack direction="row" spacing={3} alignItems="center" sx={{ mt: 4, pt: 3, borderTop: `1px solid ${theme.palette.divider}` }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <VerifiedUserIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                    100% Free for Job Seekers
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <WorkOutlineIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                    Verified Employer Postings
+                  </Typography>
+                </Stack>
+              </Stack>
             </motion.div>
           </Grid>
 
-          {/* Right Column: AI Interactive Glass Illustration & Dashboard Preview */}
+          {/* Right Column: Apple-Inspired Product Card Preview */}
           <Grid item xs={12} md={5}>
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...springs.entrance, delay: 0.2 }}>
-              <GlassCard sx={{ position: 'relative' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={springs.hover}>
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 3,
+                  borderRadius: `${tokens.radius.lg}px`,
+                  bgcolor: 'background.paper',
+                  border: `1px solid ${theme.palette.divider}`,
+                }}
+              >
+                {/* Header Widget */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'primary.main', width: 44, height: 44, fontWeight: 900 }}>AI</Avatar>
+                    <Avatar sx={{ width: 44, height: 44, bgcolor: theme.palette.primary.main, fontWeight: 700 }}>
+                      K
+                    </Avatar>
                     <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
-                        Kirmya Career Companion
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                        Senior Full Stack Engineer
                       </Typography>
-                      <Stack direction="row" spacing={0.8} alignItems="center">
-                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
-                        <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 700 }}>
-                          Active Match Engine
-                        </Typography>
-                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        TechCorp • Remote
+                      </Typography>
                     </Box>
                   </Stack>
-                  <Chip label="94% Match" color="success" size="small" sx={{ fontWeight: 800 }} />
-                </Box>
+                  <Chip label="98% Match" color="success" size="small" sx={{ fontWeight: 700 }} />
+                </Stack>
 
-                {/* Dashboard Preview Card */}
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2.5,
-                    borderRadius: '16px',
-                    // Solid: this sits inside GlassCard, which is already the
-                    // translucent layer. Stacking alpha on alpha makes the text
-                    // contrast here depend on whatever scrolls behind the hero.
-                    bgcolor: isDark ? '#1e293b' : '#f1f5f9',
-                    border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(15, 23, 42, 0.08)',
-                    mb: 2.5,
-                  }}
-                >
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                    <Chip label="RECOMMENDED FOR YOU" size="small" sx={{ fontSize: '0.65rem', fontWeight: 800, bgcolor: 'rgba(99, 102, 241, 0.15)', color: 'primary.main' }} />
-                    <VerifiedUserIcon sx={{ fontSize: 16, color: '#10b981' }} />
+                {/* Job Card Details */}
+                <Stack spacing={1.5} sx={{ mb: 2.5, p: 2, bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.03)', borderRadius: `${tokens.radius.sm}px` }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <LocationOnIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                    <Typography variant="caption" color="text.secondary">
+                      San Francisco, CA • $160,000 - $190,000 / yr
+                    </Typography>
                   </Stack>
-                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.5 }}>
-                    Senior Facilities Coordinator
+                  <Typography variant="body2" sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+                    Matched to your profile via AI Career Optimizer based on Go, TypeScript, and distributed systems skills.
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5 }}>
-                    <LocationOnIcon fontSize="small" color="primary" /> Dubai, UAE • Emaar Properties
-                  </Typography>
-                  <Stack direction="row" spacing={1}>
-                    <Chip label="Vendor Management" size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />
-                    <Chip label="HSE Compliance" size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />
-                    <Chip label="$65K - $85K" size="small" color="primary" sx={{ fontSize: '0.72rem', fontWeight: 700 }} />
-                  </Stack>
-                </Paper>
+                </Stack>
 
-                {/* Floating Glass Card 1 */}
-                <Box
-                  sx={{
-                    p: 1.8,
-                    borderRadius: '14px',
-                    // Third layer of the same stack — also solid now.
-                    bgcolor: isDark ? '#0f172a' : '#ffffff',
-                    border: '1px solid rgba(99, 102, 241, 0.2)',
-                    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.2)',
-                    mb: 1.5,
-                  }}
+                {/* Card Action */}
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => router.push(ROUTES.JOBS)}
+                  sx={{ borderRadius: `${tokens.radius.sm}px` }}
                 >
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 700, mb: 0.5 }}>
-                    ⚡ AI Resume Optimization Insight:
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    &quot;Added 4 high-impact keywords for ATS screening approval.&quot;
-                  </Typography>
-                </Box>
-              </GlassCard>
+                  View Job & Apply
+                </Button>
+              </Paper>
             </motion.div>
           </Grid>
         </Grid>
