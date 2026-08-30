@@ -1,21 +1,27 @@
 'use client';
 
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { use } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Container, Button, Box, CircularProgress, Typography } from '@mui/material';
+import { Container, Button, Box, Skeleton, Alert } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import { applicationsApi } from '@/features/applications/api';
-import { ApplicationDetails } from '@/components/applications/ApplicationDetails';
+import AuthenticatedLayout from '../../../../components/shell/AuthenticatedLayout';
+import { applicationsApi } from '../../../../features/applications/api';
+import { ApplicationDetails } from '../../../../components/applications/ApplicationDetails';
+import { tokens } from '../../../../theme/tokens';
 
 export const dynamic = 'force-dynamic';
 
-export default function ApplicationDetailPage() {
-  const params = useParams();
+export default function ApplicationDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
-  const id = params.id as string;
+  const id = resolvedParams?.id || '';
 
   const { data: detail, isLoading, isError } = useQuery({
     queryKey: ['application-detail', id],
@@ -31,47 +37,41 @@ export default function ApplicationDetailPage() {
     },
   });
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (isError || !detail) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Typography variant="h6" color="error">
-          Application not found.
-        </Typography>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/dashboard/applications')} sx={{ mt: 2 }}>
-          Back to Applications
-        </Button>
-      </Container>
-    );
-  }
-
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 3 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => router.push('/dashboard/applications')}
-          sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
-        >
-          Back to Applications Tracker
-        </Button>
-      </Box>
+    <AuthenticatedLayout>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+        <Box sx={{ mb: 3 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => router.push('/dashboard/applications')}
+            sx={{
+              borderRadius: `${tokens.radius.sm}px`,
+              textTransform: 'none',
+              fontWeight: 700,
+            }}
+          >
+            Back to Applications Tracker
+          </Button>
+        </Box>
 
-      <ApplicationDetails
-        application={detail}
-        onWithdraw={() => {
-          if (confirm('Are you sure you want to withdraw this application?')) {
-            withdrawMutation.mutate(id);
-          }
-        }}
-      />
-    </Container>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Skeleton variant="rounded" height={160} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+            <Skeleton variant="rounded" height={320} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+          </Box>
+        ) : isError || !detail ? (
+          <Alert severity="error" sx={{ borderRadius: `${tokens.radius.md}px` }}>
+            Application not found or you are not authorized to view this record.
+          </Alert>
+        ) : (
+          <ApplicationDetails
+            application={detail}
+            onWithdraw={() => {
+              withdrawMutation.mutate(id);
+            }}
+          />
+        )}
+      </Container>
+    </AuthenticatedLayout>
   );
 }

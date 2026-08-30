@@ -2,12 +2,17 @@
 
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { applicationsApi } from '@/features/applications/api';
-import { ApplicationDashboard } from '@/components/applications/ApplicationDashboard';
+import { Container } from '@mui/material';
+import { useRouter } from 'next/navigation';
+
+import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
+import { applicationsApi } from '../../../features/applications/api';
+import { ApplicationDashboard } from '../../../components/applications/ApplicationDashboard';
 
 export const dynamic = 'force-dynamic';
 
 export default function ApplicationsPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const { data: applications = [], isLoading: isLoadingApps } = useQuery({
@@ -20,11 +25,6 @@ export default function ApplicationsPage() {
     queryFn: () => applicationsApi.getAnalytics(),
   });
 
-  const { data: aiInsights } = useQuery({
-    queryKey: ['applications-ai-insights'],
-    queryFn: () => applicationsApi.getAIInsights(),
-  });
-
   const withdrawMutation = useMutation({
     mutationFn: (id: string) => applicationsApi.withdrawApplication(id),
     onSuccess: () => {
@@ -32,24 +32,25 @@ export default function ApplicationsPage() {
     },
   });
 
-  const handleSelectApplication = async (id: string) => {
-    return await applicationsApi.getApplicationByID(id);
+  const handleSelectApplication = (id: string) => {
+    router.push(`/dashboard/applications/${id}`);
   };
 
   const handleWithdraw = (id: string) => {
-    if (confirm('Are you sure you want to withdraw this application?')) {
-      withdrawMutation.mutate(id);
-    }
+    withdrawMutation.mutate(id);
   };
 
   return (
-    <ApplicationDashboard
-      applications={applications}
-      stats={analyticsData?.stats}
-      insights={aiInsights}
-      isLoading={isLoadingApps}
-      onSelectApplication={handleSelectApplication}
-      onWithdrawApplication={handleWithdraw}
-    />
+    <AuthenticatedLayout>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+        <ApplicationDashboard
+          applications={applications}
+          stats={analyticsData?.stats}
+          isLoading={isLoadingApps}
+          onSelectApplication={handleSelectApplication}
+          onWithdrawApplication={handleWithdraw}
+        />
+      </Container>
+    </AuthenticatedLayout>
   );
 }
