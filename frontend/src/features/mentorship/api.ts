@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { apiClient } from '@/services/api';
 import {
   MentorProfile,
   MentorshipRequest,
@@ -10,22 +10,9 @@ import {
   RequestStatus,
 } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
 const IS_TEST = typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true');
-
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 1000,
-});
-
-client.interceptors.request.use((config: any) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  return config;
-});
+const client = apiClient;
+const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
 
 // Mock Initial Data for smooth fallback / client-side state
 export const MOCK_MENTORS: MentorProfile[] = [

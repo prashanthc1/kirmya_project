@@ -144,6 +144,23 @@ func (r *trustSafetyRepository) seedDefaultPolicies() {
 }
 
 func (r *trustSafetyRepository) CreateReport(ctx context.Context, report *models.SafetyReport) error {
+	if report.ID == uuid.Nil {
+		report.ID = uuid.New()
+	}
+	if report.CreatedAt.IsZero() {
+		report.CreatedAt = time.Now()
+	}
+	report.UpdatedAt = report.CreatedAt
+
+	if r.db != nil {
+		query := `INSERT INTO safety_reports (id, reporter_id, target_type, target_id, target_title, category, description, status, priority, created_at, updated_at)
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+		_, err := r.db.ExecContext(ctx, query, report.ID, report.ReporterID, report.TargetType, report.TargetID, report.TargetTitle, report.Category, report.Description, report.Status, report.Priority, report.CreatedAt, report.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.reports[report.ID] = *report
@@ -151,6 +168,23 @@ func (r *trustSafetyRepository) CreateReport(ctx context.Context, report *models
 }
 
 func (r *trustSafetyRepository) GetReportByID(ctx context.Context, id uuid.UUID) (*models.SafetyReport, error) {
+	if r.db != nil {
+		var rep models.SafetyReport
+		query := `SELECT id, reporter_id, target_type, target_id, COALESCE(target_title, ''), category, description, status, priority, assigned_admin_id, COALESCE(resolution_notes, ''), created_at, updated_at
+		          FROM safety_reports WHERE id = $1`
+		err := r.db.QueryRowContext(ctx, query, id).Scan(
+			&rep.ID, &rep.ReporterID, &rep.TargetType, &rep.TargetID, &rep.TargetTitle,
+			&rep.Category, &rep.Description, &rep.Status, &rep.Priority,
+			&rep.AssignedAdminID, &rep.ResolutionNotes, &rep.CreatedAt, &rep.UpdatedAt,
+		)
+		if err == nil {
+			return &rep, nil
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("report not found")
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -158,22 +192,31 @@ func (r *trustSafetyRepository) GetReportByID(ctx context.Context, id uuid.UUID)
 		return &rep, nil
 	}
 
-	return &models.SafetyReport{
-		ID:          id,
-		ReporterID:  uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"),
-		TargetType:  "job",
-		TargetID:    uuid.New(),
-		TargetTitle: "Software Engineer Offer",
-		Category:    "fake_job",
-		Description: "Suspicious off-platform wire transfer request.",
-		Status:      "under_review",
-		Priority:    "high",
-		CreatedAt:   time.Now().Add(-1 * time.Hour),
-		UpdatedAt:   time.Now(),
-	}, nil
+	return nil, errors.New("report not found")
 }
 
 func (r *trustSafetyRepository) GetUserReports(ctx context.Context, userID uuid.UUID) ([]models.SafetyReport, error) {
+	if r.db != nil {
+		query := `SELECT id, reporter_id, target_type, target_id, COALESCE(target_title, ''), category, description, status, priority, assigned_admin_id, COALESCE(resolution_notes, ''), created_at, updated_at
+		          FROM safety_reports WHERE reporter_id = $1 ORDER BY created_at DESC`
+		rows, err := r.db.QueryContext(ctx, query, userID)
+		if err == nil {
+			defer rows.Close()
+			var list []models.SafetyReport
+			for rows.Next() {
+				var rep models.SafetyReport
+				if err := rows.Scan(
+					&rep.ID, &rep.ReporterID, &rep.TargetType, &rep.TargetID, &rep.TargetTitle,
+					&rep.Category, &rep.Description, &rep.Status, &rep.Priority,
+					&rep.AssignedAdminID, &rep.ResolutionNotes, &rep.CreatedAt, &rep.UpdatedAt,
+				); err == nil {
+					list = append(list, rep)
+				}
+			}
+			return list, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -183,57 +226,62 @@ func (r *trustSafetyRepository) GetUserReports(ctx context.Context, userID uuid.
 			result = append(result, rep)
 		}
 	}
-	if len(result) == 0 {
-		result = []models.SafetyReport{
-			{
-				ID:          uuid.New(),
-				ReporterID:  userID,
-				TargetType:  "job",
-				TargetID:    uuid.New(),
-				TargetTitle: "Remote Data Specialist",
-				Category:    "fake_job",
-				Description: "Unreasonable advance payment request.",
-				Status:      "submitted",
-				Priority:    "high",
-				CreatedAt:   time.Now().Add(-2 * time.Hour),
-				UpdatedAt:   time.Now().Add(-2 * time.Hour),
-			},
-		}
-	}
 	return result, nil
 }
 
 func (r *trustSafetyRepository) GetAdminReports(ctx context.Context, status string) ([]models.SafetyReport, error) {
+	if r.db != nil {
+		var query string
+		var rows *sql.Rows
+		var err error
+		if status != "" && status != "ALL" {
+			query = `SELECT id, reporter_id, target_type, target_id, COALESCE(target_title, ''), category, description, status, priority, assigned_admin_id, COALESCE(resolution_notes, ''), created_at, updated_at
+			          FROM safety_reports WHERE status = $1 ORDER BY created_at DESC`
+			rows, err = r.db.QueryContext(ctx, query, status)
+		} else {
+			query = `SELECT id, reporter_id, target_type, target_id, COALESCE(target_title, ''), category, description, status, priority, assigned_admin_id, COALESCE(resolution_notes, ''), created_at, updated_at
+			          FROM safety_reports ORDER BY created_at DESC`
+			rows, err = r.db.QueryContext(ctx, query)
+		}
+		if err == nil {
+			defer rows.Close()
+			var list []models.SafetyReport
+			for rows.Next() {
+				var rep models.SafetyReport
+				if err := rows.Scan(
+					&rep.ID, &rep.ReporterID, &rep.TargetType, &rep.TargetID, &rep.TargetTitle,
+					&rep.Category, &rep.Description, &rep.Status, &rep.Priority,
+					&rep.AssignedAdminID, &rep.ResolutionNotes, &rep.CreatedAt, &rep.UpdatedAt,
+				); err == nil {
+					list = append(list, rep)
+				}
+			}
+			return list, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	var result []models.SafetyReport
 	for _, rep := range r.reports {
-		if status == "" || rep.Status == status {
+		if status == "" || status == "ALL" || rep.Status == status {
 			result = append(result, rep)
-		}
-	}
-	if len(result) == 0 {
-		result = []models.SafetyReport{
-			{
-				ID:          uuid.New(),
-				ReporterID:  uuid.New(),
-				TargetType:  "job",
-				TargetID:    uuid.New(),
-				TargetTitle: "Remote Senior Developer",
-				Category:    "fake_job",
-				Description: "Telegram payment request.",
-				Status:      "submitted",
-				Priority:    "high",
-				CreatedAt:   time.Now().Add(-30 * time.Minute),
-				UpdatedAt:   time.Now().Add(-30 * time.Minute),
-			},
 		}
 	}
 	return result, nil
 }
 
 func (r *trustSafetyRepository) UpdateReportStatus(ctx context.Context, reportID uuid.UUID, status string, notes string, adminID *uuid.UUID) error {
+	now := time.Now()
+	if r.db != nil {
+		query := `UPDATE safety_reports SET status = $1, resolution_notes = $2, assigned_admin_id = $3, updated_at = $4 WHERE id = $5`
+		_, err := r.db.ExecContext(ctx, query, status, notes, adminID, now, reportID)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -241,13 +289,36 @@ func (r *trustSafetyRepository) UpdateReportStatus(ctx context.Context, reportID
 		rep.Status = status
 		rep.ResolutionNotes = notes
 		rep.AssignedAdminID = adminID
-		rep.UpdatedAt = time.Now()
+		rep.UpdatedAt = now
 		r.reports[reportID] = rep
 	}
 	return nil
 }
 
 func (r *trustSafetyRepository) BlockUser(ctx context.Context, block *models.UserBlock) error {
+	if block.ID == uuid.Nil {
+		block.ID = uuid.New()
+	}
+	if block.CreatedAt.IsZero() {
+		block.CreatedAt = time.Now()
+	}
+	if block.BlockedType == "" {
+		block.BlockedType = "user"
+	}
+	if block.Scope == "" {
+		block.Scope = "all"
+	}
+
+	if r.db != nil {
+		query := `INSERT INTO safety_user_blocks (id, blocker_id, blocked_id, blocked_type, reason, scope, created_at)
+		          VALUES ($1, $2, $3, $4, $5, $6, $7)
+		          ON CONFLICT (blocker_id, blocked_type, blocked_id) DO NOTHING`
+		_, err := r.db.ExecContext(ctx, query, block.ID, block.BlockerID, block.BlockedID, block.BlockedType, block.Reason, block.Scope, block.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.blocks = append(r.blocks, *block)
@@ -255,6 +326,14 @@ func (r *trustSafetyRepository) BlockUser(ctx context.Context, block *models.Use
 }
 
 func (r *trustSafetyRepository) UnblockUser(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) error {
+	if r.db != nil {
+		query := `DELETE FROM safety_user_blocks WHERE blocker_id = $1 AND blocked_id = $2`
+		_, err := r.db.ExecContext(ctx, query, blockerID, blockedID)
+		if err != nil {
+			return err
+		}
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -269,6 +348,22 @@ func (r *trustSafetyRepository) UnblockUser(ctx context.Context, blockerID uuid.
 }
 
 func (r *trustSafetyRepository) GetUserBlocks(ctx context.Context, blockerID uuid.UUID) ([]models.UserBlock, error) {
+	if r.db != nil {
+		query := `SELECT id, blocker_id, blocked_id, blocked_type, COALESCE(reason, ''), scope, created_at FROM safety_user_blocks WHERE blocker_id = $1`
+		rows, err := r.db.QueryContext(ctx, query, blockerID)
+		if err == nil {
+			defer rows.Close()
+			var list []models.UserBlock
+			for rows.Next() {
+				var b models.UserBlock
+				if err := rows.Scan(&b.ID, &b.BlockerID, &b.BlockedID, &b.BlockedType, &b.Reason, &b.Scope, &b.CreatedAt); err == nil {
+					list = append(list, b)
+				}
+			}
+			return list, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -282,6 +377,15 @@ func (r *trustSafetyRepository) GetUserBlocks(ctx context.Context, blockerID uui
 }
 
 func (r *trustSafetyRepository) IsBlocked(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) (bool, error) {
+	if r.db != nil {
+		var exists bool
+		query := `SELECT EXISTS(SELECT 1 FROM safety_user_blocks WHERE blocker_id = $1 AND blocked_id = $2)`
+		err := r.db.QueryRowContext(ctx, query, blockerID, blockedID).Scan(&exists)
+		if err == nil {
+			return exists, nil
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

@@ -7,8 +7,15 @@ import (
 )
 
 func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	admin := api.Group("/admin")
-	admin.Use(sharedMiddleware.AuthRequired())
+	if authMiddleware != nil {
+		admin.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
+	} else {
+		admin.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		admin.GET("/dashboard", handler.GetDashboard)
 

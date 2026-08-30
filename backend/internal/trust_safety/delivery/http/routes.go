@@ -2,13 +2,25 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 func RegisterRoutes(router *gin.RouterGroup, handler interface{}) {
-	if h, ok := handler.(*TrustSafetyHandler); ok {
+	switch h := handler.(type) {
+	case *TrustSafetyHandler:
 		RegisterSafetyRoutes(router, h)
 		RegisterTrustRoutes(router, h)
+	case *TrustHandler:
+		if h != nil {
+			trust := router.Group("/trust")
+			trust.Use(sharedMiddleware.AuthRequired())
+			{
+				trust.POST("/reports", h.SubmitReport)
+				trust.GET("/reports", h.GetReports)
+				trust.POST("/reports/:id/action", h.ExecuteModerationAction)
+			}
+		}
 	}
 }
 
@@ -58,13 +70,17 @@ func RegisterSafetyRoutes(router *gin.RouterGroup, handler *TrustSafetyHandler) 
 	}
 }
 
-func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafetyHandler) {
+func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafetyHandler, auth *authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
 
 	adminTrustSafety := router.Group("/admin/trust-safety")
-	adminTrustSafety.Use(sharedMiddleware.AuthRequired())
+	if auth != nil {
+		adminTrustSafety.Use(auth.RequireAuth(), auth.RequireRole("admin", "super_admin"))
+	} else {
+		adminTrustSafety.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminTrustSafety.GET("", handler.GetAdminSummary)
 		adminTrustSafety.GET("/queue", handler.GetAdminQueue)
@@ -98,7 +114,11 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 	}
 
 	adminSafetyLegacy := router.Group("/admin/safety")
-	adminSafetyLegacy.Use(sharedMiddleware.AuthRequired())
+	if auth != nil {
+		adminSafetyLegacy.Use(auth.RequireAuth(), auth.RequireRole("admin", "super_admin"))
+	} else {
+		adminSafetyLegacy.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminSafetyLegacy.GET("/cases", handler.GetAdminCases)
 		adminSafetyLegacy.POST("/cases/:id/actions", handler.ApplyAction)

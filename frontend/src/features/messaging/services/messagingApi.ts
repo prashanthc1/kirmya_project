@@ -1,7 +1,6 @@
-import { authApiClient } from '../../../services/authService';
+import { authApiClient, getAccessToken } from '../../../services/authService';
 
 const client = authApiClient;
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
 
 export interface MessageAttachment {
   id: string;
@@ -60,7 +59,8 @@ export interface AdminMessagingAnalytics {
 }
 
 export const messagingApi = {
-  getMockUserId: () => MOCK_USER_ID,
+  getCurrentUserId: () => getAccessToken() || '',
+  getMockUserId: () => getAccessToken() || '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
 
   // Conversations
   listConversations: async (): Promise<ConversationItem[]> => {
@@ -153,7 +153,9 @@ export const messagingApi = {
 
   // WebSocket Connection Handshake
   connectWebSocket: (onMessage: (data: any) => void): WebSocket => {
-    const wsUrl = `ws://localhost:8080/api/v1/messages/ws?token=${MOCK_USER_ID}`;
+    const token = getAccessToken() || '';
+    const baseWs = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/v1/messages/ws';
+    const wsUrl = token ? `${baseWs}?token=${token}` : baseWs;
     const socket = new WebSocket(wsUrl);
 
     socket.onmessage = (event) => {

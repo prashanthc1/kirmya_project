@@ -157,6 +157,12 @@ type JobAlertDTO struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
+type CreateApplicationPayload struct {
+	JobID       uuid.UUID  `json:"job_id" binding:"required"`
+	ResumeID    *uuid.UUID `json:"resume_id"`
+	CoverLetter string     `json:"cover_letter"`
+}
+
 type CreateJobAlertPayload struct {
 	Title          string   `json:"title"`
 	Keywords       string   `json:"keywords"`

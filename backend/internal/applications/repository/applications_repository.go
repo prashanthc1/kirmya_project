@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"kirmya/internal/applications/models"
@@ -17,6 +19,57 @@ type ApplicationsRepository struct {
 
 func NewApplicationsRepository(db *pgxpool.Pool) *ApplicationsRepository {
 	return &ApplicationsRepository{db: db}
+}
+
+func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidateID uuid.UUID, payload models.CreateApplicationPayload) (*models.ApplicationDetail, error) {
+	appID := uuid.New()
+	now := time.Now().UTC()
+
+	if r.db != nil {
+		tx, err := r.db.Begin(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer tx.Rollback(ctx)
+
+		// Check if candidate already applied
+		var alreadyApplied bool
+		checkQuery := `SELECT EXISTS(SELECT 1 FROM job_applications WHERE job_id = $1 AND candidate_id = $2)`
+		if err := tx.QueryRow(ctx, checkQuery, payload.JobID, candidateID).Scan(&alreadyApplied); err != nil {
+			return nil, err
+		}
+		if alreadyApplied {
+			return nil, errors.New("candidate has already applied to this job")
+		}
+
+		insertQuery := `
+			INSERT INTO job_applications (id, job_id, candidate_id, current_stage, rating, applied_at, updated_at)
+			VALUES ($1, $2, $3, 'Applied', 5, $4, $4)
+		`
+		if _, err := tx.Exec(ctx, insertQuery, appID, payload.JobID, candidateID, now); err != nil {
+			return nil, err
+		}
+
+		// Record stage history
+		stageID := uuid.New()
+		stageHistoryQuery := `
+			INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)
+			VALUES ($1, $2, 'None', 'Applied', $3, 'Application submitted online', $4)
+		`
+		if _, err := tx.Exec(ctx, stageHistoryQuery, stageID, appID, candidateID, now); err != nil {
+			return nil, err
+		}
+
+		if err := tx.Commit(ctx); err != nil {
+			return nil, err
+		}
+
+		return r.GetApplicationByID(ctx, candidateID, appID)
+	}
+
+	mockDetail := r.getMockApplicationDetail(ctx, appID)
+	mockDetail.Summary.JobID = payload.JobID
+	return mockDetail, nil
 }
 
 func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, candidateID uuid.UUID, status string, search string) ([]models.ApplicationSummary, error) {
@@ -53,11 +106,11 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		return r.getMockApplications(candidateID), nil
+		return nil, err
 	}
 	defer rows.Close()
 
-	var apps []models.ApplicationSummary
+	apps := make([]models.ApplicationSummary, 0)
 	for rows.Next() {
 		var app models.ApplicationSummary
 		var recID *uuid.UUID
@@ -72,15 +125,7 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 			continue
 		}
 		app.RecruiterID = recID
-		if recID != nil {
-			app.RecruiterName = "Sarah Jenkins"
-			app.RecruiterEmail = "s.jenkins@techcorp.com"
-		}
 		apps = append(apps, app)
-	}
-
-	if len(apps) == 0 {
-		return r.getMockApplications(candidateID), nil
 	}
 
 	return apps, nil
@@ -96,13 +141,13 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 
 	query := `
 		SELECT 
-			a.id, a.job_id, COALESCE(j.title, 'Senior Frontend Developer'),
+			a.id, a.job_id, COALESCE(j.title, 'Job Position'),
 			COALESCE(j.company_id, '00000000-0000-0000-0000-000000000001'::uuid),
-			COALESCE(c.name, 'Acme Corp'), COALESCE(c.logo_url, '/images/companies/acme.png'),
-			COALESCE(j.location, 'San Francisco, CA (Hybrid)'), COALESCE(j.employment_type, 'Full-time'),
-			COALESCE(j.salary_range, '$140k - $180k'), a.current_stage,
+			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(j.location, 'Remote'), COALESCE(j.employment_type, 'Full-time'),
+			COALESCE(j.salary_range, ''), a.current_stage,
 			a.applied_at, a.updated_at, a.recruiter_id,
-			COALESCE(j.description, 'We are seeking an experienced Frontend Developer to build next-generation scalable React applications.')
+			COALESCE(j.description, '')
 		FROM job_applications a
 		LEFT JOIN jobs j ON a.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
@@ -117,12 +162,15 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 		&recID, &detail.JobDescription,
 	)
 	if err != nil {
-		return r.getMockApplicationDetail(ctx, appID), nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.New("application not found")
+		}
+		return nil, err
 	}
 
 	detail.Summary.RecruiterID = recID
-	detail.Requirements = []string{"5+ years React & TypeScript", "Experience with MUI / Next.js", "REST & GraphQL APIs", "Strong CI/CD mindset"}
-	detail.Skills = []string{"React", "TypeScript", "Next.js", "MUI", "GraphQL", "Jest"}
+	detail.Requirements = []string{}
+	detail.Skills = []string{}
 
 	// Load timeline
 	detail.Timeline = r.GetApplicationTimeline(ctx, appID)

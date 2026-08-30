@@ -7,8 +7,15 @@ import (
 )
 
 func RegisterAdminBackupRoutes(api *gin.RouterGroup, handler *BackupHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	backups := api.Group("/admin/backups")
-	backups.Use(sharedMiddleware.AuthRequired())
+	if authMiddleware != nil {
+		backups.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
+	} else {
+		backups.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		backups.GET("", handler.ListBackups)
 		backups.POST("", handler.TriggerBackup)

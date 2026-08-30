@@ -37,12 +37,22 @@ func TelemetryMiddleware() gin.HandlerFunc {
 
 		collector.RecordHTTPRequest(c.Request.Method, c.FullPath(), status, duration)
 
-		telemetry.LogInfo(traceID, "HTTP Request Completed", map[string]interface{}{
-			"method":     c.Request.Method,
-			"path":       c.Request.URL.Path,
-			"status":     status,
-			"latency_ms": duration.Milliseconds(),
-			"client_ip":  c.ClientIP(),
-		})
+		if duration.Milliseconds() > 500 {
+			telemetry.LogWarn(traceID, "Slow HTTP Request Detected", map[string]interface{}{
+				"method":     c.Request.Method,
+				"path":       c.Request.URL.Path,
+				"status":     status,
+				"latency_ms": duration.Milliseconds(),
+				"client_ip":  c.ClientIP(),
+			})
+		} else {
+			telemetry.LogInfo(traceID, "HTTP Request Completed", map[string]interface{}{
+				"method":     c.Request.Method,
+				"path":       c.Request.URL.Path,
+				"status":     status,
+				"latency_ms": duration.Milliseconds(),
+				"client_ip":  c.ClientIP(),
+			})
+		}
 	}
 }

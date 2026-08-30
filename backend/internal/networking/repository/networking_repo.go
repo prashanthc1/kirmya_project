@@ -23,6 +23,7 @@ type NetworkingRepository struct {
 	goals    map[string]*models.NetworkingGoal
 	follows  map[string]bool
 	requests map[string]*models.ConnectionRequest
+	blocks   map[string]bool
 }
 
 func (r *NetworkingRepository) lazyInit() {
@@ -45,6 +46,9 @@ func (r *NetworkingRepository) lazyInit() {
 	}
 	if r.requests == nil {
 		r.requests = make(map[string]*models.ConnectionRequest)
+	}
+	if r.blocks == nil {
+		r.blocks = make(map[string]bool)
 	}
 }
 
@@ -96,6 +100,71 @@ func (r *NetworkingRepository) UpdateRequestStatus(ctx context.Context, requestI
 	}
 	_, err := r.db.Exec(ctx, "UPDATE connection_requests SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", status, requestID)
 	return err
+}
+
+func (r *NetworkingRepository) AcceptRequestTx(ctx context.Context, requestID, receiverID uuid.UUID) error {
+	if r.db == nil {
+		r.lazyInit()
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if req, ok := r.requests[requestID.String()]; ok {
+			if req.ReceiverID != receiverID {
+				return errors.New("unauthorized request action")
+			}
+			req.Status = "accepted"
+			c := &models.Connection{
+				ID:        uuid.New(),
+				UserID1:   req.SenderID,
+				UserID2:   req.ReceiverID,
+				CreatedAt: time.Now(),
+			}
+			k1 := c.UserID1.String() + ":" + c.UserID2.String()
+			k2 := c.UserID2.String() + ":" + c.UserID1.String()
+			r.conns[k1] = c
+			r.conns[k2] = c
+			return nil
+		}
+		return errors.New("request not found")
+	}
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var senderID uuid.UUID
+	var recID uuid.UUID
+	var status string
+	err = tx.QueryRow(ctx, "SELECT sender_id, receiver_id, status FROM connection_requests WHERE id = $1 FOR UPDATE", requestID).Scan(&senderID, &recID, &status)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errors.New("request not found")
+		}
+		return err
+	}
+
+	if recID != receiverID {
+		return errors.New("unauthorized request action")
+	}
+
+	if status != "pending" {
+		return fmt.Errorf("cannot accept connection request in %s status", status)
+	}
+
+	_, err = tx.Exec(ctx, "UPDATE connection_requests SET status = 'accepted', updated_at = CURRENT_TIMESTAMP WHERE id = $1", requestID)
+	if err != nil {
+		return err
+	}
+
+	connID := uuid.New()
+	_, err = tx.Exec(ctx, `INSERT INTO connections (id, user_id_1, user_id_2, created_at) 
+	                       VALUES ($1, $2, $3, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING`, connID, senderID, recID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (r *NetworkingRepository) GetRequest(ctx context.Context, requestID uuid.UUID) (*models.ConnectionRequest, error) {
@@ -409,6 +478,19 @@ func (r *NetworkingRepository) GetDismissedIDs(ctx context.Context, userID uuid.
 
 // Privacy Blocks
 func (r *NetworkingRepository) CreateBlock(ctx context.Context, b *models.BlockedUser) error {
+	if r.db == nil {
+		r.lazyInit()
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if r.blocks == nil {
+			r.blocks = make(map[string]bool)
+		}
+		r.blocks[b.BlockerID.String()+":"+b.BlockedID.String()] = true
+		r.blocks[b.BlockedID.String()+":"+b.BlockerID.String()] = true
+		delete(r.conns, b.BlockerID.String()+":"+b.BlockedID.String())
+		delete(r.conns, b.BlockedID.String()+":"+b.BlockerID.String())
+		return nil
+	}
 	query := `INSERT INTO blocked_users (id, blocker_id, blocked_id, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`
 	_, err := r.db.Exec(ctx, query, b.ID, b.BlockerID, b.BlockedID, b.CreatedAt)
 	if err != nil {
@@ -421,11 +503,32 @@ func (r *NetworkingRepository) CreateBlock(ctx context.Context, b *models.Blocke
 }
 
 func (r *NetworkingRepository) DeleteBlock(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) error {
+	if r.db == nil {
+		r.lazyInit()
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if r.blocks != nil {
+			delete(r.blocks, blockerID.String()+":"+blockedID.String())
+			delete(r.blocks, blockedID.String()+":"+blockerID.String())
+		}
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM blocked_users WHERE blocker_id = $1 AND blocked_id = $2", blockerID, blockedID)
 	return err
 }
 
 func (r *NetworkingRepository) IsBlocked(ctx context.Context, blockerID uuid.UUID, blockedID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		r.lazyInit()
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if r.blocks != nil {
+			if r.blocks[blockerID.String()+":"+blockedID.String()] || r.blocks[blockedID.String()+":"+blockerID.String()] {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
 	var count int
 	err := r.db.QueryRow(ctx, `SELECT COUNT(*) FROM blocked_users 
 	                          WHERE (blocker_id = $1 AND blocked_id = $2) 

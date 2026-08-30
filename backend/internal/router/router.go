@@ -148,7 +148,9 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	engine.Use(middleware.SecurityHeaders())
 	engine.Use(middleware.CORS(deps.AllowedOrigins))
 	registerSwagger(engine, cfg)
-	registerHealthCheck(engine)
+	if deps.SystemHealthHandler == nil {
+		registerHealthCheck(engine)
+	}
 	SetupRouter(engine, deps)
 	return engine
 }
@@ -232,7 +234,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	recommendationEngineHttp.RegisterRoutes(api, deps.RecommendationEngineHandler)
 	landingHttp.RegisterRoutes(api, deps.LandingHandler)
 	onboardingHttp.RegisterRoutes(api, deps.OnboardingHandler, deps.AuthMiddleware)
-	profileHttp.RegisterRoutes(api, deps.ProfileHandler)
+	profileHttp.RegisterRoutes(api, deps.ProfileHandler, deps.AuthMiddleware)
 	resumeHttp.RegisterRoutes(api, deps.ResumeHandler)
 	recHttp.RegisterRoutes(api, deps.RecommendationHandler)
 	netHttp.RegisterRoutes(api, deps.NetworkingHandler)
@@ -242,7 +244,9 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	applicationsHttp.RegisterRoutes(api, deps.ApplicationsHandler)
 	jobAlertsHttp.RegisterRoutes(api, deps.JobAlertsHandler)
 	jobsHttp.RegisterRoutes(api, deps.JobsHandler)
-	mentorshipHttp.RegisterRoutes(api, deps.MentorshipHandler)
+	if deps.MentorshipHandler != nil {
+		mentorshipHttp.RegisterRoutes(api, deps.MentorshipHandler)
+	}
 	if deps.CoverLetterHandler != nil {
 		coverLetterHttp.RegisterRoutes(api, deps.CoverLetterHandler)
 	}
@@ -253,29 +257,29 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 		adminHttp.RegisterRoutes(api, deps.AdminHandler, deps.AuthMiddleware)
 	}
 	if deps.BillingHandler != nil {
-		billingHttp.RegisterBillingRoutes(api, deps.BillingHandler)
+		billingHttp.RegisterBillingRoutes(api, deps.BillingHandler, deps.AuthMiddleware)
 	}
 	if deps.AdminBillingHandler != nil {
-		billingHttp.RegisterAdminBillingRoutes(api, deps.AdminBillingHandler)
+		billingHttp.RegisterAdminBillingRoutes(api, deps.AdminBillingHandler, deps.AuthMiddleware)
 	}
 	if deps.LegalHandler != nil {
 		legalHttp.RegisterLegalRoutes(api, deps.LegalHandler)
 	}
 	if deps.AdminLegalHandler != nil {
-		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler)
+		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler, deps.AuthMiddleware)
 	}
 	if deps.SecurityHandler != nil {
 		securityHttp.RegisterSecurityRoutes(api, deps.SecurityHandler)
 	}
 	if deps.AdminSecurityHandler != nil {
-		securityHttp.RegisterAdminSecurityRoutes(api, deps.AdminSecurityHandler)
+		securityHttp.RegisterAdminSecurityRoutes(api, deps.AdminSecurityHandler, deps.AuthMiddleware)
 	}
 	if deps.SupportHandler != nil {
 		supportHttp.RegisterPublicHelpRoutes(api, deps.SupportHandler)
 		supportHttp.RegisterSupportRoutes(api, deps.SupportHandler)
 	}
 	if deps.AdminSupportHandler != nil {
-		supportHttp.RegisterAdminSupportRoutes(api, deps.AdminSupportHandler)
+		supportHttp.RegisterAdminSupportRoutes(api, deps.AdminSupportHandler, deps.AuthMiddleware)
 	}
 	if deps.AdminBackupHandler != nil {
 		backupHttp.RegisterAdminBackupRoutes(api, deps.AdminBackupHandler, deps.AuthMiddleware)
@@ -288,6 +292,11 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 		sysHealthHttp.RegisterPublicHealthRoutes(engine, deps.SystemHealthHandler)
 		sysHealthHttp.RegisterAdminHealthRoutes(api, deps.SystemHealthHandler, deps.AuthMiddleware)
 	}
-	trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
-	trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler)
+	if deps.TrustSafetyHandler != nil {
+		trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
+		trustHttp.RegisterTrustRoutes(api, deps.TrustSafetyHandler)
+	}
+	if deps.AdminTrustSafetyHandler != nil {
+		trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler, deps.AuthMiddleware)
+	}
 }

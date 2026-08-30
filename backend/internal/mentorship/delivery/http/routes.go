@@ -6,6 +6,9 @@ import (
 )
 
 func RegisterRoutes(api *gin.RouterGroup, handler *MentorshipHandler) {
+	if handler == nil {
+		return
+	}
 	group := api.Group("/mentorship")
 	
 	// Public / Search endpoints

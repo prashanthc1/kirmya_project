@@ -21,16 +21,22 @@ func NewMentorshipHandler(svc service.MentorshipService) *MentorshipHandler {
 }
 
 func getUserID(c *gin.Context) string {
+	if val, exists := c.Get("userID"); exists {
+		switch uid := val.(type) {
+		case string:
+			if uid != "" {
+				return uid
+			}
+		default:
+			if uidStr := c.GetString("userID"); uidStr != "" {
+				return uidStr
+			}
+		}
+	}
 	if uid := c.GetString("user_id"); uid != "" {
 		return uid
 	}
-	if uid := c.GetString("userID"); uid != "" {
-		return uid
-	}
-	if uid := c.GetHeader("X-User-ID"); uid != "" {
-		return uid
-	}
-	return c.Query("user_id")
+	return ""
 }
 
 // CreateOrUpdateProfile POST /api/v1/mentorship/mentors/profile

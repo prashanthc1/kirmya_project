@@ -17,6 +17,17 @@ func NewApplicationsService(repo *repository.ApplicationsRepository) *Applicatio
 	return &ApplicationsService{repo: repo}
 }
 
+func (s *ApplicationsService) CreateApplication(ctx context.Context, candidateID uuid.UUID, payload models.CreateApplicationPayload) (*models.ApplicationDetail, error) {
+	detail, err := s.repo.CreateApplication(ctx, candidateID, payload)
+	if err != nil {
+		return nil, err
+	}
+	if detail != nil {
+		detail.Summary.StatusExplanation = models.GetStatusExplanation(detail.Summary.CurrentStatus)
+	}
+	return detail, nil
+}
+
 func (s *ApplicationsService) GetCandidateApplications(ctx context.Context, candidateID uuid.UUID, status string, search string) ([]models.ApplicationSummary, error) {
 	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, status, search)
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"io/fs"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 
 	aiHttp "kirmya/internal/ai/delivery/http"
@@ -204,6 +206,38 @@ import (
 	securityHttp "kirmya/internal/security/delivery/http"
 	securityRepo "kirmya/internal/security/repository"
 	securitySvc "kirmya/internal/security/service"
+
+	adminHttp "kirmya/internal/admin/delivery/http"
+	adminRepo "kirmya/internal/admin/repository"
+	adminSvc "kirmya/internal/admin/service"
+
+	billingHttp "kirmya/internal/billing/delivery/http"
+	billingRepo "kirmya/internal/billing/repository"
+	billingSvc "kirmya/internal/billing/service"
+
+	legalHttp "kirmya/internal/legal/delivery/http"
+	legalRepo "kirmya/internal/legal/repository"
+	legalSvc "kirmya/internal/legal/service"
+
+	backupHttp "kirmya/internal/backup/delivery/http"
+	backupRepo "kirmya/internal/backup/repository"
+	backupSvc "kirmya/internal/backup/service"
+
+	dataOpsHttp "kirmya/internal/data_operations/delivery/http"
+	dataOpsRepo "kirmya/internal/data_operations/repository"
+	dataOpsSvc "kirmya/internal/data_operations/service"
+
+	supportHttp "kirmya/internal/support/delivery/http"
+	supportRepo "kirmya/internal/support/repository"
+	supportSvc "kirmya/internal/support/service"
+
+	sysHealthHttp "kirmya/internal/system_health/delivery/http"
+	sysHealthRepo "kirmya/internal/system_health/repository"
+	sysHealthSvc "kirmya/internal/system_health/service"
+
+	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
+	mentorshipRepo "kirmya/internal/mentorship/repository"
+	mentorshipSvc "kirmya/internal/mentorship/service"
 
 	"kirmya/internal/router"
 	cachePkg "kirmya/internal/shared/cache"
@@ -549,6 +583,53 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	securityHandler := securityHttp.NewSecurityHandler(securityService)
 	adminSecurityHandler := securityHttp.NewAdminSecurityHandler(securityService)
 
+	var sqlDB *sql.DB
+	if dbPool != nil {
+		sqlDB = stdlib.OpenDBFromPool(dbPool)
+	}
+
+	adminRepository := adminRepo.NewAdminRepository(dbPool)
+	adminService := adminSvc.NewAdminService(adminRepository)
+	adminHandler := adminHttp.NewAdminHandler(adminService)
+
+	billingRepository := billingRepo.NewBillingRepository(sqlDB)
+	billingService := billingSvc.NewBillingService(billingRepository)
+	billingHandler := billingHttp.NewBillingHandler(billingService)
+	adminBillingHandler := billingHttp.NewAdminBillingHandler(billingService)
+
+	legalRepository := legalRepo.NewLegalRepository(sqlDB)
+	legalService := legalSvc.NewLegalService(legalRepository)
+	legalHandler := legalHttp.NewLegalHandler(legalService)
+	adminLegalHandler := legalHttp.NewAdminLegalHandler(legalService)
+
+	backupRepository := backupRepo.NewBackupRepository(sqlDB)
+	backupService := backupSvc.NewBackupService(backupRepository)
+	adminBackupHandler := backupHttp.NewBackupHandler(backupService)
+
+	dataOpsRepository := dataOpsRepo.NewDataOperationsRepository(sqlDB)
+	dataOpsService := dataOpsSvc.NewDataOperationsService(dataOpsRepository)
+	dataOpsHandler := dataOpsHttp.NewDataOperationsHandler(dataOpsService)
+
+	supportRepository := supportRepo.NewSupportRepository(sqlDB)
+	supportService := supportSvc.NewSupportService(supportRepository)
+	supportHandler := supportHttp.NewSupportHandler(supportService)
+	adminSupportHandler := supportHttp.NewAdminSupportHandler(supportService)
+
+	sysHealthRepository := sysHealthRepo.NewHealthRepository(sqlDB)
+	sysHealthService := sysHealthSvc.NewSystemHealthService(sysHealthRepository, sqlDB)
+	sysHealthHandler := sysHealthHttp.NewSystemHealthHandler(sysHealthService)
+
+	mentorshipRepository := mentorshipRepo.NewPostgresMentorshipRepository(dbPool)
+	mentorshipService := mentorshipSvc.NewMentorshipService(mentorshipRepository)
+	mentorshipHandler := mentorshipHttp.NewMentorshipHandler(mentorshipService)
+
+	trustSafetyRepository := trustRepo.NewTrustSafetyRepository(sqlDB)
+	trustSafetyService := trustSvc.NewTrustSafetyService(trustSafetyRepository)
+	trustSafetyHandler := trustHttp.NewTrustSafetyHandler(trustSafetyService)
+	adminTrustSafetyHandler := trustHttp.NewAdminTrustSafetyHandler(trustSafetyService)
+
+	adminAnalyticsHandler := analyticsHttp.NewAdminAnalyticsHandler(analyticsService)
+
 	return router.RouterDependencies{
 		AuthHandler:                 authHandler,
 		AuthMiddleware:              authMiddleware,
@@ -560,6 +641,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		MessagingHandler:            msgHandler,
 		NotificationHandler:         notifyHandler,
 		AnalyticsHandler:            analyticsHandler,
+		AdminAnalyticsHandler:       adminAnalyticsHandler,
 		AIHandler:                   aiHandler,
 		CompanyHandler:              companyHandler,
 		CompanyManagementHandler:    companyManagementHandler,
@@ -585,6 +667,8 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		FreelanceHandler:            freelanceHandler,
 		EnterpriseHandler:           enterpriseHandler,
 		TrustHandler:                trustHandler,
+		TrustSafetyHandler:          trustSafetyHandler,
+		AdminTrustSafetyHandler:     adminTrustSafetyHandler,
 		ComplianceHandler:           complianceHandler,
 		IntelligenceHandler:         intelligenceHandler,
 		RecommendationEngineHandler: recommendationHandler,
@@ -597,5 +681,16 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		InterviewPrepHandler:        interviewPrepHandler,
 		SecurityHandler:             securityHandler,
 		AdminSecurityHandler:        adminSecurityHandler,
+		AdminHandler:                adminHandler,
+		BillingHandler:              billingHandler,
+		AdminBillingHandler:         adminBillingHandler,
+		LegalHandler:                legalHandler,
+		AdminLegalHandler:           adminLegalHandler,
+		AdminBackupHandler:          adminBackupHandler,
+		DataOperationsHandler:       dataOpsHandler,
+		SupportHandler:              supportHandler,
+		AdminSupportHandler:         adminSupportHandler,
+		SystemHealthHandler:         sysHealthHandler,
+		MentorshipHandler:           mentorshipHandler,
 	}
 }

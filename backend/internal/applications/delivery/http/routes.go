@@ -10,11 +10,18 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ApplicationsHandler) {
 	appGroup.Use(sharedMiddleware.AuthRequired())
 	{
 		appGroup.GET("", handler.GetApplications)
+		appGroup.POST("", handler.ApplyToJob)
 		appGroup.GET("/analytics", handler.GetAnalytics)
 		appGroup.GET("/ai-insights", handler.GetAIInsights)
 		appGroup.GET("/:id", handler.GetApplicationByID)
 		appGroup.PUT("/:id/withdraw", handler.WithdrawApplication)
 		appGroup.GET("/:id/timeline", handler.GetApplicationTimeline)
+	}
+
+	jobApplyGroup := api.Group("/jobs/:id/apply")
+	jobApplyGroup.Use(sharedMiddleware.AuthRequired())
+	{
+		jobApplyGroup.POST("", handler.ApplyToJob)
 	}
 
 	savedGroup := api.Group("/jobs/saved")

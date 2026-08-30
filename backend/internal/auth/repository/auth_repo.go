@@ -9,6 +9,7 @@ import (
 	"kirmya/internal/auth/models"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -93,9 +94,13 @@ func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 			&u.EmailVerified, &u.RoleID, &u.Status, &u.Country, &u.CurrentLocation,
 			&u.JobTitle, &u.EmploymentStatus, &u.CreatedAt, &u.UpdatedAt,
 		)
-		if err == nil {
-			return u, nil
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, errors.New("user not found")
+			}
+			return nil, err
 		}
+		return u, nil
 	}
 
 	r.mu.RLock()
@@ -118,9 +123,13 @@ func (r *AuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models
 			&u.EmailVerified, &u.RoleID, &u.Status, &u.Country, &u.CurrentLocation,
 			&u.JobTitle, &u.EmploymentStatus, &u.CreatedAt, &u.UpdatedAt,
 		)
-		if err == nil {
-			return u, nil
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, errors.New("user not found")
+			}
+			return nil, err
 		}
+		return u, nil
 	}
 
 	r.mu.RLock()
@@ -133,6 +142,37 @@ func (r *AuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models
 		}
 	}
 	return nil, errors.New("user not found")
+}
+
+func (r *AuthRepository) UpdateUser(ctx context.Context, u *models.User) error {
+	u.UpdatedAt = time.Now().UTC()
+	if r.db != nil {
+		query := `
+			UPDATE users SET
+				first_name = $1, last_name = $2, country = $3, current_location = $4,
+				job_title = $5, employment_status = $6, status = $7, updated_at = $8
+			WHERE id = $9
+		`
+		ct, err := r.db.Exec(ctx, query,
+			u.FirstName, u.LastName, u.Country, u.CurrentLocation,
+			u.JobTitle, u.EmploymentStatus, u.Status, u.UpdatedAt, u.ID,
+		)
+		if err != nil {
+			return err
+		}
+		if ct.RowsAffected() == 0 {
+			return errors.New("user not found")
+		}
+		return nil
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, exists := r.memUsers[u.Email]; exists {
+		r.memUsers[u.Email] = u
+		return nil
+	}
+	return errors.New("user not found")
 }
 
 func (r *AuthRepository) UpdateUserEmailVerified(ctx context.Context, id uuid.UUID) error {

@@ -50,6 +50,10 @@ func LogInfo(traceID, message string, fields map[string]interface{}) {
 	writeLog(LevelInfo, "SYSTEM_INFO", traceID, "", "", "", message, fields)
 }
 
+func LogWarn(traceID, message string, fields map[string]interface{}) {
+	writeLog(LevelWarn, "SYSTEM_WARN", traceID, "", "", "", message, fields)
+}
+
 func LogError(traceID, message string, err error, fields map[string]interface{}) {
 	if fields == nil {
 		fields = make(map[string]interface{})

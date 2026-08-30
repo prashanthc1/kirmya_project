@@ -2,10 +2,14 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler) {
+func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	// Singular /profile group
 	profileGroup := api.Group("/profile")
 	protectedSingular := profileGroup.Group("")
@@ -91,7 +95,11 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler) {
 
 	// Admin Profile Management
 	adminUserGroup := api.Group("/admin/users/:id/profile")
-	adminUserGroup.Use(sharedMiddleware.AuthRequired())
+	if len(auth) > 0 && auth[0] != nil {
+		adminUserGroup.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
+	} else {
+		adminUserGroup.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminUserGroup.GET("", handler.AdminGetProfile)
 		adminUserGroup.PUT("", handler.AdminUpdateProfile)

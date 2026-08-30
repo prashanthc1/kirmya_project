@@ -2,21 +2,44 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterBillingRoutes(router *gin.RouterGroup, handler *BillingHandler) {
+func RegisterBillingRoutes(router *gin.RouterGroup, handler *BillingHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	billing := router.Group("/billing")
+
+	// Public / Webhook routes
+	billing.POST("/webhooks/:provider", handler.ProcessWebhook)
+	billing.GET("/plans", handler.GetPlans)
+
+	// Authenticated billing routes
+	authed := billing.Group("")
+	if len(auth) > 0 && auth[0] != nil {
+		authed.Use(auth[0].RequireAuth())
+	} else {
+		authed.Use(sharedMiddleware.AuthRequired())
+	}
 	{
-		billing.GET("/status", handler.GetStatus)
-		billing.GET("/plans", handler.GetPlans)
-		billing.GET("/subscription", handler.GetSubscription)
-		billing.POST("/checkout", handler.CreateCheckout)
-		billing.POST("/webhooks/:provider", handler.ProcessWebhook)
+		authed.GET("/status", handler.GetStatus)
+		authed.GET("/subscription", handler.GetSubscription)
+		authed.POST("/checkout", handler.CreateCheckout)
 	}
 }
 
-func RegisterAdminBillingRoutes(router *gin.RouterGroup, handler *AdminBillingHandler) {
+func RegisterAdminBillingRoutes(router *gin.RouterGroup, handler *AdminBillingHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	adminBilling := router.Group("/admin/billing")
+	if len(auth) > 0 && auth[0] != nil {
+		adminBilling.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
+	} else {
+		adminBilling.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminBilling.GET("/status", handler.GetAdminStatus)
 		adminBilling.GET("/plans", handler.GetAdminPlans)

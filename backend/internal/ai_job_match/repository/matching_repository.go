@@ -134,13 +134,27 @@ func (r *pgxMatchingRepository) SaveMatch(ctx context.Context, match *domain.AIJ
 		if err != nil {
 			return err
 		}
+		if breakdown != nil {
+			if breakdown.ID == uuid.Nil {
+				breakdown.ID = uuid.New()
+			}
+			breakdown.MatchID = match.ID
+			breakdown.CreatedAt = time.Now()
+			featVectorJSON, _ := json.Marshal(breakdown.FeatureVector)
+			scoreQuery := `INSERT INTO matching_scores (id, match_id, skills_score, experience_score, goals_score, location_score, salary_score, learning_score, applications_score, feature_vector, created_at)
+			               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			               ON CONFLICT (id) DO UPDATE SET skills_score = EXCLUDED.skills_score, experience_score = EXCLUDED.experience_score`
+			_, _ = r.pool.Exec(ctx, scoreQuery, breakdown.ID, breakdown.MatchID, breakdown.SkillsScore, breakdown.ExperienceScore, breakdown.GoalsScore, breakdown.LocationScore, breakdown.SalaryScore, breakdown.LearningScore, breakdown.ApplicationsScore, featVectorJSON, breakdown.CreatedAt)
+		}
 	}
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	if breakdown != nil {
-		breakdown.ID = uuid.New()
+		if breakdown.ID == uuid.Nil {
+			breakdown.ID = uuid.New()
+		}
 		breakdown.MatchID = match.ID
 		breakdown.CreatedAt = time.Now()
 		r.scores[match.ID] = breakdown
@@ -204,6 +218,17 @@ func (r *pgxMatchingRepository) GetMatchByID(ctx context.Context, id uuid.UUID) 
 			_ = json.Unmarshal(matchedBytes, &m.MatchedSkills)
 			_ = json.Unmarshal(missingBytes, &m.MissingSkills)
 			_ = json.Unmarshal(actionsBytes, &m.RecommendedActions)
+
+			var score domain.MatchingScore
+			var featBytes []byte
+			errScore := r.pool.QueryRow(ctx, `SELECT id, match_id, skills_score, experience_score, goals_score, location_score, salary_score, learning_score, applications_score, feature_vector, created_at FROM matching_scores WHERE match_id = $1`, m.ID).Scan(
+				&score.ID, &score.MatchID, &score.SkillsScore, &score.ExperienceScore, &score.GoalsScore, &score.LocationScore, &score.SalaryScore, &score.LearningScore, &score.ApplicationsScore, &featBytes, &score.CreatedAt,
+			)
+			if errScore == nil {
+				_ = json.Unmarshal(featBytes, &score.FeatureVector)
+				m.Breakdown = &score
+			}
+
 			return m, nil
 		}
 	}

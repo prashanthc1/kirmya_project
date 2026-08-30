@@ -21,6 +21,11 @@ export const applicationsApi = {
     return res.data;
   },
 
+  applyToJob: async (payload: { job_id: string; resume_id?: string; cover_letter?: string }) => {
+    const res = await axios.post<ApplicationDetail>(`${API_BASE}/applications`, payload);
+    return res.data;
+  },
+
   getApplicationByID: async (id: string) => {
     const res = await axios.get<ApplicationDetail>(`${API_BASE}/applications/${id}`);
     return res.data;

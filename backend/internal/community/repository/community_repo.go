@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -157,17 +158,17 @@ func (r *CommunityRepository) List(ctx context.Context, params models.CommunityF
 	argIdx := 1
 
 	if params.Category != "" {
-		query += ` AND category = $` + string(rune('0'+argIdx))
+		query += fmt.Sprintf(" AND category = $%d", argIdx)
 		args = append(args, params.Category)
 		argIdx++
 	}
 	if params.Location != "" {
-		query += ` AND location = $` + string(rune('0'+argIdx))
+		query += fmt.Sprintf(" AND location = $%d", argIdx)
 		args = append(args, params.Location)
 		argIdx++
 	}
 	if params.Visibility != "" {
-		query += ` AND visibility = $` + string(rune('0'+argIdx))
+		query += fmt.Sprintf(" AND visibility = $%d", argIdx)
 		args = append(args, params.Visibility)
 		argIdx++
 	}

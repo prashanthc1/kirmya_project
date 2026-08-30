@@ -68,28 +68,7 @@ func (s *NetworkingService) SendConnectionRequest(ctx context.Context, senderID 
 }
 
 func (s *NetworkingService) AcceptConnectionRequest(ctx context.Context, userID uuid.UUID, requestID uuid.UUID) error {
-	req, err := s.repo.GetRequest(ctx, requestID)
-	if err != nil {
-		return err
-	}
-	if req == nil {
-		return fmt.Errorf("request not found")
-	}
-	if req.ReceiverID != userID {
-		return fmt.Errorf("unauthorized request action")
-	}
-
-	if err := s.repo.UpdateRequestStatus(ctx, requestID, "accepted"); err != nil {
-		return err
-	}
-
-	c1 := &netModels.Connection{
-		ID:        uuid.New(),
-		UserID1:   req.SenderID,
-		UserID2:   req.ReceiverID,
-		CreatedAt: time.Now(),
-	}
-	return s.repo.CreateConnection(ctx, c1)
+	return s.repo.AcceptRequestTx(ctx, requestID, userID)
 }
 
 func (s *NetworkingService) RejectConnectionRequest(ctx context.Context, userID uuid.UUID, requestID uuid.UUID) error {

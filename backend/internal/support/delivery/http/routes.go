@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
@@ -63,13 +64,17 @@ func RegisterSupportRoutes(router *gin.RouterGroup, handler *SupportHandler) {
 	}
 }
 
-func RegisterAdminSupportRoutes(router *gin.RouterGroup, handler *AdminSupportHandler) {
+func RegisterAdminSupportRoutes(router *gin.RouterGroup, handler *AdminSupportHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
 
 	adminSupport := router.Group("/admin/support")
-	adminSupport.Use(sharedMiddleware.AuthRequired())
+	if len(auth) > 0 && auth[0] != nil {
+		adminSupport.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
+	} else {
+		adminSupport.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminSupport.GET("", handler.GetAnalyticsSummary)
 		adminSupport.GET("/analytics", handler.GetAnalyticsSummary)

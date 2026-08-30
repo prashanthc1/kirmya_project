@@ -63,4 +63,18 @@ func TestAuthRepositoryInMemoryUserAndSessionOperations(t *testing.T) {
 	revokedSess, err := repo.GetSessionByRefreshToken(ctx, "test-refresh-token-uuid-1234")
 	assert.NoError(t, err)
 	assert.NotNil(t, revokedSess.RevokedAt)
+
+	// Update User
+	user.JobTitle = "Staff Distributed Systems Engineer"
+	user.Country = "United Arab Emirates"
+	err = repo.UpdateUser(ctx, user)
+	assert.NoError(t, err)
+
+	updatedUser, err := repo.GetUserByID(ctx, user.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "Staff Distributed Systems Engineer", updatedUser.JobTitle)
+
+	// Non-existent user
+	_, err = repo.GetUserByID(ctx, uuid.New())
+	assert.Error(t, err)
 }

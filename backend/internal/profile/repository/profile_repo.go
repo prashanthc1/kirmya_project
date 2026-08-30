@@ -21,6 +21,9 @@ func NewProfileRepository(db *pgxpool.Pool) *ProfileRepository {
 }
 
 func (r *ProfileRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (*models.UserProfile, error) {
+	if r.db == nil {
+		return nil, nil
+	}
 	p := &models.UserProfile{}
 	query := `
 		SELECT id, user_id, COALESCE(username, ''), COALESCE(avatar_url, ''), COALESCE(cover_url, ''),
@@ -81,6 +84,9 @@ func (r *ProfileRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (
 }
 
 func (r *ProfileRepository) GetByUsername(ctx context.Context, username string) (*models.UserProfile, error) {
+	if r.db == nil {
+		return nil, nil
+	}
 	var userID uuid.UUID
 	err := r.db.QueryRow(ctx, "SELECT user_id FROM user_profiles WHERE username = $1", username).Scan(&userID)
 	if err != nil {
@@ -93,6 +99,9 @@ func (r *ProfileRepository) GetByUsername(ctx context.Context, username string) 
 }
 
 func (r *ProfileRepository) Create(ctx context.Context, p *models.UserProfile) error {
+	if r.db == nil {
+		return nil
+	}
 	targetRolesJSON, _ := json.Marshal(p.TargetRoles)
 	preferredLocsJSON, _ := json.Marshal(p.PreferredLocations)
 	query := `
@@ -113,6 +122,9 @@ func (r *ProfileRepository) Create(ctx context.Context, p *models.UserProfile) e
 }
 
 func (r *ProfileRepository) Update(ctx context.Context, p *models.UserProfile) error {
+	if r.db == nil {
+		return nil
+	}
 	targetRolesJSON, _ := json.Marshal(p.TargetRoles)
 	preferredLocsJSON, _ := json.Marshal(p.PreferredLocations)
 	query := `

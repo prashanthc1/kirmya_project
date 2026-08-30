@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,6 +28,26 @@ func Connect() (*DBConnection, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse database url: %w", err)
 	}
+
+	// Production connection pool tuning
+	maxConns := int32(25)
+	if v := os.Getenv("DB_MAX_CONNS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			maxConns = int32(n)
+		}
+	}
+	minConns := int32(5)
+	if v := os.Getenv("DB_MIN_CONNS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+			minConns = int32(n)
+		}
+	}
+
+	config.MaxConns = maxConns
+	config.MinConns = minConns
+	config.MaxConnLifetime = 1 * time.Hour
+	config.MaxConnIdleTime = 30 * time.Minute
+	config.HealthCheckPeriod = 1 * time.Minute
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {

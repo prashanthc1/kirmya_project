@@ -16,8 +16,15 @@ func RegisterUserRoutes(api *gin.RouterGroup, handler *DataOperationsHandler, au
 }
 
 func RegisterAdminRoutes(api *gin.RouterGroup, handler *DataOperationsHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	adminOps := api.Group("/admin/data-operations")
-	adminOps.Use(sharedMiddleware.AuthRequired())
+	if authMiddleware != nil {
+		adminOps.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
+	} else {
+		adminOps.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminOps.POST("/imports/preview", handler.PreviewImport)
 		adminOps.POST("/imports", handler.CreateImport)

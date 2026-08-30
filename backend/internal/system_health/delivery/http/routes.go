@@ -19,8 +19,15 @@ func RegisterPublicHealthRoutes(engine *gin.Engine, handler *SystemHealthHandler
 }
 
 func RegisterAdminHealthRoutes(api *gin.RouterGroup, handler *SystemHealthHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	adminHealth := api.Group("/admin/system/health")
-	adminHealth.Use(sharedMiddleware.AuthRequired())
+	if authMiddleware != nil {
+		adminHealth.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
+	} else {
+		adminHealth.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminHealth.GET("", handler.GetAdminHealthSummary)
 		adminHealth.POST("/self-healing", handler.ExecuteSelfHealing)

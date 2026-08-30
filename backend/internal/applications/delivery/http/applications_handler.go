@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,36 @@ type ApplicationsHandler struct {
 
 func NewApplicationsHandler(svc *service.ApplicationsService) *ApplicationsHandler {
 	return &ApplicationsHandler{svc: svc}
+}
+
+// POST /api/v1/applications
+func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
+	var payload models.CreateApplicationPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if jobIDStr := c.Param("id"); jobIDStr != "" && payload.JobID == uuid.Nil {
+		if jID, err := uuid.Parse(jobIDStr); err == nil {
+			payload.JobID = jID
+		}
+	}
+
+	detail, err := h.svc.CreateApplication(c.Request.Context(), candID, payload)
+	if err != nil {
+		if strings.Contains(err.Error(), "already applied") {
+			c.JSON(http.StatusConflict, gin.H{"error": "You have already applied to this job"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, detail)
 }
 
 func (h *ApplicationsHandler) getCandidateID(c *gin.Context) (uuid.UUID, bool) {

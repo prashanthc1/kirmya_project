@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -111,7 +112,7 @@ func (r *NotificationRepository) List(ctx context.Context, userID uuid.UUID, cat
 		paramIdx := 2
 
 		if category != "" && category != "all" {
-			query += ` AND LOWER(category) = LOWER($` + string(rune('0'+paramIdx)) + `)`
+			query += fmt.Sprintf(" AND LOWER(category) = LOWER($%d)", paramIdx)
 			args = append(args, category)
 			paramIdx++
 		}
@@ -120,7 +121,7 @@ func (r *NotificationRepository) List(ctx context.Context, userID uuid.UUID, cat
 			query += ` AND is_read = FALSE`
 		}
 
-		query += ` ORDER BY created_at DESC LIMIT $` + string(rune('0'+paramIdx)) + ` OFFSET $` + string(rune('0'+paramIdx+1))
+		query += fmt.Sprintf(" ORDER BY created_at DESC LIMIT $%d OFFSET $%d", paramIdx, paramIdx+1)
 		args = append(args, limit, offset)
 
 		rows, err := r.db.Query(ctx, query, args...)

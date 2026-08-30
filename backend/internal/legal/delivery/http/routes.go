@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
@@ -39,9 +40,16 @@ func RegisterLegalRoutes(router *gin.RouterGroup, handler *LegalHandler) {
 	}
 }
 
-func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandler) {
+func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+	if handler == nil {
+		return
+	}
 	adminLegal := router.Group("/admin/legal")
-	adminLegal.Use(sharedMiddleware.AuthRequired())
+	if len(auth) > 0 && auth[0] != nil {
+		adminLegal.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
+	} else {
+		adminLegal.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminLegal.GET("/documents", handler.GetAdminDocuments)
 		adminLegal.GET("/privacy-requests", handler.GetPrivacyRequests)
@@ -50,7 +58,11 @@ func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandle
 	}
 
 	adminPrivacy := router.Group("/admin/privacy")
-	adminPrivacy.Use(sharedMiddleware.AuthRequired())
+	if len(auth) > 0 && auth[0] != nil {
+		adminPrivacy.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
+	} else {
+		adminPrivacy.Use(sharedMiddleware.AuthRequired())
+	}
 	{
 		adminPrivacy.GET("", handler.GetAdminPrivacySummary)
 		adminPrivacy.GET("/requests", handler.GetPrivacyRequests)
