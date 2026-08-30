@@ -40,22 +40,85 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'sans-serif' }}>
-          <h2>Something went wrong.</h2>
-          <p>Our engineering team has been notified automatically.</p>
-          <button
-            onClick={() => window.location.reload()}
+        <div
+          style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem',
+            backgroundColor: '#0f172a',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          }}
+          role="alert"
+        >
+          <div
             style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#0284c7',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
+              maxWidth: '480px',
+              width: '100%',
+              backgroundColor: '#1e293b',
+              borderRadius: '16px',
+              padding: '2.5rem',
+              textAlign: 'center',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
             }}
           >
-            Reload Page
-          </button>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+            <h1
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: '#f8fafc',
+                marginBottom: '0.75rem',
+              }}
+            >
+              Something went wrong
+            </h1>
+            <p
+              style={{
+                fontSize: '0.95rem',
+                color: '#94a3b8',
+                lineHeight: 1.6,
+                marginBottom: '2rem',
+              }}
+            >
+              An unexpected error occurred while rendering this view. Our engineering team has been notified automatically.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => (window.location.href = '/')}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  color: '#cbd5e1',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Go Home
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#4f46e5',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
+                }}
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
         </div>
       );
     }

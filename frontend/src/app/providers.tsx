@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getTheme } from '../theme/theme';
 import { AuthProvider } from '../features/auth/context/authContext';
 
+import { ErrorBoundary } from '../shared/monitoring/error_boundary';
+
 type ColorModeContextType = {
   mode: 'light' | 'dark';
   toggleColorMode: () => void;
@@ -50,24 +52,26 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const theme = useMemo(() => getTheme(mode), [mode]);
 
   return (
-    <ColorModeContext.Provider value={{ mode, toggleColorMode }}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {/*
-            Framer Motion animates inline styles from JS, so the CSS
-            prefers-reduced-motion block in the theme cannot reach it.
-            reducedMotion="user" makes every spring here drop its transform and
-            layout animation when the OS asks, while keeping opacity — the
-            cross-fade the guidance calls for, rather than no feedback at all.
-          */}
-          <MotionConfig reducedMotion="user">
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </MotionConfig>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </ColorModeContext.Provider>
+    <ErrorBoundary>
+      <ColorModeContext.Provider value={{ mode, toggleColorMode }}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            {/*
+              Framer Motion animates inline styles from JS, so the CSS
+              prefers-reduced-motion block in the theme cannot reach it.
+              reducedMotion="user" makes every spring here drop its transform and
+              layout animation when the OS asks, while keeping opacity — the
+              cross-fade the guidance calls for, rather than no feedback at all.
+            */}
+            <MotionConfig reducedMotion="user">
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </MotionConfig>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </ColorModeContext.Provider>
+    </ErrorBoundary>
   );
 }
