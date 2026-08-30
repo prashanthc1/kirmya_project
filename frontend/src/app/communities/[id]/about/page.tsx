@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React, { use, useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -15,24 +14,34 @@ import {
   ListItemText,
   Avatar,
   Stack,
-  CircularProgress,
   Alert,
   Divider,
+  Skeleton,
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import GavelIcon from '@mui/icons-material/Gavel';
-import SecurityIcon from '@mui/icons-material/Security';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
+import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import LockIcon from '@mui/icons-material/Lock';
 import PublicIcon from '@mui/icons-material/Public';
+import Link from 'next/link';
+
+import AuthenticatedLayout from '../../../../components/shell/AuthenticatedLayout';
 import { communityApi } from '../../../../features/community/services/communityApi';
 import { Community, CommunityMember } from '../../../../features/community/types';
 import { CommunityHeader } from '../../../../components/community/CommunityHeader';
+import { tokens } from '../../../../theme/tokens';
 
-export default function CommunityAboutPage() {
-  const params = useParams();
-  const communityId = (params?.id as string) || 'comm-1';
+export const dynamic = 'force-dynamic';
+
+export default function CommunityAboutPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = use(params);
+  const communityId = resolvedParams?.id || 'comm-1';
 
   const [community, setCommunity] = useState<Community | null>(null);
   const [members, setMembers] = useState<CommunityMember[]>([]);
@@ -44,10 +53,10 @@ export default function CommunityAboutPage() {
         setLoading(true);
         const [comm, mList] = await Promise.all([
           communityApi.getCommunity(communityId),
-          communityApi.getMembers(communityId),
+          communityApi.getMembers(communityId).catch(() => []),
         ]);
         setCommunity(comm);
-        setMembers(mList);
+        setMembers(mList || []);
       } catch (err) {
         console.error('Failed to load community about info:', err);
       } finally {
@@ -57,183 +66,197 @@ export default function CommunityAboutPage() {
     loadData();
   }, [communityId]);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!community) {
-    return (
-      <Container maxWidth="xl" sx={{ py: 6 }}>
-        <Alert severity="error">Community not found.</Alert>
-      </Container>
-    );
-  }
-
   const staffMembers = members.filter((m) => m.role === 'owner' || m.role === 'admin' || m.role === 'moderator');
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }} data-testid="community-about-page">
-      <CommunityHeader community={community} />
+    <AuthenticatedLayout>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }} data-testid="community-about-page">
+        {loading ? (
+          <Box sx={{ mb: 3 }}>
+            <Skeleton variant="rounded" height={220} sx={{ borderRadius: `${tokens.radius.lg}px`, mb: 3 }} />
+            <Skeleton variant="rounded" height={360} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+          </Box>
+        ) : !community ? (
+          <Alert severity="error" sx={{ borderRadius: `${tokens.radius.md}px` }}>
+            Community not found.
+          </Alert>
+        ) : (
+          <>
+            <CommunityHeader community={community} />
 
-      <Grid container spacing={3}>
-        {/* Main Info */}
-        <Grid item xs={12} md={8}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              borderRadius: '20px',
-              background: (theme) =>
-                theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
-              backdropFilter: 'blur(16px)',
-              border: (theme) =>
-                theme.palette.mode === 'light'
-                  ? '1px solid rgba(99, 102, 241, 0.15)'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
-              mb: 3,
-            }}
-          >
-            <Typography variant="h5" fontWeight={800} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <InfoIcon color="primary" /> About This Community
-            </Typography>
-            <Typography variant="body1" sx={{ lineHeight: 1.7, mb: 3 }}>
-              {community.description}
-            </Typography>
+            <Grid container spacing={3}>
+              {/* Main Info */}
+              <Grid item xs={12} md={8}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2.5, md: 3.5 },
+                    borderRadius: `${tokens.radius.lg}px`,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    mb: 3,
+                  }}
+                >
+                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <InfoOutlinedIcon color="primary" /> About This Community
+                  </Typography>
 
-            <Divider sx={{ my: 3 }} />
+                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6, mb: 3 }}>
+                    {community.description}
+                  </Typography>
 
-            {/* Rules */}
-            <Typography variant="h6" fontWeight={800} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <GavelIcon color="primary" /> Community Rules & Governance
-            </Typography>
-            <List>
-              {community.rules.map((rule, idx) => (
-                <ListItem key={idx} alignItems="flex-start" sx={{ px: 0 }}>
-                  <ListItemIcon sx={{ minWidth: 36, mt: 0.5 }}>
-                    <Chip
-                      label={idx + 1}
-                      size="small"
-                      color="primary"
-                      sx={{ fontWeight: 700, height: 24, width: 24, borderRadius: '50%' }}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={rule}
-                    primaryTypographyProps={{ fontWeight: 600, variant: 'body1' }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
+                  <Divider sx={{ my: 2.5 }} />
 
-        {/* Sidebar Info */}
-        <Grid item xs={12} md={4}>
-          <Stack spacing={3}>
-            {/* Metadata Card */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                borderRadius: '20px',
-                background: (theme) =>
-                  theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
-                backdropFilter: 'blur(16px)',
-                border: (theme) =>
-                  theme.palette.mode === 'light'
-                    ? '1px solid rgba(99, 102, 241, 0.15)'
-                    : '1px solid rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <Typography variant="h6" fontWeight={800} gutterBottom>
-                Community Metadata
-              </Typography>
-              <Stack spacing={2} sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  {community.isPrivate ? <LockIcon color="secondary" /> : <PublicIcon color="primary" />}
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={700}>
-                      {community.isPrivate ? 'Private Circle' : 'Public Community'}
+                  {/* Rules Section */}
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <GavelIcon color="primary" fontSize="small" /> Community Rules & Governance
+                  </Typography>
+
+                  {community.rules && community.rules.length > 0 ? (
+                    <List disablePadding>
+                      {community.rules.map((rule, idx) => (
+                        <ListItem key={idx} alignItems="flex-start" sx={{ px: 0, py: 1 }}>
+                          <ListItemIcon sx={{ minWidth: 28, mt: 0.25 }}>
+                            <Box
+                              sx={{
+                                width: 20,
+                                height: 20,
+                                borderRadius: '50%',
+                                bgcolor: 'primary.main',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                              }}
+                            >
+                              {idx + 1}
+                            </Box>
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                {rule}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Standard Kirmya professional guidelines apply.
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {community.isPrivate ? 'Approval required to join' : 'Open for all members'}
-                    </Typography>
-                  </Box>
-                </Box>
+                  )}
+                </Paper>
+              </Grid>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <LocationOnIcon color="primary" />
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={700}>
-                      {community.location || 'Global Remote'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Location / Primary Region
-                    </Typography>
-                  </Box>
-                </Box>
+              {/* Sidebar Info */}
+              <Grid item xs={12} md={4}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3,
+                    borderRadius: `${tokens.radius.lg}px`,
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    mb: 3,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2 }}>
+                    Community Details
+                  </Typography>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <CalendarMonthIcon color="primary" />
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={700}>
-                      Created {new Date(community.createdAt).toLocaleDateString()}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Establishment Date
-                    </Typography>
-                  </Box>
-                </Box>
-              </Stack>
-            </Paper>
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      {community.isPrivate ? <LockIcon fontSize="small" color="action" /> : <PublicIcon fontSize="small" color="action" />}
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          Visibility
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {community.isPrivate ? 'Private Circle' : 'Public Community'}
+                        </Typography>
+                      </Box>
+                    </Stack>
 
-            {/* Leadership & Moderators */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                borderRadius: '20px',
-                background: (theme) =>
-                  theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
-                backdropFilter: 'blur(16px)',
-                border: (theme) =>
-                  theme.palette.mode === 'light'
-                    ? '1px solid rgba(99, 102, 241, 0.15)'
-                    : '1px solid rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <Typography variant="h6" fontWeight={800} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SecurityIcon color="primary" /> Leadership & Moderation Team
-              </Typography>
-              <Stack spacing={2} sx={{ mt: 2 }}>
-                {staffMembers.map((staff) => (
-                  <Box key={staff.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Avatar src={staff.avatar}>{staff.name.charAt(0)}</Avatar>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="subtitle2" fontWeight={700}>
-                        {staff.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        {staff.title || staff.company || 'Team Lead'}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={staff.role}
-                      size="small"
-                      color={staff.role === 'owner' ? 'error' : staff.role === 'admin' ? 'secondary' : 'info'}
-                      sx={{ fontWeight: 700, textTransform: 'capitalize' }}
-                    />
-                  </Box>
-                ))}
-              </Stack>
-            </Paper>
-          </Stack>
-        </Grid>
-      </Grid>
-    </Container>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <CalendarMonthOutlinedIcon fontSize="small" color="action" />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          Created
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {community.createdAt ? new Date(community.createdAt).toLocaleDateString() : 'N/A'}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    {community.location && (
+                      <Stack direction="row" spacing={1.5} alignItems="center">
+                        <LocationOnOutlinedIcon fontSize="small" color="action" />
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            Location Hub
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            {community.location}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    )}
+                  </Stack>
+                </Paper>
+
+                {/* Moderators Card */}
+                {staffMembers.length > 0 && (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      borderRadius: `${tokens.radius.lg}px`,
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <SecurityOutlinedIcon color="primary" fontSize="small" /> Leadership & Moderators
+                    </Typography>
+
+                    <Stack spacing={1.5}>
+                      {staffMembers.map((staff) => (
+                        <Stack
+                          key={staff.id}
+                          direction="row"
+                          spacing={1.5}
+                          alignItems="center"
+                          component={Link}
+                          href={`/profile/${encodeURIComponent(staff.userId)}`}
+                          sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { color: 'primary.main' } }}
+                        >
+                          <Avatar src={staff.avatar} sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontWeight: 800 }}>
+                            {staff.name ? staff.name[0].toUpperCase() : 'M'}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                              {staff.name}
+                            </Typography>
+                            <Chip label={staff.role} size="small" sx={{ height: 18, fontSize: '0.65rem', fontWeight: 700, mt: 0.25 }} />
+                          </Box>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Paper>
+                )}
+              </Grid>
+            </Grid>
+          </>
+        )}
+      </Container>
+    </AuthenticatedLayout>
   );
 }

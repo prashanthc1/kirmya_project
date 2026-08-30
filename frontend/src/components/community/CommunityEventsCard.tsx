@@ -56,7 +56,7 @@ export const CommunityEventsCard: React.FC<CommunityEventsCardProps> = ({
     const res = await communityApi.rsvpEvent(communityId, eventId, status);
     setEvents(
       events.map((e) =>
-        e.id === eventId ? { ...e, rsvpCount: res.rsvpCount, userRsvp: status } : e
+        e.id === eventId ? { ...e, rsvpCount: res.rsvpCount ?? (e.rsvpCount + (status === 'attending' ? 1 : 0)), userRsvp: status } : e
       )
     );
     if (onEventUpdated) onEventUpdated();

@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -8,17 +10,18 @@ import {
   Button,
   Stack,
   Avatar,
-  IconButton,
-  Tooltip,
+  useTheme,
+  CircularProgress,
 } from '@mui/material';
-import PeopleIcon from '@mui/icons-material/People';
-import ForumIcon from '@mui/icons-material/Forum';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import LockIcon from '@mui/icons-material/Lock';
 import PublicIcon from '@mui/icons-material/Public';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Link from 'next/link';
+
 import { Community } from '../../features/community/types';
+import { communityApi } from '../../features/community/services/communityApi';
+import { tokens } from '../../theme/tokens';
 
 interface CommunityCardProps {
   community: Community;
@@ -26,231 +29,202 @@ interface CommunityCardProps {
 }
 
 export const CommunityCard: React.FC<CommunityCardProps> = ({ community, onJoinToggle }) => {
+  const theme = useTheme();
   const [isMember, setIsMember] = useState<boolean>(!!community.isMember);
+  const [memberCount, setMemberCount] = useState<number>(community.memberCount || 0);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const handleJoinClick = (e: React.MouseEvent) => {
+  const handleJoinClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+
     setLoading(true);
-    const newStatus = !isMember;
-    setIsMember(newStatus);
-    if (onJoinToggle) {
-      onJoinToggle(community.id, newStatus);
+    try {
+      if (isMember) {
+        await communityApi.leaveCommunity(community.id);
+        setIsMember(false);
+        setMemberCount((prev) => Math.max(0, prev - 1));
+        if (onJoinToggle) onJoinToggle(community.id, false);
+      } else {
+        const res = await communityApi.joinCommunity(community.id);
+        if (!res.pendingApproval) {
+          setIsMember(true);
+          setMemberCount((prev) => prev + 1);
+          if (onJoinToggle) onJoinToggle(community.id, true);
+        }
+      }
+    } catch {
+      // Handled
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <Card
+      component={Link}
+      href={`/communities/${community.id}`}
       data-testid={`community-card-${community.id}`}
+      elevation={0}
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: '20px',
-        background: (theme) =>
-          theme.palette.mode === 'light'
-            ? 'rgba(255, 255, 255, 0.85)'
-            : 'rgba(30, 41, 59, 0.75)',
-        backdropFilter: 'blur(16px)',
-        border: (theme) =>
-          theme.palette.mode === 'light'
-            ? '1px solid rgba(99, 102, 241, 0.15)'
-            : '1px solid rgba(255, 255, 255, 0.08)',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        borderRadius: `${tokens.radius.lg}px`,
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        textDecoration: 'none',
+        transition: 'all 0.2s ease',
+        overflow: 'hidden',
         '&:hover': {
-          transform: 'translateY(-4px)',
+          borderColor: 'primary.main',
           boxShadow: (theme) =>
-            theme.palette.mode === 'light'
-              ? '0 20px 35px -10px rgba(99, 102, 241, 0.18)'
-              : '0 20px 35px -10px rgba(0, 0, 0, 0.5)',
+            theme.palette.mode === 'dark'
+              ? '0 8px 24px rgba(0,0,0,0.4)'
+              : '0 8px 24px rgba(99, 102, 241, 0.08)',
         },
       }}
     >
-      {/* Cover / Banner image */}
+      {/* Cover / Banner */}
       <Box
         sx={{
-          height: 110,
+          height: 100,
           width: '100%',
           position: 'relative',
+          bgcolor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.08)',
           background: community.coverImageUrl
             ? `url(${community.coverImageUrl}) center/cover no-repeat`
-            : 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-          borderTopLeftRadius: '20px',
-          borderTopRightRadius: '20px',
+            : undefined,
         }}
       >
         <Box
           sx={{
             position: 'absolute',
-            top: 12,
-            right: 12,
+            top: 10,
+            right: 10,
             display: 'flex',
-            gap: 1,
+            gap: 0.5,
           }}
         >
           <Chip
-            icon={community.isPrivate ? <LockIcon sx={{ fontSize: 14 }} /> : <PublicIcon sx={{ fontSize: 14 }} />}
+            icon={community.isPrivate ? <LockIcon sx={{ fontSize: 13 }} /> : <PublicIcon sx={{ fontSize: 13 }} />}
             label={community.isPrivate ? 'Private' : 'Public'}
             size="small"
             sx={{
-              bgcolor: 'rgba(15, 23, 42, 0.65)',
-              color: '#ffffff',
-              backdropFilter: 'blur(8px)',
-              fontWeight: 600,
-              fontSize: '0.75rem',
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              height: 22,
+              border: '1px solid',
+              borderColor: 'divider',
             }}
           />
         </Box>
       </Box>
 
-      <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column', pt: 0 }}>
-        {/* Avatar */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: -4, mb: 2 }}>
+      {/* Card Content */}
+      <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Stack direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 1.5 }}>
           <Avatar
             src={community.avatarUrl}
-            alt={community.title}
             sx={{
-              width: 64,
-              height: 64,
-              border: '3px solid',
+              width: 44,
+              height: 44,
+              mt: -3.5,
+              border: '2px solid',
               borderColor: 'background.paper',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
               bgcolor: 'primary.main',
-              fontWeight: 700,
-              fontSize: '1.5rem',
+              fontWeight: 800,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
-            {community.title.charAt(0)}
+            {community.title ? community.title[0].toUpperCase() : 'C'}
           </Avatar>
-          <Chip
-            label={community.category}
-            size="small"
-            color="primary"
-            variant="outlined"
-            sx={{ fontWeight: 700, borderRadius: '8px' }}
-          />
-        </Box>
 
-        {/* Title & Description */}
-        <Typography
-          variant="h6"
-          fontWeight={700}
-          component={Link}
-          href={`/communities/${community.id}`}
-          sx={{
-            color: 'text.primary',
-            textDecoration: 'none',
-            '&:hover': { color: 'primary.main' },
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            mb: 0.5,
-          }}
-        >
-          {community.title}
-        </Typography>
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 800,
+                color: 'text.primary',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.3,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {community.title}
+            </Typography>
+
+            <Typography
+              variant="caption"
+              color="primary.main"
+              sx={{ fontWeight: 700, fontSize: '0.75rem', display: 'block' }}
+            >
+              {community.category || 'Professional Group'}
+            </Typography>
+          </Box>
+        </Stack>
 
         <Typography
           variant="body2"
           color="text.secondary"
           sx={{
+            mb: 2,
+            lineHeight: 1.4,
+            fontSize: '0.875rem',
+            overflow: 'hidden',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            minHeight: 40,
-            mb: 2,
-            lineHeight: 1.5,
+            flexGrow: 1,
           }}
         >
-          {community.description}
+          {community.description || 'Join discussions and network with peers.'}
         </Typography>
 
-        {/* Topics */}
-        <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap sx={{ mb: 2.5 }}>
-          {community.topics.slice(0, 3).map((topic) => (
-            <Chip
-              key={topic}
-              label={`#${topic}`}
-              size="small"
-              sx={{
-                bgcolor: (theme) =>
-                  theme.palette.mode === 'light' ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.05)',
-                color: 'text.secondary',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                height: 22,
-              }}
-            />
-          ))}
-          {community.topics.length > 3 && (
-            <Chip
-              label={`+${community.topics.length - 3}`}
-              size="small"
-              sx={{ fontSize: '0.72rem', height: 22 }}
-            />
-          )}
-        </Stack>
-
-        <Box sx={{ mt: 'auto', pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-          {/* Stats & Actions */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <PeopleIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                <Typography variant="caption" fontWeight={700} color="text.secondary">
-                  {community.memberCount.toLocaleString()}
-                </Typography>
-              </Stack>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <ForumIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                <Typography variant="caption" fontWeight={700} color="text.secondary">
-                  {community.postCount.toLocaleString()}
-                </Typography>
-              </Stack>
-            </Stack>
-          </Box>
-
-          <Stack direction="row" spacing={1.5}>
-            <Button
-              variant={isMember ? 'outlined' : 'contained'}
-              color={isMember ? 'success' : 'primary'}
-              onClick={handleJoinClick}
-              disabled={loading}
-              startIcon={isMember ? <CheckCircleIcon /> : undefined}
-              fullWidth
-              sx={{
-                borderRadius: '12px',
-                fontWeight: 700,
-                textTransform: 'none',
-                py: 1,
-              }}
-            >
-              {isMember ? 'Joined' : community.isPrivate ? 'Request Join' : 'Join Group'}
-            </Button>
-            <Button
-              component={Link}
-              href={`/communities/${community.id}`}
-              variant="outlined"
-              sx={{
-                minWidth: 44,
-                borderRadius: '12px',
-                bgcolor: (theme) =>
-                  theme.palette.mode === 'light' ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.08)',
-                '&:hover': {
-                  bgcolor: (theme) =>
-                    theme.palette.mode === 'light' ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.16)',
-                },
-              }}
-            >
-              <ArrowForwardIcon sx={{ fontSize: 20 }} />
-            </Button>
+        {/* Footer: Member Count & Action */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto', pt: 1 }}>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <PeopleOutlineIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              {memberCount} member{memberCount === 1 ? '' : 's'}
+            </Typography>
           </Stack>
-        </Box>
+
+          <Button
+            size="small"
+            variant={isMember ? 'outlined' : 'contained'}
+            color={isMember ? 'inherit' : 'primary'}
+            onClick={handleJoinClick}
+            disabled={loading}
+            startIcon={isMember ? <CheckCircleIcon fontSize="small" color="success" /> : undefined}
+            sx={{
+              borderRadius: `${tokens.radius.sm}px`,
+              fontWeight: 700,
+              fontSize: '0.75rem',
+              textTransform: 'none',
+              px: 1.5,
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={14} color="inherit" />
+            ) : isMember ? (
+              'Joined'
+            ) : community.isPrivate ? (
+              'Request'
+            ) : (
+              'Join'
+            )}
+          </Button>
+        </Stack>
       </CardContent>
     </Card>
   );
 };
+
+export default CommunityCard;

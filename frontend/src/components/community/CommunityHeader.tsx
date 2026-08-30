@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   Box,
@@ -19,23 +21,25 @@ import {
   ListItemText,
   TextField,
   Snackbar,
-  Alert,
+  CircularProgress,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import PublicIcon from '@mui/icons-material/Public';
-import PeopleIcon from '@mui/icons-material/People';
-import ForumIcon from '@mui/icons-material/Forum';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import GavelIcon from '@mui/icons-material/Gavel';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import InfoIcon from '@mui/icons-material/Info';
-import EventIcon from '@mui/icons-material/Event';
-import SecurityIcon from '@mui/icons-material/Security';
-import SettingsIcon from '@mui/icons-material/Settings';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
+import ForumOutlinedIcon from '@mui/icons-material/ForumOutlined';
+import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+
 import { Community } from '../../features/community/types';
 import { communityApi } from '../../features/community/services/communityApi';
+import { tokens } from '../../theme/tokens';
 
 interface CommunityHeaderProps {
   community: Community;
@@ -44,18 +48,20 @@ interface CommunityHeaderProps {
 
 export const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community, onJoinToggle }) => {
   const pathname = usePathname();
+  const router = useRouter();
+
   const [isMember, setIsMember] = useState<boolean>(!!community.isMember);
-  const [memberCount, setMemberCount] = useState<number>(community.memberCount);
+  const [memberCount, setMemberCount] = useState<number>(community.memberCount || 0);
+  const [loading, setLoading] = useState<boolean>(false);
   const [openRulesModal, setOpenRulesModal] = useState<boolean>(false);
   const [openInviteModal, setOpenInviteModal] = useState<boolean>(false);
-  const [inviteEmail, setInviteEmail] = useState<string>('');
-  const [inviteRole, setInviteRole] = useState<string>('member');
+  const [inviteUserId, setInviteUserId] = useState<string>('');
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
 
   const isStaff = community.role === 'owner' || community.role === 'admin' || community.role === 'moderator';
   const isAdmin = community.role === 'owner' || community.role === 'admin';
 
-  // Determine current tab index from pathname
+  // Determine current tab index
   const getCurrentTab = () => {
     if (pathname.endsWith('/members')) return 1;
     if (pathname.endsWith('/events')) return 2;
@@ -66,303 +72,268 @@ export const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community, onJ
   };
 
   const handleJoinClick = async () => {
-    if (isMember) {
-      await communityApi.leaveCommunity(community.id);
-      setIsMember(false);
-      setMemberCount((prev) => Math.max(0, prev - 1));
-      if (onJoinToggle) onJoinToggle(false);
-    } else {
-      const res = await communityApi.joinCommunity(community.id);
-      if (res.pendingApproval) {
-        setSnackbarMessage('Join request submitted for admin review.');
+    setLoading(true);
+    try {
+      if (isMember) {
+        await communityApi.leaveCommunity(community.id);
+        setIsMember(false);
+        setMemberCount((prev) => Math.max(0, prev - 1));
+        if (onJoinToggle) onJoinToggle(false);
       } else {
-        setIsMember(true);
-        setMemberCount((prev) => prev + 1);
-        if (onJoinToggle) onJoinToggle(true);
+        const res = await communityApi.joinCommunity(community.id);
+        if (res.pendingApproval) {
+          setSnackbarMessage('Join request submitted for moderator review.');
+        } else {
+          setIsMember(true);
+          setMemberCount((prev) => prev + 1);
+          if (onJoinToggle) onJoinToggle(true);
+        }
       }
+    } catch {
+      // Handled
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSendInvite = async () => {
-    if (!inviteEmail) return;
-    await communityApi.sendInvite(community.id, inviteEmail, inviteRole);
-    setSnackbarMessage(`Invitation sent to ${inviteEmail}`);
-    setInviteEmail('');
-    setOpenInviteModal(false);
+    if (!inviteUserId) return;
+    try {
+      await communityApi.sendInvite(community.id, inviteUserId);
+      setSnackbarMessage(`Invitation sent to user.`);
+      setInviteUserId('');
+      setOpenInviteModal(false);
+    } catch {
+      setSnackbarMessage('Failed to send invitation.');
+    }
   };
 
   return (
     <Paper
-      data-testid="community-header"
       elevation={0}
+      data-testid="community-header"
       sx={{
-        borderRadius: '24px',
+        borderRadius: `${tokens.radius.lg}px`,
         overflow: 'hidden',
-        mb: 4,
-        background: (theme) =>
-          theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
-        backdropFilter: 'blur(16px)',
-        border: (theme) =>
-          theme.palette.mode === 'light'
-            ? '1px solid rgba(99, 102, 241, 0.15)'
-            : '1px solid rgba(255, 255, 255, 0.08)',
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        mb: 3,
       }}
     >
-      {/* Banner Cover Image */}
+      {/* Banner */}
       <Box
         sx={{
-          height: { xs: 140, md: 220 },
+          height: { xs: 120, sm: 160 },
           width: '100%',
-          position: 'relative',
+          bgcolor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.08)',
           background: community.coverImageUrl
             ? `url(${community.coverImageUrl}) center/cover no-repeat`
-            : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%)',
+            : undefined,
         }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            display: 'flex',
-            gap: 1,
-          }}
-        >
-          <Chip
-            icon={community.isPrivate ? <LockIcon sx={{ fontSize: 16 }} /> : <PublicIcon sx={{ fontSize: 16 }} />}
-            label={community.isPrivate ? 'Private Community' : 'Public Community'}
-            sx={{
-              bgcolor: 'rgba(15, 23, 42, 0.7)',
-              color: '#ffffff',
-              backdropFilter: 'blur(10px)',
-              fontWeight: 700,
-            }}
-          />
-          <Chip
-            label={community.category}
-            color="primary"
-            sx={{ fontWeight: 700, backdropFilter: 'blur(10px)' }}
-          />
-        </Box>
-      </Box>
+      />
 
-      {/* Profile Bar */}
-      <Box sx={{ px: { xs: 2, md: 4 }, pb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'flex-start', md: 'flex-end' },
-            justifyContent: 'space-between',
-            mt: { xs: -5, md: -6 },
-            mb: 3,
-            gap: 2,
-          }}
+      {/* Main Metadata */}
+      <Box sx={{ p: { xs: 2, sm: 3 }, pt: 0 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'flex-end' }}
+          gap={2}
+          sx={{ mt: { xs: -4, sm: -5 }, mb: 2 }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2.5 }}>
+          {/* Avatar & Title */}
+          <Stack direction="row" spacing={2} alignItems="flex-end">
             <Avatar
               src={community.avatarUrl}
-              alt={community.title}
               sx={{
-                width: { xs: 90, md: 120 },
-                height: { xs: 90, md: 120 },
-                border: '4px solid',
+                width: { xs: 72, sm: 88 },
+                height: { xs: 72, sm: 88 },
+                border: '3px solid',
                 borderColor: 'background.paper',
-                boxShadow: '0 12px 24px rgba(0,0,0,0.2)',
                 bgcolor: 'primary.main',
-                fontSize: '2.5rem',
                 fontWeight: 800,
+                fontSize: { xs: '1.5rem', sm: '2rem' },
+                boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
               }}
             >
-              {community.title.charAt(0)}
+              {community.title ? community.title[0].toUpperCase() : 'C'}
             </Avatar>
+
             <Box sx={{ pb: 0.5 }}>
-              <Typography variant="h4" fontWeight={800} sx={{ letterSpacing: '-0.02em' }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                 {community.title}
               </Typography>
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 0.5 }}>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <PeopleIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                  <Typography variant="body2" fontWeight={700} color="text.secondary">
-                    {memberCount.toLocaleString()} Members
-                  </Typography>
-                </Stack>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <ForumIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                  <Typography variant="body2" fontWeight={700} color="text.secondary">
-                    {community.postCount.toLocaleString()} Posts
-                  </Typography>
-                </Stack>
-                {community.role && (
-                  <Chip
-                    label={`Role: ${community.role}`}
-                    size="small"
-                    color="secondary"
-                    sx={{ fontWeight: 700, textTransform: 'capitalize' }}
-                  />
-                )}
-              </Stack>
+              <Typography variant="body2" color="primary.main" sx={{ fontWeight: 700, mt: 0.25 }}>
+                {community.category || 'Professional Group'}
+              </Typography>
             </Box>
-          </Box>
+          </Stack>
 
           {/* Action Buttons */}
-          <Stack direction="row" spacing={1.5} flexWrap="wrap" sx={{ alignSelf: { xs: 'stretch', md: 'auto' } }}>
-            <Button
-              variant="outlined"
-              startIcon={<GavelIcon />}
-              onClick={() => setOpenRulesModal(true)}
-              sx={{ borderRadius: '12px', fontWeight: 700 }}
-            >
-              Rules
-            </Button>
-            {isMember && (
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+            {community.rules && community.rules.length > 0 && (
               <Button
                 variant="outlined"
-                startIcon={<PersonAddIcon />}
+                size="small"
+                startIcon={<GavelIcon fontSize="small" />}
+                onClick={() => setOpenRulesModal(true)}
+                sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 600, textTransform: 'none' }}
+              >
+                Rules
+              </Button>
+            )}
+
+            {isAdmin && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<PersonAddOutlinedIcon fontSize="small" />}
                 onClick={() => setOpenInviteModal(true)}
-                sx={{ borderRadius: '12px', fontWeight: 700 }}
+                sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 600, textTransform: 'none' }}
               >
                 Invite
               </Button>
             )}
+
             <Button
               variant={isMember ? 'outlined' : 'contained'}
-              color={isMember ? 'success' : 'primary'}
+              color={isMember ? 'inherit' : 'primary'}
+              size="small"
               onClick={handleJoinClick}
-              startIcon={isMember ? <CheckCircleIcon /> : undefined}
-              sx={{ borderRadius: '12px', fontWeight: 700, px: 3 }}
+              disabled={loading}
+              startIcon={isMember ? <CheckCircleIcon fontSize="small" color="success" /> : undefined}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700, textTransform: 'none', px: 2 }}
             >
-              {isMember ? 'Joined' : community.isPrivate ? 'Request to Join' : 'Join Group'}
+              {loading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : isMember ? (
+                'Joined'
+              ) : community.isPrivate ? (
+                'Request Membership'
+              ) : (
+                'Join Community'
+              )}
             </Button>
           </Stack>
-        </Box>
+        </Stack>
+
+        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 800, mb: 2, lineHeight: 1.5 }}>
+          {community.description}
+        </Typography>
+
+        {/* Badges / Stats Bar */}
+        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" sx={{ mb: 2.5 }}>
+          <Chip
+            icon={community.isPrivate ? <LockIcon sx={{ fontSize: 13 }} /> : <PublicIcon sx={{ fontSize: 13 }} />}
+            label={community.isPrivate ? 'Private Circle' : 'Public Community'}
+            size="small"
+            variant="outlined"
+            sx={{ fontWeight: 600, height: 24, fontSize: '0.75rem' }}
+          />
+
+          <Chip
+            icon={<PeopleOutlineIcon sx={{ fontSize: 14 }} />}
+            label={`${memberCount} Member${memberCount === 1 ? '' : 's'}`}
+            size="small"
+            variant="outlined"
+            sx={{ fontWeight: 600, height: 24, fontSize: '0.75rem' }}
+          />
+
+          {community.role && (
+            <Chip
+              label={`Role: ${community.role.toUpperCase()}`}
+              size="small"
+              color={community.role === 'owner' || community.role === 'admin' ? 'primary' : 'default'}
+              sx={{ fontWeight: 700, height: 24, fontSize: '0.7rem' }}
+            />
+          )}
+        </Stack>
 
         {/* Navigation Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs
-            value={getCurrentTab()}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              '& .MuiTab-root': {
-                fontWeight: 700,
-                textTransform: 'none',
-                fontSize: '0.95rem',
-                minHeight: 48,
-              },
-            }}
-          >
-            <Tab icon={<ForumIcon />} iconPosition="start" label="Feed" component={Link} href={`/communities/${community.id}`} />
-            <Tab icon={<PeopleIcon />} iconPosition="start" label="Members" component={Link} href={`/communities/${community.id}/members`} />
-            <Tab icon={<EventIcon />} iconPosition="start" label="Events" component={Link} href={`/communities/${community.id}/events`} />
-            <Tab icon={<InfoIcon />} iconPosition="start" label="About" component={Link} href={`/communities/${community.id}/about`} />
-            {isStaff && (
-              <Tab
-                icon={<SecurityIcon />}
-                iconPosition="start"
-                label="Moderation Desk"
-                component={Link}
-                href={`/communities/${community.id}/moderation`}
-              />
-            )}
-            {isAdmin && (
-              <Tab
-                icon={<SettingsIcon />}
-                iconPosition="start"
-                label="Settings"
-                component={Link}
-                href={`/communities/${community.id}/settings`}
-              />
-            )}
-          </Tabs>
-        </Box>
+        <Tabs
+          value={getCurrentTab()}
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="Community workspace navigation tabs"
+          sx={{
+            borderTop: '1px solid',
+            borderColor: 'divider',
+            minHeight: 44,
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              minHeight: 44,
+              px: 2,
+            },
+          }}
+        >
+          <Tab component={Link} href={`/communities/${community.id}`} label="Discussions" icon={<ForumOutlinedIcon fontSize="small" />} iconPosition="start" />
+          <Tab component={Link} href={`/communities/${community.id}/members`} label="Members" icon={<PeopleOutlineIcon fontSize="small" />} iconPosition="start" />
+          <Tab component={Link} href={`/communities/${community.id}/events`} label="Events" icon={<EventOutlinedIcon fontSize="small" />} iconPosition="start" />
+          <Tab component={Link} href={`/communities/${community.id}/about`} label="About & Rules" icon={<InfoOutlinedIcon fontSize="small" />} iconPosition="start" />
+          {isStaff && (
+            <Tab component={Link} href={`/communities/${community.id}/moderation`} label="Moderation" icon={<SecurityOutlinedIcon fontSize="small" />} iconPosition="start" />
+          )}
+          {isAdmin && (
+            <Tab component={Link} href={`/communities/${community.id}/settings`} label="Settings" icon={<SettingsOutlinedIcon fontSize="small" />} iconPosition="start" />
+          )}
+        </Tabs>
       </Box>
 
-      {/* Rules Modal */}
+      {/* Community Rules Modal */}
       <Dialog open={openRulesModal} onClose={() => setOpenRulesModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <GavelIcon color="primary" /> Community Rules & Guidelines
-        </DialogTitle>
-        <DialogContent dividers>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
-            To maintain a healthy and productive collaboration space, all members must adhere to these guidelines:
-          </Typography>
+        <DialogTitle sx={{ fontWeight: 800 }}>Community Guidelines & Rules</DialogTitle>
+        <DialogContent>
           <List>
-            {community.rules.map((rule, idx) => (
+            {community.rules?.map((rule, idx) => (
               <ListItem key={idx} alignItems="flex-start" sx={{ px: 0 }}>
-                <ListItemIcon sx={{ minWidth: 36, mt: 0.5 }}>
-                  <Chip
-                    label={idx + 1}
-                    size="small"
-                    color="primary"
-                    sx={{ fontWeight: 700, height: 24, width: 24, borderRadius: '50%' }}
-                  />
+                <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
+                  <GavelIcon fontSize="small" color="primary" />
                 </ListItemIcon>
-                <ListItemText
-                  primary={rule}
-                  primaryTypographyProps={{ fontWeight: 600, variant: 'body2' }}
-                />
+                <ListItemText primary={rule} />
               </ListItem>
             ))}
           </List>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenRulesModal(false)} variant="contained" sx={{ borderRadius: '10px' }}>
-            Got It
+          <Button onClick={() => setOpenRulesModal(false)} variant="contained">
+            Close
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Invite Modal */}
+      {/* Invite Member Modal */}
       <Dialog open={openInviteModal} onClose={() => setOpenInviteModal(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PersonAddIcon color="primary" /> Invite Peers to Community
-        </DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Email Address"
-              type="email"
-              fullWidth
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="colleague@company.com"
-            />
-            <TextField
-              select
-              label="Role Assignment"
-              fullWidth
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value)}
-              SelectProps={{ native: true }}
-            >
-              <option value="member">Member</option>
-              <option value="moderator">Moderator</option>
-              <option value="admin">Admin</option>
-            </TextField>
-          </Stack>
+        <DialogTitle sx={{ fontWeight: 800 }}>Invite Professional</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="User ID or Email"
+            fullWidth
+            variant="outlined"
+            value={inviteUserId}
+            onChange={(e) => setInviteUserId(e.target.value)}
+            sx={{ mt: 1 }}
+          />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenInviteModal(false)} variant="outlined">
-            Cancel
-          </Button>
-          <Button onClick={handleSendInvite} variant="contained" disabled={!inviteEmail}>
-            Send Invite
-          </Button>
+          <Button onClick={() => setOpenInviteModal(false)} variant="outlined">Cancel</Button>
+          <Button onClick={handleSendInvite} variant="contained" disabled={!inviteUserId}>Send Invite</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Notification Snackbar */}
       <Snackbar
-        open={!!snackbarMessage}
-        autoHideDuration={4000}
+        open={Boolean(snackbarMessage)}
+        autoHideDuration={3000}
         onClose={() => setSnackbarMessage(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={() => setSnackbarMessage(null)} severity="success" sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+        message={snackbarMessage}
+      />
     </Paper>
   );
 };
+
+export default CommunityHeader;

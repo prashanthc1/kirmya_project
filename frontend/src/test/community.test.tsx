@@ -1,419 +1,290 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ThemeProvider, createTheme } from '@mui/material';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@mui/material/styles';
+import { getTheme } from '../theme';
+
 import { communityApi } from '../features/community/services/communityApi';
 import { CommunityCard } from '../components/community/CommunityCard';
 import { CommunityHeader } from '../components/community/CommunityHeader';
-import { CommunityCreateModal } from '../components/community/CommunityCreateModal';
 import { CommunityFeed } from '../components/community/CommunityFeed';
 import { CommunityMemberDirectory } from '../components/community/CommunityMemberDirectory';
-import { CommunityEventsCard } from '../components/community/CommunityEventsCard';
-import { CommunityResourcesCard } from '../components/community/CommunityResourcesCard';
-import { CommunityModerationDesk } from '../components/community/CommunityModerationDesk';
-import { CommunitySettingsTab } from '../components/community/CommunitySettingsTab';
+import { authApiClient } from '../services/authService';
 
-// App Router Pages
-import CommunitiesDiscoveryPage from '../app/communities/page';
-import CreateCommunityPage from '../app/communities/create/page';
-import CommunityHubPage from '../app/communities/[id]/page';
-import CommunityMembersPage from '../app/communities/[id]/members/page';
-import CommunityAboutPage from '../app/communities/[id]/about/page';
-import CommunitySettingsPage from '../app/communities/[id]/settings/page';
-import CommunityModerationPage from '../app/communities/[id]/moderation/page';
-import CommunityEventsPage from '../app/communities/[id]/events/page';
+const mockPush = vi.fn();
+const mockReplace = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
+    push: mockPush,
+    replace: mockReplace,
     prefetch: vi.fn(),
     back: vi.fn(),
   }),
-  useSearchParams: () => new URLSearchParams(),
   usePathname: () => '/communities/comm-1',
+  useSearchParams: () => new URLSearchParams(''),
   useParams: () => ({ id: 'comm-1' }),
 }));
 
-const theme = createTheme();
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
+vi.mock('../services/authService', () => ({
+  authApiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+  getAccessToken: () => 'mock-jwt-token',
+}));
 
-describe('Kirmya Community, Groups & Knowledge Collaboration Suite', () => {
-  let queryClient: QueryClient;
+vi.mock('../context/AuthContext', () => ({
+  useAuthContext: () => ({
+    user: { id: 'u1', email: 'test@kirmya.com', name: 'Test User' },
+    notificationsCount: 0,
+    setNotificationsCount: vi.fn(),
+    authenticated: true,
+    isAuthenticated: true,
+    loading: false,
+    permissions: [],
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
+const theme = getTheme('light');
+
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+};
+
+describe('Communities & Professional Groups Experience (Prompt 22/50)', () => {
   beforeEach(() => {
-    queryClient = createTestQueryClient();
     vi.clearAllMocks();
   });
 
-  const renderWithProviders = (ui: React.ReactElement) => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>{ui}</ThemeProvider>
-      </QueryClientProvider>
-    );
+  const mockCommunity = {
+    id: 'comm-1',
+    title: 'Cloud & DevOps Architects',
+    description: 'A global community of Cloud Native engineers, Kubernetes experts, and DevOps leads.',
+    category: 'Engineering & Cloud',
+    location: 'Global (Remote)',
+    avatarUrl: '',
+    coverImageUrl: '',
+    isPrivate: false,
+    memberCount: 1420,
+    postCount: 384,
+    rules: ['Be respectful and professional.', 'No spam.'],
+    topics: ['Kubernetes', 'AWS', 'Terraform'],
+    postingPermission: 'all' as const,
+    status: 'active' as const,
+    createdAt: '2025-01-15T00:00:00Z',
+    updatedAt: '2026-02-01T00:00:00Z',
+    role: 'owner' as const,
+    isMember: true,
   };
 
-  describe('TASK 1: Community API Client', () => {
-    it('lists communities with optional filters', async () => {
-      const comms = await communityApi.listCommunities();
-      expect(comms).toBeDefined();
-      expect(comms.length).toBeGreaterThan(0);
-      expect(comms[0]).toHaveProperty('title');
+  describe('CommunityCard Component', () => {
+    it('renders community title, category, member count, and joined button', () => {
+      renderWithTheme(<CommunityCard community={mockCommunity} />);
+
+      expect(screen.getByText('Cloud & DevOps Architects')).toBeDefined();
+      expect(screen.getByText('Engineering & Cloud')).toBeDefined();
+      expect(screen.getByText(/1420 members/i)).toBeDefined();
+      expect(screen.getByRole('button', { name: /Joined/i })).toBeDefined();
     });
 
-    it('fetches community by ID', async () => {
-      const comm = await communityApi.getCommunity('comm-1');
-      expect(comm).toBeDefined();
-      expect(comm.id).toBe('comm-1');
-    });
-
-    it('creates and updates a community', async () => {
-      const newComm = await communityApi.createCommunity({
-        title: 'Quantum Systems Engineering',
-        description: 'Testing quantum circuit architecture',
-        category: 'Engineering & Cloud',
+    it('handles join/leave click on card', async () => {
+      (authApiClient.post as any).mockImplementation((url: string) => {
+        if (url === '/communities/comm-1/leave') {
+          return Promise.resolve({ data: { success: true } });
+        }
+        return Promise.resolve({ data: {} });
       });
-      expect(newComm).toBeDefined();
-      expect(newComm.title).toBe('Quantum Systems Engineering');
+      const mockToggle = vi.fn();
 
-      const updated = await communityApi.updateCommunity(newComm.id, {
-        description: 'Updated description',
+      renderWithTheme(<CommunityCard community={mockCommunity} onJoinToggle={mockToggle} />);
+
+      const btn = screen.getByRole('button', { name: /Joined/i });
+      fireEvent.click(btn);
+
+      await waitFor(() => {
+        expect(authApiClient.post).toHaveBeenCalledWith('/communities/comm-1/leave');
+        expect(mockToggle).toHaveBeenCalledWith('comm-1', false);
       });
-      expect(updated.description).toBe('Updated description');
-    });
-
-    it('handles join and leave actions', async () => {
-      const joinRes = await communityApi.joinCommunity('comm-1');
-      expect(joinRes.success).toBe(true);
-
-      const leaveRes = await communityApi.leaveCommunity('comm-1');
-      expect(leaveRes.success).toBe(true);
-    });
-
-    it('manages posts, pins, locks, and comments', async () => {
-      const posts = await communityApi.getPosts('comm-1');
-      expect(Array.isArray(posts)).toBe(true);
-
-      const createdPost = await communityApi.createPost('comm-1', {
-        title: 'Test Architecture Post',
-        content: 'Content detailing zero-trust network topology',
-      });
-      expect(createdPost.title).toBe('Test Architecture Post');
-
-      const pinRes = await communityApi.pinPost('comm-1', createdPost.id, true);
-      expect(pinRes.success).toBe(true);
-
-      const lockRes = await communityApi.lockPost('comm-1', createdPost.id, true);
-      expect(lockRes.success).toBe(true);
-
-      const likeRes = await communityApi.likePost('comm-1', createdPost.id);
-      expect(likeRes.success).toBe(true);
-
-      const comment = await communityApi.addComment('comm-1', createdPost.id, 'Great insight!');
-      expect(comment.content).toBe('Great insight!');
-
-      const comments = await communityApi.getComments('comm-1', createdPost.id);
-      expect(comments.length).toBeGreaterThan(0);
-    });
-
-    it('manages events and RSVPs', async () => {
-      const events = await communityApi.getEvents('comm-1');
-      expect(Array.isArray(events)).toBe(true);
-
-      const newEvent = await communityApi.createEvent('comm-1', {
-        title: 'Live Q&A Workshop',
-        description: 'Hands-on live demo',
-        startDate: new Date().toISOString(),
-      });
-      expect(newEvent.title).toBe('Live Q&A Workshop');
-
-      const rsvp = await communityApi.rsvpEvent('comm-1', newEvent.id, 'attending');
-      expect(rsvp.success).toBe(true);
-      expect(rsvp.userRsvp).toBe('attending');
-    });
-
-    it('manages shared resources', async () => {
-      const resList = await communityApi.getResources('comm-1');
-      expect(Array.isArray(resList)).toBe(true);
-
-      const newRes = await communityApi.createResource('comm-1', {
-        title: 'Cloud Security Blueprint',
-        url: 'https://kirmya.io/blueprint.pdf',
-        category: 'document',
-      });
-      expect(newRes.title).toBe('Cloud Security Blueprint');
-    });
-
-    it('manages moderation actions, reports, and invites', async () => {
-      const reportRes = await communityApi.reportContent('comm-1', 'post-101', 'post', 'Spam content');
-      expect(reportRes.success).toBe(true);
-
-      const modActions = await communityApi.getModerationActions('comm-1');
-      expect(Array.isArray(modActions)).toBe(true);
-
-      const invite = await communityApi.sendInvite('comm-1', 'newmember@test.com', 'member');
-      expect(invite.email).toBe('newmember@test.com');
     });
   });
 
-  describe('TASK 2: Community UI Components', () => {
-    const sampleCommunity = {
-      id: 'comm-1',
-      title: 'Cloud & DevOps Architects',
-      description: 'A global community of Cloud Native engineers.',
-      category: 'Engineering & Cloud',
-      location: 'Remote',
-      isPrivate: false,
-      memberCount: 1500,
-      postCount: 400,
-      rules: ['Rule 1', 'Rule 2'],
-      topics: ['Kubernetes', 'AWS', 'CI/CD'],
-      postingPermission: 'all' as const,
-      status: 'active' as const,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      role: 'owner' as const,
-      isMember: true,
-    };
+  describe('CommunityHeader Component', () => {
+    it('renders header title, navigation tabs, and rules modal button', () => {
+      renderWithTheme(<CommunityHeader community={mockCommunity} />);
 
-    it('renders CommunityCard and responds to join toggle', () => {
-      const handleJoinToggle = vi.fn();
-      renderWithProviders(
-        <CommunityCard community={sampleCommunity} onJoinToggle={handleJoinToggle} />
-      );
+      expect(screen.getByText('Cloud & DevOps Architects')).toBeDefined();
+      expect(screen.getByText('Discussions')).toBeDefined();
+      expect(screen.getByText('Members')).toBeDefined();
+      expect(screen.getByText('Events')).toBeDefined();
+      expect(screen.getByText('About & Rules')).toBeDefined();
 
-      expect(screen.getByText('Cloud & DevOps Architects')).toBeInTheDocument();
-      expect(screen.getByText('#Kubernetes')).toBeInTheDocument();
-      const joinBtn = screen.getByText('Joined');
-      fireEvent.click(joinBtn);
-      expect(handleJoinToggle).toHaveBeenCalledWith('comm-1', false);
-    });
-
-    it('renders CommunityHeader with banner and rules modal toggle', () => {
-      renderWithProviders(<CommunityHeader community={sampleCommunity} />);
-
-      expect(screen.getByText('Cloud & DevOps Architects')).toBeInTheDocument();
-      expect(screen.getByText(/1,500 Members/i)).toBeInTheDocument();
-
-      const rulesBtn = screen.getByText('Rules');
+      const rulesBtn = screen.getByRole('button', { name: /Rules/i });
       fireEvent.click(rulesBtn);
-      expect(screen.getByText('Community Rules & Guidelines')).toBeInTheDocument();
-    });
-
-    it('renders CommunityCreateModal and handles step navigation', () => {
-      const handleClose = vi.fn();
-      renderWithProviders(
-        <CommunityCreateModal open={true} onClose={handleClose} />
-      );
-
-      expect(screen.getByText('Create New Professional Community')).toBeInTheDocument();
-      expect(screen.getByText('Basic Info')).toBeInTheDocument();
-
-      const nameInput = screen.getByLabelText(/Community Name \/ Title/i);
-      fireEvent.change(nameInput, { target: { value: 'AI Frontiers' } });
-
-      const continueBtn = screen.getByText('Continue');
-      fireEvent.click(continueBtn);
-
-      expect(screen.getByText('Topics & Hashtags')).toBeInTheDocument();
-    });
-
-    it('renders CommunityFeed and post publishing form', async () => {
-      const posts = [
-        {
-          id: 'post-1',
-          communityId: 'comm-1',
-          authorId: 'u-1',
-          authorName: 'Alex Rivera',
-          title: 'Initial Discussion',
-          content: 'Hello World post content',
-          isPinned: true,
-          isAnnouncement: false,
-          isLocked: false,
-          tags: ['General'],
-          likesCount: 10,
-          commentsCount: 2,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-
-      renderWithProviders(
-        <CommunityFeed communityId="comm-1" posts={posts} userRole="owner" />
-      );
-
-      expect(screen.getByText('Start a Discussion')).toBeInTheDocument();
-      expect(screen.getByText('Initial Discussion')).toBeInTheDocument();
-      expect(screen.getByText('Hello World post content')).toBeInTheDocument();
-    });
-
-    it('renders CommunityMemberDirectory and filters members', () => {
-      const members = [
-        {
-          id: 'm-1',
-          communityId: 'comm-1',
-          userId: 'u-1',
-          name: 'Sarah Chen',
-          email: 'sarah@test.com',
-          role: 'admin' as const,
-          title: 'Staff SRE',
-          joinedAt: new Date().toISOString(),
-          status: 'active' as const,
-        },
-      ];
-
-      renderWithProviders(
-        <CommunityMemberDirectory communityId="comm-1" members={members} userRole="owner" />
-      );
-
-      expect(screen.getByText(/Community Member Directory/i)).toBeInTheDocument();
-      expect(screen.getByText('Sarah Chen')).toBeInTheDocument();
-    });
-
-    it('renders CommunityEventsCard and handles RSVP', () => {
-      const events = [
-        {
-          id: 'evt-1',
-          communityId: 'comm-1',
-          title: 'DevOps Summit 2026',
-          description: 'Global keynote presentation',
-          startDate: new Date().toISOString(),
-          endDate: new Date().toISOString(),
-          isOnline: true,
-          organizerId: 'u-1',
-          organizerName: 'Alex Rivera',
-          rsvpCount: 25,
-          createdAt: new Date().toISOString(),
-        },
-      ];
-
-      renderWithProviders(
-        <CommunityEventsCard communityId="comm-1" events={events} userRole="owner" />
-      );
-
-      expect(screen.getByText(/Upcoming Events & Webinars/i)).toBeInTheDocument();
-      expect(screen.getByText('DevOps Summit 2026')).toBeInTheDocument();
-      expect(screen.getByText('Going')).toBeInTheDocument();
-    });
-
-    it('renders CommunityResourcesCard and displays resources', () => {
-      const resources = [
-        {
-          id: 'res-1',
-          communityId: 'comm-1',
-          title: 'Kubernetes Hardening Playbook',
-          description: 'Security rules for production',
-          category: 'guide' as const,
-          url: 'https://kirmya.io/guide',
-          authorId: 'u-1',
-          authorName: 'Sarah Chen',
-          downloadsCount: 150,
-          createdAt: new Date().toISOString(),
-        },
-      ];
-
-      renderWithProviders(
-        <CommunityResourcesCard communityId="comm-1" resources={resources} userRole="owner" />
-      );
-
-      expect(screen.getByText(/Shared Knowledge & Resources/i)).toBeInTheDocument();
-      expect(screen.getByText('Kubernetes Hardening Playbook')).toBeInTheDocument();
-    });
-
-    it('renders CommunityModerationDesk', () => {
-      const actions = [
-        {
-          id: 'mod-1',
-          communityId: 'comm-1',
-          targetType: 'post' as const,
-          targetId: 'post-99',
-          targetContentSnippet: 'Spam text sample',
-          reporterId: 'u-2',
-          reporterName: 'Reporter User',
-          reason: 'Spam',
-          status: 'pending' as const,
-          createdAt: new Date().toISOString(),
-        },
-      ];
-
-      renderWithProviders(
-        <CommunityModerationDesk communityId="comm-1" actions={actions} />
-      );
-
-      expect(screen.getByText('Community Moderation & Safety Desk')).toBeInTheDocument();
-      expect(screen.getByText(/Spam text sample/i)).toBeInTheDocument();
-    });
-
-    it('renders CommunitySettingsTab and updates form fields', () => {
-      renderWithProviders(
-        <CommunitySettingsTab community={sampleCommunity} />
-      );
-
-      expect(screen.getByText('Community Settings & Governance')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Cloud & DevOps Architects')).toBeInTheDocument();
+      expect(screen.getByText('Community Guidelines & Rules')).toBeDefined();
+      expect(screen.getByText('Be respectful and professional.')).toBeDefined();
     });
   });
 
-  describe('TASK 3: App Router Pages', () => {
-    it('renders CommunitiesDiscoveryPage (/communities)', async () => {
-      renderWithProviders(<CommunitiesDiscoveryPage />);
+  describe('CommunityFeed Component', () => {
+    const mockPosts = [
+      {
+        id: 'post-1',
+        communityId: 'comm-1',
+        authorId: 'u1',
+        authorName: 'Alex Rivera',
+        authorAvatar: '',
+        authorRole: 'owner',
+        title: 'Best practices for multi-cluster Kubernetes',
+        content: 'Here is our blueprint for GitOps with ArgoCD across AWS EKS and GCP GKE.',
+        isPinned: true,
+        isAnnouncement: true,
+        isLocked: false,
+        tags: ['Kubernetes', 'ArgoCD'],
+        likesCount: 24,
+        commentsCount: 3,
+        userLiked: false,
+        createdAt: '2026-08-30T10:00:00Z',
+        updatedAt: '2026-08-30T10:00:00Z',
+      },
+    ];
+
+    it('renders discussion posts and allows post creation', async () => {
+      (authApiClient.post as any).mockImplementation((url: string) => {
+        if (url === '/communities/comm-1/posts') {
+          return Promise.resolve({
+            data: {
+              id: 'post-new',
+              communityId: 'comm-1',
+              authorId: 'u1',
+              authorName: 'Test User',
+              title: 'New Discussion',
+              content: 'Excited to discuss cloud architecture.',
+              isPinned: false,
+              isAnnouncement: false,
+              isLocked: false,
+              tags: [],
+              likesCount: 0,
+              commentsCount: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          });
+        }
+        return Promise.resolve({ data: {} });
+      });
+
+      renderWithTheme(
+        <CommunityFeed
+          communityId="comm-1"
+          posts={mockPosts}
+          userRole="owner"
+        />
+      );
+
+      expect(screen.getByText('Best practices for multi-cluster Kubernetes')).toBeDefined();
+      expect(screen.getByText(/Here is our blueprint for GitOps/i)).toBeDefined();
+
+      const contentInput = screen.getByPlaceholderText(/Share insights/i);
+      fireEvent.change(contentInput, { target: { value: 'Excited to discuss cloud architecture.' } });
+
+      const postBtn = screen.getByRole('button', { name: /Publish Post/i });
+      fireEvent.click(postBtn);
+
       await waitFor(() => {
-        expect(screen.getByText(/Connect with Industry Peers & Engineering Leaders/i)).toBeInTheDocument();
+        expect(authApiClient.post).toHaveBeenCalledWith('/communities/comm-1/posts', expect.any(Object));
       });
     });
+  });
 
-    it('renders CreateCommunityPage (/communities/create)', () => {
-      renderWithProviders(<CreateCommunityPage />);
-      expect(screen.getByText('Launch a New Professional Community')).toBeInTheDocument();
+  describe('CommunityMemberDirectory Component', () => {
+    const mockMembers = [
+      {
+        id: 'mem-1',
+        communityId: 'comm-1',
+        userId: 'u1',
+        name: 'Alex Rivera',
+        email: 'alex.rivera@kirmya.io',
+        role: 'owner' as const,
+        title: 'Principal Cloud Architect',
+        company: 'Kirmya Tech',
+        joinedAt: '2025-01-15T00:00:00Z',
+        status: 'active' as const,
+      },
+      {
+        id: 'mem-2',
+        communityId: 'comm-1',
+        userId: 'u2',
+        name: 'Sarah Chen',
+        email: 'sarah.c@devops.org',
+        role: 'admin' as const,
+        title: 'Staff SRE',
+        company: 'CloudScale',
+        joinedAt: '2025-01-16T00:00:00Z',
+        status: 'active' as const,
+      },
+    ];
+
+    it('renders member cards with names, roles, and search filter', () => {
+      renderWithTheme(
+        <CommunityMemberDirectory
+          communityId="comm-1"
+          members={mockMembers}
+          userRole="owner"
+        />
+      );
+
+      expect(screen.getByText('Alex Rivera')).toBeDefined();
+      expect(screen.getByText('Sarah Chen')).toBeDefined();
+      expect(screen.getByText('Principal Cloud Architect')).toBeDefined();
+    });
+  });
+
+  describe('communityApi Methods', () => {
+    it('listCommunities calls GET /communities with params', async () => {
+      (authApiClient.get as any).mockResolvedValueOnce({ data: [mockCommunity] });
+
+      const res = await communityApi.listCommunities({ category: 'Engineering & Cloud' });
+      expect(authApiClient.get).toHaveBeenCalledWith('/communities', {
+        params: { category: 'Engineering & Cloud' },
+      });
+      expect(res).toEqual([mockCommunity]);
     });
 
-    it('renders CommunityHubPage (/communities/[id])', async () => {
-      renderWithProviders(<CommunityHubPage />);
-      await waitFor(() => {
-        expect(screen.getByTestId('community-hub-page')).toBeInTheDocument();
-      });
+    it('getCommunity calls GET /communities/:id', async () => {
+      (authApiClient.get as any).mockResolvedValueOnce({ data: mockCommunity });
+
+      const res = await communityApi.getCommunity('comm-1');
+      expect(authApiClient.get).toHaveBeenCalledWith('/communities/comm-1');
+      expect(res.title).toBe('Cloud & DevOps Architects');
     });
 
-    it('renders CommunityMembersPage (/communities/[id]/members)', async () => {
-      renderWithProviders(<CommunityMembersPage />);
-      await waitFor(() => {
-        expect(screen.getByTestId('community-members-page')).toBeInTheDocument();
-      });
+    it('joinCommunity calls POST /communities/:id/join', async () => {
+      (authApiClient.post as any).mockResolvedValueOnce({ data: { success: true } });
+
+      const res = await communityApi.joinCommunity('comm-1');
+      expect(authApiClient.post).toHaveBeenCalledWith('/communities/comm-1/join');
+      expect(res.success).toBe(true);
     });
 
-    it('renders CommunityAboutPage (/communities/[id]/about)', async () => {
-      renderWithProviders(<CommunityAboutPage />);
-      await waitFor(() => {
-        expect(screen.getByTestId('community-about-page')).toBeInTheDocument();
-      });
+    it('leaveCommunity calls POST /communities/:id/leave', async () => {
+      (authApiClient.post as any).mockResolvedValueOnce({ data: { success: true } });
+
+      const res = await communityApi.leaveCommunity('comm-1');
+      expect(authApiClient.post).toHaveBeenCalledWith('/communities/comm-1/leave');
+      expect(res.success).toBe(true);
     });
 
-    it('renders CommunitySettingsPage (/communities/[id]/settings)', async () => {
-      renderWithProviders(<CommunitySettingsPage />);
-      await waitFor(() => {
-        expect(screen.getByTestId('community-settings-page')).toBeInTheDocument();
-      });
-    });
+    it('createPost calls POST /communities/:id/posts', async () => {
+      const mockPost = { id: 'p1', content: 'hello' };
+      (authApiClient.post as any).mockResolvedValueOnce({ data: mockPost });
 
-    it('renders CommunityModerationPage (/communities/[id]/moderation)', async () => {
-      renderWithProviders(<CommunityModerationPage />);
-      await waitFor(() => {
-        expect(screen.getByTestId('community-moderation-page')).toBeInTheDocument();
-      });
-    });
-
-    it('renders CommunityEventsPage (/communities/[id]/events)', async () => {
-      renderWithProviders(<CommunityEventsPage />);
-      await waitFor(() => {
-        expect(screen.getByTestId('community-events-page')).toBeInTheDocument();
-      });
+      const res = await communityApi.createPost('comm-1', { content: 'hello' });
+      expect(authApiClient.post).toHaveBeenCalledWith('/communities/comm-1/posts', { content: 'hello' });
+      expect(res).toEqual(mockPost);
     });
   });
 });

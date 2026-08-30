@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import {
   Container,
   Typography,
@@ -12,18 +12,24 @@ import {
   Chip,
   TextField,
   InputAdornment,
-  CircularProgress,
+  IconButton,
+  Skeleton,
 } from '@mui/material';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import ExploreIcon from '@mui/icons-material/Explore';
-import StarIcon from '@mui/icons-material/Star';
+import ClearIcon from '@mui/icons-material/Clear';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+import AuthenticatedLayout from '../../components/shell/AuthenticatedLayout';
 import { communityApi } from '../../features/community/services/communityApi';
 import { Community } from '../../features/community/types';
 import { CommunityCard } from '../../components/community/CommunityCard';
 import { CommunityCreateModal } from '../../components/community/CommunityCreateModal';
+import { tokens } from '../../theme/tokens';
+
+export const dynamic = 'force-dynamic';
 
 const CATEGORIES = [
   'All',
@@ -35,45 +41,49 @@ const CATEGORIES = [
   'Executive Leadership',
 ];
 
-export default function CommunitiesDiscoveryPage() {
+function CommunitiesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialCategory = searchParams.get('category') || 'All';
+  const initialQuery = searchParams.get('q') || '';
+
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
-  const fetchCommunities = async () => {
+  const fetchCommunities = useCallback(async () => {
     setLoading(true);
     try {
       const data = await communityApi.listCommunities({
         category: selectedCategory === 'All' ? undefined : selectedCategory,
-        query: searchQuery || undefined,
+        query: searchQuery.trim() || undefined,
       });
-      setCommunities(data);
-    } catch (e) {
-      console.error('Failed to load communities:', e);
+      setCommunities(data || []);
+    } catch {
+      setCommunities([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, searchQuery]);
 
   useEffect(() => {
-    fetchCommunities();
-  }, [selectedCategory]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchCommunities();
-  };
+    const handler = setTimeout(() => {
+      fetchCommunities();
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [fetchCommunities]);
 
   const handleJoinToggle = (id: string, isMember: boolean) => {
-    setCommunities(
-      communities.map((c) =>
+    setCommunities((prev) =>
+      prev.map((c) =>
         c.id === id
           ? {
               ...c,
               isMember,
-              memberCount: isMember ? c.memberCount + 1 : Math.max(0, c.memberCount - 1),
+              memberCount: isMember ? (c.memberCount || 0) + 1 : Math.max(0, (c.memberCount || 0) - 1),
             }
           : c
       )
@@ -81,159 +91,183 @@ export default function CommunitiesDiscoveryPage() {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }} data-testid="communities-discovery-page">
+    <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }} data-testid="communities-discovery-page">
       {/* Hero Header */}
       <Paper
         elevation={0}
         sx={{
-          p: { xs: 3, md: 5 },
+          p: { xs: 3, md: 4 },
           mb: 4,
-          borderRadius: '24px',
-          background: (theme) =>
-            theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%)'
-              : 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%)',
-          backdropFilter: 'blur(16px)',
-          border: (theme) =>
-            theme.palette.mode === 'light'
-              ? '1px solid rgba(99, 102, 241, 0.2)'
-              : '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: `${tokens.radius.lg}px`,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
         }}
       >
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={8}>
-            <Chip
-              icon={<GroupsIcon sx={{ fontSize: 18 }} />}
-              label="Professional Knowledge & Collaboration Groups"
-              color="primary"
-              variant="filled"
-              sx={{ fontWeight: 700, mb: 1.5, px: 1 }}
-            />
-            <Typography variant="h3" fontWeight={800} gutterBottom sx={{ letterSpacing: '-0.025em' }}>
-              Connect with Industry Peers & Engineering Leaders
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+              <GroupsIcon color="primary" sx={{ fontSize: 22 }} />
+              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Professional Circles & Groups
+              </Typography>
+            </Stack>
+
+            <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: '-0.025em', mb: 1, fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' } }}>
+              Professional Communities
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 700, mb: 3 }}>
-              Join curated technology circles, participate in architectural discussions, share technical blueprints, and host virtual events.
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 640, mb: 3 }}>
+              Join curated technical circles, engage in architectural discussions, exchange industry insights, and build peer networks.
             </Typography>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-              <Box component="form" onSubmit={handleSearchSubmit} sx={{ flexGrow: 1, maxWidth: 500 }}>
-                <TextField
-                  placeholder="Search groups, topics (e.g. Kubernetes, LLMs)..."
-                  fullWidth
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon color="primary" />
-                      </InputAdornment>
-                    ),
-                    sx: { borderRadius: '14px', bgcolor: 'background.paper' },
-                  }}
-                />
-              </Box>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }}>
+              <TextField
+                size="small"
+                placeholder="Search by community name, topic, or keyword..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchQuery ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => setSearchQuery('')} aria-label="Clear search">
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                  sx: {
+                    borderRadius: `${tokens.radius.md}px`,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                  },
+                }}
+                sx={{ maxWidth: { xs: '100%', sm: 380 } }}
+              />
+
               <Button
                 variant="contained"
-                size="large"
                 startIcon={<AddIcon />}
                 onClick={() => setCreateModalOpen(true)}
                 sx={{
-                  borderRadius: '14px',
+                  borderRadius: `${tokens.radius.sm}px`,
                   fontWeight: 700,
-                  px: 3,
-                  py: 1.25,
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                  boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.35)',
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 Create Community
               </Button>
             </Stack>
           </Grid>
-          <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'block' } }}>
-            <Box
-              sx={{
-                p: 3,
-                borderRadius: '20px',
-                background: (theme) =>
-                  theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.6)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.3)',
-              }}
-            >
-              <Typography variant="subtitle2" fontWeight={800} color="primary.main" gutterBottom>
-                COMMUNITY HIGHLIGHTS
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Verified professional networks with strict moderation, zero-spam rules, and direct peer networking.
-              </Typography>
-              <Stack direction="row" spacing={1}>
-                <Chip icon={<StarIcon sx={{ fontSize: 14 }} />} label="Verified Circles" size="small" />
-                <Chip icon={<ExploreIcon sx={{ fontSize: 14 }} />} label="Global Chapters" size="small" />
-              </Stack>
-            </Box>
-          </Grid>
         </Grid>
       </Paper>
 
-      {/* Filter Categories */}
-      <Box sx={{ mb: 4 }}>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {CATEGORIES.map((cat) => (
-            <Chip
-              key={cat}
-              label={cat}
-              color={selectedCategory === cat ? 'primary' : 'default'}
-              onClick={() => setSelectedCategory(cat)}
-              sx={{
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                py: 2,
-                px: 1,
-                borderRadius: '12px',
-                cursor: 'pointer',
-              }}
-            />
-          ))}
-        </Stack>
-      </Box>
+      {/* Category Filter Chips */}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          mb: 3,
+          overflowX: 'auto',
+          pb: 1,
+          '::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        {CATEGORIES.map((cat) => (
+          <Chip
+            key={cat}
+            label={cat}
+            clickable
+            variant={selectedCategory === cat ? 'filled' : 'outlined'}
+            color={selectedCategory === cat ? 'primary' : 'default'}
+            onClick={() => setSelectedCategory(cat)}
+            sx={{
+              fontWeight: 700,
+              borderRadius: `${tokens.radius.pill}px`,
+              fontSize: '0.8rem',
+            }}
+          />
+        ))}
+      </Stack>
 
-      {/* Community Cards Grid */}
+      {/* Communities Grid */}
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-          <CircularProgress />
-        </Box>
-      ) : communities.length === 0 ? (
-        <Paper sx={{ p: 6, textAlign: 'center', borderRadius: '24px' }}>
-          <Typography variant="h6" fontWeight={700} gutterBottom>
-            No communities found matching your search.
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Be the pioneer! Create a community for your specialization or interest group.
-          </Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateModalOpen(true)}>
-            Create Community
-          </Button>
-        </Paper>
-      ) : (
+        <Grid container spacing={3}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Grid item xs={12} sm={6} lg={4} key={i}>
+              <Skeleton
+                variant="rounded"
+                height={260}
+                sx={{ borderRadius: `${tokens.radius.lg}px` }}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      ) : communities.length > 0 ? (
         <Grid container spacing={3}>
           {communities.map((comm) => (
-            <Grid item xs={12} sm={6} md={4} key={comm.id}>
+            <Grid item xs={12} sm={6} lg={4} key={comm.id}>
               <CommunityCard community={comm} onJoinToggle={handleJoinToggle} />
             </Grid>
           ))}
         </Grid>
+      ) : (
+        <Paper
+          elevation={0}
+          sx={{
+            py: 8,
+            px: 3,
+            textAlign: 'center',
+            borderRadius: `${tokens.radius.lg}px`,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <GroupsIcon sx={{ fontSize: 52, color: 'text.secondary', mb: 1.5, opacity: 0.5 }} />
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            No Communities Found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 460, mx: 'auto', mt: 0.5, mb: 3 }}>
+            {searchQuery
+              ? `No professional groups matched "${searchQuery}". Try broadening your search or choosing a different category.`
+              : 'Be the first to launch a technical community for your domain.'}
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateModalOpen(true)}
+            sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700 }}
+          >
+            Create New Community
+          </Button>
+        </Paper>
       )}
 
-      {/* Community Creation Dialog */}
+      {/* Community Creation Modal */}
       <CommunityCreateModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreated={(newComm) => {
-          setCommunities([newComm, ...communities]);
+          setCreateModalOpen(false);
+          router.push(`/communities/${newComm.id}`);
         }}
       />
     </Container>
+  );
+}
+
+export default function CommunitiesDiscoveryPage() {
+  return (
+    <AuthenticatedLayout>
+      <Suspense fallback={null}>
+        <CommunitiesContent />
+      </Suspense>
+    </AuthenticatedLayout>
   );
 }
