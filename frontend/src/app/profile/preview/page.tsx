@@ -1,19 +1,18 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Typography, Stack, Button, Box, Skeleton, Card } from '@mui/material';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import { Typography, Stack, Button, Box, Skeleton } from '@mui/material';
 
-import { AuthenticatedLayout } from '../../components/shell';
-import ProfileHeader from '../../components/profile/ProfileHeader';
-import ProfileAbout from '../../components/profile/ProfileAbout';
-import ProfileExperience from '../../components/profile/ProfileExperience';
-import ProfileEducation from '../../components/profile/ProfileEducation';
-import ProfileSkills from '../../components/profile/ProfileSkills';
-import { ErrorState } from '../../components/common';
-import { UserProfile } from '../../features/profile/types';
-import { profileApi } from '../../features/profile/api';
-import { tokens } from '../../theme/tokens';
+import { AuthenticatedLayout } from '../../../components/shell';
+import ProfileHeader from '../../../components/profile/ProfileHeader';
+import ProfileAbout from '../../../components/profile/ProfileAbout';
+import ProfileExperience from '../../../components/profile/ProfileExperience';
+import ProfileEducation from '../../../components/profile/ProfileEducation';
+import ProfileSkills from '../../../components/profile/ProfileSkills';
+import { ErrorState } from '../../../components/common';
+import { UserProfile } from '../../../features/profile/types';
+import { profileApi } from '../../../features/profile/api';
+import { tokens } from '../../../theme/tokens';
 
 export const dynamic = 'force-dynamic';
 

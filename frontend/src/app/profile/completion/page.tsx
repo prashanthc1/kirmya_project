@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Stack, Skeleton } from '@mui/material';
 
-import { AuthenticatedLayout } from '../../components/shell';
-import ProfileCompletenessCard from '../../components/profile/ProfileCompletenessCard';
-import { ErrorState } from '../../components/common';
-import { ProfileCompleteness } from '../../features/profile/types';
-import { profileApi } from '../../features/profile/api';
-import { tokens } from '../../theme/tokens';
+import { AuthenticatedLayout } from '../../../components/shell';
+import ProfileCompletenessCard from '../../../components/profile/ProfileCompletenessCard';
+import { ErrorState } from '../../../components/common';
+import { ProfileCompleteness } from '../../../features/profile/types';
+import { profileApi } from '../../../features/profile/api';
+import { tokens } from '../../../theme/tokens';
 
 export const dynamic = 'force-dynamic';
 

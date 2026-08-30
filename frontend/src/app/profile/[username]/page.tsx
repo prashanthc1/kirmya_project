@@ -63,6 +63,14 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
   const isPrivate =
     profile?.isPrivate || profile?.privacySettings?.profileVisibility === 'private';
 
+  const handleReportSubmit = async (reason: string, description: string) => {
+    try {
+      await profileApi.reportProfile(username, reason, description);
+    } catch {
+      // Handled silently or toast
+    }
+  };
+
   return (
     <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <AppHeader onMobileNavOpen={() => setMobileDrawerOpen(true)} />
@@ -130,7 +138,6 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  {/* Subtle Public Summary Card */}
                   <Card elevation={1} sx={{ p: 3, borderRadius: `${tokens.radius.lg}px`, mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
                       Professional Summary
@@ -160,6 +167,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userna
                 open={reportOpen}
                 username={profile.username}
                 onClose={() => setReportOpen(false)}
+                onSubmit={handleReportSubmit}
               />
             </Box>
           )}
