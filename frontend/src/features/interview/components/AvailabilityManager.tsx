@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -12,18 +14,20 @@ import {
   CardContent,
   IconButton,
   Divider,
+  Stack,
 } from '@mui/material';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { CandidateAvailability, SetAvailabilityPayload } from '../types';
+import { tokens } from '../../../theme/tokens';
 
 interface AvailabilityManagerProps {
   candidateId: string;
   availabilityList: CandidateAvailability[];
   onSaveAvailability: (payload: SetAvailabilityPayload) => Promise<void>;
-  onScheduleForSlot: (slot: CandidateAvailability) => void;
+  onScheduleForSlot?: (slot: CandidateAvailability) => void;
 }
 
 export const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
@@ -64,144 +68,176 @@ export const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
   return (
     <Box sx={{ width: '100%' }}>
       {/* Header Banner */}
-      <Paper sx={{ p: 3, mb: 3, bgcolor: '#1e293b', border: '1px solid #334155' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-          <EventAvailableIcon sx={{ color: '#38bdf8', fontSize: 28 }} />
-          <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 2.5, md: 3 },
+          mb: 3,
+          borderRadius: `${tokens.radius.lg}px`,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+          <EventAvailableIcon color="primary" sx={{ fontSize: 28 }} />
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
             Candidate Availability Manager
           </Typography>
-        </Box>
-        <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-          Define open time slots when the candidate is available for interview rounds to streamline scheduling and eliminate back-and-forth emails.
+        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          Define open time slots when you are available for interview rounds to streamline scheduling and eliminate back-and-forth emails.
         </Typography>
       </Paper>
 
       <Grid container spacing={3}>
         {/* Slot Addition Form */}
         <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: `${tokens.radius.lg}px`,
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2 }}>
               Add New Available Slot
             </Typography>
 
-            {msg && <Alert severity={msg.includes('successfully') ? 'success' : 'error'} sx={{ mb: 2 }}>{msg}</Alert>}
+            {msg && (
+              <Alert
+                severity={msg.includes('successfully') ? 'success' : 'error'}
+                sx={{ mb: 2, borderRadius: `${tokens.radius.md}px` }}
+              >
+                {msg}
+              </Alert>
+            )}
 
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  label="Slot Start Time"
-                  type="datetime-local"
-                  fullWidth
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
-                />
-              </Grid>
+            <Stack spacing={2}>
+              <TextField
+                label="Slot Start Time"
+                type="datetime-local"
+                fullWidth
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
 
-              <Grid item xs={12}>
-                <TextField
-                  label="Slot End Time"
-                  type="datetime-local"
-                  fullWidth
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
-                />
-              </Grid>
+              <TextField
+                label="Slot End Time"
+                type="datetime-local"
+                fullWidth
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+              />
 
-              <Grid item xs={12}>
-                <TextField
-                  label="Candidate Notes / Preference"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  size="small"
-                  sx={{ textarea: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
-                />
-              </Grid>
+              <TextField
+                label="Notes / Timezone Context"
+                fullWidth
+                multiline
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                size="small"
+              />
 
-              <Grid item xs={12}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleAddSlot}
-                  disabled={submitting}
-                  startIcon={<AddIcon />}
-                  sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: '#0284c7' } }}
-                >
-                  {submitting ? 'Saving...' : 'Save Availability Slot'}
-                </Button>
-              </Grid>
-            </Grid>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddSlot}
+                disabled={submitting}
+                sx={{
+                  borderRadius: `${tokens.radius.sm}px`,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  py: 1,
+                }}
+              >
+                {submitting ? 'Saving Slot...' : 'Save Availability Slot'}
+              </Button>
+            </Stack>
           </Paper>
         </Grid>
 
         {/* Existing Slots List */}
         <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155', minHeight: 320 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
-              Active Availability Slots ({availabilityList.length})
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: `${tokens.radius.lg}px`,
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 2 }}>
+              Configured Availability Slots ({availabilityList.length})
             </Typography>
-            <Divider sx={{ borderColor: '#334155', mb: 2 }} />
 
             {availabilityList.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 5, color: '#64748b' }}>
-                <AccessTimeIcon sx={{ fontSize: 48, mb: 1, color: '#334155' }} />
-                <Typography variant="body1">No availability slots registered yet.</Typography>
-                <Typography variant="caption">Use the form on the left to add candidate open windows.</Typography>
-              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+                No active availability slots saved. Add one using the form on the left.
+              </Typography>
             ) : (
-              <Grid container spacing={2}>
-                {availabilityList.map((slot) => {
-                  const startStr = new Date(slot.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                  const endStr = new Date(slot.end_time).toLocaleTimeString([], { timeStyle: 'short' });
+              <Stack spacing={1.5}>
+                {availabilityList.map((slot, idx) => {
+                  const start = new Date(slot.start_time).toLocaleString(undefined, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+                  const end = new Date(slot.end_time).toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+
                   return (
-                    <Grid item xs={12} key={slot.id}>
-                      <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 1.5 }}>
-                        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <AccessTimeIcon sx={{ color: '#38bdf8', fontSize: 20 }} />
-                              <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f8fafc' }}>
-                                {startStr} - {endStr}
+                    <Card
+                      key={slot.id || idx}
+                      variant="outlined"
+                      sx={{
+                        borderRadius: `${tokens.radius.md}px`,
+                        transition: 'all 0.2s',
+                        '&:hover': { borderColor: 'primary.main' },
+                      }}
+                    >
+                      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Stack direction="row" spacing={1.5} alignItems="center">
+                            <AccessTimeIcon color="primary" fontSize="small" />
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                                {start} – {end}
                               </Typography>
+                              {slot.notes && (
+                                <Typography variant="caption" color="text.secondary">
+                                  {slot.notes}
+                                </Typography>
+                              )}
                             </Box>
-                            <Chip
-                              label={slot.status.toUpperCase()}
-                              size="small"
-                              sx={{
-                                bgcolor: slot.status === 'available' ? '#22c55e' : '#eab308',
-                                color: '#fff',
-                                fontWeight: 'bold',
-                                fontSize: '0.7rem',
-                              }}
-                            />
-                          </Box>
-                          {slot.notes && (
-                            <Typography variant="body2" sx={{ color: '#94a3b8', mb: 1.5 }}>
-                              {slot.notes}
-                            </Typography>
-                          )}
-                          <Button
+                          </Stack>
+
+                          <Chip
+                            label={slot.status || 'available'}
                             size="small"
-                            variant="outlined"
-                            onClick={() => onScheduleForSlot(slot)}
-                            sx={{ color: '#38bdf8', borderColor: '#38bdf8', fontWeight: 'bold' }}
-                          >
-                            Schedule Interview In This Slot
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </Grid>
+                            color={slot.status === 'booked' ? 'secondary' : 'success'}
+                            sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'capitalize' }}
+                          />
+                        </Stack>
+                      </CardContent>
+                    </Card>
                   );
                 })}
-              </Grid>
+              </Stack>
             )}
           </Paper>
         </Grid>
@@ -209,4 +245,5 @@ export const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
     </Box>
   );
 };
+
 export default AvailabilityManager;

@@ -1,5 +1,6 @@
+'use client';
+
 import React, { useState } from 'react';
-import { surfaceTransition } from '../../../theme/motion';
 import {
   Box,
   Paper,
@@ -14,6 +15,7 @@ import {
   DialogActions,
   Grid,
   Tooltip,
+  Stack,
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -22,40 +24,40 @@ import VideoCallIcon from '@mui/icons-material/VideoCall';
 import GroupIcon from '@mui/icons-material/Group';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { Interview } from '../types';
+import { tokens } from '../../../theme/tokens';
 
 interface CalendarViewProps {
   interviews: Interview[];
-  onSelectInterview: (interview: Interview) => void;
-  onOpenFeedback: (roundId: string) => void;
+  onSelectInterview?: (interview: Interview) => void;
+  onOpenFeedback?: (roundId: string) => void;
 }
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
-  interviews,
+  interviews = [],
   onSelectInterview,
   onOpenFeedback,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'scheduled':
-        return { bg: '#0284c7', color: '#fff' };
+        return 'primary';
       case 'in_progress':
-        return { bg: '#eab308', color: '#000' };
+        return 'warning';
       case 'completed':
-        return { bg: '#22c55e', color: '#fff' };
+        return 'success';
       case 'feedback_pending':
-        return { bg: '#f97316', color: '#fff' };
+        return 'secondary';
       case 'cancelled':
-        return { bg: '#ef4444', color: '#fff' };
+        return 'error';
       default:
-        return { bg: '#64748b', color: '#fff' };
+        return 'default';
     }
   };
 
-  // Helper for generating days of current month
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -64,7 +66,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'July', 'August', 'September', 'October', 'November', 'December',
   ];
 
   const handlePrev = () => {
@@ -87,7 +89,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setCurrentDate(new Date());
   };
 
-  // Helper to filter interviews for a specific day
   const getInterviewsForDay = (day: number) => {
     return interviews.filter((item) => {
       const d = new Date(item.scheduled_start);
@@ -103,224 +104,210 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     dayCells.push(d);
   }
 
+  const isToday = (d: number | null) => {
+    if (!d) return false;
+    const now = new Date();
+    return now.getFullYear() === year && now.getMonth() === month && now.getDate() === d;
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       {/* Calendar Header Controls */}
-      <Paper sx={{ p: 2, mb: 2, bgcolor: '#1e293b', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 2,
+          borderRadius: `${tokens.radius.lg}px`,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography variant="h5" sx={{ fontWeight: 800 }}>
             {monthNames[month]} {year}
           </Typography>
-          <Box sx={{ display: 'flex', ml: 2 }}>
-            <IconButton onClick={handlePrev} sx={{ color: '#94a3b8' }}>
+          <Stack direction="row" spacing={0.5} sx={{ ml: 2 }}>
+            <IconButton onClick={handlePrev} size="small">
               <ChevronLeftIcon />
             </IconButton>
-            <Button size="small" onClick={handleToday} startIcon={<TodayIcon />} sx={{ color: '#38bdf8' }}>
+            <Button size="small" onClick={handleToday} startIcon={<TodayIcon />} sx={{ fontWeight: 700 }}>
               Today
             </Button>
-            <IconButton onClick={handleNext} sx={{ color: '#94a3b8' }}>
+            <IconButton onClick={handleNext} size="small">
               <ChevronRightIcon />
             </IconButton>
-          </Box>
-        </Box>
+          </Stack>
+        </Stack>
 
         <ButtonGroup size="small" variant="outlined">
           <Button
             onClick={() => setViewMode('month')}
-            sx={{ bgcolor: viewMode === 'month' ? '#38bdf8' : 'transparent', color: viewMode === 'month' ? '#0f172a' : '#94a3b8', borderColor: '#334155' }}
+            variant={viewMode === 'month' ? 'contained' : 'outlined'}
+            sx={{ fontWeight: 700 }}
           >
             Month
           </Button>
           <Button
             onClick={() => setViewMode('week')}
-            sx={{ bgcolor: viewMode === 'week' ? '#38bdf8' : 'transparent', color: viewMode === 'week' ? '#0f172a' : '#94a3b8', borderColor: '#334155' }}
+            variant={viewMode === 'week' ? 'contained' : 'outlined'}
+            sx={{ fontWeight: 700 }}
           >
             Week
-          </Button>
-          <Button
-            onClick={() => setViewMode('day')}
-            sx={{ bgcolor: viewMode === 'day' ? '#38bdf8' : 'transparent', color: viewMode === 'day' ? '#0f172a' : '#94a3b8', borderColor: '#334155' }}
-          >
-            Day
           </Button>
         </ButtonGroup>
       </Paper>
 
-      {/* Month View Grid */}
-      <Paper sx={{ p: 2, bgcolor: '#0f172a', border: '1px solid #334155' }}>
-        <Grid container spacing={1} sx={{ mb: 1 }}>
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <Grid item xs={12 / 7} key={day} sx={{ textAlign: 'center' }}>
-              <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#94a3b8' }}>
-                {day}
+      {/* Calendar Grid View */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          borderRadius: `${tokens.radius.lg}px`,
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        {/* Days of Week Header */}
+        <Grid container spacing={1} sx={{ mb: 1, textAlign: 'center' }}>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((dw) => (
+            <Grid item xs={12 / 7} key={dw}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>
+                {dw}
               </Typography>
             </Grid>
           ))}
         </Grid>
 
+        {/* Day Cells */}
         <Grid container spacing={1}>
-          {dayCells.map((day, index) => {
-            if (day === null) {
-              return (
-                <Grid item xs={12 / 7} key={`empty-${index}`}>
-                  <Box sx={{ minHeight: 110, bgcolor: '#1e293b22', borderRadius: 1, border: '1px solid #1e293b' }} />
-                </Grid>
-              );
-            }
-
-            const dayInterviews = getInterviewsForDay(day);
-            const isToday =
-              new Date().getDate() === day &&
-              new Date().getMonth() === month &&
-              new Date().getFullYear() === year;
+          {dayCells.map((day, idx) => {
+            const dayInterviews = day ? getInterviewsForDay(day) : [];
+            const today = isToday(day);
 
             return (
-              <Grid item xs={12 / 7} key={day}>
-                <Box
+              <Grid item xs={12 / 7} key={idx}>
+                <Paper
+                  variant="outlined"
                   sx={{
-                    minHeight: 110,
-                    bgcolor: isToday ? '#1e293b' : '#0f172a',
-                    borderRadius: 1,
+                    minHeight: 96,
                     p: 1,
-                    border: isToday ? '2px solid #38bdf8' : '1px solid #1e293b',
-                    transition: surfaceTransition(0.2),
-                    '&:hover': { bgcolor: '#1e293b' },
+                    borderRadius: `${tokens.radius.md}px`,
+                    bgcolor: today
+                      ? (theme) => (theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.05)')
+                      : day === null
+                      ? 'action.hover'
+                      : 'background.paper',
+                    borderColor: today ? 'primary.main' : 'divider',
+                    opacity: day === null ? 0.3 : 1,
                   }}
                 >
-                  <Typography
-                    variant="caption"
-                    fontWeight={isToday ? 'bold' : 'normal'}
-                    sx={{ color: isToday ? '#38bdf8' : '#64748b', display: 'block', mb: 0.5 }}
-                  >
-                    {day}
-                  </Typography>
+                  {day && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: today ? 900 : 700,
+                        color: today ? 'primary.main' : 'text.primary',
+                        display: 'block',
+                        mb: 0.5,
+                      }}
+                    >
+                      {day}
+                    </Typography>
+                  )}
 
-                  {dayInterviews.map((item) => {
-                    const statusStyle = getStatusColor(item.status);
-                    const timeStr = new Date(item.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    return (
-                      <Tooltip key={item.id} title={`${item.title} (${timeStr})`}>
-                        <Box
-                          onClick={() => {
-                            setSelectedInterview(item);
-                            onSelectInterview(item);
-                          }}
-                          sx={{
-                            mb: 0.5,
-                            p: 0.5,
-                            borderRadius: 0.8,
-                            bgcolor: statusStyle.bg,
-                            color: statusStyle.color,
-                            fontSize: '0.7rem',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap',
-                            textOverflow: 'ellipsis',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                            '&:hover': { opacity: 0.9, transform: 'scale(1.02)' },
-                          }}
-                        >
-                          {timeStr} - {item.title}
-                        </Box>
-                      </Tooltip>
-                    );
-                  })}
-                </Box>
+                  <Stack spacing={0.5}>
+                    {dayInterviews.map((iv) => (
+                      <Chip
+                        key={iv.id}
+                        label={iv.title}
+                        size="small"
+                        color={getStatusColor(iv.status) as any}
+                        onClick={() => setSelectedInterview(iv)}
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          '& .MuiChip-label': { px: 0.5 },
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                </Paper>
               </Grid>
             );
           })}
         </Grid>
       </Paper>
 
-      {/* Selected Interview Detail Dialog */}
-      {selectedInterview && (
-        <Dialog open={Boolean(selectedInterview)} onClose={() => setSelectedInterview(null)} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ bgcolor: '#1e293b', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" fontWeight="bold">{selectedInterview.title}</Typography>
-            <Chip
-              label={selectedInterview.status.replace('_', ' ').toUpperCase()}
-              sx={{ bgcolor: getStatusColor(selectedInterview.status).bg, color: '#fff', fontWeight: 'bold' }}
-            />
-          </DialogTitle>
-          <DialogContent dividers sx={{ bgcolor: '#0f172a', color: '#f8fafc', p: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" color="#94a3b8">Scheduled Time</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                  <AccessTimeIcon sx={{ color: '#38bdf8', fontSize: 18 }} />
-                  <Typography variant="body1" fontWeight="bold">
-                    {new Date(selectedInterview.scheduled_start).toLocaleString()} - {new Date(selectedInterview.scheduled_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      {/* Selected Interview Details Dialog */}
+      <Dialog
+        open={Boolean(selectedInterview)}
+        onClose={() => setSelectedInterview(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        {selectedInterview && (
+          <>
+            <DialogTitle sx={{ fontWeight: 800 }}>
+              {selectedInterview.title}
+            </DialogTitle>
+            <DialogContent dividers>
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <AccessTimeIcon color="action" fontSize="small" />
+                  <Typography variant="body2">
+                    {new Date(selectedInterview.scheduled_start).toLocaleString()} –{' '}
+                    {new Date(selectedInterview.scheduled_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Typography>
-                </Box>
-              </Grid>
+                </Stack>
 
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" color="#94a3b8">Meeting Link</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                  <VideoCallIcon sx={{ color: '#38bdf8', fontSize: 18 }} />
-                  {selectedInterview.meeting_link ? (
-                    <a href={selectedInterview.meeting_link} target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>
-                      Join Meeting Room
-                    </a>
-                  ) : (
-                    <Typography variant="body2" color="#64748b">No link provided</Typography>
-                  )}
-                </Box>
-              </Grid>
+                {selectedInterview.candidate_name && (
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <GroupIcon color="action" fontSize="small" />
+                    <Typography variant="body2">
+                      Candidate: <strong>{selectedInterview.candidate_name}</strong>
+                    </Typography>
+                  </Stack>
+                )}
 
-              {/* Rounds */}
-              <Grid item xs={12} sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 1 }}>
-                  Interview Rounds ({selectedInterview.rounds?.length || 0})
-                </Typography>
-                {selectedInterview.rounds?.map((round, idx) => (
-                  <Paper key={round.id || idx} sx={{ p: 2, mb: 1, bgcolor: '#1e293b', border: '1px solid #334155' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f8fafc' }}>
-                        Round {round.round_number}: {round.round_name}
-                      </Typography>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={() => {
-                          setSelectedInterview(null);
-                          onOpenFeedback(round.id);
-                        }}
-                        sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
-                      >
-                        Submit / View Feedback
-                      </Button>
-                    </Box>
-                    <Typography variant="body2" color="#94a3b8">{round.instructions || 'Standard evaluation round.'}</Typography>
-                  </Paper>
-                ))}
-              </Grid>
+                {selectedInterview.notes && (
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedInterview.notes}
+                  </Typography>
+                )}
 
-              {/* Panel Members */}
-              <Grid item xs={12} sx={{ mt: 1 }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 1 }}>
-                  Panel Members ({selectedInterview.participants?.length || 0})
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {selectedInterview.participants?.map((p, idx) => (
-                    <Chip
-                      key={p.id || idx}
-                      icon={<GroupIcon sx={{ color: '#38bdf8 !important' }} />}
-                      label={`${p.user_name || 'Panelist'} (${p.role}) - ${p.rsvp_status.toUpperCase()}`}
-                      sx={{ bgcolor: '#1e293b', color: '#e2e8f0', border: '1px solid #334155' }}
-                    />
-                  ))}
-                </Box>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ bgcolor: '#1e293b', p: 2 }}>
-            <Button onClick={() => setSelectedInterview(null)} sx={{ color: '#94a3b8' }}>Close</Button>
-          </DialogActions>
-        </Dialog>
-      )}
+                {selectedInterview.meeting_link && (
+                  <Button
+                    component="a"
+                    href={selectedInterview.meeting_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="contained"
+                    startIcon={<VideoCallIcon />}
+                    sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700, textTransform: 'none' }}
+                  >
+                    Join Video Call
+                  </Button>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setSelectedInterview(null)}>Close</Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 };
+
 export default CalendarView;
