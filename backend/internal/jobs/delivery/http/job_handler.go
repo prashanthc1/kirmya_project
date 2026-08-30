@@ -32,10 +32,6 @@ func atoiOr(raw string, fallback int) int {
 }
 
 // SearchJobs handles GET /jobs — the public, platform-wide job board.
-//
-// Public on purpose: this is the destination of the landing page's primary
-// call to action and of the schema.org SearchAction, both of which have to work
-// for signed-out visitors and for crawlers.
 func (h *JobHandler) SearchJobs(c *gin.Context) {
 	q := models.JobSearchQuery{
 		Query:           c.Query("q"),
@@ -59,4 +55,25 @@ func (h *JobHandler) SearchJobs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, page)
+}
+
+// GetJobByID handles GET /jobs/:id — public details for an active job posting.
+func (h *JobHandler) GetJobByID(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "job ID is required"})
+		return
+	}
+
+	job, err := h.svc.GetJobByID(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrNoDatabase) {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "job service is unavailable"})
+			return
+		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "job not found or inactive"})
+		return
+	}
+
+	c.JSON(http.StatusOK, job)
 }

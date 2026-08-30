@@ -9,6 +9,7 @@ import (
 
 type JobService interface {
 	SearchJobs(ctx context.Context, q models.JobSearchQuery) (*models.JobListPage, error)
+	GetJobByID(ctx context.Context, id string) (*models.JobDetail, error)
 }
 
 type jobService struct {
@@ -21,4 +22,8 @@ func NewJobService(repo *repository.JobRepository) JobService {
 
 func (s *jobService) SearchJobs(ctx context.Context, q models.JobSearchQuery) (*models.JobListPage, error) {
 	return s.repo.SearchJobs(ctx, q)
+}
+
+func (s *jobService) GetJobByID(ctx context.Context, id string) (*models.JobDetail, error) {
+	return s.repo.GetJobByID(ctx, id)
 }

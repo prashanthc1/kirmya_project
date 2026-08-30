@@ -36,6 +36,17 @@ type JobSummary struct {
 	CreatedAt   time.Time  `json:"created_at"`
 }
 
+// JobDetail represents the full details of a specific job posting.
+type JobDetail struct {
+	JobSummary
+	Description      string     `json:"description"`
+	Requirements     []string   `json:"requirements"`
+	Responsibilities []string   `json:"responsibilities"`
+	Benefits         []string   `json:"benefits"`
+	Status           string     `json:"status"`
+	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
+}
+
 // JobSearchQuery carries the public listing filters. Every field is optional;
 // the zero value returns the newest active postings.
 type JobSearchQuery struct {

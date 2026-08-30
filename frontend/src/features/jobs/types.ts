@@ -20,6 +20,15 @@ export interface JobSummary {
   created_at: string;
 }
 
+export interface JobDetail extends JobSummary {
+  description?: string;
+  requirements?: string[];
+  responsibilities?: string[];
+  benefits?: string[];
+  status?: string;
+  expires_at?: string;
+}
+
 export interface JobListPage {
   data: JobSummary[];
   page: number;
@@ -37,4 +46,13 @@ export interface JobSearchParams {
   sort?: string;
   page?: number;
   limit?: number;
+}
+
+export interface SavedJobItem {
+  id: string;
+  job_id: string;
+  candidate_id: string;
+  notes?: string;
+  saved_at: string;
+  job?: JobSummary;
 }

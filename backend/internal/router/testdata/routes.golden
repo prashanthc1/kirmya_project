@@ -326,6 +326,7 @@ GET /api/v1/job-alerts/history
 GET /api/v1/job-recommendations
 GET /api/v1/job-recommendations/:id
 GET /api/v1/jobs
+GET /api/v1/jobs/:id
 GET /api/v1/jobs/matches
 GET /api/v1/jobs/matches/:id
 GET /api/v1/jobs/saved

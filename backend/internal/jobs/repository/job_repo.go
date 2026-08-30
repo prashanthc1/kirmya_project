@@ -68,7 +68,7 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 			OR lower(COALESCE(j.department, '')) LIKE %[1]s
 			OR lower(COALESCE(c.name, '')) LIKE %[1]s
 			OR EXISTS (
-			    SELECT 1 FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb)) sk
+			    SELECT 1 FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb))), sk
 			    WHERE lower(sk) LIKE %[1]s
 			))`, p))
 	}
@@ -168,4 +168,60 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 		Total:      total,
 		TotalPages: totalPages,
 	}, nil
+}
+
+// GetJobByID fetches the full detail of a specific active job posting.
+func (r *JobRepository) GetJobByID(ctx context.Context, id string) (*models.JobDetail, error) {
+	if r.db == nil {
+		return nil, ErrNoDatabase
+	}
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, errors.New("invalid job ID")
+	}
+
+	from := `
+		FROM jobs j
+		LEFT JOIN companies c ON c.id = j.company_id AND c.status = 'active'
+		LEFT JOIN company_profiles p ON p.company_id = c.id`
+
+	row := r.db.QueryRow(ctx, `
+		SELECT
+			j.id, j.title, j.company_id,
+			COALESCE(c.name, ''), COALESCE(c.handle, ''), COALESCE(p.logo_url, ''),
+			COALESCE(j.location, ''), COALESCE(j.work_mode, ''),
+			COALESCE(j.employment_type, ''), COALESCE(j.experience_level, ''),
+			COALESCE(j.department, ''),
+			COALESCE(j.salary_range, ''), j.salary_min, j.salary_max,
+			COALESCE(j.salary_currency, ''),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb))), '{}'),
+			j.is_featured,
+			j.published_at, j.created_at,
+			COALESCE(j.description, ''),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.requirements, '[]'::jsonb))), '{}'),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.responsibilities, '[]'::jsonb))), '{}'),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.benefits, '[]'::jsonb))), '{}'),
+			j.status, j.expires_at`+from+`
+		WHERE j.id::text = $1 AND j.status = 'active' AND (j.expires_at IS NULL OR j.expires_at > NOW())`, id)
+
+	var j models.JobDetail
+	if err := row.Scan(
+		&j.ID, &j.Title, &j.CompanyID,
+		&j.CompanyName, &j.CompanyHandle, &j.CompanyLogo,
+		&j.Location, &j.WorkMode,
+		&j.EmploymentType, &j.ExperienceLevel,
+		&j.Department,
+		&j.SalaryRange, &j.SalaryMin, &j.SalaryMax,
+		&j.SalaryCurrency,
+		&j.Skills, &j.IsFeatured,
+		&j.PublishedAt, &j.CreatedAt,
+		&j.Description,
+		&j.Requirements,
+		&j.Responsibilities,
+		&j.Benefits,
+		&j.Status, &j.ExpiresAt,
+	); err != nil {
+		return nil, err
+	}
+	return &j, nil
 }
