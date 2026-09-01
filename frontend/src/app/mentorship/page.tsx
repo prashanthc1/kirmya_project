@@ -311,7 +311,7 @@ export default function MentorshipDashboardPage() {
                       />
                     </Box>
                     <Typography variant="body2" sx={{ mt: 1, bgcolor: 'action.hover', p: 1.5, borderRadius: '8px' }}>
-                      "{req.note}"
+                      &ldquo;{req.note}&rdquo;
                     </Typography>
                     <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
                       {req.requested_topics.map((t) => (

@@ -80,7 +80,7 @@ export const ResumeCard: React.FC<ResumeCardProps> = ({
         bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: resume.isDefault ? 'primary.main' : 'divider',
-        transition: 'all 0.2s ease',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         '&:hover': {
           borderColor: 'primary.main',
           boxShadow: (theme) =>

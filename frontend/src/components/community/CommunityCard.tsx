@@ -75,7 +75,7 @@ export const CommunityCard: React.FC<CommunityCardProps> = ({ community, onJoinT
         border: '1px solid',
         borderColor: 'divider',
         textDecoration: 'none',
-        transition: 'all 0.2s ease',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         overflow: 'hidden',
         '&:hover': {
           borderColor: 'primary.main',

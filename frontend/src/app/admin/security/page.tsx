@@ -15,7 +15,7 @@ import AccountRiskScorecard from '@/components/security/AccountRiskScorecard';
 
 export default function AdminSecurityPage() {
   return (
-    <Box sx={{ minHeight: '100vh', py: 4, px: { xs: 2, md: 4 } }}>
+    <Box sx={{ minHeight: '100dvh', py: 4, px: { xs: 2, md: 4 } }}>
       <Container maxWidth="xl">
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>

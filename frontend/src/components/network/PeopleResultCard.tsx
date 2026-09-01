@@ -44,7 +44,7 @@ export const PeopleResultCard: React.FC<PeopleResultCardProps> = ({ person, onSt
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        transition: 'all 0.2s ease',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         '&:hover': {
           borderColor: 'primary.main',
           boxShadow: (theme) =>

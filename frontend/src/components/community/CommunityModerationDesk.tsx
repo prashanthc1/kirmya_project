@@ -196,7 +196,7 @@ export const CommunityModerationDesk: React.FC<CommunityModerationDeskProps> = (
                         FLAGGED CONTENT SNIPPET:
                       </Typography>
                       <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                        "{report.targetContentSnippet}"
+                        &ldquo;{report.targetContentSnippet}&rdquo;
                       </Typography>
                     </Paper>
                   )}
@@ -278,7 +278,7 @@ export const CommunityModerationDesk: React.FC<CommunityModerationDeskProps> = (
 
                   {req.reason && (
                     <Typography variant="body2" sx={{ my: 1.5, p: 1.5, bgcolor: 'action.hover', borderRadius: '8px' }}>
-                      "{req.reason}"
+                      &ldquo;{req.reason}&rdquo;
                     </Typography>
                   )}
 

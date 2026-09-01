@@ -182,7 +182,7 @@ export const MentorshipGoalsCard: React.FC<MentorshipGoalsCardProps> = ({
               }}
             >
               <Typography variant="body2" color="text.secondary">
-                No active goals created yet. Click "Add Goal" to get started!
+                No active goals created yet. Click &ldquo;Add Goal&rdquo; to get started!
               </Typography>
             </Box>
           ) : (

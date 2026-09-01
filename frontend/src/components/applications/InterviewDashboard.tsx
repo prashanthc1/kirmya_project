@@ -158,7 +158,7 @@ export function InterviewDashboard({
                     bgcolor: 'background.paper',
                     border: '1px solid',
                     borderColor: 'divider',
-                    transition: 'all 0.2s',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                     '&:hover': {
                       borderColor: 'primary.main',
                       boxShadow: (theme) =>

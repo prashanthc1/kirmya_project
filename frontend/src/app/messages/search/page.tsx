@@ -135,7 +135,7 @@ function MessageSearchContent() {
                   borderColor: 'divider',
                   textDecoration: 'none',
                   display: 'block',
-                  transition: 'all 0.2s ease',
+                  transition: 'border-color 0.2s ease, background-color 0.2s ease',
                   '&:hover': {
                     borderColor: 'primary.main',
                     bgcolor: 'action.hover',

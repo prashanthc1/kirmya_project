@@ -139,7 +139,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         alignItems: 'flex-start',
         gap: 2,
         cursor: 'pointer',
-        transition: 'all 0.15s ease',
+        transition: 'background-color 0.15s ease, border-color 0.15s ease',
         position: 'relative',
         '&:hover': {
           bgcolor: 'action.hover',

@@ -144,7 +144,7 @@ export const MentorshipSessionsCard: React.FC<MentorshipSessionsCardProps> = ({
               }}
             >
               <Typography variant="body2" color="text.secondary">
-                No sessions scheduled yet. Click "Schedule" to book a session.
+                No sessions scheduled yet. Click &ldquo;Schedule&rdquo; to book a session.
               </Typography>
             </Box>
           ) : (

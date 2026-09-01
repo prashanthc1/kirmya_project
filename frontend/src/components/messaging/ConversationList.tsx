@@ -135,7 +135,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   borderRadius: `${tokens.radius.md}px`,
                   mb: 0.5,
                   bgcolor: isSelected ? 'action.selected' : 'transparent',
-                  transition: 'all 0.15s ease',
+                  transition: 'background-color 0.15s ease',
                   '&:hover': { bgcolor: 'action.hover' },
                 }}
               >

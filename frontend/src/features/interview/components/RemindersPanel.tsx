@@ -109,7 +109,7 @@ export const RemindersPanel: React.FC<RemindersPanelProps> = ({
                     bgcolor: 'background.paper',
                     border: '1px solid',
                     borderColor: 'divider',
-                    transition: 'all 0.2s',
+                    transition: 'border-color 0.2s ease, transform 0.2s ease',
                     '&:hover': {
                       borderColor: 'primary.main',
                       transform: 'translateY(-2px)',

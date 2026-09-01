@@ -206,7 +206,7 @@ export const AvailabilityManager: React.FC<AvailabilityManagerProps> = ({
                       variant="outlined"
                       sx={{
                         borderRadius: `${tokens.radius.md}px`,
-                        transition: 'all 0.2s',
+                        transition: 'border-color 0.2s ease',
                         '&:hover': { borderColor: 'primary.main' },
                       }}
                     >

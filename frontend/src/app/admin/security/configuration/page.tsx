@@ -10,7 +10,7 @@ import BotMitigationDashboard from '@/components/security/BotMitigationDashboard
 
 export default function SecurityConfigurationPage() {
   return (
-    <Box sx={{ minHeight: '100vh', py: 4, px: { xs: 2, md: 4 } }}>
+    <Box sx={{ minHeight: '100dvh', py: 4, px: { xs: 2, md: 4 } }}>
       <Container maxWidth="xl">
         <Breadcrumbs sx={{ mb: 2 }}>
           <MuiLink component={Link} href="/admin/security" underline="hover" color="inherit" sx={{ fontWeight: 700 }}>

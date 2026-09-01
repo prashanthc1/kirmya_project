@@ -238,7 +238,7 @@ export const SafetyPolicyStudio: React.FC = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   justify: 'space-between',
-                  transition: 'all 0.2s',
+                  transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
                     borderColor: 'rgba(99, 102, 241, 0.4)',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.1)',

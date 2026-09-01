@@ -92,7 +92,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ variant = 'recruiter' })
         bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
         borderRight: `1px solid ${theme.palette.divider}`,
         transition: 'width 200ms ease-in-out',
-        minHeight: 'calc(100vh - 64px)',
+        minHeight: 'calc(100dvh - 64px)',
         p: 2,
         boxSizing: 'border-box',
         display: { xs: 'none', md: 'block' },

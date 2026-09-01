@@ -56,7 +56,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({ cand, on
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        transition: 'all 0.2s ease',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         '&:hover': {
           borderColor: 'primary.main',
           boxShadow: (theme) =>

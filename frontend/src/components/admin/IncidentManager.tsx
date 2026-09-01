@@ -233,7 +233,7 @@ export const IncidentManager: React.FC = () => {
                         ? 'rgba(15, 23, 42, 0.5)'
                         : 'rgba(241, 245, 249, 0.7)',
                       border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.08)',
-                      transition: 'all 0.2s ease',
+                      transition: 'transform 0.2s ease, border-color 0.2s ease',
                       '&:hover': { transform: 'translateY(-2px)' },
                     }}
                   >

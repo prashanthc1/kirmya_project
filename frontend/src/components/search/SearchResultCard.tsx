@@ -71,7 +71,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ item, onActi
         borderRadius: `${tokens.radius.lg}px`,
         display: 'flex',
         flexDirection: 'column',
-        transition: 'all 0.2s ease-in-out',
+        transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
         '&:hover': {
           borderColor: 'primary.main',
           boxShadow: '0 4px 20px 0 rgba(0, 0, 0, 0.08)',

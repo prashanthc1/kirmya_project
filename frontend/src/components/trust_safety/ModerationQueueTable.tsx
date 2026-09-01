@@ -292,7 +292,7 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
                 <TableRow
                   key={c.id}
                   hover
-                  sx={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                  sx={{ cursor: 'pointer', transition: 'background-color 0.2s ease' }}
                   onClick={() => onSelectCase && onSelectCase(c)}
                 >
                   <TableCell>

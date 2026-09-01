@@ -109,7 +109,7 @@ export default function MessageRequestsPage() {
                   bgcolor: 'background.paper',
                   border: '1px solid',
                   borderColor: 'divider',
-                  transition: 'all 0.2s ease',
+                  transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
                     borderColor: 'primary.main',
                   },

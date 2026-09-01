@@ -38,7 +38,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: 'background.default',
         color: 'text.primary',
       }}
