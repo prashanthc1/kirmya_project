@@ -294,7 +294,6 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	}
 	if deps.TrustSafetyHandler != nil {
 		trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
-		trustHttp.RegisterTrustRoutes(api, deps.TrustSafetyHandler)
 	}
 	if deps.AdminTrustSafetyHandler != nil {
 		trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler, deps.AuthMiddleware)

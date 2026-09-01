@@ -171,10 +171,8 @@ GET /api/v1/admin/support/sla
 GET /api/v1/admin/support/tickets
 GET /api/v1/admin/support/tickets/:id
 GET /api/v1/admin/support/tickets/:id/messages
-GET /api/v1/admin/system/health
 GET /api/v1/admin/system/jobs
 GET /api/v1/admin/system/jobs/:id
-GET /api/v1/admin/trust-safety
 GET /api/v1/admin/users
 GET /api/v1/admin/users/:id
 GET /api/v1/admin/verifications

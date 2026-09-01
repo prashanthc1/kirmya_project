@@ -51,8 +51,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 		admin.GET("/moderation/queue", handler.ListModerationQueue)
 		admin.GET("/moderation/:id", handler.ListModerationQueue)
 
-		// Trust & Safety & Verifications
-		admin.GET("/trust-safety", handler.GetDashboard)
+		// Verifications
 		admin.GET("/verifications", handler.ListVerifications)
 		admin.POST("/verifications/:id/approve", handler.UpdateCompanyStatus)
 		admin.POST("/verifications/:id/reject", handler.UpdateCompanyStatus)
@@ -90,7 +89,6 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 		admin.GET("/analytics", handler.GetDashboard)
 		admin.GET("/audit-logs", handler.ListAuditLogs)
 		admin.GET("/security-events", handler.ListSecurityEvents)
-		admin.GET("/system/health", handler.GetSystemHealth)
 
 		admin.GET("/observability", handler.GetObservabilitySummary)
 		admin.GET("/observability/health", handler.GetObservabilityHealth)

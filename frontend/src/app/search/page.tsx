@@ -126,9 +126,10 @@ function SearchPageContent() {
     fetchHistory();
   }, []);
 
-  const handleSearchSubmit = (newQuery: string) => {
-    setQuery(newQuery);
-    updateURL(newQuery, selectedCategory);
+  const handleSearchSubmit = (newQuery?: string) => {
+    const target = newQuery !== undefined ? newQuery : query;
+    setQuery(target);
+    updateURL(target, selectedCategory);
   };
 
   const handleCategoryChange = (_: React.SyntheticEvent, newCat: SearchCategory) => {
