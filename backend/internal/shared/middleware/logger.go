@@ -32,7 +32,7 @@ func sanitizeQuery(rawQuery string) string {
 	}
 	for k := range values {
 		lowerK := strings.ToLower(k)
-		if sensitiveQueryKeys[lowerK] || strings.Contains(lowerK, "token") || strings.Contains(lowerK, "secret") {
+		if sensitiveQueryKeys[lowerK] || strings.Contains(lowerK, "token") || strings.Contains(lowerK, "secret") || strings.Contains(lowerK, "password") {
 			values.Set(k, "[REDACTED]")
 		}
 	}
@@ -60,14 +60,30 @@ func StructuredLogger() gin.HandlerFunc {
 			path = path + "?" + cleanQuery
 		}
 
+		reqID, _ := c.Get("request_id")
+		if reqID == nil || reqID == "" {
+			reqID = c.GetHeader("X-Request-ID")
+		}
+		traceID, _ := c.Get("trace_id")
+		if traceID == nil || traceID == "" {
+			traceID = c.GetHeader("X-Trace-ID")
+		}
+
 		// Log using structured attributes
-		logAttrs := []interface{}{
+		logAttrs := []any{
 			slog.Int("status", statusCode),
 			slog.String("method", method),
 			slog.String("path", path),
 			slog.String("ip", clientIP),
 			slog.Duration("latency", latency),
 			slog.String("user_agent", c.Request.UserAgent()),
+		}
+
+		if reqID != nil && reqID != "" {
+			logAttrs = append(logAttrs, slog.Any("request_id", reqID))
+		}
+		if traceID != nil && traceID != "" {
+			logAttrs = append(logAttrs, slog.Any("trace_id", traceID))
 		}
 
 		if errorMessage != "" {

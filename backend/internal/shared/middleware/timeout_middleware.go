@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TimeoutMiddleware sets a request-scoped context timeout for all downstream handler operations,
+// database queries, and external API calls without spawning concurrent goroutines on the unsafe *gin.Context.
 func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
@@ -15,23 +17,15 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 
 		c.Request = c.Request.WithContext(ctx)
 
-		done := make(chan struct{}, 1)
-		go func() {
-			c.Next()
-			done <- struct{}{}
-		}()
+		c.Next()
 
-		select {
-		case <-done:
-			return
-		case <-ctx.Done():
-			if ctx.Err() == context.DeadlineExceeded {
-				c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
-					"error":   "Request execution deadline exceeded",
-					"code":    "REQUEST_TIMEOUT",
-					"timeout": timeout.String(),
-				})
-			}
+		// Check if request deadline was exceeded during execution
+		if ctx.Err() == context.DeadlineExceeded && !c.Writer.Written() {
+			c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
+				"error":   "Request execution deadline exceeded",
+				"code":    "REQUEST_TIMEOUT",
+				"timeout": timeout.String(),
+			})
 		}
 	}
 }

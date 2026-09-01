@@ -5,6 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 export const authApiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,11 +20,24 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessTokenInMemory;
 
-// Request interceptor: attach bearer access token
+// Generate unique client-side request IDs for tracing & correlation
+const generateRequestId = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `req-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+};
+
+// Request interceptor: attach bearer access token and correlation headers
 authApiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    if (accessTokenInMemory && config.headers) {
-      config.headers.Authorization = `Bearer ${accessTokenInMemory}`;
+    if (config.headers) {
+      if (accessTokenInMemory) {
+        config.headers.Authorization = `Bearer ${accessTokenInMemory}`;
+      }
+      if (!config.headers['X-Request-ID']) {
+        config.headers['X-Request-ID'] = generateRequestId();
+      }
     }
     return config;
   },
@@ -194,4 +208,30 @@ export const authService = {
     const res = await authApiClient.get('/auth/session');
     return res.data;
   },
+};
+
+export interface ParsedApiError {
+  message: string;
+  code?: string;
+  requestId?: string;
+  status?: number;
+}
+
+export const extractApiError = (err: unknown, fallbackMessage = 'An unexpected error occurred. Please try again.'): ParsedApiError => {
+  if (axios.isAxiosError(err)) {
+    const status = err.response?.status;
+    const data = err.response?.data as any;
+
+    const message = data?.error || data?.message || (status === 429 ? 'Too many requests. Please wait a moment and try again.' : fallbackMessage);
+    const code = data?.code;
+    const requestId = data?.request_id || err.response?.headers?.['x-request-id'];
+
+    return { message, code, requestId, status };
+  }
+
+  if (err instanceof Error) {
+    return { message: err.message || fallbackMessage };
+  }
+
+  return { message: fallbackMessage };
 };

@@ -140,7 +140,9 @@ type RateLimitConfig struct {
 }
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
-	engine := gin.Default()
+	engine := gin.New()
+	engine.Use(middleware.PanicRecovery())
+	engine.Use(middleware.StructuredLogger())
 	if err := engine.SetTrustedProxies(deps.TrustedProxies); err != nil {
 		slog.Error("Invalid TRUSTED_PROXIES entry; trusting no proxy", slog.String("error", err.Error()))
 		_ = engine.SetTrustedProxies(nil)

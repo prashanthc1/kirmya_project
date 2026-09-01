@@ -47,7 +47,7 @@ func (s *SystemHealthService) GetPublicReadiness(ctx context.Context) models.Pub
 		ctxTimeout, cancel := context.WithTimeout(ctx, 2*time.Second)
 		defer cancel()
 		if err := s.db.PingContext(ctxTimeout); err != nil {
-			status = "degraded"
+			status = "unhealthy"
 		}
 	}
 
