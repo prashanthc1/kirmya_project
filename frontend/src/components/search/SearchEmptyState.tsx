@@ -5,52 +5,61 @@ import {
   Typography,
   Chip,
   Button,
+  Stack,
 } from '@mui/material';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { tokens } from '../../theme/tokens';
 
 export interface SearchEmptyStateProps {
   query?: string;
   onSelectKeyword?: (keyword: string) => void;
   onResetFilters?: () => void;
+  onClear?: () => void;
   hasActiveFilters?: boolean;
 }
 
 const SUGGESTED_KEYWORDS = [
-  'Senior Go Backend Architect',
+  'Go Backend Architect',
   'Full-Stack Developer',
   'React Architect',
   'PostgreSQL Engineer',
-  'Stripe Global Jobs',
-  'Go Guild Community',
+  'Cloud Infrastructure',
+  'Distributed Systems',
 ];
 
 export const SearchEmptyState: React.FC<SearchEmptyStateProps> = ({
   query,
   onSelectKeyword,
   onResetFilters,
+  onClear,
   hasActiveFilters = false,
 }) => {
+  const handleClear = () => {
+    if (onClear) onClear();
+    if (onResetFilters) onResetFilters();
+  };
+
   return (
     <Paper
       elevation={0}
       sx={{
-        p: 5,
+        p: { xs: 3, md: 5 },
         textAlign: 'center',
-        bgcolor: 'rgba(30, 41, 59, 0.5)',
-        backdropFilter: 'blur(12px)',
-        border: '1px dashed rgba(255, 255, 255, 0.15)',
-        borderRadius: 4,
-        my: 4,
+        bgcolor: 'background.paper',
+        border: '1px dashed',
+        borderColor: 'divider',
+        borderRadius: `${tokens.radius.lg}px`,
+        my: 2,
       }}
     >
       <Box
         sx={{
-          width: 72,
-          height: 72,
-          borderRadius: '50%',
-          bgcolor: 'rgba(56, 189, 248, 0.1)',
+          width: 64,
+          height: 64,
+          borderRadius: `${tokens.radius.md}px`,
+          bgcolor: 'action.hover',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -58,68 +67,62 @@ export const SearchEmptyState: React.FC<SearchEmptyStateProps> = ({
           mb: 2,
         }}
       >
-        <SearchOffIcon sx={{ fontSize: 38, color: '#38bdf8' }} />
+        <SearchOffIcon color="action" sx={{ fontSize: 32 }} />
       </Box>
 
-      <Typography variant="h5" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
-        {query ? `No results found for "${query}"` : 'No search results found'}
+      <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
+        {query ? `No matching results for "${query}"` : 'No search results found'}
       </Typography>
 
-      <Typography variant="body2" sx={{ color: '#94a3b8', maxWidth: 480, mx: 'auto', mb: 3 }}>
-        We couldn't find any matches. Try adjusting your search query, clearing specific filters, or choosing one of our popular recommended topics below.
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 480, mx: 'auto', mb: 3 }}>
+        Check your spelling, try broader keywords, or reset active filters to explore more content across Kirmya.
       </Typography>
 
-      {hasActiveFilters && onResetFilters && (
-        <Box sx={{ mb: 3 }}>
+      {handleClear && (
+        <Box sx={{ mb: 4 }}>
           <Button
             variant="outlined"
-            onClick={onResetFilters}
+            size="small"
             startIcon={<RestartAltIcon />}
-            sx={{
-              color: '#38bdf8',
-              borderColor: '#38bdf8',
-              fontWeight: 'bold',
-              textTransform: 'none',
-              borderRadius: 2,
-              '&:hover': { bgcolor: 'rgba(56, 189, 248, 0.1)' },
-            }}
+            onClick={handleClear}
+            sx={{ borderRadius: `${tokens.radius.sm}px`, textTransform: 'none', fontWeight: 700 }}
           >
-            Reset Active Filters
+            Clear Search & Filters
           </Button>
         </Box>
       )}
 
-      {/* Suggested Keywords Section */}
-      <Box sx={{ maxWidth: 600, mx: 'auto', pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-          <LightbulbIcon fontSize="small" sx={{ color: '#f59e0b' }} />
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1' }}>
-            Try searching for these trending keywords:
-          </Typography>
-        </Box>
+      {onSelectKeyword && (
+        <Box sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
+            <LightbulbIcon fontSize="small" color="warning" />
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+              Suggested Searches
+            </Typography>
+          </Stack>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
-          {SUGGESTED_KEYWORDS.map((kw) => (
-            <Chip
-              key={kw}
-              label={kw}
-              onClick={() => onSelectKeyword && onSelectKeyword(kw)}
-              sx={{
-                bgcolor: 'rgba(15, 23, 42, 0.8)',
-                color: '#38bdf8',
-                border: '1px solid #334155',
-                fontWeight: 500,
-                cursor: 'pointer',
-                '&:hover': {
-                  bgcolor: '#38bdf8',
-                  color: '#0f172a',
-                  fontWeight: 'bold',
-                },
-              }}
-            />
-          ))}
+          <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center" sx={{ gap: 1 }}>
+            {SUGGESTED_KEYWORDS.map((kw) => (
+              <Chip
+                key={kw}
+                label={kw}
+                size="small"
+                variant="outlined"
+                onClick={() => onSelectKeyword(kw)}
+                sx={{
+                  borderRadius: `${tokens.radius.sm}px`,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              />
+            ))}
+          </Stack>
         </Box>
-      </Box>
+      )}
     </Paper>
   );
 };

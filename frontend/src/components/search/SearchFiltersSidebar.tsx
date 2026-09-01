@@ -13,20 +13,23 @@ import {
   Chip,
   Autocomplete,
   Divider,
+  Stack,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CheckIcon from '@mui/icons-material/Check';
 import { SearchFilterParams } from '../../features/search/types';
+import { tokens } from '../../theme/tokens';
 
 export interface SearchFiltersSidebarProps {
   open: boolean;
   onClose: () => void;
   filters: SearchFilterParams;
   onFilterChange: (filters: SearchFilterParams) => void;
-  onResetFilters: () => void;
-  onApplyFilters: () => void;
+  onResetFilters?: () => void;
+  onReset?: () => void;
+  onApplyFilters?: () => void;
   isDrawer?: boolean;
 }
 
@@ -60,8 +63,9 @@ export const SearchFiltersSidebar: React.FC<SearchFiltersSidebarProps> = ({
   filters,
   onFilterChange,
   onResetFilters,
+  onReset,
   onApplyFilters,
-  isDrawer = true,
+  isDrawer = false,
 }) => {
   const handleChange = (field: keyof SearchFilterParams, value: any) => {
     onFilterChange({
@@ -70,160 +74,110 @@ export const SearchFiltersSidebar: React.FC<SearchFiltersSidebarProps> = ({
     });
   };
 
+  const handleReset = () => {
+    if (onReset) onReset();
+    if (onResetFilters) onResetFilters();
+  };
+
   const content = (
     <Box
       sx={{
-        width: 320,
-        p: 3,
-        bgcolor: '#0f172a',
-        color: '#f8fafc',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        p: 2.5,
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: `${tokens.radius.lg}px`,
       }}
     >
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FilterListIcon sx={{ color: '#38bdf8' }} />
-          <Typography variant="h6" fontWeight="bold">
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <FilterListIcon fontSize="small" color="primary" />
+          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
             Search Filters
           </Typography>
-        </Box>
-        {isDrawer && (
-          <IconButton size="small" onClick={onClose} sx={{ color: '#94a3b8', '&:hover': { color: '#f8fafc' } }}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        )}
+        </Stack>
+
+        <Button
+          size="small"
+          startIcon={<RestartAltIcon fontSize="small" />}
+          onClick={handleReset}
+          sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 700 }}
+        >
+          Reset
+        </Button>
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', mb: 3 }} />
-
-      {/* Filter Options */}
-      <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {/* Location */}
+      <Stack spacing={2.5}>
+        {/* Location Filter */}
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1', mb: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
             Location
           </Typography>
           <TextField
             fullWidth
             size="small"
-            placeholder="e.g. Remote, San Francisco, London"
+            placeholder="e.g. Dubai, UAE or Remote"
             value={filters.location || ''}
             onChange={(e) => handleChange('location', e.target.value)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: '#f8fafc',
-                bgcolor: 'rgba(30, 41, 59, 0.8)',
-                '& fieldset': { borderColor: '#334155' },
-                '&:hover fieldset': { borderColor: '#38bdf8' },
-              },
-            }}
           />
         </Box>
 
         {/* Work Arrangement */}
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1', mb: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
             Work Arrangement
           </Typography>
-          <FormControl fullWidth size="small">
-            <Select
-              aria-label="Work Arrangement"
-              value={filters.workArrangement || ''}
-              onChange={(e) => handleChange('workArrangement', e.target.value)}
-              displayEmpty
-              sx={{
-                color: '#f8fafc',
-                bgcolor: 'rgba(30, 41, 59, 0.8)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#38bdf8' },
-              }}
-            >
-              <MenuItem value="">Any Arrangement</MenuItem>
-              {WORK_ARRANGEMENTS.map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 0.75 }}>
+            {WORK_ARRANGEMENTS.map((wa) => {
+              const selected = filters.workArrangement === wa;
+              return (
+                <Chip
+                  key={wa}
+                  label={wa}
+                  size="small"
+                  variant={selected ? 'filled' : 'outlined'}
+                  color={selected ? 'primary' : 'default'}
+                  onClick={() => handleChange('workArrangement', selected ? undefined : wa)}
+                  sx={{ fontWeight: 700 }}
+                />
+              );
+            })}
+          </Stack>
         </Box>
 
         {/* Employment Type */}
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1', mb: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
             Employment Type
           </Typography>
-          <FormControl fullWidth size="small">
-            <Select
-              aria-label="Employment Type"
-              value={filters.employmentType || ''}
-              onChange={(e) => handleChange('employmentType', e.target.value)}
-              displayEmpty
-              sx={{
-                color: '#f8fafc',
-                bgcolor: 'rgba(30, 41, 59, 0.8)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#38bdf8' },
-              }}
-            >
-              <MenuItem value="">Any Employment Type</MenuItem>
-              {EMPLOYMENT_TYPES.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Experience Level */}
-        <Box>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1', mb: 1 }}>
-            Experience Level
-          </Typography>
-          <FormControl fullWidth size="small">
-            <Select
-              aria-label="Experience Level"
-              value={filters.experienceLevel || ''}
-              onChange={(e) => handleChange('experienceLevel', e.target.value)}
-              displayEmpty
-              sx={{
-                color: '#f8fafc',
-                bgcolor: 'rgba(30, 41, 59, 0.8)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#38bdf8' },
-              }}
-            >
-              <MenuItem value="">Any Level</MenuItem>
-              {EXPERIENCE_LEVELS.map((lvl) => (
-                <MenuItem key={lvl} value={lvl}>
-                  {lvl}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 0.75 }}>
+            {EMPLOYMENT_TYPES.map((et) => {
+              const selected = filters.employmentType === et;
+              return (
+                <Chip
+                  key={et}
+                  label={et}
+                  size="small"
+                  variant={selected ? 'filled' : 'outlined'}
+                  color={selected ? 'primary' : 'default'}
+                  onClick={() => handleChange('employmentType', selected ? undefined : et)}
+                  sx={{ fontWeight: 700 }}
+                />
+              );
+            })}
+          </Stack>
         </Box>
 
         {/* Industry */}
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1', mb: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
             Industry
           </Typography>
           <FormControl fullWidth size="small">
             <Select
-              aria-label="Industry"
               value={filters.industry || ''}
-              onChange={(e) => handleChange('industry', e.target.value)}
               displayEmpty
-              sx={{
-                color: '#f8fafc',
-                bgcolor: 'rgba(30, 41, 59, 0.8)',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#38bdf8' },
-              }}
+              onChange={(e) => handleChange('industry', e.target.value || undefined)}
             >
               <MenuItem value="">All Industries</MenuItem>
               {INDUSTRIES.map((ind) => (
@@ -235,107 +189,41 @@ export const SearchFiltersSidebar: React.FC<SearchFiltersSidebarProps> = ({
           </FormControl>
         </Box>
 
-        {/* Skills Tag Selector */}
+        {/* Skills Filter */}
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#cbd5e1', mb: 1 }}>
-            Skills & Keywords
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', mb: 0.5, display: 'block' }}>
+            Skills & Technologies
           </Typography>
           <Autocomplete
             multiple
-            size="small"
+            freeSolo
             options={SUGGESTED_SKILLS}
             value={filters.skills || []}
-            onChange={(_, newValue) => handleChange('skills', newValue)}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip
-                  {...getTagProps({ index })}
-                  key={option}
-                  label={option}
-                  size="small"
-                  sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
-                />
-              ))
+            onChange={(_, val) => handleChange('skills', val)}
+            renderInput={(params) => <TextField {...params} size="small" placeholder="Add skills..." />}
+            renderTags={(tagValue, getTagProps) =>
+              tagValue.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key} label={option} size="small" {...tagProps} />;
+              })
             }
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Select or type skills..."
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    color: '#f8fafc',
-                    bgcolor: 'rgba(30, 41, 59, 0.8)',
-                    '& fieldset': { borderColor: '#334155' },
-                    '&:hover fieldset': { borderColor: '#38bdf8' },
-                  },
-                }}
-              />
-            )}
           />
         </Box>
-      </Box>
-
-      {/* Footer Buttons */}
-      <Box sx={{ pt: 3, display: 'flex', gap: 1.5, borderTop: '1px solid rgba(255, 255, 255, 0.1)', mt: 2 }}>
-        <Button
-          variant="outlined"
-          fullWidth
-          onClick={onResetFilters}
-          startIcon={<RestartAltIcon fontSize="small" />}
-          sx={{
-            color: '#94a3b8',
-            borderColor: '#334155',
-            fontWeight: 'bold',
-            textTransform: 'none',
-            '&:hover': { borderColor: '#64748b', color: '#f8fafc' },
-          }}
-        >
-          Reset
-        </Button>
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={() => {
-            onApplyFilters();
-            if (isDrawer) onClose();
-          }}
-          startIcon={<CheckIcon fontSize="small" />}
-          sx={{
-            bgcolor: '#38bdf8',
-            color: '#0f172a',
-            fontWeight: 'bold',
-            textTransform: 'none',
-            '&:hover': { bgcolor: '#0284c7' },
-          }}
-        >
-          Apply Filters
-        </Button>
-      </Box>
+      </Stack>
     </Box>
   );
 
   if (isDrawer) {
     return (
       <Drawer anchor="right" open={open} onClose={onClose}>
-        {content}
+        <Box sx={{ width: 320, p: 2 }}>
+          {content}
+        </Box>
       </Drawer>
     );
   }
 
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        bgcolor: 'rgba(30, 41, 59, 0.7)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: 3,
-        overflow: 'hidden',
-      }}
-    >
-      {content}
-    </Paper>
-  );
+  return content;
 };
 
 export default SearchFiltersSidebar;

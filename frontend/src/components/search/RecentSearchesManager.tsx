@@ -5,18 +5,22 @@ import {
   Typography,
   Chip,
   Button,
+  IconButton,
   Tooltip,
   Divider,
+  Stack,
 } from '@mui/material';
 import HistoryIcon from '@mui/icons-material/History';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import { SearchHistoryItem } from '../../features/search/types';
+import { tokens } from '../../theme/tokens';
 
 export interface RecentSearchesManagerProps {
   history: SearchHistoryItem[];
-  onSelectSearch: (query: string) => void;
+  onSelectQuery?: (query: string, category?: string) => void;
+  onSelectSearch?: (query: string) => void;
   onDeleteItem: (id: string) => void;
   onClearAll: () => void;
   loading?: boolean;
@@ -24,94 +28,108 @@ export interface RecentSearchesManagerProps {
 
 export const RecentSearchesManager: React.FC<RecentSearchesManagerProps> = ({
   history,
+  onSelectQuery,
   onSelectSearch,
   onDeleteItem,
   onClearAll,
   loading = false,
 }) => {
-  if (history.length === 0) {
+  if (!history || history.length === 0) {
     return null;
   }
+
+  const handleSelect = (item: SearchHistoryItem) => {
+    if (onSelectQuery) {
+      onSelectQuery(item.query, item.category_filter);
+    } else if (onSelectSearch) {
+      onSelectSearch(item.query);
+    }
+  };
 
   return (
     <Paper
       elevation={0}
       sx={{
-        p: 2,
-        mb: 3,
-        bgcolor: 'rgba(30, 41, 59, 0.6)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 2.5,
+        p: 2.5,
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: `${tokens.radius.lg}px`,
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <HistoryIcon fontSize="small" sx={{ color: '#38bdf8' }} />
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <HistoryIcon fontSize="small" color="primary" />
+          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
             Recent Searches
           </Typography>
           <Chip
             label={history.length}
             size="small"
-            sx={{
-              bgcolor: 'rgba(56, 189, 248, 0.15)',
-              color: '#38bdf8',
-              fontWeight: 'bold',
-              height: 20,
-              fontSize: '0.7rem',
-            }}
+            variant="outlined"
+            sx={{ fontWeight: 700, height: 20, fontSize: '0.7rem' }}
           />
-        </Box>
-        <Button
-          size="small"
-          onClick={onClearAll}
-          disabled={loading}
-          startIcon={<DeleteSweepIcon fontSize="small" />}
-          sx={{
-            color: '#ef4444',
-            fontSize: '0.8rem',
-            fontWeight: 'bold',
-            textTransform: 'none',
-            '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' },
-          }}
-        >
-          Clear History
-        </Button>
+        </Stack>
+
+        <Tooltip title="Clear search history">
+          <Button
+            size="small"
+            color="error"
+            startIcon={<DeleteSweepIcon fontSize="small" />}
+            onClick={onClearAll}
+            sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 700 }}
+          >
+            Clear All
+          </Button>
+        </Tooltip>
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.06)', mb: 1.5 }} />
-
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+      <Stack spacing={1}>
         {history.map((item) => (
-          <Chip
+          <Box
             key={item.id}
-            icon={<SearchIcon fontSize="small" style={{ color: '#38bdf8' }} />}
-            label={item.query}
-            onClick={() => onSelectSearch(item.query)}
-            onDelete={() => onDeleteItem(item.id)}
-            deleteIcon={
-              <Tooltip title="Remove item">
-                <CloseIcon style={{ color: '#94a3b8', fontSize: '0.9rem' }} />
-              </Tooltip>
-            }
+            onClick={() => handleSelect(item)}
             sx={{
-              bgcolor: 'rgba(15, 23, 42, 0.7)',
-              color: '#38bdf8',
-              border: '1px solid #334155',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 1.25,
+              borderRadius: `${tokens.radius.sm}px`,
               cursor: 'pointer',
-              fontWeight: 500,
+              border: '1px solid transparent',
               '&:hover': {
-                bgcolor: 'rgba(56, 189, 248, 0.15)',
-                borderColor: '#38bdf8',
-              },
-              '& .MuiChip-deleteIcon:hover': {
-                color: '#ef4444 !important',
+                bgcolor: 'action.hover',
+                borderColor: 'divider',
               },
             }}
-          />
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <SearchIcon fontSize="small" color="action" />
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  {item.query}
+                </Typography>
+                {item.category_filter && item.category_filter !== 'all' && (
+                  <Typography variant="caption" color="text.secondary">
+                    in {item.category_filter}
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteItem(item.id);
+              }}
+              sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
         ))}
-      </Box>
+      </Stack>
     </Paper>
   );
 };

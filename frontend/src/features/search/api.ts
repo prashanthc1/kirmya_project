@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { authApiClient } from '../../services/authService';
 import {
   ReindexPayload,
   SaveSearchPreferencePayload,
@@ -7,60 +7,45 @@ import {
   SearchSuggestion,
 } from './types';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
-
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-client.interceptors.request.use((config: any) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  const tenantID = typeof window !== 'undefined' ? localStorage.getItem('active_tenant_id') || '00000000-0000-0000-0000-000000000000' : '00000000-0000-0000-0000-000000000000';
-  config.headers['X-Tenant-ID'] = tenantID;
-  return config;
-});
+export * from './types';
 
 export const searchApi = {
   search: async (q: string, category?: string): Promise<SearchResponse> => {
-    const response = await client.get('/unified-search', {
+    const response = await authApiClient.get<SearchResponse>('/unified-search', {
       params: { q, category: category || 'all' },
     });
     return response.data;
   },
 
   getSuggestions: async (q: string): Promise<{ suggestions: SearchSuggestion[]; count: number }> => {
-    const response = await client.get('/unified-search/suggestions', {
+    const response = await authApiClient.get<{ suggestions: SearchSuggestion[]; count: number }>('/unified-search/suggestions', {
       params: { q },
     });
     return response.data;
   },
 
   getUserHistory: async (): Promise<{ data: SearchHistoryItem[]; count: number }> => {
-    const response = await client.get('/unified-search/history');
+    const response = await authApiClient.get<{ data: SearchHistoryItem[]; count: number }>('/unified-search/history');
     return response.data;
   },
 
   savePreference: async (payload: SaveSearchPreferencePayload): Promise<{ message: string }> => {
-    const response = await client.post('/unified-search/preferences', payload);
+    const response = await authApiClient.post<{ message: string }>('/unified-search/preferences', payload);
     return response.data;
   },
 
   deleteHistoryItem: async (id: string): Promise<{ message: string }> => {
-    const response = await client.delete(`/unified-search/history/${id}`);
+    const response = await authApiClient.delete<{ message: string }>(`/unified-search/history/${id}`);
     return response.data;
   },
 
   clearHistory: async (): Promise<{ message: string }> => {
-    const response = await client.delete('/unified-search/history');
+    const response = await authApiClient.delete<{ message: string }>('/unified-search/history');
     return response.data;
   },
 
   reindex: async (payload: ReindexPayload): Promise<{ message: string; status: string }> => {
-    const response = await client.post('/unified-search/reindex', payload);
+    const response = await authApiClient.post<{ message: string; status: string }>('/unified-search/reindex', payload);
     return response.data;
   },
 };
