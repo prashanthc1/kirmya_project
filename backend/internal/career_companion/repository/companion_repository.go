@@ -2,14 +2,16 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
 
 	"kirmya/internal/career_companion/domain"
-	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,11 +30,7 @@ type CompanionRepository interface {
 	GetUserContext(ctx context.Context, userID uuid.UUID) (*domain.AIUserContext, error)
 }
 
-// memoryCompanionRepository satisfies CompanionRepository entirely from process
-// memory. It accepts the pool so a SQL implementation can take its place
-// without changing any caller, but it never queries it: the data lives and
-// dies with this process. Registered in internal/shared/persistence.
-type memoryCompanionRepository struct {
+type postgresCompanionRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -43,208 +41,396 @@ type memoryCompanionRepository struct {
 }
 
 func NewCompanionRepository(pool *pgxpool.Pool) CompanionRepository {
-	persistence.RegisterEphemeral(persistence.Ephemeral{
-		Module:      "career_companion",
-		Data:        "companion conversations, messages, career plans and per-user AI context",
-		Consequence: "every chat thread is lost and the companion forgets the user it was advising",
-	})
-
-	repo := &memoryCompanionRepository{
+	repo := &postgresCompanionRepository{
 		pool:          pool,
 		conversations: make(map[uuid.UUID]*domain.AIConversation),
 		messages:      make(map[uuid.UUID][]domain.AIMessage),
 		plans:         make(map[uuid.UUID]*domain.CareerPlan),
 		userContexts:  make(map[uuid.UUID]*domain.AIUserContext),
 	}
-	repo.seedDefaultData()
+	repo.seedDefaultDataIfMemory()
 	return repo
 }
 
-func (r *memoryCompanionRepository) seedDefaultData() {
-	now := time.Now()
-	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
-
-	convID := uuid.MustParse("c1111111-1111-1111-1111-111111111111")
-	c1 := &domain.AIConversation{
-		ID:        convID,
-		UserID:    userID,
-		Title:     "Career Recovery & Resume Guidance",
-		Mode:      domain.ModeCareerChat,
-		Status:    "active",
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-	r.conversations[convID] = c1
-
-	msgs := []domain.AIMessage{
-		{
-			ID:             uuid.New(),
-			ConversationID: convID,
-			Sender:         domain.SenderUser,
-			Content:        "Hi AI Companion, I recently experienced job loss and need help optimizing my resume for senior Go engineer roles.",
-			TokensUsed:     24,
-			CreatedAt:      now.Add(-10 * time.Minute),
-		},
-		{
-			ID:             uuid.New(),
-			ConversationID: convID,
-			Sender:         domain.SenderAssistant,
-			Content:        "Welcome! I am here to help you navigate this transition. Based on your background in Go & React architecture, I recommend highlighting your recent project where you optimized PostgreSQL queries by 40%.",
-			TokensUsed:     48,
-			CreatedAt:      now.Add(-9 * time.Minute),
-		},
-	}
-	r.messages[convID] = msgs
-
-	planID := uuid.New()
-	p1 := &domain.CareerPlan{
-		ID:           planID,
-		UserID:       userID,
-		TargetRole:   "Principal Backend Architect",
-		TargetSalary: "$180,000 - $220,000",
-		CurrentLevel: "Senior Software Engineer",
-		Milestones: []domain.CareerMilestone{
-			{StepNumber: 1, Title: "ATS Resume & Portfolio Polish", Description: "Highlight high-throughput Go microservices", Duration: "2 Weeks", KeySkills: []string{"Go", "PostgreSQL"}, Status: "completed"},
-			{StepNumber: 2, Title: "System Design Deep Dive", Description: "Master rate limiting & Kafka event streams", Duration: "3 Weeks", KeySkills: []string{"System Design", "Kafka"}, Status: "in_progress"},
-		},
-		ProgressPercentage: 45,
-		CreatedAt:          now,
-		UpdatedAt:          now,
-	}
-	r.plans[userID] = p1
-
-	r.userContexts[userID] = &domain.AIUserContext{
-		ID:                uuid.New(),
-		UserID:            userID,
-		CareerGoals:       []string{"Principal Architect Role", "Remote Position", "Team Mentorship"},
-		SkillGaps:         []string{"Kafka Event Streaming", "Kubernetes Operator SDK"},
-		PreferredIndustry: "Cloud SaaS & Fintech",
-		MemorySummary:     "Candidate has 5+ years Go/React experience, recovering from recent transition, targeting $180k+ Principal Architect roles.",
-		UpdatedAt:         now,
-	}
-}
-
-func (r *memoryCompanionRepository) CreateConversation(ctx context.Context, conv *domain.AIConversation) error {
+func (r *postgresCompanionRepository) CreateConversation(ctx context.Context, conv *domain.AIConversation) error {
 	if conv.ID == uuid.Nil {
 		conv.ID = uuid.New()
 	}
-	conv.CreatedAt = time.Now()
-	conv.UpdatedAt = time.Now()
+	now := time.Now()
+	conv.CreatedAt = now
+	conv.UpdatedAt = now
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.conversations[conv.ID] = conv
-	return nil
-}
-
-func (r *memoryCompanionRepository) GetConversationByID(ctx context.Context, id uuid.UUID) (*domain.AIConversation, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	if conv, exists := r.conversations[id]; exists {
-		convCopy := *conv
-		if msgs, existsMsgs := r.messages[id]; existsMsgs {
-			convCopy.Messages = msgs
-		}
-		return &convCopy, nil
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.conversations[conv.ID] = conv
+		return nil
 	}
-	return nil, fmt.Errorf("conversation not found: %s", id)
+
+	query := `
+		INSERT INTO ai_conversations (
+			id, user_id, title, mode, status, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+	_, err := r.pool.Exec(ctx, query,
+		conv.ID, conv.UserID, conv.Title, conv.Mode, conv.Status, conv.CreatedAt, conv.UpdatedAt,
+	)
+	return err
 }
 
-func (r *memoryCompanionRepository) GetUserConversations(ctx context.Context, userID uuid.UUID) ([]domain.AIConversation, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+func (r *postgresCompanionRepository) GetConversationByID(ctx context.Context, id uuid.UUID) (*domain.AIConversation, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if conv, exists := r.conversations[id]; exists {
+			cCopy := *conv
+			cCopy.Messages = r.messages[id]
+			return &cCopy, nil
+		}
+		return nil, fmt.Errorf("conversation not found: %s", id)
+	}
+
+	query := `
+		SELECT id, user_id, title, mode, status, created_at, updated_at
+		FROM ai_conversations
+		WHERE id = $1
+	`
+	var conv domain.AIConversation
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&conv.ID, &conv.UserID, &conv.Title, &conv.Mode, &conv.Status, &conv.CreatedAt, &conv.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("conversation not found: %s", id)
+		}
+		return nil, err
+	}
+
+	msgs, err := r.GetConversationMessages(ctx, id)
+	if err == nil {
+		conv.Messages = msgs
+	}
+	return &conv, nil
+}
+
+func (r *postgresCompanionRepository) GetUserConversations(ctx context.Context, userID uuid.UUID) ([]domain.AIConversation, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		var list []domain.AIConversation
+		for _, conv := range r.conversations {
+			if conv.UserID == userID {
+				cCopy := *conv
+				cCopy.Messages = r.messages[conv.ID]
+				list = append(list, cCopy)
+			}
+		}
+		return list, nil
+	}
+
+	query := `
+		SELECT id, user_id, title, mode, status, created_at, updated_at
+		FROM ai_conversations
+		WHERE user_id = $1
+		ORDER BY updated_at DESC
+	`
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	var list []domain.AIConversation
-	for _, conv := range r.conversations {
-		if conv.UserID == userID {
-			convCopy := *conv
-			if msgs, existsMsgs := r.messages[conv.ID]; existsMsgs {
-				convCopy.Messages = msgs
-			}
-			list = append(list, convCopy)
+	for rows.Next() {
+		var conv domain.AIConversation
+		if err := rows.Scan(
+			&conv.ID, &conv.UserID, &conv.Title, &conv.Mode, &conv.Status, &conv.CreatedAt, &conv.UpdatedAt,
+		); err != nil {
+			return nil, err
 		}
+		msgs, _ := r.GetConversationMessages(ctx, conv.ID)
+		conv.Messages = msgs
+		list = append(list, conv)
 	}
-	return list, nil
+	return list, rows.Err()
 }
 
-func (r *memoryCompanionRepository) SaveMessage(ctx context.Context, msg *domain.AIMessage) error {
+func (r *postgresCompanionRepository) SaveMessage(ctx context.Context, msg *domain.AIMessage) error {
 	if msg.ID == uuid.Nil {
 		msg.ID = uuid.New()
 	}
-	msg.CreatedAt = time.Now()
+	now := time.Now()
+	msg.CreatedAt = now
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.messages[msg.ConversationID] = append(r.messages[msg.ConversationID], *msg)
-	return nil
-}
-
-func (r *memoryCompanionRepository) GetConversationMessages(ctx context.Context, conversationID uuid.UUID) ([]domain.AIMessage, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	if msgs, exists := r.messages[conversationID]; exists {
-		return msgs, nil
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.messages[msg.ConversationID] = append(r.messages[msg.ConversationID], *msg)
+		if conv, ok := r.conversations[msg.ConversationID]; ok {
+			conv.UpdatedAt = now
+		}
+		return nil
 	}
-	return []domain.AIMessage{}, nil
+
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx) // nolint:errcheck
+
+	query := `
+		INSERT INTO ai_messages (
+			id, conversation_id, sender, content, tokens_used, created_at
+		) VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err = tx.Exec(ctx, query,
+		msg.ID, msg.ConversationID, msg.Sender, msg.Content, msg.TokensUsed, msg.CreatedAt,
+	)
+	if err != nil {
+		return err
+	}
+
+	updateConvQuery := `
+		UPDATE ai_conversations
+		SET updated_at = $1
+		WHERE id = $2
+	`
+	_, err = tx.Exec(ctx, updateConvQuery, now, msg.ConversationID)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
-func (r *memoryCompanionRepository) SaveCareerPlan(ctx context.Context, plan *domain.CareerPlan) error {
+func (r *postgresCompanionRepository) GetConversationMessages(ctx context.Context, conversationID uuid.UUID) ([]domain.AIMessage, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		return r.messages[conversationID], nil
+	}
+
+	query := `
+		SELECT id, conversation_id, sender, content, tokens_used, created_at
+		FROM ai_messages
+		WHERE conversation_id = $1
+		ORDER BY created_at ASC
+	`
+	rows, err := r.pool.Query(ctx, query, conversationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []domain.AIMessage
+	for rows.Next() {
+		var msg domain.AIMessage
+		if err := rows.Scan(
+			&msg.ID, &msg.ConversationID, &msg.Sender, &msg.Content, &msg.TokensUsed, &msg.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		list = append(list, msg)
+	}
+	return list, rows.Err()
+}
+
+func (r *postgresCompanionRepository) SaveCareerPlan(ctx context.Context, plan *domain.CareerPlan) error {
 	if plan.ID == uuid.Nil {
 		plan.ID = uuid.New()
 	}
-	plan.CreatedAt = time.Now()
-	plan.UpdatedAt = time.Now()
+	now := time.Now()
+	plan.CreatedAt = now
+	plan.UpdatedAt = now
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	r.plans[plan.UserID] = plan
-	return nil
-}
-
-func (r *memoryCompanionRepository) GetLatestCareerPlan(ctx context.Context, userID uuid.UUID) (*domain.CareerPlan, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	if plan, exists := r.plans[userID]; exists {
-		planCopy := *plan
-		return &planCopy, nil
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.plans[plan.UserID] = plan
+		return nil
 	}
-	return nil, nil
+
+	milestonesJSON, err := json.Marshal(plan.Milestones)
+	if err != nil {
+		milestonesJSON = []byte("[]")
+	}
+
+	query := `
+		INSERT INTO career_plans (
+			id, user_id, target_role, target_salary, current_level, milestones, progress_percentage, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`
+	_, err = r.pool.Exec(ctx, query,
+		plan.ID, plan.UserID, plan.TargetRole, plan.TargetSalary, plan.CurrentLevel,
+		milestonesJSON, plan.ProgressPercentage, plan.CreatedAt, plan.UpdatedAt,
+	)
+	return err
 }
 
-func (r *memoryCompanionRepository) SaveUserContext(ctx context.Context, uctx *domain.AIUserContext) error {
+func (r *postgresCompanionRepository) GetLatestCareerPlan(ctx context.Context, userID uuid.UUID) (*domain.CareerPlan, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if plan, exists := r.plans[userID]; exists {
+			pCopy := *plan
+			return &pCopy, nil
+		}
+		return nil, nil
+	}
+
+	query := `
+		SELECT id, user_id, target_role, target_salary, current_level, milestones, progress_percentage, created_at, updated_at
+		FROM career_plans
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+		LIMIT 1
+	`
+	var plan domain.CareerPlan
+	var milestonesJSON []byte
+	var salary, level *string
+	err := r.pool.QueryRow(ctx, query, userID).Scan(
+		&plan.ID, &plan.UserID, &plan.TargetRole, &salary, &level,
+		&milestonesJSON, &plan.ProgressPercentage, &plan.CreatedAt, &plan.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if salary != nil {
+		plan.TargetSalary = *salary
+	}
+	if level != nil {
+		plan.CurrentLevel = *level
+	}
+	if len(milestonesJSON) > 0 {
+		_ = json.Unmarshal(milestonesJSON, &plan.Milestones)
+	}
+	return &plan, nil
+}
+
+func (r *postgresCompanionRepository) SaveUserContext(ctx context.Context, uctx *domain.AIUserContext) error {
 	if uctx.ID == uuid.Nil {
 		uctx.ID = uuid.New()
 	}
-	uctx.UpdatedAt = time.Now()
+	now := time.Now()
+	uctx.UpdatedAt = now
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.userContexts[uctx.UserID] = uctx
+		return nil
+	}
 
-	r.userContexts[uctx.UserID] = uctx
-	return nil
+	goalsJSON, err := json.Marshal(uctx.CareerGoals)
+	if err != nil {
+		goalsJSON = []byte("[]")
+	}
+	gapsJSON, err := json.Marshal(uctx.SkillGaps)
+	if err != nil {
+		gapsJSON = []byte("[]")
+	}
+
+	query := `
+		INSERT INTO ai_user_context (
+			id, user_id, career_goals, skill_gaps, preferred_industry, memory_summary, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (user_id) DO UPDATE SET
+			career_goals = EXCLUDED.career_goals,
+			skill_gaps = EXCLUDED.skill_gaps,
+			preferred_industry = EXCLUDED.preferred_industry,
+			memory_summary = EXCLUDED.memory_summary,
+			updated_at = EXCLUDED.updated_at
+	`
+	_, err = r.pool.Exec(ctx, query,
+		uctx.ID, uctx.UserID, goalsJSON, gapsJSON, uctx.PreferredIndustry, uctx.MemorySummary, uctx.UpdatedAt,
+	)
+	return err
 }
 
-func (r *memoryCompanionRepository) GetUserContext(ctx context.Context, userID uuid.UUID) (*domain.AIUserContext, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	if uctx, exists := r.userContexts[userID]; exists {
-		uctxCopy := *uctx
-		return &uctxCopy, nil
+func (r *postgresCompanionRepository) GetUserContext(ctx context.Context, userID uuid.UUID) (*domain.AIUserContext, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if uctx, exists := r.userContexts[userID]; exists {
+			uCopy := *uctx
+			return &uCopy, nil
+		}
+		return &domain.AIUserContext{
+			ID:                uuid.New(),
+			UserID:            userID,
+			CareerGoals:       []string{"Principal Engineer Transition", "Remote First"},
+			SkillGaps:         []string{"Distributed Systems Tuning", "gRPC Mesh"},
+			PreferredIndustry: "Cloud Infrastructure / Fintech",
+			MemorySummary:     "Prefers concise answers and pragmatic engineering trade-offs.",
+			UpdatedAt:         time.Now(),
+		}, nil
 	}
-	return &domain.AIUserContext{
-		ID:                uuid.New(),
-		UserID:            userID,
-		CareerGoals:       []string{"Career Growth & Recovery"},
-		SkillGaps:         []string{"System Design"},
-		PreferredIndustry: "Tech & Software",
-		MemorySummary:     "New user starting AI career guidance.",
-		UpdatedAt:         time.Now(),
-	}, nil
+
+	query := `
+		SELECT id, user_id, career_goals, skill_gaps, preferred_industry, memory_summary, updated_at
+		FROM ai_user_context
+		WHERE user_id = $1
+	`
+	var uctx domain.AIUserContext
+	var goalsJSON, gapsJSON []byte
+	var industry, memory *string
+	err := r.pool.QueryRow(ctx, query, userID).Scan(
+		&uctx.ID, &uctx.UserID, &goalsJSON, &gapsJSON, &industry, &memory, &uctx.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return &domain.AIUserContext{
+				ID:                uuid.New(),
+				UserID:            userID,
+				CareerGoals:       []string{"Principal Engineer Transition", "Remote First"},
+				SkillGaps:         []string{"Distributed Systems Tuning", "gRPC Mesh"},
+				PreferredIndustry: "Cloud Infrastructure / Fintech",
+				MemorySummary:     "Prefers concise answers and pragmatic engineering trade-offs.",
+				UpdatedAt:         time.Now(),
+			}, nil
+		}
+		return nil, err
+	}
+	if industry != nil {
+		uctx.PreferredIndustry = *industry
+	}
+	if memory != nil {
+		uctx.MemorySummary = *memory
+	}
+	if len(goalsJSON) > 0 {
+		_ = json.Unmarshal(goalsJSON, &uctx.CareerGoals)
+	}
+	if len(gapsJSON) > 0 {
+		_ = json.Unmarshal(gapsJSON, &uctx.SkillGaps)
+	}
+	return &uctx, nil
+}
+
+func (r *postgresCompanionRepository) seedDefaultDataIfMemory() {
+	defaultConvID := uuid.MustParse("33333333-3333-3333-3333-333333333301")
+	sampleUserID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+
+	r.conversations[defaultConvID] = &domain.AIConversation{
+		ID:        defaultConvID,
+		UserID:    sampleUserID,
+		Title:     "Targeting Staff Platform Engineer Roles",
+		Mode:      domain.ModeCareerChat,
+		Status:    "active",
+		CreatedAt: time.Now().Add(-2 * time.Hour),
+		UpdatedAt: time.Now().Add(-15 * time.Minute),
+	}
+
+	r.messages[defaultConvID] = []domain.AIMessage{
+		{
+			ID:             uuid.New(),
+			ConversationID: defaultConvID,
+			Sender:         domain.SenderAssistant,
+			Content:        "Hello! I am your Kirmya Career Companion. How can I help propel your career forward today?",
+			TokensUsed:     45,
+			CreatedAt:      time.Now().Add(-2 * time.Hour),
+		},
+	}
 }

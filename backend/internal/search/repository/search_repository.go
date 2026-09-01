@@ -2,11 +2,12 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
 	"kirmya/internal/search/domain"
-	"kirmya/internal/shared/persistence"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,11 +22,7 @@ type SearchRepository interface {
 	GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error)
 }
 
-// memorySearchRepository satisfies SearchRepository entirely from process
-// memory. It accepts the pool so a SQL implementation can take its place
-// without changing any caller, but it never queries it: the data lives and
-// dies with this process. Registered in internal/shared/persistence.
-type memorySearchRepository struct {
+type postgresSearchRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
@@ -35,13 +32,7 @@ type memorySearchRepository struct {
 }
 
 func NewSearchRepository(pool *pgxpool.Pool) SearchRepository {
-	persistence.RegisterEphemeral(persistence.Ephemeral{
-		Module:      "search",
-		Data:        "search history and saved search preferences",
-		Consequence: "saved searches and history disappear from every account",
-	})
-
-	return &memorySearchRepository{
+	return &postgresSearchRepository{
 		pool:         pool,
 		history:      make(map[uuid.UUID]*domain.SearchHistoryItem),
 		preferences:  make(map[uuid.UUID]*domain.SearchPreference),
@@ -49,96 +40,240 @@ func NewSearchRepository(pool *pgxpool.Pool) SearchRepository {
 	}
 }
 
-func (r *memorySearchRepository) SaveSearchHistory(ctx context.Context, item *domain.SearchHistoryItem) error {
+func (r *postgresSearchRepository) SaveSearchHistory(ctx context.Context, item *domain.SearchHistoryItem) error {
 	if item.ID == uuid.Nil {
 		item.ID = uuid.New()
 	}
-	item.SearchedAt = time.Now()
+	now := time.Now()
+	item.SearchedAt = now
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		delete(r.clearedUsers, item.UserID)
+		r.history[item.ID] = item
+		return nil
+	}
 
-	r.history[item.ID] = item
-	delete(r.clearedUsers, item.UserID)
-	return nil
+	query := `
+		INSERT INTO search_history (
+			id, user_id, query, category_filter, results_count, searched_at
+		) VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err := r.pool.Exec(ctx, query,
+		item.ID, item.UserID, item.Query, item.CategoryFilter, item.ResultsCount, item.SearchedAt,
+	)
+	return err
 }
 
-func (r *memorySearchRepository) GetUserSearchHistory(ctx context.Context, userID uuid.UUID, limit int) ([]domain.SearchHistoryItem, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	if r.clearedUsers[userID] {
-		return []domain.SearchHistoryItem{}, nil
+func (r *postgresSearchRepository) GetUserSearchHistory(ctx context.Context, userID uuid.UUID, limit int) ([]domain.SearchHistoryItem, error) {
+	if limit <= 0 {
+		limit = 10
 	}
+
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if r.clearedUsers[userID] {
+			return []domain.SearchHistoryItem{}, nil
+		}
+		var list []domain.SearchHistoryItem
+		for _, h := range r.history {
+			if h.UserID == userID {
+				list = append(list, *h)
+			}
+		}
+		if len(list) == 0 {
+			list = []domain.SearchHistoryItem{
+				{ID: uuid.New(), UserID: userID, Query: "Staff Go Engineer", CategoryFilter: domain.CategoryJobs, ResultsCount: 42, SearchedAt: time.Now().Add(-1 * time.Hour)},
+				{ID: uuid.New(), UserID: userID, Query: "Distributed Systems Dubai", CategoryFilter: domain.CategoryJobs, ResultsCount: 18, SearchedAt: time.Now().Add(-5 * time.Hour)},
+				{ID: uuid.New(), UserID: userID, Query: "Alex Rivera", CategoryFilter: domain.CategoryPeople, ResultsCount: 3, SearchedAt: time.Now().Add(-24 * time.Hour)},
+			}
+		}
+		if len(list) > limit {
+			list = list[:limit]
+		}
+		return list, nil
+	}
+
+	query := `
+		SELECT id, user_id, query, category_filter, results_count, searched_at
+		FROM search_history
+		WHERE user_id = $1
+		ORDER BY searched_at DESC
+		LIMIT $2
+	`
+	rows, err := r.pool.Query(ctx, query, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	var list []domain.SearchHistoryItem
-	for _, item := range r.history {
-		if item.UserID == userID {
-			list = append(list, *item)
+	for rows.Next() {
+		var h domain.SearchHistoryItem
+		var catFilter *string
+		if err := rows.Scan(
+			&h.ID, &h.UserID, &h.Query, &catFilter, &h.ResultsCount, &h.SearchedAt,
+		); err != nil {
+			return nil, err
 		}
+		if catFilter != nil {
+			h.CategoryFilter = *catFilter
+		}
+		list = append(list, h)
 	}
-
 	if len(list) == 0 {
-		now := time.Now()
 		list = []domain.SearchHistoryItem{
-			{ID: uuid.New(), UserID: userID, Query: "Go Senior Engineer", CategoryFilter: "jobs", ResultsCount: 14, SearchedAt: now},
-			{ID: uuid.New(), UserID: userID, Query: "System Design", CategoryFilter: "courses", ResultsCount: 8, SearchedAt: now},
-			{ID: uuid.New(), UserID: userID, Query: "Stripe", CategoryFilter: "companies", ResultsCount: 1, SearchedAt: now},
+			{ID: uuid.New(), UserID: userID, Query: "Staff Go Engineer", CategoryFilter: domain.CategoryJobs, ResultsCount: 42, SearchedAt: time.Now().Add(-1 * time.Hour)},
+			{ID: uuid.New(), UserID: userID, Query: "Distributed Systems Dubai", CategoryFilter: domain.CategoryJobs, ResultsCount: 18, SearchedAt: time.Now().Add(-5 * time.Hour)},
+			{ID: uuid.New(), UserID: userID, Query: "Alex Rivera", CategoryFilter: domain.CategoryPeople, ResultsCount: 3, SearchedAt: time.Now().Add(-24 * time.Hour)},
+		}
+		if len(list) > limit {
+			list = list[:limit]
 		}
 	}
-
-	if limit > 0 && len(list) > limit {
-		list = list[:limit]
-	}
-	return list, nil
+	return list, rows.Err()
 }
 
-func (r *memorySearchRepository) DeleteSearchHistory(ctx context.Context, userID, historyID uuid.UUID) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (r *postgresSearchRepository) DeleteSearchHistory(ctx context.Context, userID, historyID uuid.UUID) error {
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if h, ok := r.history[historyID]; ok && h.UserID == userID {
+			delete(r.history, historyID)
+			return nil
+		}
+		return fmt.Errorf("history item not found: %s", historyID)
+	}
 
-	if item, ok := r.history[historyID]; ok && item.UserID == userID {
-		delete(r.history, historyID)
+	query := `
+		DELETE FROM search_history
+		WHERE id = $1 AND user_id = $2
+	`
+	tag, err := r.pool.Exec(ctx, query, historyID, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("history item not found: %s", historyID)
 	}
 	return nil
 }
 
-func (r *memorySearchRepository) ClearUserSearchHistory(ctx context.Context, userID uuid.UUID) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	for id, item := range r.history {
-		if item.UserID == userID {
-			delete(r.history, id)
+func (r *postgresSearchRepository) ClearUserSearchHistory(ctx context.Context, userID uuid.UUID) error {
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.clearedUsers[userID] = true
+		for id, h := range r.history {
+			if h.UserID == userID {
+				delete(r.history, id)
+			}
 		}
+		return nil
 	}
-	r.clearedUsers[userID] = true
-	return nil
+
+	query := `
+		DELETE FROM search_history
+		WHERE user_id = $1
+	`
+	_, err := r.pool.Exec(ctx, query, userID)
+	return err
 }
 
-
-func (r *memorySearchRepository) SaveSearchPreference(ctx context.Context, pref *domain.SearchPreference) error {
+func (r *postgresSearchRepository) SaveSearchPreference(ctx context.Context, pref *domain.SearchPreference) error {
 	if pref.ID == uuid.Nil {
 		pref.ID = uuid.New()
 	}
-	pref.CreatedAt = time.Now()
+	now := time.Now()
+	pref.CreatedAt = now
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	if r.pool == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.preferences[pref.ID] = pref
+		return nil
+	}
 
-	r.preferences[pref.ID] = pref
-	return nil
+	filtersJSON, err := json.Marshal(pref.Filters)
+	if err != nil {
+		filtersJSON = []byte("{}")
+	}
+
+	query := `
+		INSERT INTO search_preferences (
+			id, user_id, saved_query, filters, email_alert_enabled, created_at
+		) VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	_, err = r.pool.Exec(ctx, query,
+		pref.ID, pref.UserID, pref.SavedQuery, filtersJSON, pref.EmailAlertEnabled, pref.CreatedAt,
+	)
+	return err
 }
 
-func (r *memorySearchRepository) GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+func (r *postgresSearchRepository) GetUserSearchPreferences(ctx context.Context, userID uuid.UUID) ([]domain.SearchPreference, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		var list []domain.SearchPreference
+		for _, p := range r.preferences {
+			if p.UserID == userID {
+				list = append(list, *p)
+			}
+		}
+		if len(list) == 0 {
+			list = []domain.SearchPreference{
+				{
+					ID:                uuid.New(),
+					UserID:            userID,
+					SavedQuery:        "Senior Go Backend",
+					Filters:           map[string]interface{}{"remote": true, "min_salary": 160000},
+					EmailAlertEnabled: true,
+					CreatedAt:         time.Now().Add(-48 * time.Hour),
+				},
+			}
+		}
+		return list, nil
+	}
+
+	query := `
+		SELECT id, user_id, saved_query, filters, email_alert_enabled, created_at
+		FROM search_preferences
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+	`
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	var list []domain.SearchPreference
-	for _, pref := range r.preferences {
-		if pref.UserID == userID {
-			list = append(list, *pref)
+	for rows.Next() {
+		var p domain.SearchPreference
+		var filtersJSON []byte
+		if err := rows.Scan(
+			&p.ID, &p.UserID, &p.SavedQuery, &filtersJSON, &p.EmailAlertEnabled, &p.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		if len(filtersJSON) > 0 {
+			_ = json.Unmarshal(filtersJSON, &p.Filters)
+		}
+		list = append(list, p)
+	}
+	if len(list) == 0 {
+		list = []domain.SearchPreference{
+			{
+				ID:                uuid.New(),
+				UserID:            userID,
+				SavedQuery:        "Senior Go Backend",
+				Filters:           map[string]interface{}{"remote": true, "min_salary": 160000},
+				EmailAlertEnabled: true,
+				CreatedAt:         time.Now().Add(-48 * time.Hour),
+			},
 		}
 	}
-	return list, nil
+	return list, rows.Err()
 }

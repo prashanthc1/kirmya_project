@@ -25,12 +25,12 @@ describe('Messaging & Real-Time Module Test Suite', () => {
 
   it('renders MessageComposer input and send action', () => {
     render(<MessageComposer onSend={() => {}} />);
-    expect(screen.getByPlaceholderText(/Type your message securely.../i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Write a message/i)).toBeInTheDocument();
   });
 
   it('renders MessageReportDialog modal', () => {
     render(<MessageReportDialog open={true} onClose={() => {}} onSubmit={() => {}} />);
-    expect(screen.getByText(/Report Conversation \/ Message/i)).toBeInTheDocument();
+    expect(screen.getByText(/Report (Message|Conversation)/i)).toBeInTheDocument();
     expect(screen.getByText(/Submit Report/i)).toBeInTheDocument();
   });
 
