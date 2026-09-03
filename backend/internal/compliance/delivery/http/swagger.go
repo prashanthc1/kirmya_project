@@ -69,8 +69,8 @@ func swaggerDownloadDataExport() {}
 // @Accept       json
 // @Produce      json
 // @Success      201  {object}  swagger.SuccessResponse
-// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/compliance/delete-account [post]
@@ -89,6 +89,23 @@ func swaggerRequestAccountDeletion() {}
 // @Router       /api/v1/compliance/requests [get]
 func swaggerGetUserDataRequests() {}
 
+// swaggerCreateUserRequest documents POST /api/v1/compliance/requests.
+//
+// @Summary      Create user compliance request
+// @Description  Submits a Data Subject Request (DSR) such as export or deletion.
+// @Tags         Compliance
+// @Accept       json
+// @Produce      json
+// @Param        request  body      domain.CreateDataRequestPayload  true  "Request payload"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      403      {object}  swagger.ErrorResponse
+// @Failure      500      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/compliance/requests [post]
+func swaggerCreateUserRequest() {}
+
 // swaggerGetDataInventory documents GET /api/v1/admin/data-governance/inventory.
 //
 // @Summary      Get data inventory catalog
@@ -96,6 +113,7 @@ func swaggerGetUserDataRequests() {}
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/inventory [get]
 func swaggerGetDataInventory() {}
@@ -109,6 +127,8 @@ func swaggerGetDataInventory() {}
 // @Produce      json
 // @Param        request  body  domain.DataInventoryItem  true  "Inventory item"
 // @Success      201  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/inventory [post]
 func swaggerAddInventoryItem() {}
@@ -120,6 +140,7 @@ func swaggerAddInventoryItem() {}
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/dsr [get]
 func swaggerGetAllDataRequests() {}
@@ -134,6 +155,8 @@ func swaggerGetAllDataRequests() {}
 // @Param        id       path  string              true  "Request ID"
 // @Param        request  body  domain.DataRequest  true  "Update payload"
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/dsr/{id} [patch]
 func swaggerUpdateDataRequest() {}
@@ -141,9 +164,11 @@ func swaggerUpdateDataRequest() {}
 // swaggerGetRetentionPolicies documents GET /api/v1/admin/data-governance/retention.
 //
 // @Summary      Get data retention policies
+// @Description  Returns active data retention schedules across all database tables.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/retention [get]
 func swaggerGetRetentionPolicies() {}
@@ -151,11 +176,14 @@ func swaggerGetRetentionPolicies() {}
 // swaggerUpdateRetentionPolicy documents PUT /api/v1/admin/data-governance/retention.
 //
 // @Summary      Update retention policy
+// @Description  Updates retention duration and purge rule for designated data domain.
 // @Tags         Admin Compliance
 // @Accept       json
 // @Produce      json
 // @Param        request  body  domain.RetentionPolicyItem  true  "Policy payload"
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/retention [put]
 func swaggerUpdateRetentionPolicy() {}
@@ -169,6 +197,8 @@ func swaggerUpdateRetentionPolicy() {}
 // @Produce      json
 // @Param        request  body  domain.RunRetentionPayload  true  "Run payload"
 // @Success      200  {object}  domain.DryRunResult
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/retention/run [post]
 func swaggerRunRetention() {}
@@ -176,9 +206,11 @@ func swaggerRunRetention() {}
 // swaggerGetLegalHolds documents GET /api/v1/admin/compliance/legal-holds.
 //
 // @Summary      Get active and released legal holds
+// @Description  Returns legal hold audit entries preventing data deletion.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/legal-holds [get]
 func swaggerGetLegalHolds() {}
@@ -192,6 +224,8 @@ func swaggerGetLegalHolds() {}
 // @Produce      json
 // @Param        request  body  domain.CreateLegalHoldPayload  true  "Legal hold payload"
 // @Success      201  {object}  domain.LegalHoldItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/legal-holds [post]
 func swaggerCreateLegalHold() {}
@@ -199,9 +233,12 @@ func swaggerCreateLegalHold() {}
 // swaggerReleaseLegalHold documents PATCH /api/v1/admin/compliance/legal-holds/{id}/release.
 //
 // @Summary      Release legal hold
+// @Description  Releases an active legal hold on a user account.
 // @Tags         Admin Compliance
 // @Param        id  path  string  true  "Hold ID"
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/legal-holds/{id}/release [patch]
 func swaggerReleaseLegalHold() {}
@@ -209,9 +246,11 @@ func swaggerReleaseLegalHold() {}
 // swaggerGetAccessReviews documents GET /api/v1/admin/compliance/access-reviews.
 //
 // @Summary      Get privileged access reviews
+// @Description  Returns access recertification campaigns and audit log.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/access-reviews [get]
 func swaggerGetAccessReviews() {}
@@ -219,11 +258,14 @@ func swaggerGetAccessReviews() {}
 // swaggerCreateAccessReview documents POST /api/v1/admin/compliance/access-reviews.
 //
 // @Summary      Submit access review decision
+// @Description  Submits a privileged access recertification review.
 // @Tags         Admin Compliance
 // @Accept       json
 // @Produce      json
 // @Param        request  body  domain.CreateAccessReviewPayload  true  "Review payload"
 // @Success      201  {object}  domain.DataAccessReviewItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/access-reviews [post]
 func swaggerCreateAccessReview() {}
@@ -231,9 +273,11 @@ func swaggerCreateAccessReview() {}
 // swaggerGetThirdPartyProcessors documents GET /api/v1/admin/data-governance/processors.
 //
 // @Summary      Get third-party processors
+// @Description  Lists vendor subprocessors processing platform personal data.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/processors [get]
 func swaggerGetThirdPartyProcessors() {}
@@ -241,11 +285,14 @@ func swaggerGetThirdPartyProcessors() {}
 // swaggerAddThirdPartyProcessor documents POST /api/v1/admin/data-governance/processors.
 //
 // @Summary      Register third-party processor
+// @Description  Registers a new vendor subprocessor for compliance documentation.
 // @Tags         Admin Compliance
 // @Accept       json
 // @Produce      json
 // @Param        request  body  domain.ThirdPartyProcessorItem  true  "Processor payload"
 // @Success      201  {object}  domain.ThirdPartyProcessorItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/processors [post]
 func swaggerAddThirdPartyProcessor() {}
@@ -253,9 +300,11 @@ func swaggerAddThirdPartyProcessor() {}
 // swaggerGetDataQualityChecks documents GET /api/v1/admin/data-governance/quality-checks.
 //
 // @Summary      Get data quality checks
+// @Description  Returns automated data integrity and hygiene check metrics.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/quality-checks [get]
 func swaggerGetDataQualityChecks() {}
@@ -263,10 +312,13 @@ func swaggerGetDataQualityChecks() {}
 // swaggerRunQualityCheck documents POST /api/v1/admin/data-governance/quality-checks/run.
 //
 // @Summary      Execute data quality check
+// @Description  Runs a data hygiene or orphaned entity check on schedule.
 // @Tags         Admin Compliance
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  domain.DataQualityCheckItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/data-governance/quality-checks/run [post]
 func swaggerRunQualityCheck() {}
@@ -274,9 +326,11 @@ func swaggerRunQualityCheck() {}
 // swaggerGetPrivacyRiskSummary documents GET /api/v1/admin/compliance/risk-summary.
 //
 // @Summary      Get privacy risk summary score
+// @Description  Computes aggregate privacy vulnerability score across DSRs and holds.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  domain.PrivacyRiskSummary
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/risk-summary [get]
 func swaggerGetPrivacyRiskSummary() {}
@@ -284,9 +338,11 @@ func swaggerGetPrivacyRiskSummary() {}
 // swaggerGetComplianceOverview documents GET /api/v1/admin/compliance/overview.
 //
 // @Summary      Get compliance status overview
+// @Description  Returns executive GDPR/CCPA readiness and SLA attainment KPIs.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  domain.ComplianceOverview
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/overview [get]
 func swaggerGetComplianceOverview() {}
@@ -294,9 +350,11 @@ func swaggerGetComplianceOverview() {}
 // swaggerGetPrivacyIncidents documents GET /api/v1/admin/compliance/incidents.
 //
 // @Summary      Get privacy incidents
+// @Description  Returns logged data breach and privacy incident tickets.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/incidents [get]
 func swaggerGetPrivacyIncidents() {}
@@ -304,11 +362,14 @@ func swaggerGetPrivacyIncidents() {}
 // swaggerCreatePrivacyIncident documents POST /api/v1/admin/compliance/incidents.
 //
 // @Summary      Log privacy incident
+// @Description  Creates a GDPR 72-hour breach notification incident record.
 // @Tags         Admin Compliance
 // @Accept       json
 // @Produce      json
 // @Param        request  body  domain.CreatePrivacyIncidentPayload  true  "Incident payload"
 // @Success      201  {object}  domain.PrivacyIncidentItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/incidents [post]
 func swaggerCreatePrivacyIncident() {}
@@ -316,9 +377,11 @@ func swaggerCreatePrivacyIncident() {}
 // swaggerGetPolicyVersions documents GET /api/v1/admin/compliance/policy-versions.
 //
 // @Summary      Get policy versions
+// @Description  Returns version history of terms of service and privacy policies.
 // @Tags         Admin Compliance
 // @Produce      json
 // @Success      200  {object}  swagger.PaginationResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/policy-versions [get]
 func swaggerGetPolicyVersions() {}
@@ -326,11 +389,14 @@ func swaggerGetPolicyVersions() {}
 // swaggerCreatePolicyVersion documents POST /api/v1/admin/compliance/policy-versions.
 //
 // @Summary      Create policy version
+// @Description  Publishes a new revision of a platform legal document.
 // @Tags         Admin Compliance
 // @Accept       json
 // @Produce      json
 // @Param        request  body  domain.CreatePolicyVersionPayload  true  "Version payload"
 // @Success      201  {object}  domain.PolicyVersionItem
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/compliance/policy-versions [post]
 func swaggerCreatePolicyVersion() {}

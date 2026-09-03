@@ -139,3 +139,20 @@ type MessageReportDTO struct {
 	Reason         string     `json:"reason"`
 	Details        string     `json:"details,omitempty"`
 }
+
+type CreateMessageRequestDTO struct {
+	ReceiverID     uuid.UUID `json:"receiverId" binding:"required"`
+	InitialMessage string    `json:"initialMessage" binding:"required"`
+}
+
+type AddReactionPayload struct {
+	Emoji string `json:"emoji" binding:"required"`
+}
+
+type ReportMessagePayload struct {
+	ConversationID uuid.UUID  `json:"conversationId" binding:"required"`
+	MessageID      *uuid.UUID `json:"messageId,omitempty"`
+	Reason         string     `json:"reason" binding:"required"`
+	Details        string     `json:"details,omitempty"`
+}
+

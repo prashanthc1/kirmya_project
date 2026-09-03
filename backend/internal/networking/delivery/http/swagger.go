@@ -5,293 +5,432 @@ import (
 	"kirmya/internal/networking/models"
 )
 
-// This file carries the OpenAPI (swagger) contract for the networking module.
-// The functions below have no runtime role: swaggo reads their annotations
-// to build internal/docs. Keeping them out of the handlers leaves the
-// delivery layer readable and lets the contract be reviewed on its own.
+// swaggerPeopleSearch documents GET /api/v1/people
 //
-// Regenerate the spec with `make swagger` after changing anything here.
-
-// swaggerGetRecommendations documents GET /api/v1/networking/recommendations.
-//
-// @Summary      Get recommendations
-// @Description  Returns recommendations via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
-// @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Summary      Search and discover professionals
+// @Description  Searches candidates, peers and mentors with filtering by title, company and skills
+// @Tags         Networking & People
 // @Security     BearerAuth
-// @Router       /api/v1/networking/recommendations [get]
-func swaggerGetRecommendations() {}
-
-// swaggerListConnections documents GET /api/v1/networking/connections.
-//
-// @Summary      List connections
-// @Description  Returns a list of connections via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
 // @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        q     query     string  false  "Search query"
+// @Param        page  query     int     false  "Page"
+// @Success      200   {object}  swagger.SuccessResponse
+// @Failure      401   {object}  swagger.ErrorResponse
+// @Router       /api/v1/people [get]
+func swaggerPeopleSearch() {}
+
+// swaggerPeopleSearchPath documents GET /api/v1/people/search
+//
+// @Summary      Search professionals
+// @Description  Keyword and facet search across member directory
+// @Tags         Networking & People
 // @Security     BearerAuth
-// @Router       /api/v1/networking/connections [get]
-func swaggerListConnections() {}
-
-// swaggerListIncomingRequests documents GET /api/v1/networking/requests.
-//
-// @Summary      List incoming requests
-// @Description  Returns a list of incoming requests via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
 // @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/networking/requests [get]
-func swaggerListIncomingRequests() {}
-
-// swaggerSendRequest documents POST /api/v1/networking/requests.
-//
-// @Summary      Send request
-// @Description  Sends request via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
-// @Accept       json
-// @Produce      json
-// @Param        request  body  models.SendConnectionRequestDTO  true  "Request payload"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/networking/requests [post]
-func swaggerSendRequest() {}
-
-// swaggerUpdateRequest documents PUT /api/v1/networking/requests/{id}.
-//
-// @Summary      Update request
-// @Description  Updates request via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
-// @Accept       json
-// @Produce      json
-// @Param        id  path  string  true  "Id"
+// @Param        q    query     string  false  "Query"
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/networking/requests/{id} [put]
-func swaggerUpdateRequest() {}
+// @Router       /api/v1/people/search [get]
+func swaggerPeopleSearchPath() {}
 
-// swaggerBlockUser documents POST /api/v1/networking/blocks.
+// swaggerPeopleSuggestions documents GET /api/v1/people/suggestions
 //
-// @Summary      Block user
-// @Description  Blocks user via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
-// @Accept       json
+// @Summary      Get AI recommended connections
+// @Description  Returns suggested connections based on shared background, industry and alumni
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/networking/blocks [post]
-func swaggerBlockUser() {}
+// @Router       /api/v1/people/suggestions [get]
+func swaggerPeopleSuggestions() {}
 
-// swaggerUnblockUser documents DELETE /api/v1/networking/blocks/{userId}.
+// swaggerNetworkStats documents GET /api/v1/network
 //
-// @Summary      Unblock user
-// @Description  Unblocks user via the Kirmya networking module. Requires a valid Bearer access token.
-// @Tags         Communities
+// @Summary      Get network dashboard summary
+// @Description  Returns total connection count, pending invitation counts and network growth
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Produce      json
-// @Param        userId  path  string  true  "User id"
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/networking/blocks/{userId} [delete]
-func swaggerUnblockUser() {}
+// @Router       /api/v1/network [get]
+func swaggerNetworkStats() {}
 
-// swaggerSaveNote documents POST /api/v1/network/notes.
+// swaggerNetworkConnectionsList documents GET /api/v1/network/connections
 //
-// @Summary      Save connection note
-// @Description  Saves or updates a private note attached to a connection.
-// @Tags         Networking
+// @Summary      List 1st-degree connections
+// @Description  Returns connected professionals with contact and relationship details
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        page   query     int  false  "Page number"
+// @Param        limit  query     int  false  "Limit per page"
+// @Success      200    {object}  swagger.SuccessResponse
+// @Failure      401    {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/connections [get]
+func swaggerNetworkConnectionsList() {}
+
+// swaggerNetworkConnectionsRemove documents DELETE /api/v1/network/connections/{id}
+//
+// @Summary      Remove connection
+// @Description  Disconnects 1st-degree relationship
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Connection ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/connections/{id} [delete]
+func swaggerNetworkConnectionsRemove() {}
+
+// swaggerNetworkRequestsIncoming documents GET /api/v1/network/requests
+//
+// @Summary      List incoming connection requests
+// @Description  Returns pending invitations awaiting user's acceptance or decline
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/requests [get]
+func swaggerNetworkRequestsIncoming() {}
+
+// swaggerNetworkRequestsSent documents GET /api/v1/network/requests/sent
+//
+// @Summary      List sent connection requests
+// @Description  Returns outbound invitations sent by user
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/requests/sent [get]
+func swaggerNetworkRequestsSent() {}
+
+// swaggerNetworkRequestsSend documents POST /api/v1/network/requests
+//
+// @Summary      Send connection request
+// @Description  Sends invitation with optional personalized message
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Param        request  body      models.SendConnectionRequestDTO  true  "Target user & note"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/requests [post]
+func swaggerNetworkRequestsSend() {}
+
+// swaggerNetworkRequestsAccept documents POST /api/v1/network/requests/{id}/accept
+//
+// @Summary      Accept connection request
+// @Description  Establishes mutual 1st-degree connection
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Request ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/requests/{id}/accept [post]
+func swaggerNetworkRequestsAccept() {}
+
+// swaggerNetworkRequestsDecline documents POST /api/v1/network/requests/{id}/decline
+//
+// @Summary      Decline connection request
+// @Description  Dismisses incoming connection request
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Request ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/requests/{id}/decline [post]
+func swaggerNetworkRequestsDecline() {}
+
+// swaggerNetworkRequestsWithdraw documents POST /api/v1/network/requests/{id}/withdraw
+//
+// @Summary      Withdraw sent connection request
+// @Description  Cancels previously sent connection invitation
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Request ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/requests/{id}/withdraw [post]
+func swaggerNetworkRequestsWithdraw() {}
+
+// swaggerNetworkMutual documents GET /api/v1/network/mutual/{userId}
+//
+// @Summary      Get mutual connections
+// @Description  Returns list of shared connections between user and target profile
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        userId  path      string  true  "Target user ID"
+// @Success      200     {object}  swagger.SuccessResponse
+// @Failure      401     {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/mutual/{userId} [get]
+func swaggerNetworkMutual() {}
+
+// swaggerNetworkDismissRecommendation documents POST /api/v1/network/recommendations/{userId}/dismiss
+//
+// @Summary      Dismiss suggested connection
+// @Description  Removes user from recommendations list
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        userId  path      string  true  "Target user ID"
+// @Success      200     {object}  swagger.SuccessResponse
+// @Failure      401     {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/recommendations/{userId}/dismiss [post]
+func swaggerNetworkDismissRecommendation() {}
+
+// swaggerNetworkFollow documents POST /api/v1/network/follow/{userId}
+//
+// @Summary      Follow professional
+// @Description  Follows target user's public career updates and posts
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        userId  path      string  true  "Target user ID"
+// @Success      200     {object}  swagger.SuccessResponse
+// @Failure      401     {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/follow/{userId} [post]
+func swaggerNetworkFollow() {}
+
+// swaggerNetworkUnfollow documents DELETE /api/v1/network/follow/{userId}
+//
+// @Summary      Unfollow professional
+// @Description  Stops following target user
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Produce      json
+// @Param        userId  path      string  true  "Target user ID"
+// @Success      200     {object}  swagger.SuccessResponse
+// @Failure      401     {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/follow/{userId} [delete]
+func swaggerNetworkUnfollow() {}
+
+// swaggerNetworkReportUser documents POST /api/v1/network/report/{userId}
+//
+// @Summary      Report connection / profile
+// @Description  Submits trust & safety report for harassment, impersonation or scam
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        userId   path      string                   true  "Target user ID"
+// @Param        request  body      models.NetworkReportDTO  true  "Report details"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/report/{userId} [post]
+func swaggerNetworkReportUser() {}
+
+// swaggerNetworkNoteSave documents POST /api/v1/network/notes
+//
+// @Summary      Save private contact note
+// @Description  Attaches personal notes to a connection (e.g. how you met, follow-ups)
+// @Tags         Networking & People
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.SaveNoteDTO  true  "Note content"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/notes [post]
-func swaggerSaveNote() {}
+func swaggerNetworkNoteSave() {}
 
-// swaggerGetNote documents GET /api/v1/network/notes/{targetUserId}.
+// swaggerNetworkNoteGet documents GET /api/v1/network/notes/{targetUserId}
 //
-// @Summary      Get connection note
-// @Description  Retrieves a private note attached to a connection.
-// @Tags         Networking
-// @Produce      json
-// @Param        targetUserId  path  string  true  "Target User ID"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Summary      Get private contact note
+// @Description  Retrieves saved private note for target user
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        targetUserId  path      string  true  "Target user ID"
+// @Success      200           {object}  swagger.SuccessResponse
+// @Failure      401           {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/notes/{targetUserId} [get]
-func swaggerGetNote() {}
+func swaggerNetworkNoteGet() {}
 
-// swaggerDeleteNote documents DELETE /api/v1/network/notes/{targetUserId}.
+// swaggerNetworkNoteDelete documents DELETE /api/v1/network/notes/{targetUserId}
 //
-// @Summary      Delete connection note
-// @Description  Deletes a private note attached to a connection.
-// @Tags         Networking
-// @Produce      json
-// @Param        targetUserId  path  string  true  "Target User ID"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Summary      Delete private contact note
+// @Description  Removes private note for target user
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        targetUserId  path      string  true  "Target user ID"
+// @Success      200           {object}  swagger.SuccessResponse
+// @Failure      401           {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/notes/{targetUserId} [delete]
-func swaggerDeleteNote() {}
+func swaggerNetworkNoteDelete() {}
 
-// swaggerAddLabel documents POST /api/v1/network/labels.
+// swaggerNetworkLabelsAdd documents POST /api/v1/network/labels
 //
-// @Summary      Add connection label
-// @Description  Assigns a tag or label to a connection.
-// @Tags         Networking
+// @Summary      Add connection tag / label
+// @Description  Tags a contact (e.g., "Alumni", "Client", "Mentor", "Speaker")
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
+// @Param        request  body      models.SaveLabelDTO  true  "Tag content"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/labels [post]
-func swaggerAddLabel() {}
+func swaggerNetworkLabelsAdd() {}
 
-// swaggerGetLabels documents GET /api/v1/network/labels/{targetUserId}.
+// swaggerNetworkLabelsGet documents GET /api/v1/network/labels/{targetUserId}
 //
-// @Summary      Get connection labels
-// @Description  Retrieves all labels assigned to a connection.
-// @Tags         Networking
-// @Produce      json
-// @Param        targetUserId  path  string  true  "Target User ID"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Summary      Get connection tags
+// @Description  Lists labels assigned to target contact
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        targetUserId  path      string  true  "Target user ID"
+// @Success      200           {object}  swagger.SuccessResponse
+// @Failure      401           {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/labels/{targetUserId} [get]
-func swaggerGetLabels() {}
+func swaggerNetworkLabelsGet() {}
 
-// swaggerRemoveLabel documents DELETE /api/v1/network/labels/{targetUserId}/{label}.
+// swaggerNetworkLabelsRemove documents DELETE /api/v1/network/labels/{targetUserId}/{label}
 //
-// @Summary      Remove connection label
-// @Description  Removes a specific label from a connection.
-// @Tags         Networking
-// @Produce      json
-// @Param        targetUserId  path  string  true  "Target User ID"
-// @Param        label         path  string  true  "Label text"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Summary      Remove connection tag
+// @Description  Removes specific tag from contact
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        targetUserId  path      string  true  "Target user ID"
+// @Param        label         path      string  true  "Label name"
+// @Success      200           {object}  swagger.SuccessResponse
+// @Failure      401           {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/labels/{targetUserId}/{label} [delete]
-func swaggerRemoveLabel() {}
+func swaggerNetworkLabelsRemove() {}
 
-// swaggerCreateGoal documents POST /api/v1/network/goals.
+// swaggerNetworkGoalsCreate documents POST /api/v1/network/goals
 //
-// @Summary      Create networking goal
-// @Description  Creates a new professional networking objective.
-// @Tags         Networking
+// @Summary      Set networking goal
+// @Description  Creates networking target (e.g., connect with 5 industry leaders this month)
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
+// @Param        request  body      models.CreateNetworkingGoalDTO  true  "Goal specification"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/goals [post]
-func swaggerCreateGoal() {}
+func swaggerNetworkGoalsCreate() {}
 
-// swaggerGetGoals documents GET /api/v1/network/goals.
+// swaggerNetworkGoalsGet documents GET /api/v1/network/goals
 //
-// @Summary      Get networking goals
-// @Description  Retrieves all networking goals for the current user.
-// @Tags         Networking
+// @Summary      List networking goals
+// @Description  Returns active and completed networking goals and progress metrics
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/goals [get]
-func swaggerGetGoals() {}
+func swaggerNetworkGoalsGet() {}
 
-// swaggerUpdateGoal documents PUT /api/v1/network/goals/{id}.
+// swaggerNetworkGoalsUpdate documents PUT /api/v1/network/goals/{id}
 //
 // @Summary      Update networking goal
-// @Description  Updates progress or details for a networking goal.
-// @Tags         Networking
+// @Description  Updates target count or marks goal achieved
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Accept       json
 // @Produce      json
-// @Param        id  path  string  true  "Goal ID"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
+// @Param        id       path      string                          true  "Goal ID"
+// @Param        request  body      models.UpdateNetworkingGoalDTO  true  "Updated fields"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/goals/{id} [put]
-func swaggerUpdateGoal() {}
+func swaggerNetworkGoalsUpdate() {}
 
-// swaggerDeleteGoal documents DELETE /api/v1/network/goals/{id}.
+// swaggerNetworkGoalsDelete documents DELETE /api/v1/network/goals/{id}
 //
 // @Summary      Delete networking goal
-// @Description  Deletes a networking goal.
-// @Tags         Networking
-// @Produce      json
-// @Param        id  path  string  true  "Goal ID"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Description  Removes networking goal
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Goal ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/goals/{id} [delete]
-func swaggerDeleteGoal() {}
+func swaggerNetworkGoalsDelete() {}
 
-// swaggerGetCompanyConnections documents GET /api/v1/network/company-connections/{companyId}.
+// swaggerNetworkCompanyConnections documents GET /api/v1/network/company-connections/{companyId}
 //
-// @Summary      Get company connections
-// @Description  Discovers active connections working at a specific company.
-// @Tags         Networking
-// @Produce      json
-// @Param        companyId  path  string  true  "Company ID or Name"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Summary      Find connections at company
+// @Description  Returns 1st and 2nd-degree connections currently employed at target organization
+// @Tags         Networking & People
 // @Security     BearerAuth
+// @Produce      json
+// @Param        companyId  path      string  true  "Company ID"
+// @Success      200        {object}  swagger.SuccessResponse
+// @Failure      401        {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/company-connections/{companyId} [get]
-func swaggerGetCompanyConnections() {}
+func swaggerNetworkCompanyConnections() {}
 
-// swaggerGetFollowing documents GET /api/v1/network/following.
+// swaggerNetworkFollowing documents GET /api/v1/network/following
 //
-// @Summary      Get following users
-// @Description  Retrieves all users the current user is following.
-// @Tags         Networking
+// @Summary      List followed members
+// @Description  Returns creators and leaders the user follows
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/following [get]
-func swaggerGetFollowing() {}
+func swaggerNetworkFollowing() {}
 
-// swaggerGetFollowers documents GET /api/v1/network/followers.
+// swaggerNetworkFollowers documents GET /api/v1/network/followers
 //
-// @Summary      Get followers
-// @Description  Retrieves all users following the current user.
-// @Tags         Networking
+// @Summary      List followers
+// @Description  Returns members following the authenticated user
+// @Tags         Networking & People
+// @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Router       /api/v1/network/followers [get]
-func swaggerGetFollowers() {}
+func swaggerNetworkFollowers() {}
 
+// swaggerAdminNetworkAnalytics documents GET /api/v1/admin/network/analytics
+//
+// @Summary      Get networking engagement analytics (Admin)
+// @Description  Returns connection request volume, acceptance rates, and referral activity
+// @Tags         Admin Networking
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/network/analytics [get]
+func swaggerAdminNetworkAnalytics() {}
 
-// The blank declarations below anchor the imports above. swag resolves the
-// qualified type names in the annotations through this file's import set,
-// and package names such as `domain` and `models` are not unique across
-// modules, so the imports have to be explicit rather than inferred.
+// swaggerAdminNetworkReports documents GET /api/v1/admin/network/reports
+//
+// @Summary      Get connection abuse reports (Admin)
+// @Description  Returns queue of flagged outreach requests and spam patterns
+// @Tags         Admin Networking
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/network/reports [get]
+func swaggerAdminNetworkReports() {}
+
 var (
 	_ swagger.ErrorResponse
 	_ models.SendConnectionRequestDTO

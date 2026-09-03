@@ -20,8 +20,61 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	adminHttp "kirmya/internal/admin/delivery/http"
+	aiHttp "kirmya/internal/ai/delivery/http"
+	jobMatchHttp "kirmya/internal/ai_job_match/delivery/http"
+	analyticsHttp "kirmya/internal/analytics/delivery/http"
+	applicationsHttp "kirmya/internal/applications/delivery/http"
+	assessmentHttp "kirmya/internal/assessment/delivery/http"
+	authHttp "kirmya/internal/auth/delivery/http"
 	authMiddleware "kirmya/internal/auth/middleware"
+	authService "kirmya/internal/auth/service"
+	backupHttp "kirmya/internal/backup/delivery/http"
+	billingHttp "kirmya/internal/billing/delivery/http"
+	candidateSearchHttp "kirmya/internal/candidate_search/delivery/http"
+	careerAIHttp "kirmya/internal/career_ai/delivery/http"
+	companionHttp "kirmya/internal/career_companion/delivery/http"
+	commHttp "kirmya/internal/community/delivery/http"
+	companyHttp "kirmya/internal/company/delivery/http"
+	complianceHttp "kirmya/internal/compliance/delivery/http"
+	coverLetterHttp "kirmya/internal/cover_letter/delivery/http"
+	dataOpsHttp "kirmya/internal/data_operations/delivery/http"
+	endorsementHttp "kirmya/internal/endorsement/delivery/http"
+	enterpriseHttp "kirmya/internal/enterprise_hiring/delivery/http"
+	eventHttp "kirmya/internal/event/delivery/http"
+	freelanceHttp "kirmya/internal/freelance/delivery/http"
+	marketplaceHttp "kirmya/internal/global_marketplace/delivery/http"
+	interviewHttp "kirmya/internal/interview/delivery/http"
+	interviewPrepHttp "kirmya/internal/interview_prep/delivery/http"
+	jobAlertsHttp "kirmya/internal/job_alerts/delivery/http"
+	jobsHttp "kirmya/internal/jobs/delivery/http"
+	landingHttp "kirmya/internal/landing/delivery/http"
+	learningHttp "kirmya/internal/learning/delivery/http"
+	legalHttp "kirmya/internal/legal/delivery/http"
+	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
+	msgHttp "kirmya/internal/messaging/delivery/http"
+	mobileHttp "kirmya/internal/mobile/delivery/http"
+	nativeMobileHttp "kirmya/internal/native_mobile/delivery/http"
+	netHttp "kirmya/internal/networking/delivery/http"
+	notifyHttp "kirmya/internal/notification/delivery/http"
+	onboardingHttp "kirmya/internal/onboarding/delivery/http"
+	organizationHttp "kirmya/internal/organization/delivery/http"
+	profileHttp "kirmya/internal/profile/delivery/http"
+	recHttp "kirmya/internal/recommendation/delivery/http"
+	recommendationEngineHttp "kirmya/internal/recommendation_engine/delivery/http"
+	recruiterHttp "kirmya/internal/recruiter/delivery/http"
+	recruiterAIHttp "kirmya/internal/recruiter_ai/delivery/http"
+	referralHttp "kirmya/internal/referral/delivery/http"
+	resumeHttp "kirmya/internal/resume/delivery/http"
+	resumeAnalysisHttp "kirmya/internal/resume_analysis/delivery/http"
 	"kirmya/internal/router"
+	unifiedSearchHttp "kirmya/internal/search/delivery/http"
+	securityHttp "kirmya/internal/security/delivery/http"
+	supportHttp "kirmya/internal/support/delivery/http"
+	sysHealthHttp "kirmya/internal/system_health/delivery/http"
+	trustHttp "kirmya/internal/trust_safety/delivery/http"
+	verificationHttp "kirmya/internal/verification/delivery/http"
+	intelligenceHttp "kirmya/internal/workforce_intelligence/delivery/http"
 )
 
 const specPath = "internal/docs/swagger.json"
@@ -43,7 +96,7 @@ type spec struct {
 }
 
 // swagParam rewrites OpenAPI's {id} placeholders into Gin's :id form so the two
-// route tables can be compared as plain strings.
+// route representations can be compared key-by-key.
 var swagParam = regexp.MustCompile(`\{([^}]+)\}`)
 
 func main() {
@@ -155,16 +208,68 @@ func validateOperations(s *spec) []string {
 // directions.
 func compareRoutes(documented map[string]bool) []string {
 	gin.SetMode(gin.TestMode)
-	// Zero-value handlers: routes are registered by method value, never called.
-	// Swagger stays disabled so the UI's own routes are not treated as API.
-	//
-	// The auth middleware is the exception. Modules that take one — company,
-	// onboarding, auth — refuse to mount their protected routes when it is nil,
-	// so leaving it out would hide the authenticated half of the API from this
-	// check and report every documented one as unregistered. The value here
-	// carries no auth service, which is safe because no handler ever runs.
 	engine := router.New(router.Handlers{
-		AuthMiddleware: authMiddleware.NewAuthMiddleware(nil),
+		AuthMiddleware:              authMiddleware.NewAuthMiddleware(&authService.AuthService{}),
+		AuthHandler:                 &authHttp.AuthHandler{},
+		ProfileHandler:              &profileHttp.ProfileHandler{},
+		ResumeHandler:               &resumeHttp.ResumeHandler{},
+		RecommendationHandler:       &recHttp.RecommendationHandler{},
+		NetworkingHandler:           &netHttp.NetworkingHandler{},
+		CommunityHandler:            &commHttp.CommunityHandler{},
+		MessagingHandler:            &msgHttp.MessagingHandler{},
+		NotificationHandler:         &notifyHttp.NotificationHandler{},
+		AnalyticsHandler:            &analyticsHttp.AnalyticsHandler{},
+		AIHandler:                   &aiHttp.AIHandler{},
+		CompanyHandler:              &companyHttp.CompanyHandler{},
+		CompanyManagementHandler:    &companyHttp.ManagementHandler{},
+		RecruiterHandler:            &recruiterHttp.RecruiterHandler{},
+		CandidateSearchHandler:      &candidateSearchHttp.SearchHandler{},
+		InterviewHandler:            &interviewHttp.InterviewHandler{},
+		LearningHandler:             &learningHttp.LearningHandler{},
+		AssessmentHandler:           &assessmentHttp.AssessmentHandler{},
+		CareerAIHandler:             &careerAIHttp.CareerAIHandler{},
+		ResumeAnalysisHandler:       &resumeAnalysisHttp.ResumeAnalysisHandler{},
+		VerificationHandler:         &verificationHttp.VerificationHandler{},
+		EndorsementHandler:          &endorsementHttp.EndorsementHandler{},
+		ReferralHandler:             &referralHttp.ReferralHandler{},
+		EventHandler:                &eventHttp.EventHandler{},
+		OrganizationHandler:         &organizationHttp.OrganizationHandler{},
+		UnifiedSearchHandler:        &unifiedSearchHttp.SearchHandler{},
+		MobileHandler:               &mobileHttp.MobileHandler{},
+		NativeMobileHandler:         &nativeMobileHttp.NativeMobileHandler{},
+		CompanionHandler:            &companionHttp.CompanionHandler{},
+		JobMatchHandler:             &jobMatchHttp.MatchingHandler{},
+		RecruiterAIHandler:          &recruiterAIHttp.RecruiterAIHandler{},
+		MarketplaceHandler:          &marketplaceHttp.MarketplaceHandler{},
+		FreelanceHandler:            &freelanceHttp.FreelanceHandler{},
+		EnterpriseHandler:           &enterpriseHttp.EnterpriseHandler{},
+		TrustHandler:                &trustHttp.TrustHandler{},
+		ComplianceHandler:           &complianceHttp.ComplianceHandler{},
+		IntelligenceHandler:         &intelligenceHttp.IntelligenceHandler{},
+		RecommendationEngineHandler: &recommendationEngineHttp.RecommendationHandler{},
+		LandingHandler:              &landingHttp.LandingHandler{},
+		OnboardingHandler:           &onboardingHttp.OnboardingHandler{},
+		ApplicationsHandler:         &applicationsHttp.ApplicationsHandler{},
+		JobAlertsHandler:            &jobAlertsHttp.JobAlertsHandler{},
+		JobsHandler:                 &jobsHttp.JobHandler{},
+		CoverLetterHandler:          &coverLetterHttp.CoverLetterHandler{},
+		InterviewPrepHandler:        &interviewPrepHttp.InterviewPrepHandler{},
+		AdminHandler:                &adminHttp.AdminHandler{},
+		BillingHandler:              &billingHttp.BillingHandler{},
+		AdminBillingHandler:         &billingHttp.AdminBillingHandler{},
+		LegalHandler:                &legalHttp.LegalHandler{},
+		AdminLegalHandler:           &legalHttp.AdminLegalHandler{},
+		TrustSafetyHandler:          &trustHttp.TrustSafetyHandler{},
+		AdminTrustSafetyHandler:     &trustHttp.AdminTrustSafetyHandler{},
+		AdminAnalyticsHandler:       &analyticsHttp.AdminAnalyticsHandler{},
+		SecurityHandler:             &securityHttp.SecurityHandler{},
+		AdminSecurityHandler:        &securityHttp.AdminSecurityHandler{},
+		SupportHandler:              &supportHttp.SupportHandler{},
+		AdminSupportHandler:         &supportHttp.AdminSupportHandler{},
+		AdminBackupHandler:          &backupHttp.BackupHandler{},
+		DataOperationsHandler:       &dataOpsHttp.DataOperationsHandler{},
+		SystemHealthHandler:         &sysHealthHttp.SystemHealthHandler{},
+		MentorshipHandler:           &mentorshipHttp.MentorshipHandler{},
 	}, router.SwaggerConfig{})
 
 	var problems []string
@@ -172,15 +277,11 @@ func compareRoutes(documented map[string]bool) []string {
 	for _, rt := range engine.Routes() {
 		key := rt.Method + " " + rt.Path
 
-		// Exclude internal health and system worker endpoints
-		if strings.HasPrefix(rt.Path, "/health") || strings.HasPrefix(rt.Path, "/api/v1/internal") {
-			continue
-		}
-
 		// Exclude legacy alias groups maintained solely for backwards compatibility
 		if strings.HasPrefix(rt.Path, "/api/v1/profiles/") ||
 			strings.HasPrefix(rt.Path, "/api/v1/messaging/") ||
-			strings.HasPrefix(rt.Path, "/api/v1/networking/") {
+			strings.HasPrefix(rt.Path, "/api/v1/networking/") ||
+			strings.HasPrefix(rt.Path, "/api/v1/admin/safety/") {
 			continue
 		}
 

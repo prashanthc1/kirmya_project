@@ -5,309 +5,367 @@ import (
 	"kirmya/internal/notification/models"
 )
 
-// This file carries the OpenAPI (swagger) contract for the notification module.
-// The functions below have no runtime role: swaggo reads their annotations
-// to build internal/docs. Keeping them out of the handlers leaves the
-// delivery layer readable and lets the contract be reviewed on its own.
-//
-// Regenerate the spec with `make swagger` after changing anything here.
-
 // swaggerListNotifications documents GET /api/v1/notifications.
 //
 // @Summary      List notifications
-// @Description  Returns a list of notifications via the Kirmya notification module. Requires a valid Bearer access token.
+// @Description  Returns paginated list of notifications for the user
 // @Tags         Notifications
 // @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        page   query     int  false  "Page number"
+// @Param        limit  query     int  false  "Items per page"
+// @Success      200    {object}  swagger.PaginationResponse
+// @Failure      401    {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications [get]
 func swaggerListNotifications() {}
 
-// swaggerMarkRead documents PUT /api/v1/notifications/{id}/read.
+// swaggerListUnread documents GET /api/v1/notifications/unread.
 //
-// @Summary      Mark read
-// @Description  Marks read via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      List unread notifications
+// @Description  Returns unread notification items
 // @Tags         Notifications
-// @Accept       json
 // @Produce      json
-// @Param        id  path  string  true  "Id"
-// @Param        request  body  object  false  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Success      200  {object}  swagger.PaginationResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/notifications/{id}/read [put]
-func swaggerMarkRead() {}
+// @Router       /api/v1/notifications/unread [get]
+func swaggerListUnread() {}
 
-// swaggerMarkAllRead documents PUT /api/v1/notifications/read-all.
+// swaggerUnreadCount documents GET /api/v1/notifications/unread-count.
 //
-// @Summary      Mark all read
-// @Description  Marks all read via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Get unread notification count
+// @Description  Returns count of unread notifications for badge display
 // @Tags         Notifications
-// @Accept       json
 // @Produce      json
-// @Param        request  body  object  false  "Request payload"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/notifications/read-all [put]
-func swaggerMarkAllRead() {}
+// @Router       /api/v1/notifications/unread-count [get]
+func swaggerUnreadCount() {}
+
+// swaggerCount documents GET /api/v1/notifications/count.
+//
+// @Summary      Get notification counter
+// @Description  Returns total unread count
+// @Tags         Notifications
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/count [get]
+func swaggerCount() {}
+
+// swaggerHistory documents GET /api/v1/notifications/history.
+//
+// @Summary      Get notification history
+// @Description  Returns archived and past delivered notifications
+// @Tags         Notifications
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/history [get]
+func swaggerHistory() {}
 
 // swaggerGetPreferences documents GET /api/v1/notifications/preferences.
 //
-// @Summary      Get preferences
-// @Description  Returns preferences via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Get notification channel preferences
+// @Description  Returns in-app, email and push channel preferences
 // @Tags         Notifications
 // @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
+// @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/preferences [get]
 func swaggerGetPreferences() {}
 
 // swaggerUpdatePreference documents PUT /api/v1/notifications/preferences.
 //
-// @Summary      Update preference
-// @Description  Updates preference via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Update notification preferences
+// @Description  Updates channel and category opt-ins
 // @Tags         Notifications
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.UpdatePreferencePayload  true  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        request  body      models.UpdatePreferencePayload  true  "Preferences"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/preferences [put]
 func swaggerUpdatePreference() {}
 
-// swaggerListUnread documents GET /api/v1/notifications/unread.
-//
-// @Summary      List unread notifications
-// @Description  Returns the unread notifications via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/notifications/unread [get]
-func swaggerListUnread() {}
-
-// swaggerGetUnreadCount documents GET /api/v1/notifications/count.
-//
-// @Summary      Get unread count
-// @Description  Returns the number of unread notifications via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Produce      json
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/notifications/count [get]
-func swaggerGetUnreadCount() {}
-
-// swaggerGetNotificationHistory documents GET /api/v1/notifications/history.
-//
-// @Summary      Get notification history
-// @Description  Returns the delivered notification history via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/notifications/history [get]
-func swaggerGetNotificationHistory() {}
-
-// swaggerGetCategoryPreferences documents GET /api/v1/notifications/preferences/categories.
+// swaggerCategoryPreferencesGet documents GET /api/v1/notifications/preferences/categories.
 //
 // @Summary      Get category preferences
-// @Description  Returns the per-category notification preferences via the Kirmya notification module. Requires a valid Bearer access token.
+// @Description  Returns category-level notification subscriptions
 // @Tags         Notifications
 // @Produce      json
-// @Success      200  {object}  swagger.PaginationResponse
+// @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/preferences/categories [get]
-func swaggerGetCategoryPreferences() {}
+func swaggerCategoryPreferencesGet() {}
 
-// swaggerUpdateCategoryPreference documents PUT /api/v1/notifications/preferences/categories/{category}.
+// swaggerCategoryPreferencePut documents PUT /api/v1/notifications/preferences/categories/{category}.
 //
 // @Summary      Update category preference
-// @Description  Updates the notification preference for one category via the Kirmya notification module. Requires a valid Bearer access token.
+// @Description  Enables or disables notifications for a specific category
 // @Tags         Notifications
 // @Accept       json
 // @Produce      json
-// @Param        category  path  string  true  "Category"
-// @Param        request  body  models.UpdatePreferencePayload  true  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        category  path      string                          true  "Category name"
+// @Param        request   body      models.UpdatePreferencePayload  true  "Preference"
+// @Success      200       {object}  swagger.SuccessResponse
+// @Failure      400       {object}  swagger.ErrorResponse
+// @Failure      401       {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/preferences/categories/{category} [put]
-func swaggerUpdateCategoryPreference() {}
+func swaggerCategoryPreferencePut() {}
 
-// swaggerGetQuietHours documents GET /api/v1/notifications/quiet-hours.
+// swaggerQuietHoursGet documents GET /api/v1/notifications/quiet-hours.
 //
-// @Summary      Get quiet hours
-// @Description  Returns the quiet hours window via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Get quiet hours schedule
+// @Description  Returns quiet hours window when alerts are silenced
 // @Tags         Notifications
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/quiet-hours [get]
-func swaggerGetQuietHours() {}
+func swaggerQuietHoursGet() {}
 
-// swaggerUpdateQuietHours documents PUT /api/v1/notifications/quiet-hours.
+// swaggerQuietHoursPut documents PUT /api/v1/notifications/quiet-hours.
 //
-// @Summary      Update quiet hours
-// @Description  Updates the quiet hours window via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Update quiet hours schedule
+// @Description  Sets start time, end time, and timezone for silenced alerts
 // @Tags         Notifications
 // @Accept       json
 // @Produce      json
-// @Param        request  body  object  true  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        request  body      models.QuietHoursSettings  true  "Quiet hours schedule"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/quiet-hours [put]
-func swaggerUpdateQuietHours() {}
+func swaggerQuietHoursPut() {}
 
-// swaggerGetDevices documents GET /api/v1/notifications/devices.
+// swaggerDevicesGet documents GET /api/v1/notifications/devices.
 //
-// @Summary      List push devices
-// @Description  Returns the registered push devices via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      List registered push devices
+// @Description  Returns user's mobile and desktop browsers registered for web push
 // @Tags         Notifications
 // @Produce      json
-// @Success      200  {object}  swagger.PaginationResponse
+// @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/devices [get]
-func swaggerGetDevices() {}
+func swaggerDevicesGet() {}
 
-// swaggerRegisterDevice documents POST /api/v1/notifications/devices.
+// swaggerDevicesPost documents POST /api/v1/notifications/devices.
 //
-// @Summary      Register push device
-// @Description  Registers a device for push delivery via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Register push device token
+// @Description  Registers FCM / WebPush endpoint for device notifications
 // @Tags         Notifications
 // @Accept       json
 // @Produce      json
-// @Param        request  body  object  true  "Request payload"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        request  body      models.RegisterDevicePayload  true  "Push device token"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/devices [post]
-func swaggerRegisterDevice() {}
+func swaggerDevicesPost() {}
 
-// swaggerDeleteDevice documents DELETE /api/v1/notifications/devices/{id}.
+// swaggerDevicesDelete documents DELETE /api/v1/notifications/devices/{id}.
 //
-// @Summary      Delete push device
-// @Description  Removes a registered push device via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Unregister push device
+// @Description  Removes push token registration
 // @Tags         Notifications
 // @Produce      json
-// @Param        id  path  string  true  "Device id"
+// @Param        id   path      string  true  "Device ID"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      404  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/devices/{id} [delete]
-func swaggerDeleteDevice() {}
+func swaggerDevicesDelete() {}
 
 // swaggerMarkAllReadPost documents POST /api/v1/notifications/read-all.
 //
-// @Summary      Mark all read
-// @Description  Marks every notification read via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Mark all notifications as read
+// @Description  Marks all user's notifications as read
 // @Tags         Notifications
-// @Accept       json
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/read-all [post]
 func swaggerMarkAllReadPost() {}
 
-// swaggerGetNotificationByID documents GET /api/v1/notifications/{id}.
+// swaggerMarkAllReadPut documents PUT /api/v1/notifications/read-all.
 //
-// @Summary      Get notification
-// @Description  Returns one notification via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Mark all notifications read (PUT)
+// @Description  Idempotently marks all notifications read
 // @Tags         Notifications
 // @Produce      json
-// @Param        id  path  string  true  "Notification id"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      404  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/notifications/{id} [get]
-func swaggerGetNotificationByID() {}
+// @Router       /api/v1/notifications/read-all [put]
+func swaggerMarkAllReadPut() {}
 
-// swaggerMarkReadPost documents POST /api/v1/notifications/{id}/read.
+// swaggerClearReadPost documents POST /api/v1/notifications/clear-read.
 //
-// @Summary      Mark read
-// @Description  Marks one notification read via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Clear read notifications
+// @Description  Deletes all previously read notifications
+// @Tags         Notifications
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/clear-read [post]
+func swaggerClearReadPost() {}
+
+// swaggerClearReadDelete documents DELETE /api/v1/notifications/read.
+//
+// @Summary      Delete read notifications
+// @Description  Deletes all read notifications
+// @Tags         Notifications
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/read [delete]
+func swaggerClearReadDelete() {}
+
+// swaggerDigestsGet documents GET /api/v1/notifications/digests.
+//
+// @Summary      Get email digest preferences
+// @Description  Returns weekly/daily email digest frequency
+// @Tags         Notifications
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/digests [get]
+func swaggerDigestsGet() {}
+
+// swaggerDigestsPut documents PUT /api/v1/notifications/digests.
+//
+// @Summary      Update email digest settings
+// @Description  Sets email digest frequency
 // @Tags         Notifications
 // @Accept       json
 // @Produce      json
-// @Param        id  path  string  true  "Notification id"
+// @Param        request  body      models.UpdatePreferencePayload  true  "Digest settings"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/digests [put]
+func swaggerDigestsPut() {}
+
+// swaggerSchedulesGet documents GET /api/v1/notifications/schedules.
+//
+// @Summary      List custom alert schedules
+// @Description  Returns custom notification delivery schedules
+// @Tags         Notifications
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/schedules [get]
+func swaggerSchedulesGet() {}
+
+// swaggerSchedulesPost documents POST /api/v1/notifications/schedules.
+//
+// @Summary      Create notification schedule
+// @Description  Adds custom recurring alert schedule
+// @Tags         Notifications
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.NotificationSchedulePayload  true  "Schedule"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/schedules [post]
+func swaggerSchedulesPost() {}
+
+// swaggerSchedulesDelete documents DELETE /api/v1/notifications/schedules/{id}.
+//
+// @Summary      Delete notification schedule
+// @Description  Removes alert schedule
+// @Tags         Notifications
+// @Produce      json
+// @Param        id   path      string  true  "Schedule ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/schedules/{id} [delete]
+func swaggerSchedulesDelete() {}
+
+// swaggerGetByID documents GET /api/v1/notifications/{id}.
+//
+// @Summary      Get notification by ID
+// @Description  Returns notification details
+// @Tags         Notifications
+// @Produce      json
+// @Param        id   path      string  true  "Notification ID"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
 // @Failure      404  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/{id} [get]
+func swaggerGetByID() {}
+
+// swaggerMarkReadPost documents POST /api/v1/notifications/{id}/read.
+//
+// @Summary      Mark notification read
+// @Description  Marks individual notification as read
+// @Tags         Notifications
+// @Produce      json
+// @Param        id   path      string  true  "Notification ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/{id}/read [post]
 func swaggerMarkReadPost() {}
 
-// swaggerMarkUnread documents POST /api/v1/notifications/{id}/unread.
+// swaggerMarkReadPut documents PUT /api/v1/notifications/{id}/read.
 //
-// @Summary      Mark unread
-// @Description  Returns one notification to the unread state via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Mark notification read (PUT)
+// @Description  Idempotently marks notification read
 // @Tags         Notifications
-// @Accept       json
 // @Produce      json
-// @Param        id  path  string  true  "Notification id"
+// @Param        id   path      string  true  "Notification ID"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      404  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/notifications/{id}/read [put]
+func swaggerMarkReadPut() {}
+
+// swaggerMarkUnreadPost documents POST /api/v1/notifications/{id}/unread.
+//
+// @Summary      Mark notification unread
+// @Description  Restores notification to unread state
+// @Tags         Notifications
+// @Produce      json
+// @Param        id   path      string  true  "Notification ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/{id}/unread [post]
-func swaggerMarkUnread() {}
+func swaggerMarkUnreadPost() {}
 
 // swaggerDeleteNotification documents DELETE /api/v1/notifications/{id}.
 //
 // @Summary      Delete notification
-// @Description  Deletes one notification via the Kirmya notification module. Requires a valid Bearer access token.
+// @Description  Deletes an individual notification
 // @Tags         Notifications
 // @Produce      json
-// @Param        id  path  string  true  "Notification id"
+// @Param        id   path      string  true  "Notification ID"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      404  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/{id} [delete]
 func swaggerDeleteNotification() {}
@@ -315,118 +373,298 @@ func swaggerDeleteNotification() {}
 // swaggerArchiveNotification documents POST /api/v1/notifications/{id}/archive.
 //
 // @Summary      Archive notification
-// @Description  Archives one notification via the Kirmya notification module. Requires a valid Bearer access token.
+// @Description  Archives notification
 // @Tags         Notifications
-// @Accept       json
 // @Produce      json
-// @Param        id  path  string  true  "Notification id"
+// @Param        id   path      string  true  "Notification ID"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      404  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/notifications/{id}/archive [post]
 func swaggerArchiveNotification() {}
 
-// swaggerAdminListNotifications documents GET /api/v1/admin/notifications.
+// swaggerSettingsNotificationsGet documents GET /api/v1/settings/notifications.
 //
-// @Summary      List notifications (admin)
-// @Description  Returns notifications across users via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      403  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/admin/notifications [get]
-func swaggerAdminListNotifications() {}
-
-// swaggerAdminGetTemplates documents GET /api/v1/admin/notifications/templates.
-//
-// @Summary      List notification templates
-// @Description  Returns the notification templates via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Produce      json
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      403  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/admin/notifications/templates [get]
-func swaggerAdminGetTemplates() {}
-
-// swaggerAdminCreateTemplate documents POST /api/v1/admin/notifications/templates.
-//
-// @Summary      Create notification template
-// @Description  Creates a notification template via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Accept       json
-// @Produce      json
-// @Param        request  body  object  true  "Request payload"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      403  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/admin/notifications/templates [post]
-func swaggerAdminCreateTemplate() {}
-
-// swaggerAdminGetAnalytics documents GET /api/v1/admin/notifications/analytics.
-//
-// @Summary      Get notification analytics
-// @Description  Returns delivery and engagement analytics via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Get notification settings
+// @Description  Returns user alert settings
 // @Tags         Notifications
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      403  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/admin/notifications/analytics [get]
-func swaggerAdminGetAnalytics() {}
+// @Router       /api/v1/settings/notifications [get]
+func swaggerSettingsNotificationsGet() {}
 
-// swaggerAdminGetFailures documents GET /api/v1/admin/notifications/failures.
+// swaggerSettingsNotificationsPut documents PUT /api/v1/settings/notifications.
 //
-// @Summary      List delivery failures
-// @Description  Returns the failed notification deliveries via the Kirmya notification module. Requires a valid Bearer access token.
-// @Tags         Notifications
-// @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      403  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/admin/notifications/failures [get]
-func swaggerAdminGetFailures() {}
-
-// swaggerAdminSendAnnouncement documents POST /api/v1/admin/notifications/announcement.
-//
-// @Summary      Send announcement
-// @Description  Broadcasts an announcement notification via the Kirmya notification module. Requires a valid Bearer access token.
+// @Summary      Update notification settings
+// @Description  Updates user alert settings
 // @Tags         Notifications
 // @Accept       json
 // @Produce      json
-// @Param        request  body  object  true  "Request payload"
-// @Success      202  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Param        request  body      models.UpdatePreferencePayload  true  "Settings"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/settings/notifications [put]
+func swaggerSettingsNotificationsPut() {}
+
+// swaggerAdminNotificationsList documents GET /api/v1/admin/notifications.
+//
+// @Summary      List all notifications (Admin)
+// @Description  Returns global platform notifications
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
 // @Failure      403  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications [get]
+func swaggerAdminNotificationsList() {}
+
+// swaggerAdminTemplatesList documents GET /api/v1/admin/notifications/templates.
+//
+// @Summary      List notification templates (Admin)
+// @Description  Returns email and push message templates
+// @Tags         Admin Notifications
 // @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates [get]
+func swaggerAdminTemplatesList() {}
+
+// swaggerAdminTemplateCreate documents POST /api/v1/admin/notifications/templates.
+//
+// @Summary      Create notification template (Admin)
+// @Description  Creates a new email or push notification template
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.NotificationTemplatePayload  true  "Template"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      403      {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates [post]
+func swaggerAdminTemplateCreate() {}
+
+// swaggerAdminTemplateByID documents GET /api/v1/admin/notifications/templates/{id}.
+//
+// @Summary      Get notification template (Admin)
+// @Description  Returns template content and variable placeholders
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Template ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates/{id} [get]
+func swaggerAdminTemplateByID() {}
+
+// swaggerAdminTemplateUpdate documents PUT /api/v1/admin/notifications/templates/{id}.
+//
+// @Summary      Update notification template (Admin)
+// @Description  Updates template body, subject or variables
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                              true  "Template ID"
+// @Param        request  body      models.NotificationTemplatePayload  true  "Updates"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      403      {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates/{id} [put]
+func swaggerAdminTemplateUpdate() {}
+
+// swaggerAdminTemplatePublish documents POST /api/v1/admin/notifications/templates/{id}/publish.
+//
+// @Summary      Publish template (Admin)
+// @Description  Promotes draft template to active production status
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Template ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates/{id}/publish [post]
+func swaggerAdminTemplatePublish() {}
+
+// swaggerAdminTemplateArchive documents POST /api/v1/admin/notifications/templates/{id}/archive.
+//
+// @Summary      Archive template (Admin)
+// @Description  Deactivates and archives a notification template
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Template ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates/{id}/archive [post]
+func swaggerAdminTemplateArchive() {}
+
+// swaggerAdminTemplateTest documents POST /api/v1/admin/notifications/templates/{id}/test.
+//
+// @Summary      Send test notification (Admin)
+// @Description  Dispatches sample rendered notification to staff email/device
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                  true  "Template ID"
+// @Param        request  body      models.TestSendPayload  true  "Test recipient"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      403      {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/templates/{id}/test [post]
+func swaggerAdminTemplateTest() {}
+
+// swaggerAdminQueue documents GET /api/v1/admin/notifications/queue.
+//
+// @Summary      Get notification queue depth (Admin)
+// @Description  Returns pending email/push jobs in delivery queue
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/queue [get]
+func swaggerAdminQueue() {}
+
+// swaggerAdminFailed documents GET /api/v1/admin/notifications/failed.
+//
+// @Summary      Get delivery failures (Admin)
+// @Description  Returns failed notification delivery attempts
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/failed [get]
+func swaggerAdminFailed() {}
+
+// swaggerAdminFailures documents GET /api/v1/admin/notifications/failures.
+//
+// @Summary      Get notification failure metrics (Admin)
+// @Description  Returns bounce rates and delivery error breakdown
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/failures [get]
+func swaggerAdminFailures() {}
+
+// swaggerAdminProviders documents GET /api/v1/admin/notifications/providers.
+//
+// @Summary      Get delivery providers health (Admin)
+// @Description  Returns SendGrid, FCM, APNS provider uptime and latency
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/providers [get]
+func swaggerAdminProviders() {}
+
+// swaggerAdminAnalytics documents GET /api/v1/admin/notifications/analytics.
+//
+// @Summary      Get notification volume analytics (Admin)
+// @Description  Returns dispatch volumes, open rates, and click-through rates
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/analytics [get]
+func swaggerAdminAnalytics() {}
+
+// swaggerAdminDeliveryAnalytics documents GET /api/v1/admin/notifications/delivery-analytics.
+//
+// @Summary      Get notification delivery breakdown (Admin)
+// @Description  Returns latency and channel success percentages
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/delivery-analytics [get]
+func swaggerAdminDeliveryAnalytics() {}
+
+// swaggerAdminDeadLetters documents GET /api/v1/admin/notifications/dead-letters.
+//
+// @Summary      List dead letter notifications (Admin)
+// @Description  Returns permanently failed notification payloads in DLQ
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/dead-letters [get]
+func swaggerAdminDeadLetters() {}
+
+// swaggerAdminRetryDeadLetter documents POST /api/v1/admin/notifications/dead-letters/{id}/retry.
+//
+// @Summary      Retry dead letter notification (Admin)
+// @Description  Re-enqueues failed notification payload for delivery
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Dead Letter ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/notifications/dead-letters/{id}/retry [post]
+func swaggerAdminRetryDeadLetter() {}
+
+// swaggerAdminSendAnnouncement documents POST /api/v1/admin/notifications/announcement.
+//
+// @Summary      Broadcast system announcement (Admin)
+// @Description  Sends targeted platform-wide broadcast notification to users
+// @Tags         Admin Notifications
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.BroadcastAnnouncementPayload  true  "Announcement message"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      403      {object}  swagger.ErrorResponse
 // @Router       /api/v1/admin/notifications/announcement [post]
 func swaggerAdminSendAnnouncement() {}
 
-// The blank declarations below anchor the imports above. swag resolves the
-// qualified type names in the annotations through this file's import set,
-// and package names such as `domain` and `models` are not unique across
-// modules, so the imports have to be explicit rather than inferred.
+// swaggerInternalNotificationEvent documents POST /api/v1/internal/notifications/events.
+//
+// @Summary      Ingest internal notification event
+// @Description  Internal service webhook to trigger a user notification event
+// @Tags         Notifications
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      object  true  "Event payload"
+// @Success      202      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      500      {object}  swagger.ErrorResponse
+// @Router       /api/v1/internal/notifications/events [post]
+func swaggerInternalNotificationEvent() {}
+
 var (
-	_ models.UpdatePreferencePayload
 	_ swagger.ErrorResponse
+	_ models.UpdatePreferencePayload
 )

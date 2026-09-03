@@ -228,3 +228,46 @@ type ConsentHistoryItem struct {
 	AcceptedAt time.Time `json:"accepted_at"`
 	Source     string    `json:"source"`
 }
+
+// SaveCookieConsentRequest payload for recording cookie preferences.
+type SaveCookieConsentRequest struct {
+	VisitorID   string          `json:"visitor_id" binding:"required"`
+	Preferences map[string]bool `json:"preferences" binding:"required"`
+}
+
+// CreatePrivacyRequestPayload payload for initiating DSR/SAR requests.
+type CreatePrivacyRequestPayload struct {
+	RequestType string `json:"request_type" binding:"required"`
+}
+
+// ConsentRecordPayload payload for recording terms/policy affirmative consent.
+type ConsentRecordPayload struct {
+	Document string `json:"document" binding:"required"`
+	Version  string `json:"version" binding:"required"`
+}
+
+// DeleteAccountPayload payload for scheduling account deletion.
+type DeleteAccountPayload struct {
+	Reason          string `json:"reason"`
+	ConfirmPassword string `json:"confirm_password"`
+}
+
+// UpdatePrivacyPayload payload for updating DSR case status.
+type UpdatePrivacyPayload struct {
+	Status          string `json:"status" binding:"required"`
+	ResolutionNotes string `json:"resolution_notes"`
+}
+
+// UpdateRetentionPayload payload for updating retention rule.
+type UpdateRetentionPayload struct {
+	DataCategory  string `json:"data_category" binding:"required"`
+	RetentionDays int    `json:"retention_days" binding:"required"`
+	ActionType    string `json:"action_type"`
+}
+
+// AdminExportPayload payload for admin initiated user data export.
+type AdminExportPayload struct {
+	UserID string `json:"user_id" binding:"required"`
+}
+
+

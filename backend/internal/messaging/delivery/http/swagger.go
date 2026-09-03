@@ -5,94 +5,250 @@ import (
 	"kirmya/internal/messaging/models"
 )
 
-// This file carries the OpenAPI (swagger) contract for the messaging module.
-// The functions below have no runtime role: swaggo reads their annotations
-// to build internal/docs. Keeping them out of the handlers leaves the
-// delivery layer readable and lets the contract be reviewed on its own.
+// swaggerUpgradeWS documents GET /api/v1/messages/ws.
 //
-// Regenerate the spec with `make swagger` after changing anything here.
-
-// swaggerUpgradeWS documents GET /api/v1/messaging/ws.
-//
-// @Summary      Upgrade WS
-// @Description  Upgrades WS via the Kirmya messaging module. Requires a valid Bearer access token.
+// @Summary      Upgrade WebSocket
+// @Description  Upgrades HTTP connection to WebSocket for real-time chat delivery
 // @Tags         Messaging
 // @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
+// @Success      200  {object}  swagger.SuccessResponse
 // @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/messaging/ws [get]
+// @Router       /api/v1/messages/ws [get]
 func swaggerUpgradeWS() {}
 
-// swaggerListConversations documents GET /api/v1/messaging/conversations.
+// swaggerListConversations documents GET /api/v1/messages/conversations.
 //
 // @Summary      List conversations
-// @Description  Returns a list of conversations via the Kirmya messaging module. Requires a valid Bearer access token.
+// @Description  Returns paginated list of chat threads for authenticated user
 // @Tags         Messaging
 // @Produce      json
-// @Param        page   query  int  false  "Page number (1-based)"  default(1)
-// @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
 // @Success      200  {object}  swagger.PaginationResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/messaging/conversations [get]
+// @Router       /api/v1/messages/conversations [get]
 func swaggerListConversations() {}
 
-// swaggerGetOrCreateConversation documents POST /api/v1/messaging/conversations.
+// swaggerGetOrCreateConversation documents POST /api/v1/messages/conversations.
 //
 // @Summary      Get or create conversation
-// @Description  Returns or creates conversation via the Kirmya messaging module. Requires a valid Bearer access token.
+// @Description  Initiates or opens a 1-on-1 direct message conversation
 // @Tags         Messaging
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.CreateConversationDTO  true  "Request payload"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        request  body      models.CreateConversationDTO  true  "Participant details"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/messaging/conversations [post]
+// @Router       /api/v1/messages/conversations [post]
 func swaggerGetOrCreateConversation() {}
 
-// swaggerListMessages documents GET /api/v1/messaging/conversations/{id}/messages.
+// swaggerListMessages documents GET /api/v1/messages/conversations/{id}/messages.
 //
-// @Summary      List messages
-// @Description  Returns a list of messages via the Kirmya messaging module. Requires a valid Bearer access token.
+// @Summary      List messages in thread
+// @Description  Returns chronologically ordered messages in a conversation
 // @Tags         Messaging
 // @Produce      json
-// @Param        id  path  string  true  "Id"
+// @Param        id   path      string  true  "Conversation ID"
 // @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/messaging/conversations/{id}/messages [get]
+// @Router       /api/v1/messages/conversations/{id}/messages [get]
 func swaggerListMessages() {}
 
-// swaggerSendMessage documents POST /api/v1/messaging/conversations/{id}/messages.
+// swaggerSendMessage documents POST /api/v1/messages/conversations/{id}/messages.
 //
-// @Summary      Send message
-// @Description  Sends message via the Kirmya messaging module. Requires a valid Bearer access token.
+// @Summary      Send direct message
+// @Description  Posts a text message with optional file attachments
 // @Tags         Messaging
 // @Accept       json
 // @Produce      json
-// @Param        id  path  string  true  "Id"
-// @Param        request  body  models.SendMessageDTO  true  "Request payload"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        id       path      string                 true  "Conversation ID"
+// @Param        request  body      models.SendMessageDTO  true  "Message content"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/messaging/conversations/{id}/messages [post]
+// @Router       /api/v1/messages/conversations/{id}/messages [post]
 func swaggerSendMessage() {}
 
-// The blank declarations below anchor the imports above. swag resolves the
-// qualified type names in the annotations through this file's import set,
-// and package names such as `domain` and `models` are not unique across
-// modules, so the imports have to be explicit rather than inferred.
+// swaggerArchiveConversation documents POST /api/v1/messages/conversations/{id}/archive.
+//
+// @Summary      Archive conversation
+// @Description  Moves a conversation thread into the user's archive list
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Conversation ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/conversations/{id}/archive [post]
+func swaggerArchiveConversation() {}
+
+// swaggerMuteConversation documents POST /api/v1/messages/conversations/{id}/mute.
+//
+// @Summary      Mute conversation notifications
+// @Description  Silences push/email alerts for messages in a conversation
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Conversation ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/conversations/{id}/mute [post]
+func swaggerMuteConversation() {}
+
+// swaggerPinConversation documents POST /api/v1/messages/conversations/{id}/pin.
+//
+// @Summary      Pin conversation to top
+// @Description  Pins or unpins a conversation in the active inbox
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Conversation ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/conversations/{id}/pin [post]
+func swaggerPinConversation() {}
+
+// swaggerMarkMessagesRead documents POST /api/v1/messages/conversations/{id}/read.
+//
+// @Summary      Mark conversation as read
+// @Description  Updates unread counter and dispatches read receipts
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Conversation ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/conversations/{id}/read [post]
+func swaggerMarkMessagesRead() {}
+
+// swaggerAddReaction documents POST /api/v1/messages/messages/{id}/reaction.
+//
+// @Summary      Add emoji reaction
+// @Description  Appends an emoji reaction to an individual message
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                      true  "Message ID"
+// @Param        request  body      models.AddReactionPayload   true  "Reaction"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/messages/{id}/reaction [post]
+func swaggerAddReaction() {}
+
+// swaggerListIncomingRequests documents GET /api/v1/messages/requests.
+//
+// @Summary      List message requests
+// @Description  Returns pending connection-less direct message requests
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/requests [get]
+func swaggerListIncomingRequests() {}
+
+// swaggerSendMessageRequest documents POST /api/v1/messages/requests.
+//
+// @Summary      Send message request
+// @Description  Sends outreach message request to non-connected user
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.CreateMessageRequestDTO  true  "Request details"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/requests [post]
+func swaggerSendMessageRequest() {}
+
+// swaggerAcceptRequest documents POST /api/v1/messages/requests/{id}/accept.
+//
+// @Summary      Accept message request
+// @Description  Accepts incoming message request and creates normal conversation thread
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Request ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/requests/{id}/accept [post]
+func swaggerAcceptRequest() {}
+
+// swaggerDeclineRequest documents POST /api/v1/messages/requests/{id}/decline.
+//
+// @Summary      Decline message request
+// @Description  Dismisses or ignores pending message request
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Request ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/requests/{id}/decline [post]
+func swaggerDeclineRequest() {}
+
+// swaggerSearchMessages documents GET /api/v1/messages/search.
+//
+// @Summary      Search message history
+// @Description  Full-text search across all user's conversations
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Param        q    query     string  true  "Search query"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/search [get]
+func swaggerSearchMessages() {}
+
+// swaggerReportMessage documents POST /api/v1/messages/report.
+//
+// @Summary      Report message / user
+// @Description  Submits abuse, harassment or spam report to trust & safety desk
+// @Tags         Messaging
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.ReportMessagePayload  true  "Report details"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/messages/report [post]
+func swaggerReportMessage() {}
+
+// swaggerAdminMessagingAnalytics documents GET /api/v1/admin/messaging/analytics.
+//
+// @Summary      Get messaging metrics (Admin)
+// @Description  Returns volume of sent messages, active threads and reported abuse count
+// @Tags         Admin Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/messaging/analytics [get]
+func swaggerAdminMessagingAnalytics() {}
+
+// swaggerAdminMessagingReports documents GET /api/v1/admin/messaging/reports.
+//
+// @Summary      Get message reports (Admin)
+// @Description  Returns moderation queue of flagged messages
+// @Tags         Admin Messaging
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Router       /api/v1/admin/messaging/reports [get]
+func swaggerAdminMessagingReports() {}
+
 var (
 	_ swagger.ErrorResponse
 	_ models.CreateConversationDTO

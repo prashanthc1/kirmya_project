@@ -121,3 +121,38 @@ type TailorJobResponse struct {
 	RecommendedTalkingPoints []string `json:"recommendedTalkingPoints"`
 	SuggestedCoverLetterID   *uuid.UUID `json:"suggestedCoverLetterId,omitempty"`
 }
+
+// CreateCoverLetterPayload represents creation request.
+type CreateCoverLetterPayload struct {
+	Name         string `json:"name"`
+	TemplateName string `json:"templateName"`
+}
+
+// UpdateCoverLetterPayload represents cover letter update request.
+type UpdateCoverLetterPayload struct {
+	Name            string `json:"name,omitempty"`
+	TemplateName    string `json:"templateName,omitempty"`
+	OpeningGreeting string `json:"openingGreeting,omitempty"`
+	Introduction    string `json:"introduction,omitempty"`
+	Body            string `json:"body,omitempty"`
+	Closing         string `json:"closing,omitempty"`
+	Signature       string `json:"signature,omitempty"`
+	FullContent     string `json:"fullContent,omitempty"`
+	Tone            string `json:"tone,omitempty"`
+}
+
+// ShareCoverLetterPayload represents share creation request.
+type ShareCoverLetterPayload struct {
+	PrivacyLevel string `json:"privacyLevel"`
+}
+
+// TailorCoverLetterPayload represents tailoring request.
+type TailorCoverLetterPayload struct {
+	JobDescription string `json:"jobDescription"`
+}
+
+// CreateVersionPayload represents version snapshot request.
+type CreateVersionPayload struct {
+	VersionTag string `json:"versionTag"`
+}
+

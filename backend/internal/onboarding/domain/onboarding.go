@@ -188,3 +188,36 @@ type OnboardingAnalyticsSummary struct {
 	StepDropOffRate        map[string]float64 `json:"step_dropoff_rate"`
 	SkipRateByStep         map[string]float64 `json:"skip_rate_by_step"`
 }
+
+type StartOnboardingPayload struct {
+	RoleType string `json:"role_type"` // user, recruiter, employer
+}
+
+type SaveProgressPayload struct {
+	Step int `json:"step" binding:"required"`
+}
+
+type CompleteStepPayload struct {
+	StepData map[string]interface{} `json:"step_data,omitempty"`
+}
+
+type SaveSkillsPayload struct {
+	Skills []SkillItem `json:"skills" binding:"required"`
+}
+
+type WorkExperiencePayload struct {
+	Experiences []WorkExperienceItem `json:"experiences" binding:"required"`
+}
+
+type EducationPayload struct {
+	Educations []EducationItem `json:"educations" binding:"required"`
+}
+
+type CertificationPayload struct {
+	Certifications []CertificationItem `json:"certifications" binding:"required"`
+}
+
+type OnboardingConfigPayload struct {
+	Steps []OnboardingStepConfig `json:"steps" binding:"required"`
+}
+

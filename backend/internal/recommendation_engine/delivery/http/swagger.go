@@ -6,11 +6,6 @@ import (
 )
 
 // This file carries the OpenAPI (swagger) contract for the recommendation engine module.
-// The functions below have no runtime role: swaggo reads their annotations
-// to build internal/docs. Keeping them out of the handlers leaves the
-// delivery layer readable and lets the contract be reviewed on its own.
-//
-// Regenerate the spec with `make swagger` after changing anything here.
 
 // swaggerGetUnifiedRecommendations documents GET /api/v1/recommendation-engine/unified.
 //
@@ -74,10 +69,61 @@ func swaggerGetUserPreferences() {}
 // @Router       /api/v1/recommendation-engine/preferences [post]
 func swaggerUpdatePreferences() {}
 
-// The blank declarations below anchor the imports above. swag resolves the
-// qualified type names in the annotations through this file's import set,
-// and package names such as `domain` and `models` are not unique across
-// modules, so the imports have to be explicit rather than inferred.
+// swaggerGetCareerGaps documents GET /api/v1/recommendation-engine/career-gaps.
+//
+// @Summary      Get career gap analysis
+// @Description  Analyzes profile against target job market and returns skill gap recommendations.
+// @Tags         AI Matching
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recommendation-engine/career-gaps [get]
+func swaggerGetCareerGaps() {}
+
+// swaggerAdminGetConfig documents GET /api/v1/admin/recommendations/config.
+//
+// @Summary      Get recommendation engine config (Admin)
+// @Description  Returns scoring weights and algorithmic hyper-parameters.
+// @Tags         Admin AI
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/recommendations/config [get]
+func swaggerAdminGetConfig() {}
+
+// swaggerAdminUpdateConfig documents PUT /api/v1/admin/recommendations/config.
+//
+// @Summary      Update recommendation engine config (Admin)
+// @Description  Updates scoring weights and similarity thresholds.
+// @Tags         Admin AI
+// @Accept       json
+// @Produce      json
+// @Param        request  body      object  true  "Config weights"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      403      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/recommendations/config [put]
+func swaggerAdminUpdateConfig() {}
+
+// swaggerAdminGetMetrics documents GET /api/v1/admin/recommendations/metrics.
+//
+// @Summary      Get recommendation engine performance metrics (Admin)
+// @Description  Returns recommendation CTR, conversion, and NDCG accuracy scores.
+// @Tags         Admin AI
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/recommendations/metrics [get]
+func swaggerAdminGetMetrics() {}
+
 var (
 	_ domain.UpdatePreferencesPayload
 	_ swagger.ErrorResponse

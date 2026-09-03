@@ -12,10 +12,10 @@ import (
 // @Tags         Analytics
 // @Accept       json
 // @Produce      json
-// @Param        request  body  domain.TrackEventPayload  true  "Request payload"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      500  {object}  swagger.ErrorResponse
+// @Param        request  body      domain.TrackEventPayload  true  "Request payload"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      500      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/internal/analytics/events [post]
 func swaggerTrackEvent() {}
@@ -27,6 +27,7 @@ func swaggerTrackEvent() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/profile [get]
 func swaggerGetUserAnalyticsProfile() {}
@@ -38,6 +39,7 @@ func swaggerGetUserAnalyticsProfile() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/jobs [get]
 func swaggerGetUserAnalyticsJobs() {}
@@ -49,6 +51,7 @@ func swaggerGetUserAnalyticsJobs() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/applications [get]
 func swaggerGetUserAnalyticsApplications() {}
@@ -60,6 +63,7 @@ func swaggerGetUserAnalyticsApplications() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/network [get]
 func swaggerGetUserAnalyticsNetwork() {}
@@ -71,6 +75,7 @@ func swaggerGetUserAnalyticsNetwork() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/content [get]
 func swaggerGetUserAnalyticsContent() {}
@@ -82,9 +87,22 @@ func swaggerGetUserAnalyticsContent() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/career [get]
 func swaggerGetUserAnalyticsCareer() {}
+
+// swaggerGetUserAnalyticsMe documents GET /api/v1/analytics/me.
+//
+// @Summary      Get consolidated personal analytics
+// @Description  Returns consolidated personal user analytics across profile, job views, and applications.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/analytics/me [get]
+func swaggerGetUserAnalyticsMe() {}
 
 // swaggerGetRecruiterAnalytics documents GET /api/v1/recruiter/analytics.
 //
@@ -93,17 +111,19 @@ func swaggerGetUserAnalyticsCareer() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/recruiter/analytics [get]
 func swaggerGetRecruiterAnalytics() {}
 
 // swaggerGetRecruiterAnalyticsJobs documents GET /api/v1/recruiter/analytics/jobs.
 //
-// @Summary      Get recruiter jobs analytics
-// @Description  Returns recruiter jobs analytics.
+// @Summary      Get recruiter job analytics
+// @Description  Returns pipeline analytics for recruiter jobs.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/recruiter/analytics/jobs [get]
 func swaggerGetRecruiterAnalyticsJobs() {}
@@ -111,88 +131,120 @@ func swaggerGetRecruiterAnalyticsJobs() {}
 // swaggerGetRecruiterAnalyticsCandidates documents GET /api/v1/recruiter/analytics/candidates.
 //
 // @Summary      Get recruiter candidate analytics
-// @Description  Returns recruiter candidate pipeline analytics.
+// @Description  Returns candidate engagement and response metrics.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/recruiter/analytics/candidates [get]
 func swaggerGetRecruiterAnalyticsCandidates() {}
 
-// swaggerGetCompanyAnalytics documents GET /api/v1/company/analytics.
+// swaggerGetRecruiterAnalyticsOverview documents GET /api/v1/recruiter/analytics/overview.
 //
-// @Summary      Get company analytics
-// @Description  Returns company overview analytics.
+// @Summary      Get recruiter analytics overview
+// @Description  Returns high level KPIs for recruiter talent acquisition.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
-// @Router       /api/v1/company/analytics [get]
-func swaggerGetCompanyAnalytics() {}
+// @Router       /api/v1/recruiter/analytics/overview [get]
+func swaggerGetRecruiterAnalyticsOverview() {}
+
+// swaggerGetCompanyAnalyticsOverview documents GET /api/v1/company/analytics/overview.
+//
+// @Summary      Get company brand analytics
+// @Description  Returns followers and page visit trends.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/company/analytics/overview [get]
+func swaggerGetCompanyAnalyticsOverview() {}
 
 // swaggerGetCompanyAnalyticsJobs documents GET /api/v1/company/analytics/jobs.
 //
-// @Summary      Get company jobs analytics
-// @Description  Returns company jobs analytics.
+// @Summary      Get company job posting analytics
+// @Description  Returns job views and applicant conversion across listings.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/company/analytics/jobs [get]
 func swaggerGetCompanyAnalyticsJobs() {}
 
 // swaggerGetCompanyAnalyticsApplications documents GET /api/v1/company/analytics/applications.
 //
-// @Summary      Get company applications analytics
-// @Description  Returns company applications analytics.
+// @Summary      Get company application funnel
+// @Description  Returns applicant stage progress and drop-off analytics.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/company/analytics/applications [get]
 func swaggerGetCompanyAnalyticsApplications() {}
 
+// swaggerGetCompanyAnalyticsCandidates documents GET /api/v1/company/analytics/candidates.
+//
+// @Summary      Get company talent pool analytics
+// @Description  Returns candidate demographics and sourcing channel breakdown.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/company/analytics/candidates [get]
+func swaggerGetCompanyAnalyticsCandidates() {}
+
 // swaggerGetCommunityAnalytics documents GET /api/v1/communities/{id}/analytics.
 //
 // @Summary      Get community analytics
-// @Description  Returns community engagement analytics.
+// @Description  Returns member engagement, post activity, and growth metrics for a community.
 // @Tags         Analytics
 // @Produce      json
-// @Param        id  path  string  true  "Community ID"
+// @Param        id   path      string  true  "Community ID"
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/communities/{id}/analytics [get]
 func swaggerGetCommunityAnalytics() {}
 
-// swaggerGetAdminOverview documents GET /api/v1/admin/analytics/overview.
+// swaggerGetAdminAnalyticsOverview documents GET /api/v1/admin/analytics/overview.
 //
-// @Summary      Get admin overview analytics
-// @Description  Returns platform admin overview metrics.
+// @Summary      Get platform analytics overview
+// @Description  Returns executive KPIs on platform growth, revenue, and active accounts.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/overview [get]
-func swaggerGetAdminOverview() {}
+func swaggerGetAdminAnalyticsOverview() {}
 
 // swaggerGetAdminAnalyticsUsers documents GET /api/v1/admin/analytics/users.
 //
-// @Summary      Get admin users analytics
-// @Description  Returns admin user growth analytics.
+// @Summary      Get user growth analytics
+// @Description  Returns new registrations, DAU/MAU, and churn rates.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/users [get]
 func swaggerGetAdminAnalyticsUsers() {}
 
 // swaggerGetAdminAnalyticsJobs documents GET /api/v1/admin/analytics/jobs.
 //
-// @Summary      Get admin jobs analytics
-// @Description  Returns admin jobs analytics.
+// @Summary      Get job market analytics
+// @Description  Returns job posting volume, salary benchmarks, and demand by industry.
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/jobs [get]
 func swaggerGetAdminAnalyticsJobs() {}
@@ -204,6 +256,7 @@ func swaggerGetAdminAnalyticsJobs() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/applications [get]
 func swaggerGetAdminAnalyticsApplications() {}
@@ -215,6 +268,7 @@ func swaggerGetAdminAnalyticsApplications() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/recruiters [get]
 func swaggerGetAdminAnalyticsRecruiters() {}
@@ -226,6 +280,7 @@ func swaggerGetAdminAnalyticsRecruiters() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/companies [get]
 func swaggerGetAdminAnalyticsCompanies() {}
@@ -237,6 +292,7 @@ func swaggerGetAdminAnalyticsCompanies() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/communities [get]
 func swaggerGetAdminAnalyticsCommunities() {}
@@ -248,9 +304,34 @@ func swaggerGetAdminAnalyticsCommunities() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/messaging [get]
 func swaggerGetAdminAnalyticsMessaging() {}
+
+// swaggerGetAdminAnalyticsNotifications documents GET /api/v1/admin/analytics/notifications.
+//
+// @Summary      Get admin notification analytics
+// @Description  Returns delivery, open rates, and push notification throughput.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/notifications [get]
+func swaggerGetAdminAnalyticsNotifications() {}
+
+// swaggerGetAdminAnalyticsRecommendations documents GET /api/v1/admin/analytics/recommendations.
+//
+// @Summary      Get admin recommendations analytics
+// @Description  Returns recommendation CTR and algorithmic accuracy metrics.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/recommendations [get]
+func swaggerGetAdminAnalyticsRecommendations() {}
 
 // swaggerGetAdminAnalyticsAI documents GET /api/v1/admin/analytics/ai.
 //
@@ -259,6 +340,7 @@ func swaggerGetAdminAnalyticsMessaging() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/ai [get]
 func swaggerGetAdminAnalyticsAI() {}
@@ -270,9 +352,22 @@ func swaggerGetAdminAnalyticsAI() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/search [get]
 func swaggerGetAdminAnalyticsSearch() {}
+
+// swaggerGetAdminAnalyticsSearchZeroResults documents GET /api/v1/admin/analytics/search/zero-results.
+//
+// @Summary      Get admin zero-results search queries
+// @Description  Returns search terms that yielded zero candidate or job matches.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/search/zero-results [get]
+func swaggerGetAdminAnalyticsSearchZeroResults() {}
 
 // swaggerGetAdminAnalyticsSupport documents GET /api/v1/admin/analytics/support.
 //
@@ -281,6 +376,7 @@ func swaggerGetAdminAnalyticsSearch() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/support [get]
 func swaggerGetAdminAnalyticsSupport() {}
@@ -292,6 +388,7 @@ func swaggerGetAdminAnalyticsSupport() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/safety [get]
 func swaggerGetAdminAnalyticsSafety() {}
@@ -303,9 +400,22 @@ func swaggerGetAdminAnalyticsSafety() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/system [get]
 func swaggerGetAdminAnalyticsSystem() {}
+
+// swaggerGetAdminAnalyticsSystemPerformance documents GET /api/v1/admin/analytics/system/performance.
+//
+// @Summary      Get admin system performance metrics
+// @Description  Returns real-time p95/p99 latency and DB query performance.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/system/performance [get]
+func swaggerGetAdminAnalyticsSystemPerformance() {}
 
 // swaggerGetAdminAnalyticsEvents documents GET /api/v1/admin/analytics/events.
 //
@@ -314,6 +424,7 @@ func swaggerGetAdminAnalyticsSystem() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/events [get]
 func swaggerGetAdminAnalyticsEvents() {}
@@ -326,6 +437,8 @@ func swaggerGetAdminAnalyticsEvents() {}
 // @Accept       json
 // @Produce      json
 // @Success      202  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/export [post]
 func swaggerRequestExport() {}
@@ -337,6 +450,7 @@ func swaggerRequestExport() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/consent [get]
 func swaggerGetUserConsent() {}
@@ -348,7 +462,10 @@ func swaggerGetUserConsent() {}
 // @Tags         Analytics
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  swagger.SuccessResponse
+// @Param        request  body      object  true  "Consent settings"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/consent [put]
 func swaggerUpdateUserConsent() {}
@@ -360,6 +477,7 @@ func swaggerUpdateUserConsent() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/funnel [get]
 func swaggerGetPersonalFunnel() {}
@@ -371,6 +489,7 @@ func swaggerGetPersonalFunnel() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/mentorship [get]
 func swaggerGetPersonalMentorship() {}
@@ -382,6 +501,7 @@ func swaggerGetPersonalMentorship() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/analytics/learning [get]
 func swaggerGetPersonalLearning() {}
@@ -393,6 +513,7 @@ func swaggerGetPersonalLearning() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/performance [get]
 func swaggerGetPerformance() {}
@@ -404,6 +525,7 @@ func swaggerGetPerformance() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/trust-safety [get]
 func swaggerGetTrustSafety() {}
@@ -415,6 +537,7 @@ func swaggerGetTrustSafety() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/mentorship [get]
 func swaggerGetMentorshipAdmin() {}
@@ -426,6 +549,7 @@ func swaggerGetMentorshipAdmin() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/learning [get]
 func swaggerGetLearningAdmin() {}
@@ -437,6 +561,7 @@ func swaggerGetLearningAdmin() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/funnel [get]
 func swaggerGetFunnelAdmin() {}
@@ -448,6 +573,7 @@ func swaggerGetFunnelAdmin() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/cohorts [get]
 func swaggerGetCohorts() {}
@@ -459,6 +585,7 @@ func swaggerGetCohorts() {}
 // @Tags         Analytics
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/feature-adoption [get]
 func swaggerGetFeatureAdoption() {}
@@ -471,9 +598,52 @@ func swaggerGetFeatureAdoption() {}
 // @Accept       json
 // @Produce      json
 // @Success      202  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/reports/custom [post]
 func swaggerGenerateCustomReport() {}
+
+// swaggerGetScheduledReports documents GET /api/v1/admin/analytics/reports/scheduled.
+//
+// @Summary      Get scheduled analytics reports
+// @Description  Returns list of configured recurring report deliveries.
+// @Tags         Analytics
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/reports/scheduled [get]
+func swaggerGetScheduledReports() {}
+
+// swaggerCreateScheduledReport documents POST /api/v1/admin/analytics/reports/scheduled.
+//
+// @Summary      Create scheduled report delivery
+// @Description  Sets up a recurring scheduled report export.
+// @Tags         Analytics
+// @Accept       json
+// @Produce      json
+// @Param        request  body      object  true  "Schedule configuration"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/reports/scheduled [post]
+func swaggerCreateScheduledReport() {}
+
+// swaggerDownloadReport documents GET /api/v1/admin/analytics/reports/download/{id}.
+//
+// @Summary      Download analytics export package
+// @Description  Downloads a generated CSV/JSON analytics report file.
+// @Tags         Analytics
+// @Produce      json
+// @Param        id   path      string  true  "Report ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/analytics/reports/download/{id} [get]
+func swaggerDownloadReport() {}
 
 // swaggerTriggerRetentionCleanup documents POST /api/v1/admin/analytics/cleanup.
 //
@@ -483,6 +653,7 @@ func swaggerGenerateCustomReport() {}
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/analytics/cleanup [post]
 func swaggerTriggerRetentionCleanup() {}
@@ -491,4 +662,3 @@ var (
 	_ domain.TrackEventPayload
 	_ swagger.ErrorResponse
 )
-

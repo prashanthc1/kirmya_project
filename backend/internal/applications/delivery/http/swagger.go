@@ -15,7 +15,38 @@ import (
 //
 // Every route in this module is scoped to the signed-in candidate. An id
 // belonging to somebody else is not found rather than forbidden, so one
-// candidate cannot enumerate another's applications by trying ids.
+// swaggerApplyToJob documents POST /api/v1/applications.
+//
+// @Summary      Apply to a job
+// @Description  Submits a job application with resume, cover letter, and screening question responses
+// @Tags         Jobs
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.CreateApplicationPayload  true  "Application details"
+// @Success      201      {object}  models.ApplicationDetail
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      409      {object}  swagger.ErrorResponse  "Already applied to this job"
+// @Router       /api/v1/applications [post]
+func swaggerApplyToJob() {}
+
+// swaggerApplyToJobByID documents POST /api/v1/jobs/{id}/apply.
+//
+// @Summary      Apply to a job (Path alias)
+// @Description  Submits a job application targeting the job specified in the URL path
+// @Tags         Jobs
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                           true  "Job ID"
+// @Param        request  body      models.CreateApplicationPayload  true  "Application details"
+// @Success      201      {object}  models.ApplicationDetail
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Failure      409      {object}  swagger.ErrorResponse  "Already applied to this job"
+// @Router       /api/v1/jobs/{id}/apply [post]
+func swaggerApplyToJobByID() {}
 
 // swaggerGetApplications documents GET /api/v1/applications.
 //

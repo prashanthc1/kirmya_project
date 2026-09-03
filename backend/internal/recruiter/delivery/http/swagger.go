@@ -698,11 +698,95 @@ func swaggerGetTeamMembers() {}
 // @Router       /api/v1/recruiter/templates [get]
 func swaggerGetMessageTemplates() {}
 
+// swaggerGetRecruiterAnalyticsOverview documents GET /api/v1/recruiter/analytics/overview
+//
+// @Summary      Get recruitment analytics overview
+// @Description  Returns ATS pipeline velocity, offer acceptance rates and sourcing breakdown
+// @Tags         Recruiter ATS
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/recruiter/analytics/overview [get]
+func swaggerGetRecruiterAnalyticsOverview() {}
+
+// swaggerCreateCandidateNote documents POST /api/v1/recruiter/candidates/{id}/notes
+//
+// @Summary      Add candidate note
+// @Description  Appends private recruiter interview feedback or assessment notes to a candidate profile
+// @Tags         Recruiter ATS
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                    true  "Candidate ID"
+// @Param        request  body      models.CreateNotePayload  true  "Note content"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/recruiter/candidates/{id}/notes [post]
+func swaggerCreateCandidateNote() {}
+
+// swaggerGetCandidateNotes documents GET /api/v1/recruiter/candidates/{id}/notes
+//
+// @Summary      Get candidate notes
+// @Description  Returns chronologically ordered recruiter notes for a candidate
+// @Tags         Recruiter ATS
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Candidate ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/recruiter/candidates/{id}/notes [get]
+func swaggerGetCandidateNotes() {}
+
+// swaggerCreateCandidateEvaluation documents POST /api/v1/recruiter/applications/{id}/evaluate
+//
+// @Summary      Submit candidate evaluation
+// @Description  Submits multi-category rubric evaluation for an active job application
+// @Tags         Recruiter ATS
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                             true  "Application ID"
+// @Param        request  body      models.CandidateEvaluationPayload  true  "Evaluation scores"
+// @Success      201      {object}  models.CandidateEvaluationDTO
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/recruiter/applications/{id}/evaluate [post]
+func swaggerCreateCandidateEvaluation() {}
+
+// swaggerGetCandidateEvaluations documents GET /api/v1/recruiter/applications/{id}/evaluations
+//
+// @Summary      List candidate evaluations
+// @Description  Returns evaluation scorecards submitted by interviewing team members
+// @Tags         Recruiter ATS
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Application ID"
+// @Success      200  {array}   models.CandidateEvaluationDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/recruiter/applications/{id}/evaluations [get]
+func swaggerGetCandidateEvaluations() {}
+
+// swaggerGetStageHistory documents GET /api/v1/recruiter/applications/{id}/history
+//
+// @Summary      Get application stage history
+// @Description  Returns complete transition log across recruitment stages for an application
+// @Tags         Recruiter ATS
+// @Security     BearerAuth
+// @Produce      json
+// @Param        id   path      string  true  "Application ID"
+// @Success      200  {array}   models.ApplicationStageHistoryDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/recruiter/applications/{id}/history [get]
+func swaggerGetStageHistory() {}
+
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,
 // and package names such as `domain` and `models` are not unique across
 // modules, so the imports have to be explicit rather than inferred.
 var (
 	_ models.JobOfferPayload
+	_ models.CandidateEvaluationPayload
 	_ swagger.ErrorResponse
 )

@@ -106,3 +106,9 @@ type DiagnosticReport struct {
 	RecentRecoveryLogs  []HealthRecoveryAction `json:"recentRecoveryLogs"`
 	ConfigurationSummary map[string]string     `json:"configurationSummary"`
 }
+
+type ExecuteSelfHealingRequest struct {
+	ActionType    string `json:"actionType" binding:"required"`
+	ComponentName string `json:"componentName" binding:"required"`
+}
+

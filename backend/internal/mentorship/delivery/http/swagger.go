@@ -13,10 +13,10 @@ import (
 // @Tags         Mentorship
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.UpdateMentorProfileDTO  true  "Mentor Profile DTO"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        request  body      models.UpdateMentorProfileDTO  true  "Mentor Profile DTO"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/mentors/profile [post]
 func swaggerCreateOrUpdateProfile() {}
@@ -36,13 +36,13 @@ func swaggerGetMyProfile() {}
 // @Description  Search and filter available mentors by expertise, industry, experience, rate, language.
 // @Tags         Mentorship
 // @Produce      json
-// @Param        search     query  string  false  "Search term"
-// @Param        expertise  query  string  false  "Comma-separated expertise"
-// @Param        industry   query  string  false  "Industry name"
-// @Param        page       query  int     false  "Page number"  default(1)
-// @Param        limit      query  int     false  "Limit per page"  default(20)
-// @Success      200  {object}  swagger.PaginationResponse
-// @Failure      400  {object}  swagger.ErrorResponse
+// @Param        search     query     string  false  "Search term"
+// @Param        expertise  query     string  false  "Comma-separated expertise"
+// @Param        industry   query     string  false  "Industry name"
+// @Param        page       query     int     false  "Page number"     default(1)
+// @Param        limit      query     int     false  "Limit per page"  default(20)
+// @Success      200        {object}  swagger.PaginationResponse
+// @Failure      400        {object}  swagger.ErrorResponse
 // @Router       /api/v1/mentorship/mentors/search [get]
 func swaggerSearchMentors() {}
 
@@ -50,8 +50,9 @@ func swaggerSearchMentors() {}
 // @Description  Get recommended mentors tailored to user skills.
 // @Tags         Mentorship
 // @Produce      json
-// @Param        skills  query  string  false  "Comma-separated skills"
-// @Success      200  {object}  swagger.SuccessResponse
+// @Param        skills  query     string  false  "Comma-separated skills"
+// @Success      200     {object}  swagger.SuccessResponse
+// @Failure      400     {object}  swagger.ErrorResponse
 // @Router       /api/v1/mentorship/mentors/recommendations [get]
 func swaggerGetRecommendations() {}
 
@@ -59,7 +60,7 @@ func swaggerGetRecommendations() {}
 // @Description  Returns details of a specific mentor profile by ID or UserID.
 // @Tags         Mentorship
 // @Produce      json
-// @Param        id   path   string  true  "Profile ID or User ID"
+// @Param        id   path      string  true  "Profile ID or User ID"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      404  {object}  swagger.ErrorResponse
 // @Router       /api/v1/mentorship/mentors/{id} [get]
@@ -70,10 +71,10 @@ func swaggerGetMentorByID() {}
 // @Tags         Mentorship
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.CreateMentorshipRequestDTO  true  "Request DTO"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        request  body      models.CreateMentorshipRequestDTO  true  "Request DTO"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/requests [post]
 func swaggerCreateMentorshipRequest() {}
@@ -82,9 +83,9 @@ func swaggerCreateMentorshipRequest() {}
 // @Description  List mentorship requests where the authenticated user is mentor or mentee.
 // @Tags         Mentorship
 // @Produce      json
-// @Param        role  query  string  false  "Role filter: mentor, mentee, or all"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        role  query     string  false  "Role filter: mentor, mentee, or all"
+// @Success      200   {object}  swagger.SuccessResponse
+// @Failure      401   {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/requests [get]
 func swaggerGetUserRequests() {}
@@ -94,11 +95,11 @@ func swaggerGetUserRequests() {}
 // @Tags         Mentorship
 // @Accept       json
 // @Produce      json
-// @Param        id       path  string                             true  "Request ID"
-// @Param        request  body  models.UpdateMentorshipRequestDTO  true  "Update DTO"
-// @Success      200  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        id       path      string                             true  "Request ID"
+// @Param        request  body      models.UpdateMentorshipRequestDTO  true  "Update DTO"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/requests/{id}/status [put]
 func swaggerRespondToMentorshipRequest() {}
@@ -113,46 +114,119 @@ func swaggerRespondToMentorshipRequest() {}
 // @Router       /api/v1/mentorship/relationships [get]
 func swaggerGetActiveMentorships() {}
 
+// @Summary      Get mentorship relationship details
+// @Description  Returns details of a specific mentorship engagement.
+// @Tags         Mentorship
+// @Produce      json
+// @Param        id   path      string  true  "Relationship ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/relationships/{id} [get]
+func swaggerGetMentorshipByID() {}
+
 // @Summary      Create mentorship goal
 // @Description  Create a goal under an active mentorship relationship.
 // @Tags         Mentorship
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.CreateMentorshipGoalDTO  true  "Goal DTO"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        request  body      models.CreateMentorshipGoalDTO  true  "Goal DTO"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/goals [post]
 func swaggerCreateGoal() {}
+
+// @Summary      List mentorship goals
+// @Description  Returns goals for the user's active mentorship relationships.
+// @Tags         Mentorship
+// @Produce      json
+// @Success      200  {array}   models.MentorshipGoal
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/goals [get]
+func swaggerGetGoals() {}
+
+// @Summary      Update mentorship goal
+// @Description  Updates progress or status of a mentorship milestone goal.
+// @Tags         Mentorship
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                          true  "Goal ID"
+// @Param        request  body      models.UpdateMentorshipGoalDTO  true  "Update Goal DTO"
+// @Success      200      {object}  models.MentorshipGoal
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/goals/{id} [put]
+func swaggerUpdateGoal() {}
 
 // @Summary      Schedule mentorship session
 // @Description  Schedule a mentoring session.
 // @Tags         Mentorship
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.CreateMentorshipSessionDTO  true  "Session DTO"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        request  body      models.CreateMentorshipSessionDTO  true  "Session DTO"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/sessions [post]
 func swaggerCreateSession() {}
+
+// @Summary      List mentorship sessions
+// @Description  Returns scheduled and past mentoring meetings for the user.
+// @Tags         Mentorship
+// @Produce      json
+// @Success      200  {array}   models.MentorshipSession
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/sessions [get]
+func swaggerGetSessions() {}
+
+// @Summary      Update mentorship session
+// @Description  Reschedules or updates status and meeting notes of a mentoring session.
+// @Tags         Mentorship
+// @Accept       json
+// @Produce      json
+// @Param        id       path      string                             true  "Session ID"
+// @Param        request  body      models.UpdateMentorshipSessionDTO  true  "Update Session DTO"
+// @Success      200      {object}  models.MentorshipSession
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/sessions/{id} [put]
+func swaggerUpdateSession() {}
 
 // @Summary      Submit mentorship feedback
 // @Description  Submit rating and feedback for a session or mentorship relationship.
 // @Tags         Mentorship
 // @Accept       json
 // @Produce      json
-// @Param        request  body  models.CreateMentorshipFeedbackDTO  true  "Feedback DTO"
-// @Success      201  {object}  swagger.SuccessResponse
-// @Failure      400  {object}  swagger.ErrorResponse
-// @Failure      401  {object}  swagger.ErrorResponse
+// @Param        request  body      models.CreateMentorshipFeedbackDTO  true  "Feedback DTO"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/mentorship/feedback [post]
 func swaggerSubmitFeedback() {}
 
+// @Summary      List mentorship feedback
+// @Description  Returns reviews and feedback submitted for mentoring engagements.
+// @Tags         Mentorship
+// @Produce      json
+// @Success      200  {array}   models.MentorshipFeedback
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/feedback [get]
+func swaggerGetFeedback() {}
+
 var (
 	_ models.MentorProfile
+	_ models.MentorshipGoal
+	_ models.MentorshipSession
+	_ models.MentorshipFeedback
 	_ swagger.ErrorResponse
 )

@@ -1005,6 +1005,222 @@ type AuditLogPage struct {
 	Limit int                 `json:"limit" example:"50"`
 }
 
+// ---------------------------------------------------------------------------
+// Employer Portal Dedicated Endpoints
+// ---------------------------------------------------------------------------
+
+// swaggerEmployerDashboard documents GET /api/v1/employer/dashboard
+//
+// @Summary      Get employer dashboard
+// @Description  Returns hiring overview, open job stats, and active applicant pipeline
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  models.CompanyDashboard
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      503  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/dashboard [get]
+func swaggerEmployerDashboard() {}
+
+// swaggerEmployerCompanyGet documents GET /api/v1/employer/company
+//
+// @Summary      Get employer company profile
+// @Description  Returns authenticated employer's company details
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  models.CompanyDetail
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      503  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/company [get]
+func swaggerEmployerCompanyGet() {}
+
+// swaggerEmployerCompanyPut documents PUT /api/v1/employer/company
+//
+// @Summary      Update employer company profile
+// @Description  Updates company brand, media, and description
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.CompanyUpdatePayload  true  "Company fields"
+// @Success      200      {object}  models.CompanyDetail
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/company [put]
+func swaggerEmployerCompanyPut() {}
+
+// swaggerEmployerTeamGet documents GET /api/v1/employer/team
+//
+// @Summary      Get employer team members
+// @Description  Returns recruiters, hiring managers and admins belonging to the employer account
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/team [get]
+func swaggerEmployerTeamGet() {}
+
+// swaggerEmployerTeamInvite documents POST /api/v1/employer/team/invite
+//
+// @Summary      Invite team member
+// @Description  Sends email invitation to join employer company workspace
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.TeamInvitePayload  true  "Invitation details"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/team/invite [post]
+func swaggerEmployerTeamInvite() {}
+
+// swaggerEmployerTeamResend documents POST /api/v1/employer/team/invitations/{invitationId}/resend
+//
+// @Summary      Resend team invitation
+// @Description  Re-dispatches invitation email to pending team member
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Param        invitationId  path      string  true  "Invitation ID"
+// @Success      200           {object}  swagger.SuccessResponse
+// @Failure      401           {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/team/invitations/{invitationId}/resend [post]
+func swaggerEmployerTeamResend() {}
+
+// swaggerEmployerTeamRemove documents DELETE /api/v1/employer/team/members/{memberId}
+//
+// @Summary      Remove team member
+// @Description  Revokes member access from employer workspace
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Param        memberId  path      string  true  "Member ID"
+// @Success      200       {object}  swagger.SuccessResponse
+// @Failure      401       {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/team/members/{memberId} [delete]
+func swaggerEmployerTeamRemove() {}
+
+// swaggerEmployerTeamUpdate documents PUT /api/v1/employer/team/members/{memberId}
+//
+// @Summary      Update member role / permissions
+// @Description  Changes assigned role and permissions for a workspace member
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        memberId  path      string                          true  "Member ID"
+// @Param        request   body      models.TeamMemberUpdatePayload  true  "Updated permissions"
+// @Success      200       {object}  swagger.SuccessResponse
+// @Failure      400       {object}  swagger.ErrorResponse
+// @Failure      401       {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/team/members/{memberId} [put]
+func swaggerEmployerTeamUpdate() {}
+
+// swaggerEmployerTeamTransferOwnership documents POST /api/v1/employer/team/transfer-ownership
+//
+// @Summary      Transfer company ownership
+// @Description  Transfers primary ownership to another verified admin
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.TransferOwnershipPayload  true  "New owner"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/team/transfer-ownership [post]
+func swaggerEmployerTeamTransferOwnership() {}
+
+// swaggerEmployerJobsGet documents GET /api/v1/employer/jobs
+//
+// @Summary      List employer jobs
+// @Description  Returns active, paused and closed job postings belonging to employer
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/jobs [get]
+func swaggerEmployerJobsGet() {}
+
+// swaggerEmployerAnalyticsGet documents GET /api/v1/employer/analytics
+//
+// @Summary      Get employer recruitment analytics
+// @Description  Returns applicant conversion metrics, view-to-apply rates and source tracking
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/analytics [get]
+func swaggerEmployerAnalyticsGet() {}
+
+// swaggerEmployerSettingsGet documents GET /api/v1/employer/settings
+//
+// @Summary      Get employer settings
+// @Description  Returns application notifications, ATS integrations and branding preferences
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/settings [get]
+func swaggerEmployerSettingsGet() {}
+
+// swaggerEmployerSettingsPut documents PUT /api/v1/employer/settings
+//
+// @Summary      Update employer settings
+// @Description  Updates company recruitment settings and notifications
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.EmployerSettingsUpdatePayload  true  "Settings"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/settings [put]
+func swaggerEmployerSettingsPut() {}
+
+// swaggerEmployerExportPost documents POST /api/v1/employer/export
+//
+// @Summary      Export employer data package
+// @Description  Generates CSV/JSON export of company jobs and applicant records
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/employer/export [post]
+func swaggerEmployerExportPost() {}
+
+// swaggerCompanyAnalyticsOverview documents GET /api/v1/company/analytics/overview
+//
+// @Summary      Get company analytics overview
+// @Description  Returns high-level visitor and candidate interaction stats
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/company/analytics/overview [get]
+func swaggerCompanyAnalyticsOverview() {}
+
+// swaggerCompanyAnalyticsCandidates documents GET /api/v1/company/analytics/candidates
+//
+// @Summary      Get candidate demographics analytics
+// @Description  Returns applicant geography and experience distribution
+// @Tags         Employer Portal
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/company/analytics/candidates [get]
+func swaggerCompanyAnalyticsCandidates() {}
+
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set, and
 // package names such as `models` and `service` are not unique across modules,

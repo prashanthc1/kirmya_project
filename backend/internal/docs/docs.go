@@ -24,6 +24,43 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/admin/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns high-level administrative platform metric KPIs.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get Admin Analytics Overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AdminDashboardStats"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/analytics/ai": {
             "get": {
                 "security": [
@@ -44,6 +81,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -69,6 +112,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -98,6 +147,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -122,6 +177,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -148,6 +209,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -173,6 +240,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -197,6 +270,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -226,6 +305,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -250,6 +341,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -276,6 +373,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -287,19 +390,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns admin jobs analytics.",
+                "description": "Returns job posting volume, salary benchmarks, and demand by industry.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Get admin jobs analytics",
+                "summary": "Get job market analytics",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -326,6 +435,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -350,6 +465,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -376,6 +497,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns delivery, open rates, and push notification throughput.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get admin notification analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -387,19 +545,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns platform admin overview metrics.",
+                "description": "Returns executive KPIs on platform growth, revenue, and active accounts.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Get admin overview analytics",
+                "summary": "Get platform analytics overview",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -426,6 +590,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/recommendations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns recommendation CTR and algorithmic accuracy metrics.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get admin recommendations analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -450,6 +651,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -479,6 +686,144 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/reports/download/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Downloads a generated CSV/JSON analytics report file.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Download analytics export package",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/reports/scheduled": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns list of configured recurring report deliveries.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get scheduled analytics reports",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets up a recurring scheduled report export.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Create scheduled report delivery",
+                "parameters": [
+                    {
+                        "description": "Schedule configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -503,6 +848,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -529,6 +880,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/search/zero-results": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns search terms that yielded zero candidate or job matches.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get admin zero-results search queries",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -553,6 +941,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -579,6 +973,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/system/performance": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns real-time p95/p99 latency and DB query performance.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get admin system performance metrics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -604,6 +1035,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -615,19 +1052,1125 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns admin user growth analytics.",
+                "description": "Returns new registrations, DAU/MAU, and churn rates.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Get admin users analytics",
+                "summary": "Get user growth analytics",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/announcements": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dispatches system-wide broadcast announcement.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Create System Announcement (Admin)",
+                "parameters": [
+                    {
+                        "description": "Announcement spec",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateAnnouncementPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AdminAnnouncement"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists candidate job applications across the platform.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Applications (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/audit-logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns immutable log of all staff operations.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Audit"
+                ],
+                "summary": "List Administrative Audit Logs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AdminAuditLog"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns metadata of automated and manual snapshots across regions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "List database backups (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BackupRecord"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates an immediate point-in-time snapshot of PostgreSQL database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Trigger manual backup snapshot (Admin)",
+                "parameters": [
+                    {
+                        "description": "Backup parameters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TriggerBackupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupRecord"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/configuration": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns schedules, retention policy and encryption configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Get backup retention configuration (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupConfiguration"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates snapshot frequency, cross-region replication, or retention window",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Update backup configuration (Admin)",
+                "parameters": [
+                    {
+                        "description": "Configuration updates",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupConfiguration"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupConfiguration"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/health": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns RPO/RTO metrics, encryption validation, and replication status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Get DR health metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupHealthSummary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/incidents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns log of backup failures or recovery incidents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "List DR incidents (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.RecoveryIncident"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logs a DR incident for audit and remediation tracking",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Report DR incident (Admin)",
+                "parameters": [
+                    {
+                        "description": "Incident details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateRecoveryIncidentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.RecoveryIncident"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/restore-confirm": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires super-admin verification and confirmation phrase to restore database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Execute production restore (Admin)",
+                "parameters": [
+                    {
+                        "description": "Confirmation",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmProductionRestoreRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/restore-tests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns log of automated disaster recovery restoration drills",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "List automated restore drills (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.RestoreTest"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes a non-destructive restoration drill in an isolated staging database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Run automated restore test (Admin)",
+                "parameters": [
+                    {
+                        "description": "Restore test parameters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RunRestoreTestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.RestoreTest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/tiers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns Tier-1 (Transactional), Tier-2 (Search/Metrics), Tier-3 (Logs) classification",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Get data tier classifications (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DataTierClassification"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns checksum, size, creation date and target region of a backup",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Get backup metadata (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Backup ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupRecord"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/backups/{id}/verify": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Computes checksums and validates cryptographic signature of a snapshot",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Backups \u0026 DR"
+                ],
+                "summary": "Verify backup integrity (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Backup ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BackupVerification"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/billing/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns revenue, MRR, churn, and conversion analytics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Billing"
+                ],
+                "summary": "Get billing analytics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/billing/entitlements": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns mapping of tiers to feature entitlements",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Billing"
+                ],
+                "summary": "Get feature entitlements (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/billing/plans": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns administrative overview of all billing plans and quotas",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Billing"
+                ],
+                "summary": "Get all billing plans (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/billing/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns comprehensive billing system status for administrators",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Billing"
+                ],
+                "summary": "Get admin billing configuration",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/communities": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists platform community groups for moderation.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Communities (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/companies": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists company accounts for administration review.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Companies (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/companies/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves company account details for admin view.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get Company Details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Company UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/companies/{id}/status": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates company verification and active status.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update Company Status (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Company UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateCompanyStatusPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -775,6 +2318,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns access recertification campaigns and audit log.",
                 "produces": [
                     "application/json"
                 ],
@@ -788,6 +2332,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -797,6 +2347,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Submits a privileged access recertification review.",
                 "consumes": [
                     "application/json"
                 ],
@@ -824,6 +2375,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.DataAccessReviewItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -848,6 +2411,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -895,6 +2464,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -906,6 +2487,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns logged data breach and privacy incident tickets.",
                 "produces": [
                     "application/json"
                 ],
@@ -919,6 +2501,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -928,6 +2516,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Creates a GDPR 72-hour breach notification incident record.",
                 "consumes": [
                     "application/json"
                 ],
@@ -955,6 +2544,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.PrivacyIncidentItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -966,6 +2567,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns legal hold audit entries preventing data deletion.",
                 "produces": [
                     "application/json"
                 ],
@@ -978,6 +2580,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -1016,6 +2624,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.LegalHoldItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1027,6 +2647,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Releases an active legal hold on a user account.",
                 "tags": [
                     "Admin Compliance"
                 ],
@@ -1046,6 +2667,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1057,6 +2690,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns executive GDPR/CCPA readiness and SLA attainment KPIs.",
                 "produces": [
                     "application/json"
                 ],
@@ -1070,6 +2704,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.ComplianceOverview"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1081,6 +2721,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns version history of terms of service and privacy policies.",
                 "produces": [
                     "application/json"
                 ],
@@ -1094,6 +2735,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1103,6 +2750,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Publishes a new revision of a platform legal document.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1130,6 +2778,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.PolicyVersionItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1141,6 +2801,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Computes aggregate privacy vulnerability score across DSRs and holds.",
                 "produces": [
                     "application/json"
                 ],
@@ -1153,6 +2814,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.PrivacyRiskSummary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -1216,6 +2883,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1253,6 +2926,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1264,6 +2949,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Lists vendor subprocessors processing platform personal data.",
                 "produces": [
                     "application/json"
                 ],
@@ -1277,6 +2963,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1286,6 +2978,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Registers a new vendor subprocessor for compliance documentation.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1313,6 +3006,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.ThirdPartyProcessorItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1324,6 +3029,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns automated data integrity and hygiene check metrics.",
                 "produces": [
                     "application/json"
                 ],
@@ -1337,6 +3043,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1348,6 +3060,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Runs a data hygiene or orphaned entity check on schedule.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1364,6 +3077,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.DataQualityCheckItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1375,6 +3100,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Returns active data retention schedules across all database tables.",
                 "produces": [
                     "application/json"
                 ],
@@ -1388,6 +3114,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.PaginationResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -1397,6 +3129,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Updates retention duration and purge rule for designated data domain.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1423,6 +3156,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -1463,6 +3208,452 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/domain.DryRunResult"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/data-operations/bulk-operations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns status of running and completed bulk mutations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "List bulk mutation jobs (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BulkOperation"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Performs mass user status updates, job archive, or moderation tagging",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "Execute bulk mutation (Admin)",
+                "parameters": [
+                    {
+                        "description": "Bulk operation spec",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ExecuteBulkOpRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BulkOperation"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/data-operations/exports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history of administrative dataset exports",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "List batch data exports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DataExport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initiates filtered platform dataset extraction to CSV/JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "Start bulk data export (Admin)",
+                "parameters": [
+                    {
+                        "description": "Export filters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateExportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataExport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/data-operations/imports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history and progress of data import operations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "List batch data imports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DataImport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enqueues asynchronous batch import of jobs, skills, or taxonomy records",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "Start bulk data import (Admin)",
+                "parameters": [
+                    {
+                        "description": "Import parameters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateImportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataImport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/data-operations/imports/preview": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Validates CSV/JSON schema and returns preview rows and error report",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "Preview data import file (Admin)",
+                "parameters": [
+                    {
+                        "description": "Import preview configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PreviewImportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ImportPreviewResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/data-operations/imports/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns progress percentage, row success count, and error log",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "Get import job status (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Import Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataImport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/data-operations/migrations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns executed database migration versions and checksums",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Data Operations"
+                ],
+                "summary": "List schema migration history (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DataMigration"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1490,6 +3681,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.FeatureFlag"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -1528,6 +3731,88 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.FeatureFlag"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/feature-flags/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Modifies feature flag rollout state.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Config"
+                ],
+                "summary": "Update Feature Flag (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Flag UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated configuration",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateFeatureFlagPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.FeatureFlag"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1562,6 +3847,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1584,13 +3887,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Incident status (Open, Investigating, Mitigated, Resolved)",
+                        "description": "Incident status",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Severity (Critical, Major, Minor, Low)",
+                        "description": "Severity",
                         "name": "severity",
                         "in": "query"
                     }
@@ -1603,6 +3906,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.IncidentItem"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -1641,11 +3956,79 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.IncidentItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/api/v1/admin/incidents/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves an operational incident by ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Platform Incident Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.IncidentItem"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -1687,6 +4070,330 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.IncidentItem"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists all posted job listings for platform moderation.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Jobs (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/jobs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves posted job details for moderation review.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get Job Details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/jobs/{id}/moderate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Applies moderation action to a job listing.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Moderate Job Listing (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Moderation action",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ModerateJobPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/legal/documents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns administrative overview of all managed policy documents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Legal"
+                ],
+                "summary": "List legal documents (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/legal/legal-holds": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns accounts and records preserved under legal hold",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Legal"
+                ],
+                "summary": "List legal holds (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/legal/privacy-requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns global queue of data subject requests",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Legal"
+                ],
+                "summary": "List all privacy requests (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/legal/retention": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns compliance retention configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Legal"
+                ],
+                "summary": "Get retention rules (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1711,6 +4418,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/kirmya_internal_admin_models.MaintenanceModeConfig"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -1749,147 +4468,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/kirmya_internal_admin_models.MaintenanceModeConfig"
                         }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/notifications": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns notifications across users via the Kirmya notification module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notifications"
-                ],
-                "summary": "List notifications (admin)",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/notifications/analytics": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns delivery and engagement analytics via the Kirmya notification module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notifications"
-                ],
-                "summary": "Get notification analytics",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/notifications/announcement": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Broadcasts an announcement notification via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notifications"
-                ],
-                "summary": "Send announcement",
-                "parameters": [
-                    {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "202": {
-                        "description": "Accepted",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1908,9 +4486,40 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/messaging/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns volume of sent messages, active threads and reported abuse count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Messaging"
+                ],
+                "summary": "Get messaging metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -1918,42 +4527,112 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admin/notifications/failures": {
+        "/api/v1/admin/messaging/reports": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the failed notification deliveries via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns moderation queue of flagged messages",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Notifications"
+                    "Admin Messaging"
                 ],
-                "summary": "List delivery failures",
+                "summary": "Get message reports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/moderation/queue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists pending moderation cases for content and users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Moderation Queue (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ModerationCase"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/moderation/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves moderation case details and history.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get Moderation Case Details (Admin)",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
+                        "type": "string",
+                        "description": "Case UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/models.ModerationCase"
                         }
                     },
                     "401": {
@@ -1968,8 +4647,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -1977,26 +4656,26 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admin/notifications/templates": {
+        "/api/v1/admin/network/analytics": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the notification templates via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns connection request volume, acceptance rates, and referral activity",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Notifications"
+                    "Admin Networking"
                 ],
-                "summary": "List notification templates",
+                "summary": "Get networking engagement analytics (Admin)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
@@ -2010,22 +4689,129 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/network/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns queue of flagged outreach requests and spam patterns",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Networking"
+                ],
+                "summary": "Get connection abuse reports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/v1/admin/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns global platform notifications",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "List all notifications (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns dispatch volumes, open rates, and click-through rates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get notification volume analytics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/announcement": {
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates a notification template via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Sends targeted platform-wide broadcast notification to users",
                 "consumes": [
                     "application/json"
                 ],
@@ -2033,17 +4819,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Notifications"
+                    "Admin Notifications"
                 ],
-                "summary": "Create notification template",
+                "summary": "Broadcast system announcement (Admin)",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Announcement message",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/models.BroadcastAnnouncementPayload"
                         }
                     }
                 ],
@@ -2071,9 +4857,1840 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/dead-letters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns permanently failed notification payloads in DLQ",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "List dead letter notifications (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/dead-letters/{id}/retry": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Re-enqueues failed notification payload for delivery",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Retry dead letter notification (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dead Letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/delivery-analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns latency and channel success percentages",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get notification delivery breakdown (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/failed": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns failed notification delivery attempts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get delivery failures (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/failures": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns bounce rates and delivery error breakdown",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get notification failure metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/providers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns SendGrid, FCM, APNS provider uptime and latency",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get delivery providers health (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/queue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns pending email/push jobs in delivery queue",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get notification queue depth (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/templates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns email and push message templates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "List notification templates (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new email or push notification template",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Create notification template (Admin)",
+                "parameters": [
+                    {
+                        "description": "Template",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NotificationTemplatePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/templates/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns template content and variable placeholders",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Get notification template (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates template body, subject or variables",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Update notification template (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updates",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NotificationTemplatePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/templates/{id}/archive": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deactivates and archives a notification template",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Archive template (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/templates/{id}/publish": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Promotes draft template to active production status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Publish template (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/notifications/templates/{id}/test": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dispatches sample rendered notification to staff email/device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Notifications"
+                ],
+                "summary": "Send test notification (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Template ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Test recipient",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TestSendPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/observability": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns overall telemetry and metrics summary.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Observability Overview (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/observability/dependencies": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns database, cache, message broker, and external vendor dependencies.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Observability Dependency Health (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/observability/errors": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns recent application exception rates and error logs.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Observability Error Rates (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/observability/health": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns detailed infrastructure health checks.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Observability Health (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/observability/incidents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns correlated alert incidents.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Observability Incidents (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/observability/metrics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns operational throughput and latency histograms.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Ops"
+                ],
+                "summary": "Get Observability Metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/onboarding": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns completion rates, drop-off steps, and average time-to-complete",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Onboarding"
+                ],
+                "summary": "Get onboarding funnel metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/onboarding/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns step-by-step conversion rates and cohort metrics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Onboarding"
+                ],
+                "summary": "Get detailed onboarding analytics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/onboarding/config": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns active step sequence, required vs optional steps",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Onboarding"
+                ],
+                "summary": "Get onboarding step configuration (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enables, disables or reorders onboarding steps",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Onboarding"
+                ],
+                "summary": "Update onboarding step configuration (Admin)",
+                "parameters": [
+                    {
+                        "description": "Step configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.OnboardingConfigPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns compliance metrics, open DSR counts, and consent rates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Get privacy dashboard summary (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy/consents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns audit trail of user consents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Get global consent records (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy/data-processing": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns Record of Processing Activities (ROPA)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Get Article 30 ROPA records (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy/export": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates compliance export for a designated user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Export user data package (Admin)",
+                "parameters": [
+                    {
+                        "description": "Target user",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AdminExportPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy/requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns full list of data subject requests",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "List DSR queue (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy/requests/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns individual DSR request details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Get DSR case details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates fulfillment status, notes, or rejection reason for a DSR",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Update DSR case status (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status update",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePrivacyPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/privacy/retention": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns configured retention periods",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Get retention schedules (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates retention duration for a data category",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Privacy"
+                ],
+                "summary": "Update retention schedule (Admin)",
+                "parameters": [
+                    {
+                        "description": "Retention schedule",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateRetentionPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/recommendations/config": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns scoring weights and algorithmic hyper-parameters.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin AI"
+                ],
+                "summary": "Get recommendation engine config (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates scoring weights and similarity thresholds.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin AI"
+                ],
+                "summary": "Update recommendation engine config (Admin)",
+                "parameters": [
+                    {
+                        "description": "Config weights",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/recommendations/metrics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns recommendation CTR, conversion, and NDCG accuracy scores.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin AI"
+                ],
+                "summary": "Get recommendation engine performance metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/recruiters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns paginated recruiter user accounts for administration.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Platform Recruiters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists user-submitted content reports.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Content Reports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ContentReport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/reports/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific content report by ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get Content Report Details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ContentReport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a content report status and resolution notes.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update Content Report (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Resolution details",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResolveReportPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/reports/{id}/resolve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Resolves a user-submitted content report.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Resolve Content Report (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Resolution action",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResolveReportPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2104,6 +6721,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.AdminRole"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -2144,80 +6773,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/safety/analytics": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns safety analytics via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trust \u0026 Safety"
-                ],
-                "summary": "Get safety analytics",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/safety/appeals/{id}/resolve": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Resolves appeal via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trust \u0026 Safety"
-                ],
-                "summary": "Resolve appeal",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Appeal ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2231,8 +6786,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2240,26 +6795,26 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admin/safety/cases": {
+        "/api/v1/admin/security": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns admin safety cases via the Kirmya trust and safety module. Requires a valid Bearer access token.",
+                "description": "Returns platform-wide SOC metrics, active incidents, and event trends.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Security"
                 ],
-                "summary": "Get admin safety cases",
+                "summary": "Get Admin Security Overview",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
+                            "$ref": "#/definitions/models.SecurityDashboardSummary"
                         }
                     },
                     "401": {
@@ -2268,8 +6823,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2277,53 +6832,30 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admin/safety/cases/{id}/actions": {
-            "post": {
+        "/api/v1/admin/security-events": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Executes moderation action via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Returns suspicious access and anomaly signals.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Audit"
                 ],
-                "summary": "Execute moderation action",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/domain.ModerationActionPayload"
-                        }
-                    }
-                ],
+                "summary": "List Platform Security Events (Admin)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
                         }
                     },
                     "401": {
@@ -2332,8 +6864,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2379,6 +6911,18 @@ const docTemplate = `{
                                 "$ref": "#/definitions/models.SecurityAlert"
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2412,6 +6956,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.SecurityAlert"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
                     "404": {
@@ -2463,6 +7019,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.SecurityAlert"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2509,6 +7083,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.SecurityAlert"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2536,6 +7128,58 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.BotDetectionSignal"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/security/events": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns comprehensive security events across all users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get Admin Security Events Log",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/kirmya_internal_security_models.SecurityEvent"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -2565,6 +7209,227 @@ const docTemplate = `{
                                 "$ref": "#/definitions/models.FraudAlert"
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/security/incidents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns operational security incident records.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "List Security Incidents (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SecurityIncident"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logs a newly detected security vulnerability or breach incident.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Create Security Incident (Admin)",
+                "parameters": [
+                    {
+                        "description": "Incident details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SecurityIncident"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.SecurityIncident"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/security/incidents/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves incident triage logs and containment notes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get Security Incident Details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SecurityIncident"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates incident severity, containment status, or resolution summary.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Update Security Incident (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated incident",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SecurityIncident"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2593,6 +7458,18 @@ const docTemplate = `{
                                 "$ref": "#/definitions/models.AccountRiskScore"
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2620,6 +7497,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.SecurityRule"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -2667,6 +7556,822 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.SecurityRule"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/security/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns global security policies (session timeouts, password complexity, login limits).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get Security Settings (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates global platform security policies and session timeouts.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Update Security Settings (Admin)",
+                "parameters": [
+                    {
+                        "description": "Settings payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns global platform configuration settings.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Config"
+                ],
+                "summary": "Get System Settings (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns ticket volume, SLA health, and resolution metrics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Get support desk overview (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns ticket inflow, CSAT scores, and agent response metrics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Get detailed support analytics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/articles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns draft, published, and archived knowledge base articles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "List all articles for curation (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Publishes a new help article",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Create knowledge base article (Admin)",
+                "parameters": [
+                    {
+                        "description": "Article content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateArticlePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/bugs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user-submitted issue reports for engineering triage",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "List bug reports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/feedback": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user-submitted feature requests and vote counts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "List feature suggestions (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/sla": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns SLA attainment percentage and breached ticket counts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Get SLA compliance metrics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/tickets": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns filtered ticket queue across all users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "List all support tickets (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/tickets/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns full ticket context for agent handling",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Get support ticket details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/tickets/{id}/assign": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assigns ticket ownership to a support staff member",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Assign ticket to agent (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Assignee",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AssignTicketPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/tickets/{id}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns customer messages and staff-only internal notes",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Get ticket thread and internal notes (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dispatches public staff reply to the customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Send agent reply to ticket (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reply content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateMessagePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/tickets/{id}/notes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Appends staff-only note not visible to the customer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Add internal note to ticket (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Internal note",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateMessagePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/support/tickets/{id}/resolve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks ticket as resolved with resolution summary",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Support"
+                ],
+                "summary": "Resolve ticket (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Resolution",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResolveTicketPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2678,19 +8383,262 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Aggregates liveness \u0026 latency metrics across API, PostgreSQL, Redis, OpenSearch, NATS, Workers, Storage, and OpenTelemetry.",
+                "description": "Returns real-time status of PostgreSQL, Redis, NATS, and CPU/Memory usage",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Admin Ops"
+                    "Admin System Health"
                 ],
-                "summary": "Get Aggregate Infrastructure Health",
+                "summary": "Get infrastructure health summary (Admin)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.SystemHealth"
+                            "$ref": "#/definitions/models.OverallHealthSummary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/system/health/diagnostics/report": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Compiles runtime stack traces, memory allocations, and query latency stats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin System Health"
+                ],
+                "summary": "Generate system diagnostic report (Admin)",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DiagnosticReport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/system/health/incidents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns timeline of past outages, high latency alerts, or degraded states",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin System Health"
+                ],
+                "summary": "List system health incidents (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.HealthIncident"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/system/health/maintenance": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enables or disables planned maintenance window with public banner",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin System Health"
+                ],
+                "summary": "Toggle maintenance mode (Admin)",
+                "parameters": [
+                    {
+                        "description": "Maintenance settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ToggleMaintenanceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/kirmya_internal_system_health_models.MaintenanceModeConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/system/health/recoveries": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history of automatic worker restarts and fallback invocations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin System Health"
+                ],
+                "summary": "List automated recovery actions (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.HealthRecoveryAction"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/system/health/self-healing": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes automated connection pool resets, cache flushes, or worker restarts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin System Health"
+                ],
+                "summary": "Trigger self-healing remediations (Admin)",
+                "parameters": [
+                    {
+                        "description": "Target component",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ExecuteSelfHealingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.HealthRecoveryAction"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -2714,7 +8662,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Job status filter (Running, Queued, Failed, Completed)",
+                        "description": "Job status filter",
                         "name": "status",
                         "in": "query"
                     },
@@ -2733,6 +8681,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.BackgroundJobItem"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -2767,6 +8727,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.BackgroundJobItem"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
                     "404": {
@@ -2814,6 +8786,468 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns open reports, high risk items, and review velocity metrics.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Get Trust \u0026 Safety overview (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyMetricsSummary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns report volume by category, action breakdown, and resolution metrics.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Get Trust \u0026 Safety analytics (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyMetricsSummary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/appeals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user enforcement appeals queue.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "List all pending appeals (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/appeals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns appeal rationale, original enforcement record, and past violation context.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Get appeal details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appeal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets appeal review status or logs internal review notes.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Update appeal status (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appeal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResolveAppealPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/appeals/{id}/resolve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Grants or denies restriction appeal, automatically triggering account reinstatement if granted.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Resolve appeal (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appeal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Resolution decision",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResolveAppealPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/cases": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns open safety investigation cases.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "List moderation cases (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyCase"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/cases/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns case history, attached reports, AI risk score, and action audit log.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Get moderation case details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyCase"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/cases/{id}/actions": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes enforcement decision on a moderation case.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Apply action on case (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Case ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -2825,7 +9259,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Assigns a moderation case to an admin or team. Requires a valid Bearer access token.",
+                "description": "Assigns case to a specific safety team or staff member.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2833,9 +9267,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Trust \u0026 Safety"
                 ],
-                "summary": "Assign moderation case",
+                "summary": "Assign moderation case (Admin)",
                 "parameters": [
                     {
                         "type": "string",
@@ -2845,7 +9279,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Request payload",
+                        "description": "Assignee spec",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2873,8 +9307,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2889,17 +9323,11 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Claims a moderation case for the authenticated admin. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Claims case ownership for the authenticated moderator.",
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Trust \u0026 Safety"
                 ],
-                "summary": "Claim moderation case",
+                "summary": "Claim moderation case (Admin)",
                 "parameters": [
                     {
                         "type": "string",
@@ -2928,8 +9356,48 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/incidents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns platform safety incidents and mass abuse events.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "List safety incidents (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyCase"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2944,19 +9412,22 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns safety policy items. Requires a valid Bearer access token.",
+                "description": "Returns active and historical trust \u0026 safety policy definitions.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Trust \u0026 Safety"
                 ],
-                "summary": "Get safety policies",
+                "summary": "List safety policies (Admin)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyPolicyItem"
+                            }
                         }
                     },
                     "401": {
@@ -2965,8 +9436,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -2979,7 +9450,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates a new safety policy item. Requires a valid Bearer access token.",
+                "description": "Publishes a new platform safety policy code and guidance rules.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2987,12 +9458,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Trust \u0026 Safety"
                 ],
-                "summary": "Create safety policy",
+                "summary": "Create safety policy (Admin)",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Policy spec",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3020,8 +9491,72 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/policies/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Modifies policy description, severity level, or guidance instructions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Update safety policy (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Policy ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated policy",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePolicyPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyPolicyItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -3036,19 +9571,22 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns prioritized moderation queue for admins. Requires a valid Bearer access token.",
+                "description": "Returns prioritized moderation queue for safety staff.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Trust \u0026 Safety"
                 ],
-                "summary": "Get prioritized moderation queue",
+                "summary": "Get prioritized moderation queue (Admin)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyCase"
+                            }
                         }
                     },
                     "401": {
@@ -3057,8 +9595,378 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/reinstatements": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Restores account standing and clears active penalties.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Reinstate restricted user (Admin)",
+                "parameters": [
+                    {
+                        "description": "Reinstatement spec",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReinstateUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns filtered user reports across the platform.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "List all abuse reports (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyReport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/reports/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns full report details, reporter telemetry, and evidence URLs.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Get abuse report details (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyReport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates investigation status or assigns report to investigator.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Update report triage status (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateReportStatusPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/reports/{id}/actions": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes warning, content takedown, suspension, or dismissal on report.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Apply enforcement action on report (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Enforcement action",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/trust-safety/rules": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns automated abuse detection and content filter rules.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Get automated safety rules (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyRule"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates rule conditions or recommended mitigation actions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Trust \u0026 Safety"
+                ],
+                "summary": "Update safety rule (Admin)",
+                "parameters": [
+                    {
+                        "description": "Updated rule",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyRule"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyRule"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -3073,19 +9981,22 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns moderator workload and SLA metrics. Requires a valid Bearer access token.",
+                "description": "Returns staff assignment balance and SLA compliance rates.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Trust \u0026 Safety"
+                    "Admin Trust \u0026 Safety"
                 ],
-                "summary": "Get moderator workload metrics",
+                "summary": "Get moderator workloads (Admin)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ModeratorWorkload"
+                            }
                         }
                     },
                     "401": {
@@ -3094,8 +10005,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -3127,7 +10038,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter by account status (Active, Suspended, Restricted)",
+                        "description": "Filter by account status",
                         "name": "status",
                         "in": "query"
                     },
@@ -3153,6 +10064,18 @@ const docTemplate = `{
                                 "type": "object",
                                 "additionalProperties": true
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -3188,6 +10111,18 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
                     "404": {
@@ -3240,6 +10175,24 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/models.UserImpersonationSession"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -3451,6 +10404,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/users/{id}/role": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Grants an administrative role to a designated user ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin RBAC"
+                ],
+                "summary": "Assign Role to Target User (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Role assignment",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AssignUserRolePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/users/{id}/status": {
             "put": {
                 "security": [
@@ -3492,6 +10509,169 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/verifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists pending user and organization verification requests.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List Verification Requests (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/verifications/{id}/approve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approves a pending verification request.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Approve Verification (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Verification UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/verifications/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Rejects a pending verification request.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Reject Verification (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Verification UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -3910,6 +11090,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -3934,6 +11120,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -3960,6 +11152,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -3980,11 +11178,34 @@ const docTemplate = `{
                     "Analytics"
                 ],
                 "summary": "Update user consent preferences",
+                "parameters": [
+                    {
+                        "description": "Consent settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -4011,6 +11232,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -4035,6 +11262,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -4061,6 +11294,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -4085,6 +11324,43 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analytics/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns consolidated personal user analytics across profile, job views, and applications.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get consolidated personal analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -4111,6 +11387,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -4136,6 +11418,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -4160,6 +11448,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -4212,6 +11506,61 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits a job application with resume, cover letter, and screening question responses",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Apply to a job",
+                "parameters": [
+                    {
+                        "description": "Application details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateApplicationPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApplicationDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Already applied to this job",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -5068,6 +12417,192 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/billing/checkout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a checkout session for subscribing to a plan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Initiate checkout session",
+                "parameters": [
+                    {
+                        "description": "Checkout payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/billing/plans": {
+            "get": {
+                "description": "Returns active pricing plans available on the platform",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "List billing plans",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/billing/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the current billing enablement status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Get billing status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/billing/subscription": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the user's current subscription plan and status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Get subscription details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/billing/webhooks/{provider}": {
+            "post": {
+                "description": "Handles payment gateway callbacks (Stripe, LemonSqueezy)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Process payment provider webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Provider name (e.g. stripe)",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Webhook payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/career-ai/interview-prep": {
             "post": {
                 "security": [
@@ -5823,7 +13358,7 @@ const docTemplate = `{
         },
         "/api/v1/career-preferences": {
             "post": {
-                "description": "Saves career preferences via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Records target job titles, preferred locations, and expected salary",
                 "consumes": [
                     "application/json"
                 ],
@@ -5831,12 +13366,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
                 "summary": "Save career preferences",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Preferences",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5857,19 +13392,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             }
         },
         "/api/v1/certifications": {
             "post": {
-                "description": "Saves certifications via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Records license, credential or certification",
                 "consumes": [
                     "application/json"
                 ],
@@ -5877,22 +13406,23 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Save certifications",
+                "summary": "Save professional certifications",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Certification",
                         "name": "request",
                         "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.CertificationPayload"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
@@ -6323,7 +13853,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns community engagement analytics.",
+                "description": "Returns member engagement, post activity, and growth metrics for a community.",
                 "produces": [
                     "application/json"
                 ],
@@ -6345,6 +13875,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -11405,31 +18941,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/company/analytics": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns company overview analytics.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Analytics"
-                ],
-                "summary": "Get company analytics",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/company/analytics/applications": {
             "get": {
                 "security": [
@@ -11437,19 +18948,56 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns company applications analytics.",
+                "description": "Returns applicant stage progress and drop-off analytics.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Get company applications analytics",
+                "summary": "Get company application funnel",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/company/analytics/candidates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns applicant geography and experience distribution",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get candidate demographics analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -11462,19 +19010,56 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns company jobs analytics.",
+                "description": "Returns job views and applicant conversion across listings.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Get company jobs analytics",
+                "summary": "Get company job posting analytics",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/company/analytics/overview": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns high-level visitor and candidate interaction stats",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get company analytics overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -12083,6 +19668,940 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits a Data Subject Request (DSR) such as export or deletion.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Compliance"
+                ],
+                "summary": "Create user compliance request",
+                "parameters": [
+                    {
+                        "description": "Request payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateDataRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cookies": {
+            "get": {
+                "description": "Returns categorized list of cookies used across the application",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Get platform cookie registry",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cookies/consent": {
+            "post": {
+                "description": "Records user or guest cookie category preferences",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Save cookie consent",
+                "parameters": [
+                    {
+                        "description": "Consent preferences",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SaveCookieConsentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns all saved cover letters for the authenticated candidate",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "List user cover letters",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new cover letter draft",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Create cover letter",
+                "parameters": [
+                    {
+                        "description": "Cover letter content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateCoverLetterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/templates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns pre-designed cover letter visual layouts and styles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "List cover letter templates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns full content and metadata of a specific cover letter",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Get cover letter details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates sections, styling or content of a cover letter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Update cover letter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateCoverLetterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently removes a saved cover letter",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Delete cover letter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns view counts and job alignment score",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Get cover letter analytics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates and streams binary document file",
+                "produces": [
+                    "application/pdf"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Download cover letter PDF / DOCX",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Format (pdf, docx, txt)",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/duplicate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Clones an existing cover letter as a new draft",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Duplicate cover letter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/generate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates personalized letter using candidate profile and job description",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Generate AI cover letter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Generation parameters",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GenerateCoverLetterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/preview": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Renders formatted letter HTML with selected template styling",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Preview rendered cover letter",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/rewrite": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adjusts tone, length or focus of cover letter sections",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Rewrite cover letter section with AI",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rewrite instructions",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RewriteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/share": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates a secure view link with expiration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Create public share link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Share options",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ShareCoverLetterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deactivates active public share links for the cover letter",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Revoke public share link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/tailor": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Aligns keywords and accomplishments to a specific job vacancy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Tailor cover letter for job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Job description",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TailorCoverLetterPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/cover-letters/{id}/versions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns timeline of previous revisions and snapshots",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "List version history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves named snapshot of current cover letter draft",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cover Letters"
+                ],
+                "summary": "Create version checkpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover letter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Version tag",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateVersionPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/documents": {
@@ -12236,7 +20755,7 @@ const docTemplate = `{
         },
         "/api/v1/education": {
             "post": {
-                "description": "Saves education via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Adds academic degree or institution attendance",
                 "consumes": [
                     "application/json"
                 ],
@@ -12244,16 +20763,307 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Save education",
+                "summary": "Save education record",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Education details",
                         "name": "request",
                         "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.EducationPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns applicant conversion metrics, view-to-apply rates and source tracking",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get employer recruitment analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/company": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns authenticated employer's company details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get employer company profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CompanyDetail"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates company brand, media, and description",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Update employer company profile",
+                "parameters": [
+                    {
+                        "description": "Company fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CompanyUpdatePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CompanyDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns hiring overview, open job stats, and active applicant pipeline",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get employer dashboard",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CompanyDashboard"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/export": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates CSV/JSON export of company jobs and applicant records",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Export employer data package",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns active, paused and closed job postings belonging to employer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "List employer jobs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/settings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns application notifications, ATS integrations and branding preferences",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get employer settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates company recruitment settings and notifications",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Update employer settings",
+                "parameters": [
+                    {
+                        "description": "Settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.EmployerSettingsUpdatePayload"
                         }
                     }
                 ],
@@ -12266,6 +21076,281 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/team": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns recruiters, hiring managers and admins belonging to the employer account",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Get employer team members",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/team/invitations/{invitationId}/resend": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Re-dispatches invitation email to pending team member",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Resend team invitation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Invitation ID",
+                        "name": "invitationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/team/invite": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sends email invitation to join employer company workspace",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Invite team member",
+                "parameters": [
+                    {
+                        "description": "Invitation details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TeamInvitePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/team/members/{memberId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Changes assigned role and permissions for a workspace member",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Update member role / permissions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Member ID",
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated permissions",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TeamMemberUpdatePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Revokes member access from employer workspace",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Remove team member",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Member ID",
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/employer/team/transfer-ownership": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Transfers primary ownership to another verified admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employer Portal"
+                ],
+                "summary": "Transfer company ownership",
+                "parameters": [
+                    {
+                        "description": "New owner",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.TransferOwnershipPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -13305,6 +22390,108 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/feedback": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits a feature idea or UX improvement suggestion",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Submit feature request",
+                "parameters": [
+                    {
+                        "description": "Feature suggestion",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateFeatureRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/feedback/bugs": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits an issue report with reproduction steps and browser metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Report a bug",
+                "parameters": [
+                    {
+                        "description": "Bug report",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateBugReportPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/freelance/contracts": {
             "get": {
                 "security": [
@@ -13899,6 +23086,206 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/help/articles": {
+            "get": {
+                "description": "Returns list of published help articles filtered by category or search query",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "List help articles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category slug",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/help/articles/{id}/feedback": {
+            "post": {
+                "description": "Records whether an article was helpful to a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Submit article helpfulness feedback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Article ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Feedback",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ArticleFeedbackPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/help/articles/{slug}": {
+            "get": {
+                "description": "Returns full markdown/HTML content of a single help article",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Get help article by slug",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Article slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/help/categories": {
+            "get": {
+                "description": "Returns categorized topic groups for public help and documentation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Get knowledge base categories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/help/faq": {
+            "get": {
+                "description": "Returns frequently asked questions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "List FAQs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/help/known-issues": {
+            "get": {
+                "description": "Returns active system bug notices and workarounds",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "List known issues",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/intelligence/hiring-stats": {
             "get": {
                 "description": "Returns hiring statistics via the Kirmya workforce intelligence module. Public endpoint; no authentication required.",
@@ -14122,6 +23509,1123 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/internal/notifications/events": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Internal service webhook to trigger a user notification event",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Ingest internal notification event",
+                "parameters": [
+                    {
+                        "description": "Event payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user's active and archived interview prep workspaces",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "List interview preparations",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initializes a prep space for a target company, role, or interview round",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Create interview preparation workspace",
+                "parameters": [
+                    {
+                        "description": "Target job details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePreparationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/coach/chat": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Interactively practices answers and asks role-specific interview coaching questions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Chat with AI Interview Coach",
+                "parameters": [
+                    {
+                        "description": "User message",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AICoachChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/mock/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history of completed and in-progress AI mock interviews",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "List mock interview sessions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Begins an interactive simulated mock interview session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Start AI mock interview",
+                "parameters": [
+                    {
+                        "description": "Mock setup",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.StartMockSessionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/mock/sessions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns transcript, question list, and scoring for a mock session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Get mock interview session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/mock/sessions/{id}/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Finalizes interview score report and generates comprehensive debrief",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Complete mock session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/mock/sessions/{id}/submit": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits spoken or typed answer for real-time AI critique and score",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Submit answer in mock session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Answer payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SubmitMockAnswerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/notes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns notes for a target preparation workspace",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Get workspace debrief note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "preparation_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Saves freeform research and post-interview debrief notes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Save debrief notes",
+                "parameters": [
+                    {
+                        "description": "Note content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SaveInterviewNoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/questions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns saved questions filtered by preparation workspace or category",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "List interview question bank",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Preparation workspace ID",
+                        "name": "preparation_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Behavioral, Technical, System Design",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a question and STAR answer notes to user's question bank",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Save question to prep bank",
+                "parameters": [
+                    {
+                        "description": "Question details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SaveQuestionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/questions/generate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates role-tailored behavioral and technical interview questions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Generate AI interview questions",
+                "parameters": [
+                    {
+                        "description": "Generation context",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GenerateQuestionsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/questions/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates candidate's answer draft, STAR points, or practice status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Update question practice notes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated notes",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateQuestionPracticeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes question from user's prep library",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Remove question from bank",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/readiness": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Computes overall readiness index across practiced questions and completed tasks",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Get candidate readiness score",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "preparation_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/tasks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns checklist items for preparation workspaces",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "List prep checklist tasks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "preparation_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates preparation to-do task (e.g., company research, portfolio review)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Add prep checklist task",
+                "parameters": [
+                    {
+                        "description": "Task content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/tasks/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks a preparation checklist item as done or pending",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Toggle task completion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes checklist item",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Delete prep task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interview-prep/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns preparation details, checklist progress and readiness score",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Get interview prep workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates target date, interview round or status",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Update interview prep workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePreparationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes interview prep workspace and associated mock sessions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Interview Prep"
+                ],
+                "summary": "Delete interview prep workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -15581,6 +26085,105 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/jobs/{id}": {
+            "get": {
+                "description": "Retrieves complete job posting description, requirements, salary band, and company profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get job posting details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jobs/{id}/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits a job application targeting the job specified in the URL path",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Apply to a job (Path alias)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Application details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateApplicationPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ApplicationDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Already applied to this job",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/jobs/{id}/save": {
             "post": {
                 "security": [
@@ -16282,7 +26885,109 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/legal/documents/{slug}": {
+            "get": {
+                "description": "Retrieves current legal document (terms, privacy policy, AI safety terms)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Get legal document",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Document slug (e.g. terms, privacy)",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/legal/documents/{slug}/versions": {
+            "get": {
+                "description": "Returns version history and changelog for a legal policy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Get legal document revision history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Document slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/mentorship/feedback": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns reviews and feedback submitted for mentoring engagements.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "List mentorship feedback",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MentorshipFeedback"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -16334,6 +27039,38 @@ const docTemplate = `{
             }
         },
         "/api/v1/mentorship/goals": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns goals for the user's active mentorship relationships.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "List mentorship goals",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MentorshipGoal"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -16367,6 +27104,64 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mentorship/goals/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates progress or status of a mentorship milestone goal.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "Update mentorship goal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Goal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Goal DTO",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateMentorshipGoalDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MentorshipGoal"
                         }
                     },
                     "400": {
@@ -16494,6 +27289,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -16617,6 +27418,52 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mentorship/relationships/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns details of a specific mentorship engagement.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "Get mentorship relationship details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Relationship ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -16771,6 +27618,38 @@ const docTemplate = `{
             }
         },
         "/api/v1/mentorship/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns scheduled and past mentoring meetings for the user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "List mentorship sessions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MentorshipSession"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -16821,14 +27700,72 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/messaging/conversations": {
+        "/api/v1/mentorship/sessions/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reschedules or updates status and meeting notes of a mentoring session.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "Update mentorship session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Session DTO",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateMentorshipSessionDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MentorshipSession"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/conversations": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a list of conversations via the Kirmya messaging module. Requires a valid Bearer access token.",
+                "description": "Returns paginated list of chat threads for authenticated user",
                 "produces": [
                     "application/json"
                 ],
@@ -16836,22 +27773,6 @@ const docTemplate = `{
                     "Messaging"
                 ],
                 "summary": "List conversations",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -16864,12 +27785,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             },
@@ -16879,7 +27794,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns or creates conversation via the Kirmya messaging module. Requires a valid Bearer access token.",
+                "description": "Initiates or opens a 1-on-1 direct message conversation",
                 "consumes": [
                     "application/json"
                 ],
@@ -16892,7 +27807,7 @@ const docTemplate = `{
                 "summary": "Get or create conversation",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Participant details",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -16919,35 +27834,29 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             }
         },
-        "/api/v1/messaging/conversations/{id}/messages": {
-            "get": {
+        "/api/v1/messages/conversations/{id}/archive": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a list of messages via the Kirmya messaging module. Requires a valid Bearer access token.",
+                "description": "Moves a conversation thread into the user's archive list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Messaging"
                 ],
-                "summary": "List messages",
+                "summary": "Archive conversation",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id",
+                        "description": "Conversation ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -16960,10 +27869,44 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/conversations/{id}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns chronologically ordered messages in a conversation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "List messages in thread",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
@@ -16972,8 +27915,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -16986,7 +27929,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Sends message via the Kirmya messaging module. Requires a valid Bearer access token.",
+                "description": "Posts a text message with optional file attachments",
                 "consumes": [
                     "application/json"
                 ],
@@ -16996,17 +27939,17 @@ const docTemplate = `{
                 "tags": [
                     "Messaging"
                 ],
-                "summary": "Send message",
+                "summary": "Send direct message",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id",
+                        "description": "Conversation ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Request payload",
+                        "description": "Message content",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -17033,9 +27976,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/conversations/{id}/mute": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Silences push/email alerts for messages in a conversation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Mute conversation notifications",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -17043,42 +28020,415 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/messaging/ws": {
-            "get": {
+        "/api/v1/messages/conversations/{id}/pin": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Upgrades WS via the Kirmya messaging module. Requires a valid Bearer access token.",
+                "description": "Pins or unpins a conversation in the active inbox",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Messaging"
                 ],
-                "summary": "Upgrade WS",
+                "summary": "Pin conversation to top",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
+                        "type": "string",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/conversations/{id}/read": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates unread counter and dispatches read receipts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Mark conversation as read",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Conversation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/messages/{id}/reaction": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Appends an emoji reaction to an individual message",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Add emoji reaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Message ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reaction",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddReactionPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/report": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits abuse, harassment or spam report to trust \u0026 safety desk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Report message / user",
+                "parameters": [
+                    {
+                        "description": "Report details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReportMessagePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns pending connection-less direct message requests",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "List message requests",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sends outreach message request to non-connected user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Send message request",
+                "parameters": [
+                    {
+                        "description": "Request details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateMessageRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/requests/{id}/accept": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Accepts incoming message request and creates normal conversation thread",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Accept message request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/requests/{id}/decline": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dismisses or ignores pending message request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Decline message request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Full-text search across all user's conversations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Search message history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/messages/ws": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upgrades HTTP connection to WebSocket for real-time chat delivery",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Upgrade WebSocket",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
@@ -17751,6 +29101,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/network": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns total connection count, pending invitation counts and network growth",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Get network dashboard summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/network/company-connections/{companyId}": {
             "get": {
                 "security": [
@@ -17758,18 +29139,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Discovers active connections working at a specific company.",
+                "description": "Returns 1st and 2nd-degree connections currently employed at target organization",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Get company connections",
+                "summary": "Find connections at company",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Company ID or Name",
+                        "description": "Company ID",
                         "name": "companyId",
                         "in": "path",
                         "required": true
@@ -17782,8 +29163,171 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/connections": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns connected professionals with contact and relationship details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "List 1st-degree connections",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/connections/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Disconnects 1st-degree relationship",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Remove connection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Connection ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/follow/{userId}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Follows target user's public career updates and posts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Follow professional",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Stops following target user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Unfollow professional",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -17798,14 +29342,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all users following the current user.",
+                "description": "Returns members following the authenticated user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Get followers",
+                "summary": "List followers",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -17813,8 +29357,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -17829,14 +29373,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all users the current user is following.",
+                "description": "Returns creators and leaders the user follows",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Get following users",
+                "summary": "List followed members",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -17844,8 +29388,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -17860,14 +29404,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all networking goals for the current user.",
+                "description": "Returns active and completed networking goals and progress metrics",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Get networking goals",
+                "summary": "List networking goals",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -17875,8 +29419,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -17889,7 +29433,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates a new professional networking objective.",
+                "description": "Creates networking target (e.g., connect with 5 industry leaders this month)",
                 "consumes": [
                     "application/json"
                 ],
@@ -17897,9 +29441,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Create networking goal",
+                "summary": "Set networking goal",
+                "parameters": [
+                    {
+                        "description": "Goal specification",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateNetworkingGoalDTO"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -17909,6 +29464,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -17923,7 +29484,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates progress or details for a networking goal.",
+                "description": "Updates target count or marks goal achieved",
                 "consumes": [
                     "application/json"
                 ],
@@ -17931,7 +29492,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
                 "summary": "Update networking goal",
                 "parameters": [
@@ -17941,6 +29502,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Updated fields",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateNetworkingGoalDTO"
+                        }
                     }
                 ],
                 "responses": {
@@ -17955,6 +29525,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -17964,12 +29540,12 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Deletes a networking goal.",
+                "description": "Removes networking goal",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
                 "summary": "Delete networking goal",
                 "parameters": [
@@ -17988,8 +29564,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18004,7 +29580,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Assigns a tag or label to a connection.",
+                "description": "Tags a contact (e.g., \"Alumni\", \"Client\", \"Mentor\", \"Speaker\")",
                 "consumes": [
                     "application/json"
                 ],
@@ -18012,18 +29588,35 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Add connection label",
+                "summary": "Add connection tag / label",
+                "parameters": [
+                    {
+                        "description": "Tag content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SaveLabelDTO"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18038,18 +29631,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all labels assigned to a connection.",
+                "description": "Lists labels assigned to target contact",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Get connection labels",
+                "summary": "Get connection tags",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target User ID",
+                        "description": "Target user ID",
                         "name": "targetUserId",
                         "in": "path",
                         "required": true
@@ -18062,8 +29655,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18078,25 +29671,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes a specific label from a connection.",
+                "description": "Removes specific tag from contact",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Remove connection label",
+                "summary": "Remove connection tag",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target User ID",
+                        "description": "Target user ID",
                         "name": "targetUserId",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Label text",
+                        "description": "Label name",
                         "name": "label",
                         "in": "path",
                         "required": true
@@ -18109,8 +29702,48 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/mutual/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns list of shared connections between user and target profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Get mutual connections",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18125,7 +29758,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Saves or updates a private note attached to a connection.",
+                "description": "Attaches personal notes to a connection (e.g. how you met, follow-ups)",
                 "consumes": [
                     "application/json"
                 ],
@@ -18133,18 +29766,35 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Save connection note",
+                "summary": "Save private contact note",
+                "parameters": [
+                    {
+                        "description": "Note content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SaveNoteDTO"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18159,18 +29809,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves a private note attached to a connection.",
+                "description": "Retrieves saved private note for target user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Get connection note",
+                "summary": "Get private contact note",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target User ID",
+                        "description": "Target user ID",
                         "name": "targetUserId",
                         "in": "path",
                         "required": true
@@ -18183,8 +29833,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18197,18 +29847,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Deletes a private note attached to a connection.",
+                "description": "Removes private note for target user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Networking"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Delete connection note",
+                "summary": "Delete private contact note",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Target User ID",
+                        "description": "Target user ID",
                         "name": "targetUserId",
                         "in": "path",
                         "required": true
@@ -18221,8 +29871,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18230,71 +29880,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/networking/blocks": {
+        "/api/v1/network/recommendations/{userId}/dismiss": {
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Blocks user via the Kirmya networking module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Removes user from recommendations list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Communities"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Block user",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/networking/blocks/{userId}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Unblocks user via the Kirmya networking module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Communities"
-                ],
-                "summary": "Unblock user",
+                "summary": "Dismiss suggested connection",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User id",
+                        "description": "Target user ID",
                         "name": "userId",
                         "in": "path",
                         "required": true
@@ -18307,6 +29911,58 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/report/{userId}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits trust \u0026 safety report for harassment, impersonation or scam",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Report connection / profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target user ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Report details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NetworkReportDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -18318,168 +29974,34 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             }
         },
-        "/api/v1/networking/connections": {
+        "/api/v1/network/requests": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a list of connections via the Kirmya networking module. Requires a valid Bearer access token.",
+                "description": "Returns pending invitations awaiting user's acceptance or decline",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Communities"
+                    "Networking \u0026 People"
                 ],
-                "summary": "List connections",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "List incoming connection requests",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/networking/recommendations": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns recommendations via the Kirmya networking module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Communities"
-                ],
-                "summary": "Get recommendations",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/networking/requests": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns a list of incoming requests via the Kirmya networking module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Communities"
-                ],
-                "summary": "List incoming requests",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18492,7 +30014,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Sends request via the Kirmya networking module. Requires a valid Bearer access token.",
+                "description": "Sends invitation with optional personalized message",
                 "consumes": [
                     "application/json"
                 ],
@@ -18500,12 +30022,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Communities"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Send request",
+                "summary": "Send connection request",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Target user \u0026 note",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -18532,9 +30054,34 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/requests/sent": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns outbound invitations sent by user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "List sent connection requests",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18542,28 +30089,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/networking/requests/{id}": {
-            "put": {
+        "/api/v1/network/requests/{id}/accept": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates request via the Kirmya networking module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Establishes mutual 1st-degree connection",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Communities"
+                    "Networking \u0026 People"
                 ],
-                "summary": "Update request",
+                "summary": "Accept connection request",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id",
+                        "description": "Request ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -18576,10 +30120,44 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/requests/{id}/decline": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Dismisses incoming connection request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Decline connection request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
@@ -18587,9 +30165,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/network/requests/{id}/withdraw": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancels previously sent connection invitation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Withdraw sent connection request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18604,7 +30216,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a list of notifications via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns paginated list of notifications for the user",
                 "produces": [
                     "application/json"
                 ],
@@ -18615,15 +30227,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
+                        "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
+                        "description": "Items per page",
                         "name": "limit",
                         "in": "query"
                     }
@@ -18640,9 +30250,34 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/clear-read": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes all previously read notifications",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Clear read notifications",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18657,14 +30292,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the number of unread notifications via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns total unread count",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Get unread count",
+                "summary": "Get notification counter",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -18674,12 +30309,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18694,29 +30323,23 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the registered push devices via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns user's mobile and desktop browsers registered for web push",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "List push devices",
+                "summary": "List registered push devices",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18729,7 +30352,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Registers a device for push delivery via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Registers FCM / WebPush endpoint for device notifications",
                 "consumes": [
                     "application/json"
                 ],
@@ -18739,15 +30362,15 @@ const docTemplate = `{
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Register push device",
+                "summary": "Register push device token",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Push device token",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/models.RegisterDevicePayload"
                         }
                     }
                 ],
@@ -18769,12 +30392,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             }
@@ -18786,18 +30403,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes a registered push device via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Removes push token registration",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Delete push device",
+                "summary": "Unregister push device",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device id",
+                        "description": "Device ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -18815,15 +30432,83 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/digests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns weekly/daily email digest frequency",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get email digest preferences",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sets email digest frequency",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Update email digest settings",
+                "parameters": [
+                    {
+                        "description": "Digest settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePreferencePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18838,7 +30523,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the delivered notification history via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns archived and past delivered notifications",
                 "produces": [
                     "application/json"
                 ],
@@ -18846,37 +30531,15 @@ const docTemplate = `{
                     "Notifications"
                 ],
                 "summary": "Get notification history",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18891,45 +30554,23 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns preferences via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns in-app, email and push channel preferences",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Get preferences",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Get notification channel preferences",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18942,7 +30583,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates preference via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Updates channel and category opt-ins",
                 "consumes": [
                     "application/json"
                 ],
@@ -18952,10 +30593,10 @@ const docTemplate = `{
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Update preference",
+                "summary": "Update notification preferences",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Preferences",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -18979,12 +30620,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -18999,7 +30634,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the per-category notification preferences via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns category-level notification subscriptions",
                 "produces": [
                     "application/json"
                 ],
@@ -19011,17 +30646,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19036,7 +30665,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates the notification preference for one category via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Enables or disables notifications for a specific category",
                 "consumes": [
                     "application/json"
                 ],
@@ -19050,13 +30679,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Category",
+                        "description": "Category name",
                         "name": "category",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Request payload",
+                        "description": "Preference",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -19083,12 +30712,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             }
@@ -19100,14 +30723,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the quiet hours window via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns quiet hours window when alerts are silenced",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Get quiet hours",
+                "summary": "Get quiet hours schedule",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -19120,12 +30743,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             },
@@ -19135,7 +30752,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates the quiet hours window via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Sets start time, end time, and timezone for silenced alerts",
                 "consumes": [
                     "application/json"
                 ],
@@ -19145,15 +30762,15 @@ const docTemplate = `{
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Update quiet hours",
+                "summary": "Update quiet hours schedule",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Quiet hours schedule",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/models.QuietHoursSettings"
                         }
                     }
                 ],
@@ -19175,9 +30792,34 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/read": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes all read notifications",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Delete read notifications",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19192,27 +30834,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Marks all read via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Idempotently marks all notifications read",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Mark all read",
-                "parameters": [
-                    {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
+                "summary": "Mark all notifications read (PUT)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -19222,12 +30851,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19240,17 +30863,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Marks every notification read via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Marks all user's notifications as read",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Mark all read",
+                "summary": "Mark all notifications as read",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -19263,9 +30883,123 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/schedules": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns custom notification delivery schedules",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "List custom alert schedules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds custom recurring alert schedule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Create notification schedule",
+                "parameters": [
+                    {
+                        "description": "Schedule",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.NotificationSchedulePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/schedules/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes alert schedule",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Delete notification schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Schedule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19280,7 +31014,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the unread notifications via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns unread notification items",
                 "produces": [
                     "application/json"
                 ],
@@ -19288,22 +31022,6 @@ const docTemplate = `{
                     "Notifications"
                 ],
                 "summary": "List unread notifications",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -19316,9 +31034,34 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/unread-count": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns count of unread notifications for badge display",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get unread notification count",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19333,18 +31076,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns one notification via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Returns notification details",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Get notification",
+                "summary": "Get notification by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification id",
+                        "description": "Notification ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -19365,12 +31108,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19383,7 +31120,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Deletes one notification via the Kirmya notification module. Requires a valid Bearer access token.",
+                "description": "Deletes an individual notification",
                 "produces": [
                     "application/json"
                 ],
@@ -19394,7 +31131,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification id",
+                        "description": "Notification ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -19409,18 +31146,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19435,10 +31160,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Archives one notification via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Archives notification",
                 "produces": [
                     "application/json"
                 ],
@@ -19449,7 +31171,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification id",
+                        "description": "Notification ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -19464,18 +31186,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19490,32 +31200,21 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Marks read via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Idempotently marks notification read",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Mark read",
+                "summary": "Mark notification read (PUT)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id",
+                        "description": "Notification ID",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
-                        }
                     }
                 ],
                 "responses": {
@@ -19525,20 +31224,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19551,21 +31238,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Marks one notification read via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Marks individual notification as read",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Mark read",
+                "summary": "Mark notification read",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification id",
+                        "description": "Notification ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -19580,18 +31264,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19606,21 +31278,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns one notification to the unread state via the Kirmya notification module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Restores notification to unread state",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Notifications"
                 ],
-                "summary": "Mark unread",
+                "summary": "Mark notification unread",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification id",
+                        "description": "Notification ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -19638,57 +31307,29 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
                     }
                 }
             }
         },
         "/api/v1/onboarding": {
             "get": {
-                "description": "Returns progress via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Returns user's completed steps, active flow, and current step index",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Get progress",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Get onboarding progress",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19698,39 +31339,23 @@ const docTemplate = `{
         },
         "/api/v1/onboarding/communities": {
             "get": {
-                "description": "Returns communities via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Returns initial recommended communities to follow",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Get communities",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Get suggested communities for onboarding",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19740,27 +31365,14 @@ const docTemplate = `{
         },
         "/api/v1/onboarding/complete": {
             "post": {
-                "description": "Completes onboarding via the Kirmya onboarding module. Public endpoint; no authentication required.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Marks onboarding complete and redirects to dashboard",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Complete onboarding",
-                "parameters": [
-                    {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
+                "summary": "Complete onboarding (Alias)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -19768,8 +31380,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19779,39 +31391,23 @@ const docTemplate = `{
         },
         "/api/v1/onboarding/connections": {
             "get": {
-                "description": "Returns connections via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Returns initial contact suggestions to bootstrap network",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Get connections",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Get suggested connections for onboarding",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19819,9 +31415,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/onboarding/save": {
-            "put": {
-                "description": "Saves progress via the Kirmya onboarding module. Public endpoint; no authentication required.",
+        "/api/v1/onboarding/employer": {
+            "post": {
+                "description": "Creates or links company workspace during employer onboarding",
                 "consumes": [
                     "application/json"
                 ],
@@ -19829,16 +31425,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Save progress",
+                "summary": "Save employer organization info",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Company details",
                         "name": "request",
                         "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.EmployerOnboardingPayload"
                         }
                     }
                 ],
@@ -19854,9 +31451,29 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/finish": {
+            "post": {
+                "description": "Finalizes onboarding, sets account active, and lands user on main feed",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Finish and publish profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -19864,9 +31481,33 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/onboarding/start": {
-            "post": {
-                "description": "Starts onboarding via the Kirmya onboarding module. Public endpoint; no authentication required.",
+        "/api/v1/onboarding/progress": {
+            "get": {
+                "description": "Returns detailed step state and form completion progress",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Get onboarding progress details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Saves draft form answers for the active step",
                 "consumes": [
                     "application/json"
                 ],
@@ -19874,16 +31515,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Start onboarding",
+                "summary": "Save onboarding step draft",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Step data",
                         "name": "request",
                         "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.SaveProgressPayload"
                         }
                     }
                 ],
@@ -19894,8 +31536,234 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/recruiter": {
+            "post": {
+                "description": "Saves hiring company affiliation and recruiter credentials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Save recruiter company \u0026 verification info",
+                "parameters": [
+                    {
+                        "description": "Recruiter details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.RecruiterOnboardingPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/resume": {
+            "post": {
+                "description": "Resumes an in-progress onboarding session from last saved state",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Resume onboarding session",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/save": {
+            "put": {
+                "description": "Legacy alias for saving onboarding progress",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Save progress (Alias)",
+                "parameters": [
+                    {
+                        "description": "Step data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SaveProgressPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/start": {
+            "post": {
+                "description": "Initializes candidate, recruiter, or employer onboarding journey",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Start user onboarding",
+                "parameters": [
+                    {
+                        "description": "Role \u0026 persona",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/domain.StartOnboardingPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/steps/{stepId}/complete": {
+            "post": {
+                "description": "Validates and marks a single onboarding step complete",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Complete onboarding step",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Step ID",
+                        "name": "stepId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Step payload",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/domain.CompleteStepPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/onboarding/steps/{stepId}/skip": {
+            "post": {
+                "description": "Bypasses an optional onboarding step",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Skip optional onboarding step",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Step ID",
+                        "name": "stepId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -20178,6 +32046,361 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/people": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Searches candidates, peers and mentors with filtering by title, company and skills",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Search and discover professionals",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/people/search": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Keyword and facet search across member directory",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Search professionals",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Query",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/people/suggestions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns suggested connections based on shared background, industry and alumni",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Networking \u0026 People"
+                ],
+                "summary": "Get AI recommended connections",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns data sharing, visibility and communication privacy preferences",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get user privacy settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates profile discovery, personalization and telemetry sharing settings",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Update user privacy settings",
+                "parameters": [
+                    {
+                        "description": "Privacy settings",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePrivacyPreferencesPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/consents": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns timestamped log of terms and privacy policy consents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get consent audit log",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits affirmative consent to updated policy versions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Record policy consent",
+                "parameters": [
+                    {
+                        "description": "Consent details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ConsentRecordPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/cookies": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user cookie category opt-ins",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get user cookie preferences",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates user cookie category opt-ins",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Update user cookie preferences",
+                "parameters": [
+                    {
+                        "description": "Cookie preferences",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SaveCookieConsentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/privacy/delete-account": {
             "post": {
                 "security": [
@@ -20202,11 +32425,89 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.AccountDeletionRequest"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/delete-account/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancels scheduled account deletion during grace period",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Cancel account deletion",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/api/v1/privacy/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history of personal data export archives",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "List data export jobs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -20226,6 +32527,215 @@ const docTemplate = `{
                         "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/models.DataExportRequest"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/export/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns archive download link and completion status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get data export download status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Export job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns list of data subject requests submitted by the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "List privacy / DSR requests",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new GDPR/CCPA data access, correction or deletion request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Submit privacy / DSR request",
+                "parameters": [
+                    {
+                        "description": "DSR details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePrivacyRequestPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/requests/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns status and fulfillment notes for a DSR request",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get privacy request details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/retention": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns platform data lifecycle and retention periods",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Privacy"
+                ],
+                "summary": "Get data retention policies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -20251,6 +32761,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.PrivacySettings"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -20289,45 +32805,41 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.PrivacySettings"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
         },
         "/api/v1/profile/completion": {
             "get": {
-                "description": "Returns profile completion via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Returns profile completeness score (0-100%) and missing profile sections",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Get profile completion",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Get profile completion percentage",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -21830,25 +34342,24 @@ const docTemplate = `{
         },
         "/api/v1/profile/photo": {
             "post": {
-                "description": "Uploads profile photo via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Uploads profile photo and sets avatar URL",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Upload profile photo",
+                "summary": "Upload profile avatar",
                 "parameters": [
                     {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -21961,6 +34472,43 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recommendation-engine/career-gaps": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Analyzes profile against target job market and returns skill gap recommendations.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Matching"
+                ],
+                "summary": "Get career gap analysis",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
                     "401": {
@@ -22762,7 +35310,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns recruiter candidate pipeline analytics.",
+                "description": "Returns candidate engagement and response metrics.",
                 "produces": [
                     "application/json"
                 ],
@@ -22776,6 +35324,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -22787,19 +35341,56 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns recruiter jobs analytics.",
+                "description": "Returns pipeline analytics for recruiter jobs.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Get recruiter jobs analytics",
+                "summary": "Get recruiter job analytics",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recruiter/analytics/overview": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns ATS pipeline velocity, offer acceptance rates and sourcing breakdown",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recruiter ATS"
+                ],
+                "summary": "Get recruitment analytics overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -23006,6 +35597,150 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recruiter/applications/{id}/evaluate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits multi-category rubric evaluation for an active job application",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recruiter ATS"
+                ],
+                "summary": "Submit candidate evaluation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Evaluation scores",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CandidateEvaluationPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CandidateEvaluationDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recruiter/applications/{id}/evaluations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns evaluation scorecards submitted by interviewing team members",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recruiter ATS"
+                ],
+                "summary": "List candidate evaluations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.CandidateEvaluationDTO"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recruiter/applications/{id}/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns complete transition log across recruitment stages for an application",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recruiter ATS"
+                ],
+                "summary": "Get application stage history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ApplicationStageHistoryDTO"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -23487,6 +36222,102 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recruiter/candidates/{id}/notes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns chronologically ordered recruiter notes for a candidate",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recruiter ATS"
+                ],
+                "summary": "Get candidate notes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Candidate ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Appends private recruiter interview feedback or assessment notes to a candidate profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Recruiter ATS"
+                ],
+                "summary": "Add candidate note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Candidate ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Note content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateNotePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
                     "401": {
@@ -25537,25 +38368,24 @@ const docTemplate = `{
         },
         "/api/v1/resume/upload": {
             "post": {
-                "description": "Uploads resume via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Uploads PDF/DOCX resume and initiates background parsing",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
-                "summary": "Upload resume",
+                "summary": "Upload resume document",
                 "parameters": [
                     {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
-                        }
+                        "type": "file",
+                        "description": "Resume document",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -26554,247 +39384,33 @@ const docTemplate = `{
             }
         },
         "/api/v1/safety/appeals": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Submits enforcement appeal via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trust \u0026 Safety"
-                ],
-                "summary": "Submit appeal",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/safety/blocks": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns user blocks via the Kirmya trust and safety module. Requires a valid Bearer access token.",
+                "description": "Returns submitted enforcement appeals.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Trust \u0026 Safety"
                 ],
-                "summary": "Get user blocks",
+                "summary": "Get user restriction appeals",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/safety/blocks/{userId}": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Blocks user via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trust \u0026 Safety"
-                ],
-                "summary": "Block user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Request payload",
-                        "name": "request",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Unblocks user via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trust \u0026 Safety"
-                ],
-                "summary": "Unblock user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/safety/reports": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns reports via the Kirmya trust and safety module. Requires a valid Bearer access token.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Trust \u0026 Safety"
-                ],
-                "summary": "Get reports",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number (1-based)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page (max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.PaginationResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -26807,7 +39423,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Submits report via the Kirmya trust and safety module. Requires a valid Bearer access token.",
+                "description": "Submits a formal contestation against an account or content enforcement action.",
                 "consumes": [
                     "application/json"
                 ],
@@ -26817,15 +39433,15 @@ const docTemplate = `{
                 "tags": [
                     "Trust \u0026 Safety"
                 ],
-                "summary": "Submit report",
+                "summary": "Submit restriction appeal",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Appeal details",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/domain.SubmitReportPayload"
+                            "type": "object"
                         }
                     }
                 ],
@@ -26847,9 +39463,472 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/appeals/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns review status of an enforcement appeal.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Get appeal status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appeal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/blocks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns list of accounts blocked by the authenticated user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Get blocked users list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserBlock"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Prevents messaging and profile visibility from the blocked party.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Block entity (User, Recruiter, Company)",
+                "parameters": [
+                    {
+                        "description": "Block payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BlockUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserBlock"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/blocks/{userId}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Blocks a designated user ID.",
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Block user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lifts an active block against a target user.",
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Unblock user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Target User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/mutes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns active mutes configured by the authenticated user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Get muted entities",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UserMute"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Silences notifications from the muted entity without unfollowing or blocking.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Mute entity (User, Community, Conversation, Job)",
+                "parameters": [
+                    {
+                        "description": "Mute payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.MuteUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserMute"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/mutes/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes active mute on an entity.",
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Unmute entity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history of abuse reports submitted by the authenticated user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Get user-submitted safety reports",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyReport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits a user report against an entity (profile, job, company, message) for policy violations.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Submit abuse or safety report",
+                "parameters": [
+                    {
+                        "description": "Report payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReportSubmitPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/safety/reports/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns resolution status of a submitted report.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Get safety report details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyReport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -26864,7 +39943,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns active restrictions for the authenticated user. Requires a valid Bearer access token.",
+                "description": "Returns active restrictions and warnings on the user account.",
                 "produces": [
                     "application/json"
                 ],
@@ -26876,17 +39955,15 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/swagger.SuccessResponse"
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/swagger.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -27564,6 +40641,400 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/security/api-keys": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists active developer API keys created by the user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Get API Keys",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.APIKey"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates a new scoped API key for developer integrations. Plaintext secret is shown only once.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Create API Key",
+                "parameters": [
+                    {
+                        "description": "Key spec",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateAPIKeyPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateAPIKeyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/security/api-keys/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Immediately invalidates a developer API key.",
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Revoke API Key",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Key ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/security/devices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns list of registered trusted devices for the user account.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Get Trusted Devices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceItem"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Registers a browser or mobile device fingerprint as trusted.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Register Trusted Device",
+                "parameters": [
+                    {
+                        "description": "Device fingerprint",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceItem"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/security/devices/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates trusted status (trusted, revoked) of a registered device.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Update Device Trust Status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "De-registers a trusted device from user account.",
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Remove Trusted Device",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/security/events": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns security audit events including password updates, MFA changes, and key creations.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Get Security Events",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/kirmya_internal_security_models.SecurityEvent"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/security/login-history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns chronological security log of login attempts and geolocations.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Get Login History",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.LoginHistoryItem"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/security/mfa/disable": {
             "post": {
                 "security": [
@@ -27584,6 +41055,18 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -27609,6 +41092,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.MFASetupResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -27652,6 +41141,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -27700,6 +41195,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -27722,6 +41223,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.PasswordPolicyResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -27747,6 +41254,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.AccountRiskScore"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -27775,6 +41288,41 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.SessionItem"
                             }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Revokes all active sessions for the user account except the current session.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Security"
+                ],
+                "summary": "Revoke All Other Sessions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     }
                 }
@@ -27808,6 +41356,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "403": {
                         "description": "IDOR forbidden",
                         "schema": {
@@ -27817,9 +41371,108 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/skills": {
+        "/api/v1/settings/data-export": {
             "post": {
-                "description": "Saves skills via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Queues a personal archive export for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data Operations"
+                ],
+                "summary": "Request personal data export",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.DataExport"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/data-export/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns previously generated personal archive download links",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data Operations"
+                ],
+                "summary": "Get personal data export history",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DataExport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user alert settings",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get notification settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates user alert settings",
                 "consumes": [
                     "application/json"
                 ],
@@ -27827,14 +41480,600 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Notifications"
                 ],
-                "summary": "Save skills",
+                "summary": "Update notification settings",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Settings",
                         "name": "request",
                         "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePreferencePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/skills": {
+            "post": {
+                "description": "Batch updates verified and self-reported skills",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Save user skills",
+                "parameters": [
+                    {
+                        "description": "Skills list",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SaveSkillsPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/status": {
+            "get": {
+                "description": "Returns high-level status of core services",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Get platform operational status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/support/tickets": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns all support tickets opened by the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "List user support tickets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Opens a new customer support ticket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Create support ticket",
+                "parameters": [
+                    {
+                        "description": "Ticket details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTicketPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/support/tickets/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns ticket metadata and current status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Get support ticket details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/support/tickets/{id}/close": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks a support ticket as resolved by the customer",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Close support ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/support/tickets/{id}/feedback": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits 1-5 star CSAT rating and qualitative feedback on ticket resolution",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Rate support experience (CSAT)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "CSAT Rating",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CSATFeedbackPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/support/tickets/{id}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns messages in a ticket thread",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Get ticket message thread",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sends a reply on an open support ticket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Add message to support ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateMessagePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/support/tickets/{id}/reopen": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reopens a previously closed support ticket",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Support \u0026 Help"
+                ],
+                "summary": "Reopen support ticket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trust/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns history of abuse reports submitted by the authenticated user via trust endpoint.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Get trust reports",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.SafetyReport"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits an abuse or safety report via the trust endpoint.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Submit trust report",
+                "parameters": [
+                    {
+                        "description": "Report payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReportSubmitPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.SafetyReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/trust/reports/{id}/action": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes a trust \u0026 safety action on an abuse report.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Trust \u0026 Safety"
+                ],
+                "summary": "Take action on report (Trust)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
                         "schema": {
                             "type": "object"
                         }
@@ -27849,6 +42088,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -28486,7 +42731,7 @@ const docTemplate = `{
         },
         "/api/v1/work-experience": {
             "post": {
-                "description": "Saves work experience via the Kirmya onboarding module. Public endpoint; no authentication required.",
+                "description": "Creates employment history record",
                 "consumes": [
                     "application/json"
                 ],
@@ -28494,22 +42739,23 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Onboarding"
                 ],
                 "summary": "Save work experience",
                 "parameters": [
                     {
-                        "description": "Request payload",
+                        "description": "Work experience",
                         "name": "request",
                         "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/domain.WorkExperiencePayload"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
                         }
@@ -28542,6 +42788,110 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Recovered panic in the middleware chain; the process is up but not serving correctly",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/live": {
+            "get": {
+                "description": "Kubernetes/container liveness probe returning 200 OK if the process is responsive",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Health"
+                ],
+                "summary": "Liveness probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/ready": {
+            "get": {
+                "description": "Kubernetes/container readiness probe checking database and cache connectivity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Health"
+                ],
+                "summary": "Readiness probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/startup": {
+            "get": {
+                "description": "Kubernetes/container startup probe confirming initial configuration loading",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Health"
+                ],
+                "summary": "Startup probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/status": {
+            "get": {
+                "description": "Returns high-level platform status and operational indicators",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Health"
+                ],
+                "summary": "Get public system status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -28673,6 +43023,59 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.CertificationItem": {
+            "type": "object",
+            "required": [
+                "certification_name",
+                "issuing_organization"
+            ],
+            "properties": {
+                "certification_name": {
+                    "type": "string"
+                },
+                "credential_id": {
+                    "type": "string"
+                },
+                "credential_url": {
+                    "type": "string"
+                },
+                "expiry_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issue_date": {
+                    "type": "string"
+                },
+                "issuing_organization": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CertificationPayload": {
+            "type": "object",
+            "required": [
+                "certifications"
+            ],
+            "properties": {
+                "certifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.CertificationItem"
+                    }
+                }
+            }
+        },
+        "domain.CompleteStepPayload": {
+            "type": "object",
+            "properties": {
+                "step_data": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
         "domain.ComplianceOverview": {
             "type": "object",
             "properties": {
@@ -28737,6 +43140,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreateDataRequestPayload": {
+            "type": "object",
+            "required": [
+                "request_type"
+            ],
+            "properties": {
+                "notes": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "string"
+                },
+                "request_type": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -29395,6 +43818,79 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.EducationItem": {
+            "type": "object",
+            "required": [
+                "degree",
+                "institution"
+            ],
+            "properties": {
+                "degree": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "field_of_study": {
+                    "type": "string"
+                },
+                "grade": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "institution": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.EducationPayload": {
+            "type": "object",
+            "required": [
+                "educations"
+            ],
+            "properties": {
+                "educations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.EducationItem"
+                    }
+                }
+            }
+        },
+        "domain.EmployerOnboardingPayload": {
+            "type": "object",
+            "required": [
+                "company_name"
+            ],
+            "properties": {
+                "company_name": {
+                    "type": "string"
+                },
+                "company_size": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.EndorseSkillPayload": {
             "type": "object",
             "required": [
@@ -29612,20 +44108,6 @@ const docTemplate = `{
                 "MembershipSuspended"
             ]
         },
-        "domain.ModerationActionPayload": {
-            "type": "object",
-            "required": [
-                "action"
-            ],
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "notes": {
-                    "type": "string"
-                }
-            }
-        },
         "domain.OfferReferralPayload": {
             "type": "object",
             "required": [
@@ -29649,6 +44131,52 @@ const docTemplate = `{
                 },
                 "request_id": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.OnboardingConfigPayload": {
+            "type": "object",
+            "required": [
+                "steps"
+            ],
+            "properties": {
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.OnboardingStepConfig"
+                    }
+                }
+            }
+        },
+        "domain.OnboardingStepConfig": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "is_required": {
+                    "type": "boolean"
+                },
+                "role_target": {
+                    "type": "string"
+                },
+                "step_key": {
+                    "type": "string"
+                },
+                "step_order": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         },
@@ -29917,6 +44445,29 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.RecruiterOnboardingPayload": {
+            "type": "object",
+            "properties": {
+                "company_id": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "hiring_focus": {
+                    "type": "string"
+                },
+                "hiring_industries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "recruiter_role": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.RefreshTokenPayload": {
             "type": "object",
             "required": [
@@ -30078,6 +44629,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.SaveProgressPayload": {
+            "type": "object",
+            "required": [
+                "step"
+            ],
+            "properties": {
+                "step": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.SaveSearchPreferencePayload": {
             "type": "object",
             "required": [
@@ -30093,6 +44655,20 @@ const docTemplate = `{
                 },
                 "saved_query": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.SaveSkillsPayload": {
+            "type": "object",
+            "required": [
+                "skills"
+            ],
+            "properties": {
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.SkillItem"
+                    }
                 }
             }
         },
@@ -30142,6 +44718,33 @@ const docTemplate = `{
                     }
                 },
                 "target_role": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.SkillItem": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "proficiency_level": {
+                    "description": "Beginner, Intermediate, Advanced, Expert",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.StartOnboardingPayload": {
+            "type": "object",
+            "properties": {
+                "role_type": {
+                    "description": "user, recruiter, employer",
                     "type": "string"
                 }
             }
@@ -30268,29 +44871,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "relationship": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.SubmitReportPayload": {
-            "type": "object",
-            "required": [
-                "category",
-                "reason",
-                "target_id",
-                "target_type"
-            ],
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "target_id": {
-                    "type": "string"
-                },
-                "target_type": {
                     "type": "string"
                 }
             }
@@ -30600,6 +45180,59 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.WorkExperienceItem": {
+            "type": "object",
+            "required": [
+                "company",
+                "job_title"
+            ],
+            "properties": {
+                "achievements": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "employment_type": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_current_job": {
+                    "type": "boolean"
+                },
+                "job_title": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "responsibilities": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.WorkExperiencePayload": {
+            "type": "object",
+            "required": [
+                "experiences"
+            ],
+            "properties": {
+                "experiences": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.WorkExperienceItem"
+                    }
                 }
             }
         },
@@ -31436,6 +46069,70 @@ const docTemplate = `{
                 }
             }
         },
+        "kirmya_internal_security_models.SecurityEvent": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "event_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "kirmya_internal_system_health_models.MaintenanceModeConfig": {
+            "type": "object",
+            "properties": {
+                "allowedAdminIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "disabledAt": {
+                    "type": "string"
+                },
+                "enabledAt": {
+                    "type": "string"
+                },
+                "enabledBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "models.AIApplicationInsightsDTO": {
             "type": "object",
             "properties": {
@@ -31465,6 +46162,55 @@ const docTemplate = `{
                 },
                 "resume_match_score": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.AICoachChatRequest": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "topic": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.APIKey": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key_prefix": {
+                    "type": "string"
+                },
+                "last_used_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "revoked_at": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -31601,6 +46347,110 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AddReactionPayload": {
+            "type": "object",
+            "required": [
+                "emoji"
+            ],
+            "properties": {
+                "emoji": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AdminAnnouncement": {
+            "type": "object",
+            "properties": {
+                "adminId": {
+                    "type": "string"
+                },
+                "audience": {
+                    "description": "All Active Users, Verified Users, Recruiters, Professionals, Administrators",
+                    "type": "string"
+                },
+                "channels": {
+                    "description": "[\"in_app\", \"email\", \"push\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "Low, Normal, High, Urgent",
+                    "type": "string"
+                },
+                "recipientCount": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AdminAuditLog": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "adminEmail": {
+                    "type": "string"
+                },
+                "adminId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ipAddress": {
+                    "type": "string"
+                },
+                "newState": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "previousState": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "roleCode": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                },
+                "targetType": {
+                    "type": "string"
+                },
+                "userAgent": {
+                    "type": "string"
+                }
+            }
+        },
         "models.AdminDashboardStats": {
             "type": "object",
             "properties": {
@@ -31654,6 +46504,17 @@ const docTemplate = `{
                 },
                 "verifiedUsers": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.AdminExportPayload": {
+            "type": "object",
+            "required": [
+                "user_id"
+            ],
+            "properties": {
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -31866,6 +46727,35 @@ const docTemplate = `{
                 "StageWithdrawn"
             ]
         },
+        "models.ApplicationStageHistoryDTO": {
+            "type": "object",
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "fromStage": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "movedAt": {
+                    "type": "string"
+                },
+                "movedBy": {
+                    "type": "string"
+                },
+                "movedByName": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "toStage": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ApplicationStatsDTO": {
             "type": "object",
             "properties": {
@@ -31977,6 +46867,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ArticleFeedbackPayload": {
+            "type": "object",
+            "properties": {
+                "feedback": {
+                    "type": "string"
+                },
+                "is_helpful": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.AssignCasePayload": {
             "type": "object",
             "required": [
@@ -31987,6 +46888,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "case_id": {
+                    "type": "string"
+                },
+                "team": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AssignTicketPayload": {
+            "type": "object",
+            "properties": {
+                "agent_id": {
                     "type": "string"
                 },
                 "team": {
@@ -32103,6 +47015,224 @@ const docTemplate = `{
                 }
             }
         },
+        "models.BackupConfiguration": {
+            "type": "object",
+            "properties": {
+                "autoRestoreTestEnabled": {
+                    "type": "boolean"
+                },
+                "backupScheduleCron": {
+                    "type": "string"
+                },
+                "encryptionEnabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "retentionDaysDaily": {
+                    "type": "integer"
+                },
+                "retentionMonthsMonthly": {
+                    "type": "integer"
+                },
+                "retentionWeeksWeekly": {
+                    "type": "integer"
+                },
+                "storageProvider": {
+                    "type": "string"
+                },
+                "targetRpoMinutes": {
+                    "type": "integer"
+                },
+                "targetRtoMinutes": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "updatedBy": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BackupHealthSummary": {
+            "type": "object",
+            "properties": {
+                "activeIncidentsCount": {
+                    "type": "integer"
+                },
+                "backupAgeMinutes": {
+                    "type": "integer"
+                },
+                "encryptionVaultProtected": {
+                    "type": "boolean"
+                },
+                "failedCount": {
+                    "type": "integer"
+                },
+                "lastFailedBackupAt": {
+                    "type": "string"
+                },
+                "lastRestoreTestAt": {
+                    "type": "string"
+                },
+                "lastRestoreTestStatus": {
+                    "type": "string"
+                },
+                "lastSuccessfulBackupAt": {
+                    "type": "string"
+                },
+                "pendingCount": {
+                    "type": "integer"
+                },
+                "rpoStatus": {
+                    "type": "string"
+                },
+                "rtoStatus": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "totalBackupSizeBytes": {
+                    "type": "integer"
+                },
+                "verifiedCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.BackupRecord": {
+            "type": "object",
+            "properties": {
+                "appVersion": {
+                    "type": "string"
+                },
+                "backupType": {
+                    "$ref": "#/definitions/models.BackupType"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "errorMessage": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isImmutable": {
+                    "type": "boolean"
+                },
+                "migrationVersion": {
+                    "type": "integer"
+                },
+                "retentionExpiresAt": {
+                    "type": "string"
+                },
+                "sizeBytes": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.BackupStatus"
+                },
+                "storageLocation": {
+                    "type": "string"
+                },
+                "verificationStatus": {
+                    "$ref": "#/definitions/models.VerificationStatus"
+                }
+            }
+        },
+        "models.BackupStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "in_progress",
+                "completed",
+                "failed",
+                "corrupted"
+            ],
+            "x-enum-varnames": [
+                "BackupStatusPending",
+                "BackupStatusInProgress",
+                "BackupStatusCompleted",
+                "BackupStatusFailed",
+                "BackupStatusCorrupted"
+            ]
+        },
+        "models.BackupType": {
+            "type": "string",
+            "enum": [
+                "full",
+                "pitr_wal",
+                "object_storage",
+                "export"
+            ],
+            "x-enum-varnames": [
+                "BackupTypeFull",
+                "BackupTypePITR",
+                "BackupTypeObjectStorage",
+                "BackupTypeExport"
+            ]
+        },
+        "models.BackupVerification": {
+            "type": "object",
+            "properties": {
+                "backupId": {
+                    "type": "string"
+                },
+                "checksRun": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "verifiedBy": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BlockUserPayload": {
+            "type": "object",
+            "required": [
+                "blocked_id",
+                "blocked_type"
+            ],
+            "properties": {
+                "blocked_id": {
+                    "type": "string"
+                },
+                "blocked_type": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "scope": {
+                    "type": "string"
+                }
+            }
+        },
         "models.BotDetectionSignal": {
             "type": "object",
             "properties": {
@@ -32147,6 +47277,143 @@ const docTemplate = `{
                 }
             }
         },
+        "models.BroadcastAnnouncementPayload": {
+            "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
+            "properties": {
+                "actionUrl": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "targetRole": {
+                    "description": "All, Candidates, Recruiters, Admins",
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BulkOperation": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "failedCount": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "operationType": {
+                    "$ref": "#/definitions/models.BulkOperationType"
+                },
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "processedCount": {
+                    "type": "integer"
+                },
+                "requestedBy": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.BulkOperationStatus"
+                },
+                "successfulCount": {
+                    "type": "integer"
+                },
+                "targetScope": {
+                    "$ref": "#/definitions/models.BulkTargetScope"
+                },
+                "totalTargetCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.BulkOperationStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "preview",
+                "processing",
+                "completed",
+                "failed",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "BulkStatusPending",
+                "BulkStatusPreview",
+                "BulkStatusProcessing",
+                "BulkStatusCompleted",
+                "BulkStatusFailed",
+                "BulkStatusCancelled"
+            ]
+        },
+        "models.BulkOperationType": {
+            "type": "string",
+            "enum": [
+                "bulk_status_update",
+                "bulk_archive",
+                "bulk_assignment",
+                "bulk_moderation",
+                "bulk_notification"
+            ],
+            "x-enum-varnames": [
+                "BulkStatusUpdate",
+                "BulkArchive",
+                "BulkAssignment",
+                "BulkModeration",
+                "BulkNotification"
+            ]
+        },
+        "models.BulkTargetScope": {
+            "type": "string",
+            "enum": [
+                "jobs",
+                "applications",
+                "users",
+                "reports",
+                "support_tickets"
+            ],
+            "x-enum-varnames": [
+                "ScopeJobs",
+                "ScopeApplications",
+                "ScopeUsers",
+                "ScopeReports",
+                "ScopeSupport"
+            ]
+        },
+        "models.CSATFeedbackPayload": {
+            "type": "object",
+            "required": [
+                "rating"
+            ],
+            "properties": {
+                "feedback": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.CandidateDocument": {
             "type": "object",
             "properties": {
@@ -32176,6 +47443,120 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uploaded_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CandidateEvaluationDTO": {
+            "type": "object",
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "candidateId": {
+                    "type": "string"
+                },
+                "communicationScore": {
+                    "type": "integer"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "cultureFitScore": {
+                    "type": "integer"
+                },
+                "evaluatorId": {
+                    "type": "string"
+                },
+                "evaluatorName": {
+                    "type": "string"
+                },
+                "experienceScore": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "jobId": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "orgId": {
+                    "type": "string"
+                },
+                "overallScore": {
+                    "type": "integer"
+                },
+                "recommendation": {
+                    "type": "string"
+                },
+                "roleFitScore": {
+                    "type": "integer"
+                },
+                "skillsScore": {
+                    "type": "integer"
+                },
+                "strengths": {
+                    "type": "string"
+                },
+                "technicalScore": {
+                    "type": "integer"
+                },
+                "weaknesses": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CandidateEvaluationPayload": {
+            "type": "object",
+            "required": [
+                "application_id",
+                "candidate_id",
+                "job_id"
+            ],
+            "properties": {
+                "application_id": {
+                    "type": "string"
+                },
+                "candidate_id": {
+                    "type": "string"
+                },
+                "communication_score": {
+                    "type": "integer"
+                },
+                "culture_fit_score": {
+                    "type": "integer"
+                },
+                "experience_score": {
+                    "type": "integer"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "overall_score": {
+                    "type": "integer"
+                },
+                "recommendation": {
+                    "type": "string"
+                },
+                "role_fit_score": {
+                    "type": "integer"
+                },
+                "skills_score": {
+                    "type": "integer"
+                },
+                "strengths": {
+                    "type": "string"
+                },
+                "technical_score": {
+                    "type": "integer"
+                },
+                "weaknesses": {
                     "type": "string"
                 }
             }
@@ -32403,6 +47784,28 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CheckoutRequest": {
+            "type": "object",
+            "required": [
+                "cancel_url",
+                "plan_id",
+                "success_url"
+            ],
+            "properties": {
+                "billing_email": {
+                    "type": "string"
+                },
+                "cancel_url": {
+                    "type": "string"
+                },
+                "plan_id": {
+                    "type": "string"
+                },
+                "success_url": {
                     "type": "string"
                 }
             }
@@ -33889,6 +49292,96 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ComponentHealth": {
+            "type": "object",
+            "properties": {
+                "circuitBreakerStatus": {
+                    "description": "closed, open, half_open",
+                    "type": "string"
+                },
+                "lastChecked": {
+                    "type": "string"
+                },
+                "latencyMs": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "metricsDetails": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "name": {
+                    "type": "string"
+                },
+                "recentFailures": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.HealthStatus"
+                },
+                "weight": {
+                    "$ref": "#/definitions/models.ComponentWeight"
+                }
+            }
+        },
+        "models.ComponentWeight": {
+            "type": "string",
+            "enum": [
+                "critical",
+                "important",
+                "optional"
+            ],
+            "x-enum-varnames": [
+                "WeightCritical",
+                "WeightImportant",
+                "WeightOptional"
+            ]
+        },
+        "models.ConfirmProductionRestoreRequest": {
+            "type": "object",
+            "required": [
+                "acknowledgeDataLoss",
+                "backupId",
+                "confirmationCode",
+                "reason",
+                "targetEnvironment"
+            ],
+            "properties": {
+                "acknowledgeDataLoss": {
+                    "type": "boolean"
+                },
+                "backupId": {
+                    "type": "string"
+                },
+                "confirmationCode": {
+                    "description": "Must match \"RESTORE-PRODUCTION-DATA\"",
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "targetEnvironment": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ConsentRecordPayload": {
+            "type": "object",
+            "required": [
+                "document",
+                "version"
+            ],
+            "properties": {
+                "document": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ContactCandidatePayload": {
             "type": "object",
             "required": [
@@ -33904,6 +49397,200 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "subject": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ContentReport": {
+            "type": "object",
+            "properties": {
+                "assignedAdminId": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "evidenceUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "reporterId": {
+                    "type": "string"
+                },
+                "resolutionNotes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                },
+                "targetTitle": {
+                    "type": "string"
+                },
+                "targetType": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateAPIKeyPayload": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateAPIKeyResponse": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "$ref": "#/definitions/models.APIKey"
+                },
+                "secret": {
+                    "description": "Displayed only once",
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateAnnouncementPayload": {
+            "type": "object",
+            "required": [
+                "audience",
+                "content",
+                "title"
+            ],
+            "properties": {
+                "audience": {
+                    "type": "string"
+                },
+                "channels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateApplicationPayload": {
+            "type": "object",
+            "required": [
+                "job_id"
+            ],
+            "properties": {
+                "cover_letter": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "resume_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateArticlePayload": {
+            "type": "object",
+            "required": [
+                "category_code",
+                "content",
+                "title"
+            ],
+            "properties": {
+                "category_code": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateBugReportPayload": {
+            "type": "object",
+            "required": [
+                "description",
+                "title"
+            ],
+            "properties": {
+                "actual_behavior": {
+                    "type": "string"
+                },
+                "browser": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "device": {
+                    "type": "string"
+                },
+                "expected_behavior": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "screenshot_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "steps_to_reproduce": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -34023,6 +49710,17 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CreateCoverLetterPayload": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "templateName": {
+                    "type": "string"
+                }
+            }
+        },
         "models.CreateDiscussionDTO": {
             "type": "object",
             "required": [
@@ -34046,6 +49744,34 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CreateExportRequest": {
+            "type": "object",
+            "required": [
+                "exportType",
+                "format"
+            ],
+            "properties": {
+                "exportType": {
+                    "$ref": "#/definitions/models.ExportType"
+                },
+                "fieldsSelected": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "filters": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "format": {
+                    "$ref": "#/definitions/models.ExportFormat"
+                },
+                "includePii": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.CreateFeatureFlagPayload": {
             "type": "object",
             "required": [
@@ -34066,6 +49792,53 @@ const docTemplate = `{
                 },
                 "rolloutPercentage": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.CreateFeatureRequestPayload": {
+            "type": "object",
+            "required": [
+                "category",
+                "description",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateImportRequest": {
+            "type": "object",
+            "required": [
+                "csvContent",
+                "importType",
+                "originalFilename"
+            ],
+            "properties": {
+                "columnMapping": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "csvContent": {
+                    "type": "string"
+                },
+                "importType": {
+                    "$ref": "#/definitions/models.ImportType"
+                },
+                "originalFilename": {
+                    "type": "string"
+                },
+                "strategy": {
+                    "$ref": "#/definitions/models.ImportStrategy"
                 }
             }
         },
@@ -34268,6 +50041,88 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CreateMessagePayload": {
+            "type": "object",
+            "required": [
+                "message_text"
+            ],
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "is_internal_note": {
+                    "type": "boolean"
+                },
+                "message_text": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateMessageRequestDTO": {
+            "type": "object",
+            "required": [
+                "initialMessage",
+                "receiverId"
+            ],
+            "properties": {
+                "initialMessage": {
+                    "type": "string"
+                },
+                "receiverId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateNetworkingGoalDTO": {
+            "type": "object",
+            "required": [
+                "targetCount",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "targetCount": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateNotePayload": {
+            "type": "object",
+            "required": [
+                "note"
+            ],
+            "properties": {
+                "application_id": {
+                    "type": "string"
+                },
+                "is_pinned": {
+                    "type": "boolean"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "recommendation": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.CreatePolicyPayload": {
             "type": "object",
             "required": [
@@ -34302,6 +50157,205 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CreatePreparationRequest": {
+            "type": "object",
+            "required": [
+                "company_name",
+                "job_title"
+            ],
+            "properties": {
+                "application_id": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "experience_level": {
+                    "type": "string"
+                },
+                "interview_date": {
+                    "type": "string"
+                },
+                "interview_round": {
+                    "type": "string"
+                },
+                "interview_type": {
+                    "type": "string"
+                },
+                "job_description": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "job_title": {
+                    "type": "string"
+                },
+                "preparation_duration": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreatePrivacyRequestPayload": {
+            "type": "object",
+            "required": [
+                "request_type"
+            ],
+            "properties": {
+                "request_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateRecoveryIncidentRequest": {
+            "type": "object",
+            "required": [
+                "scenario",
+                "severity",
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "scenario": {
+                    "type": "string"
+                },
+                "severity": {
+                    "$ref": "#/definitions/models.IncidentSeverity"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateTaskRequest": {
+            "type": "object",
+            "required": [
+                "preparation_id",
+                "title"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "preparation_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateTicketPayload": {
+            "type": "object",
+            "required": [
+                "category",
+                "description",
+                "subject"
+            ],
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "string"
+                },
+                "related_resource_id": {
+                    "type": "string"
+                },
+                "related_resource_type": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "user_email": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateVersionPayload": {
+            "type": "object",
+            "properties": {
+                "versionTag": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DataExport": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "exportType": {
+                    "$ref": "#/definitions/models.ExportType"
+                },
+                "exportVersion": {
+                    "type": "string"
+                },
+                "fieldsSelected": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fileSizeBytes": {
+                    "type": "integer"
+                },
+                "filters": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "format": {
+                    "$ref": "#/definitions/models.ExportFormat"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "includePii": {
+                    "type": "boolean"
+                },
+                "manifest": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "requestedBy": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.ExportStatus"
+                }
+            }
+        },
         "models.DataExportRequest": {
             "type": "object",
             "properties": {
@@ -34323,6 +50377,232 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "models.DataImport": {
+            "type": "object",
+            "properties": {
+                "columnMapping": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "errorReportUrl": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "failedRows": {
+                    "type": "integer"
+                },
+                "fileSizeBytes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "importType": {
+                    "$ref": "#/definitions/models.ImportType"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "originalFilename": {
+                    "type": "string"
+                },
+                "processedRows": {
+                    "type": "integer"
+                },
+                "requestedBy": {
+                    "type": "string"
+                },
+                "skippedRows": {
+                    "type": "integer"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.ImportStatus"
+                },
+                "strategy": {
+                    "$ref": "#/definitions/models.ImportStrategy"
+                },
+                "successfulRows": {
+                    "type": "integer"
+                },
+                "totalRows": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.DataMigration": {
+            "type": "object",
+            "properties": {
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "errorSummary": {
+                    "type": "string"
+                },
+                "executedBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "migrationCode": {
+                    "type": "string"
+                },
+                "reconciliationMatched": {
+                    "type": "boolean"
+                },
+                "recordsMigrated": {
+                    "type": "integer"
+                },
+                "sourceTable": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targetTable": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DataTierClassification": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "dataTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "targetRpo": {
+                    "type": "string"
+                },
+                "targetRto": {
+                    "type": "string"
+                },
+                "tier": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeleteAccountPayload": {
+            "type": "object",
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeviceItem": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_seen_at": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "trusted_status": {
+                    "description": "trusted, pending, revoked",
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DiagnosticReport": {
+            "type": "object",
+            "properties": {
+                "activeIncidents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.HealthIncident"
+                    }
+                },
+                "configurationSummary": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "generatedAt": {
+                    "type": "string"
+                },
+                "overallStatus": {
+                    "$ref": "#/definitions/models.HealthStatus"
+                },
+                "recentRecoveryLogs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.HealthRecoveryAction"
+                    }
+                },
+                "reportId": {
+                    "type": "string"
+                },
+                "systemComponents": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ComponentHealth"
+                    }
                 }
             }
         },
@@ -34355,6 +50635,133 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.EmployerSettingsUpdatePayload": {
+            "type": "object",
+            "properties": {
+                "autoAcknowledgeApplication": {
+                    "type": "boolean"
+                },
+                "autoAcknowledgeMessage": {
+                    "type": "string"
+                },
+                "candidateMessageNotification": {
+                    "type": "boolean"
+                },
+                "candidateVisibilityMode": {
+                    "type": "string"
+                },
+                "defaultPipeline": {
+                    "type": "string"
+                },
+                "defaultRecruiterId": {
+                    "type": "string"
+                },
+                "interviewReminderNotification": {
+                    "type": "boolean"
+                },
+                "newApplicationNotification": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.ExecuteBulkOpRequest": {
+            "type": "object",
+            "required": [
+                "actionPayload",
+                "operationType",
+                "targetIds",
+                "targetScope"
+            ],
+            "properties": {
+                "actionPayload": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "isDryRun": {
+                    "type": "boolean"
+                },
+                "operationType": {
+                    "$ref": "#/definitions/models.BulkOperationType"
+                },
+                "targetIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "targetScope": {
+                    "$ref": "#/definitions/models.BulkTargetScope"
+                }
+            }
+        },
+        "models.ExecuteSelfHealingRequest": {
+            "type": "object",
+            "required": [
+                "actionType",
+                "componentName"
+            ],
+            "properties": {
+                "actionType": {
+                    "type": "string"
+                },
+                "componentName": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ExportFormat": {
+            "type": "string",
+            "enum": [
+                "zip",
+                "csv",
+                "json"
+            ],
+            "x-enum-varnames": [
+                "ExportFormatZIP",
+                "ExportFormatCSV",
+                "ExportFormatJSON"
+            ]
+        },
+        "models.ExportStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "processing",
+                "completed",
+                "failed",
+                "cancelled",
+                "expired"
+            ],
+            "x-enum-varnames": [
+                "ExportStatusPending",
+                "ExportStatusProcessing",
+                "ExportStatusCompleted",
+                "ExportStatusFailed",
+                "ExportStatusCancelled",
+                "ExportStatusExpired"
+            ]
+        },
+        "models.ExportType": {
+            "type": "string",
+            "enum": [
+                "user_personal_data",
+                "admin_users",
+                "admin_jobs",
+                "admin_applications",
+                "admin_communities",
+                "admin_reports",
+                "admin_analytics"
+            ],
+            "x-enum-varnames": [
+                "ExportTypeUserData",
+                "ExportTypeAdminUsers",
+                "ExportTypeAdminJobs",
+                "ExportTypeAdminApps",
+                "ExportTypeAdminCommunities",
+                "ExportTypeAdminReports",
+                "ExportTypeAdminAnalytics"
+            ]
         },
         "models.FeatureFlag": {
             "type": "object",
@@ -34448,6 +50855,189 @@ const docTemplate = `{
                 }
             }
         },
+        "models.GenerateCoverLetterRequest": {
+            "type": "object",
+            "properties": {
+                "companyName": {
+                    "type": "string"
+                },
+                "jobDescription": {
+                    "type": "string"
+                },
+                "jobId": {
+                    "type": "string"
+                },
+                "jobTitle": {
+                    "type": "string"
+                },
+                "length": {
+                    "type": "string"
+                },
+                "tone": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GenerateQuestionsRequest": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "difficulty": {
+                    "type": "string"
+                },
+                "job_title": {
+                    "type": "string"
+                },
+                "preparation_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.HealthIncident": {
+            "type": "object",
+            "properties": {
+                "componentName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "dedupCount": {
+                    "type": "integer"
+                },
+                "errorMessage": {
+                    "type": "string"
+                },
+                "failureType": {
+                    "type": "string"
+                },
+                "firstSeenAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastSeenAt": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.HealthRecoveryAction": {
+            "type": "object",
+            "properties": {
+                "actionType": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "componentName": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "executedBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "incidentId": {
+                    "type": "string"
+                },
+                "resultSummary": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.HealthStatus": {
+            "type": "string",
+            "enum": [
+                "healthy",
+                "degraded",
+                "critical",
+                "unknown",
+                "disabled",
+                "maintenance"
+            ],
+            "x-enum-varnames": [
+                "StatusHealthy",
+                "StatusDegraded",
+                "StatusCritical",
+                "StatusUnknown",
+                "StatusDisabled",
+                "StatusMaintenance"
+            ]
+        },
+        "models.ImportPreviewResult": {
+            "type": "object",
+            "properties": {
+                "detectedColumns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "duplicateCount": {
+                    "type": "integer"
+                },
+                "invalidRowsCount": {
+                    "type": "integer"
+                },
+                "mappedFields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "sampleRows": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "totalRows": {
+                    "type": "integer"
+                },
+                "validRowsCount": {
+                    "type": "integer"
+                },
+                "validationErrors": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            }
+        },
         "models.ImportResumeRequest": {
             "type": "object",
             "properties": {
@@ -34463,6 +51053,65 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.ImportStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "validating",
+                "ready",
+                "processing",
+                "completed",
+                "completed_with_errors",
+                "failed",
+                "cancelled",
+                "expired"
+            ],
+            "x-enum-varnames": [
+                "ImportStatusPending",
+                "ImportStatusValidating",
+                "ImportStatusReady",
+                "ImportStatusProcessing",
+                "ImportStatusCompleted",
+                "ImportStatusCompletedWithErrors",
+                "ImportStatusFailed",
+                "ImportStatusCancelled",
+                "ImportStatusExpired"
+            ]
+        },
+        "models.ImportStrategy": {
+            "type": "string",
+            "enum": [
+                "create_only",
+                "create_or_update",
+                "update_only",
+                "skip_duplicates",
+                "reject_duplicates"
+            ],
+            "x-enum-varnames": [
+                "StrategyCreateOnly",
+                "StrategyCreateOrUpdate",
+                "StrategyUpdateOnly",
+                "StrategySkipDuplicates",
+                "StrategyRejectDuplicates"
+            ]
+        },
+        "models.ImportType": {
+            "type": "string",
+            "enum": [
+                "jobs",
+                "users_auth",
+                "skills",
+                "categories",
+                "reference_data"
+            ],
+            "x-enum-varnames": [
+                "ImportTypeJobs",
+                "ImportTypeUsersAuth",
+                "ImportTypeSkills",
+                "ImportTypeCategories",
+                "ImportTypeReferenceData"
+            ]
         },
         "models.IncidentItem": {
             "type": "object",
@@ -34497,6 +51146,40 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.IncidentSeverity": {
+            "type": "string",
+            "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+            ],
+            "x-enum-varnames": [
+                "SeverityLow",
+                "SeverityMedium",
+                "SeverityHigh",
+                "SeverityCritical"
+            ]
+        },
+        "models.IncidentStatus": {
+            "type": "string",
+            "enum": [
+                "detected",
+                "investigating",
+                "restoring",
+                "verifying",
+                "resolved",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "IncidentDetected",
+                "IncidentInvestigating",
+                "IncidentRestoring",
+                "IncidentVerifying",
+                "IncidentResolved",
+                "IncidentClosed"
+            ]
         },
         "models.InsightSeverity": {
             "type": "string",
@@ -34968,6 +51651,32 @@ const docTemplate = `{
                 }
             }
         },
+        "models.LoginHistoryItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "event_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                }
+            }
+        },
         "models.MFASetupResponse": {
             "type": "object",
             "properties": {
@@ -34996,6 +51705,108 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MentorshipFeedback": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_user_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mentorship_id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "description": "1 - 5",
+                    "type": "integer"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "to_user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MentorshipGoal": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mentorship_id": {
+                    "type": "string"
+                },
+                "progress": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "pending, in_progress, completed, cancelled",
+                    "type": "string"
+                },
+                "target_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MentorshipSession": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration_minutes": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "meeting_url": {
+                    "type": "string"
+                },
+                "mentorship_id": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "scheduled_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "scheduled, completed, cancelled, rescheduled",
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.MessageAttachment": {
             "type": "object",
             "properties": {
@@ -35019,6 +51830,22 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModerateJobPayload": {
+            "type": "object",
+            "required": [
+                "action",
+                "reason"
+            ],
+            "properties": {
+                "action": {
+                    "description": "Approve, Reject, Hide, Remove, Suspend, Restore, Flag",
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ModerateMemberDTO": {
             "type": "object",
             "required": [
@@ -35038,6 +51865,80 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModerationCase": {
+            "type": "object",
+            "properties": {
+                "aiRecommendation": {
+                    "type": "string"
+                },
+                "aiSummary": {
+                    "type": "string"
+                },
+                "assignedAdminId": {
+                    "type": "string"
+                },
+                "caseNumber": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "Critical, High, Medium, Low",
+                    "type": "string"
+                },
+                "reporterId": {
+                    "type": "string"
+                },
+                "riskScore": {
+                    "type": "number"
+                },
+                "status": {
+                    "description": "New, Under Review, Needs Info, Action Required, Resolved, Dismissed, Escalated",
+                    "type": "string"
+                },
+                "targetId": {
+                    "type": "string"
+                },
+                "targetTitle": {
+                    "type": "string"
+                },
+                "targetType": {
+                    "description": "User, Company, Job, Post, Comment, Review, Message",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ModeratorWorkload": {
+            "type": "object",
+            "properties": {
+                "admin_id": {
+                    "type": "string"
+                },
+                "assigned_cases_count": {
+                    "type": "integer"
+                },
+                "average_resolution_mins": {
+                    "type": "number"
+                },
+                "pending_appeals_count": {
+                    "type": "integer"
+                },
+                "sla_status": {
+                    "description": "on_track, warning, breached",
+                    "type": "string"
+                }
+            }
+        },
         "models.MonthlyCountDTO": {
             "type": "object",
             "properties": {
@@ -35049,6 +51950,24 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MuteUserPayload": {
+            "type": "object",
+            "required": [
+                "muted_id",
+                "muted_type"
+            ],
+            "properties": {
+                "duration_days": {
+                    "type": "integer"
+                },
+                "muted_id": {
+                    "type": "string"
+                },
+                "muted_type": {
+                    "type": "string"
+                }
+            }
+        },
         "models.NameCount": {
             "type": "object",
             "properties": {
@@ -35056,6 +51975,125 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NetworkReportDTO": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "details": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NotificationSchedulePayload": {
+            "type": "object",
+            "required": [
+                "content",
+                "notificationType",
+                "scheduledAt",
+                "title"
+            ],
+            "properties": {
+                "actionUrl": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "notificationType": {
+                    "type": "string"
+                },
+                "scheduledAt": {
+                    "type": "string"
+                },
+                "targetResourceId": {
+                    "type": "string"
+                },
+                "targetResourceType": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NotificationTemplatePayload": {
+            "type": "object",
+            "required": [
+                "category",
+                "code",
+                "contentTemplate",
+                "titleTemplate"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "contentTemplate": {
+                    "type": "string"
+                },
+                "emailBodyTemplate": {
+                    "type": "string"
+                },
+                "emailSubjectTemplate": {
+                    "type": "string"
+                },
+                "pushBodyTemplate": {
+                    "type": "string"
+                },
+                "pushTitleTemplate": {
+                    "type": "string"
+                },
+                "titleTemplate": {
+                    "type": "string"
+                },
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.OverallHealthSummary": {
+            "type": "object",
+            "properties": {
+                "activeIncidents": {
+                    "type": "integer"
+                },
+                "buildSha": {
+                    "type": "string"
+                },
+                "checkedAt": {
+                    "type": "string"
+                },
+                "components": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ComponentHealth"
+                    }
+                },
+                "isMaintenance": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.HealthStatus"
+                },
+                "uptimeSeconds": {
+                    "type": "integer"
+                },
+                "version": {
                     "type": "string"
                 }
             }
@@ -35105,6 +52143,27 @@ const docTemplate = `{
                 "score": {
                     "description": "0 - 100",
                     "type": "integer"
+                }
+            }
+        },
+        "models.PreviewImportRequest": {
+            "type": "object",
+            "required": [
+                "csvContent",
+                "importType"
+            ],
+            "properties": {
+                "columnMapping": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "csvContent": {
+                    "type": "string"
+                },
+                "importType": {
+                    "$ref": "#/definitions/models.ImportType"
                 }
             }
         },
@@ -35221,6 +52280,36 @@ const docTemplate = `{
                 }
             }
         },
+        "models.QuietHoursSettings": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "description": "e.g. \"Mon,Tue,Wed,Thu,Fri,Sat,Sun\"",
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "endTime": {
+                    "description": "e.g. \"07:00\"",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "e.g. \"22:00\"",
+                    "type": "string"
+                },
+                "timezone": {
+                    "description": "e.g. \"UTC\"",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
         "models.RecommendationFeedbackRequest": {
             "type": "object",
             "properties": {
@@ -35235,6 +52324,53 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "recommendation_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RecoveryIncident": {
+            "type": "object",
+            "properties": {
+                "createdBy": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "incidentNumber": {
+                    "type": "string"
+                },
+                "recoveryPoint": {
+                    "type": "string"
+                },
+                "resolutionSummary": {
+                    "type": "string"
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "rootCause": {
+                    "type": "string"
+                },
+                "rpoAchievedSec": {
+                    "type": "integer"
+                },
+                "rtoAchievedSec": {
+                    "type": "integer"
+                },
+                "scenario": {
+                    "type": "string"
+                },
+                "severity": {
+                    "$ref": "#/definitions/models.IncidentSeverity"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.IncidentStatus"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -35297,6 +52433,39 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RegisterDevicePayload": {
+            "type": "object",
+            "required": [
+                "deviceToken",
+                "platform"
+            ],
+            "properties": {
+                "deviceToken": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ReinstateUserPayload": {
+            "type": "object",
+            "required": [
+                "reason",
+                "user_id"
+            ],
+            "properties": {
+                "lift_restrictions": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ReportCompanyPayload": {
             "type": "object",
             "required": [
@@ -35307,6 +52476,59 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ReportMessagePayload": {
+            "type": "object",
+            "required": [
+                "conversationId",
+                "reason"
+            ],
+            "properties": {
+                "conversationId": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "messageId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ReportSubmitPayload": {
+            "type": "object",
+            "required": [
+                "category",
+                "description",
+                "target_id",
+                "target_type"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "evidence_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_id": {
+                    "type": "string"
+                },
+                "target_title": {
+                    "type": "string"
+                },
+                "target_type": {
                     "type": "string"
                 }
             }
@@ -35323,6 +52545,86 @@ const docTemplate = `{
                 "status": {
                     "description": "Resolved or False Positive",
                     "type": "string"
+                }
+            }
+        },
+        "models.ResolveAppealPayload": {
+            "type": "object",
+            "required": [
+                "appeal_id",
+                "resolution_notes",
+                "status"
+            ],
+            "properties": {
+                "appeal_id": {
+                    "type": "string"
+                },
+                "resolution_notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "approved, denied, partially_approved",
+                    "type": "string"
+                }
+            }
+        },
+        "models.ResolveReportPayload": {
+            "type": "object",
+            "required": [
+                "action",
+                "notes"
+            ],
+            "properties": {
+                "action": {
+                    "description": "Resolve, Dismiss, Escalate",
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ResolveTicketPayload": {
+            "type": "object",
+            "properties": {
+                "resolution_notes": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RestoreTest": {
+            "type": "object",
+            "properties": {
+                "backupId": {
+                    "type": "string"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "durationMs": {
+                    "type": "integer"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "failureReason": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "startedAt": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "testedBy": {
+                    "type": "string"
+                },
+                "verificationResults": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
@@ -35638,6 +52940,126 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RewriteRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "instruction": {
+                    "type": "string"
+                },
+                "targetLength": {
+                    "type": "string"
+                },
+                "tone": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RunRestoreTestRequest": {
+            "type": "object",
+            "required": [
+                "backupId"
+            ],
+            "properties": {
+                "backupId": {
+                    "type": "string"
+                },
+                "environment": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SafetyCase": {
+            "type": "object",
+            "properties": {
+                "ai_confidence": {
+                    "type": "number"
+                },
+                "ai_recommendation": {
+                    "type": "string"
+                },
+                "ai_summary": {
+                    "type": "string"
+                },
+                "assigned_admin_id": {
+                    "type": "string"
+                },
+                "assigned_team": {
+                    "type": "string"
+                },
+                "case_number": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "string"
+                },
+                "reporter_id": {
+                    "type": "string"
+                },
+                "risk_score": {
+                    "type": "number"
+                },
+                "status": {
+                    "description": "new, queued, under_review, escalated, action_pending, resolved, appealed, closed",
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                },
+                "target_title": {
+                    "type": "string"
+                },
+                "target_type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SafetyMetricsSummary": {
+            "type": "object",
+            "properties": {
+                "account_suspensions": {
+                    "type": "integer"
+                },
+                "average_resolution_time": {
+                    "type": "string"
+                },
+                "content_removals": {
+                    "type": "integer"
+                },
+                "high_risk_reports": {
+                    "type": "integer"
+                },
+                "open_reports": {
+                    "type": "integer"
+                },
+                "pending_appeals": {
+                    "type": "integer"
+                },
+                "reports_by_category": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "user_blocks": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.SafetyPolicyItem": {
             "type": "object",
             "properties": {
@@ -35676,6 +53098,101 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SafetyReport": {
+            "type": "object",
+            "properties": {
+                "assigned_admin_id": {
+                    "type": "string"
+                },
+                "category": {
+                    "description": "spam, scam, fraud, fake_job, fake_recruiter, impersonation, harassment, threat, hate_abuse, privacy_violation, phishing, malicious_content, inappropriate_content, platform_abuse, copyright, other",
+                    "type": "string"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "evidence_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "low, normal, high, urgent, critical",
+                    "type": "string"
+                },
+                "reporter_id": {
+                    "type": "string"
+                },
+                "resolution_notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "submitted, received, under_review, needs_info, action_taken, no_violation, escalated, appealed, resolved, closed",
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                },
+                "target_title": {
+                    "type": "string"
+                },
+                "target_type": {
+                    "description": "user, profile, job, company, recruiter, message, community, comment, resume, file, link, ai_content",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SafetyRule": {
+            "type": "object",
+            "properties": {
+                "action_recommendation": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "condition_json": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rule_code": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "models.SalaryTrendPoint": {
             "type": "object",
             "properties": {
@@ -35700,6 +53217,136 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "listName": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SaveCookieConsentRequest": {
+            "type": "object",
+            "required": [
+                "preferences",
+                "visitor_id"
+            ],
+            "properties": {
+                "preferences": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "visitor_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SaveInterviewNoteRequest": {
+            "type": "object",
+            "required": [
+                "preparation_id"
+            ],
+            "properties": {
+                "candidate_performance": {
+                    "type": "string"
+                },
+                "follow_up_suggestions": {
+                    "type": "string"
+                },
+                "generate_thank_you": {
+                    "type": "boolean"
+                },
+                "interviewers": {
+                    "type": "string"
+                },
+                "overall_feeling": {
+                    "type": "string"
+                },
+                "personal_notes": {
+                    "type": "string"
+                },
+                "potential_strengths": {
+                    "type": "string"
+                },
+                "potential_weaknesses": {
+                    "type": "string"
+                },
+                "preparation_id": {
+                    "type": "string"
+                },
+                "questions_asked": {
+                    "type": "string"
+                },
+                "topics_discussed": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SaveLabelDTO": {
+            "type": "object",
+            "required": [
+                "label",
+                "targetUserId"
+            ],
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "targetUserId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SaveNoteDTO": {
+            "type": "object",
+            "required": [
+                "content",
+                "targetUserId"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "targetUserId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SaveQuestionRequest": {
+            "type": "object",
+            "required": [
+                "question"
+            ],
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "difficulty": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "preparation_id": {
+                    "type": "string"
+                },
+                "question": {
+                    "type": "string"
+                },
+                "sample_answer": {
+                    "type": "string"
+                },
+                "star_action": {
+                    "type": "string"
+                },
+                "star_result": {
+                    "type": "string"
+                },
+                "star_situation": {
+                    "type": "string"
+                },
+                "star_task": {
+                    "type": "string"
+                },
+                "user_answer": {
                     "type": "string"
                 }
             }
@@ -35921,6 +53568,69 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SecurityDashboardSummary": {
+            "type": "object",
+            "properties": {
+                "active_incidents": {
+                    "type": "integer"
+                },
+                "events_by_type": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "failed_logins_24h": {
+                    "type": "integer"
+                },
+                "mfa_adoption_rate": {
+                    "type": "number"
+                },
+                "suspicious_activities": {
+                    "type": "integer"
+                },
+                "total_events": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.SecurityIncident": {
+            "type": "object",
+            "properties": {
+                "affected_area": {
+                    "type": "string"
+                },
+                "assigned_to": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resolution_notes": {
+                    "type": "string"
+                },
+                "resolved_at": {
+                    "type": "string"
+                },
+                "severity": {
+                    "description": "low, medium, high, critical",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "open, investigating, contained, resolved, closed",
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.SecurityOverview": {
             "type": "object",
             "properties": {
@@ -36041,6 +53751,14 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ShareCoverLetterPayload": {
+            "type": "object",
+            "properties": {
+                "privacyLevel": {
+                    "type": "string"
+                }
+            }
+        },
         "models.SkillGapRequest": {
             "type": "object",
             "required": [
@@ -36056,6 +53774,43 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.StartMockSessionRequest": {
+            "type": "object",
+            "properties": {
+                "difficulty": {
+                    "type": "string"
+                },
+                "interview_type": {
+                    "type": "string"
+                },
+                "preparation_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "total_questions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.SubmitMockAnswerRequest": {
+            "type": "object",
+            "required": [
+                "question_text"
+            ],
+            "properties": {
+                "audio_transcript": {
+                    "type": "string"
+                },
+                "candidate_answer": {
+                    "type": "string"
+                },
+                "question_text": {
+                    "type": "string"
                 }
             }
         },
@@ -36106,6 +53861,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "workersStatus": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TailorCoverLetterPayload": {
+            "type": "object",
+            "properties": {
+                "jobDescription": {
                     "type": "string"
                 }
             }
@@ -36168,6 +53931,72 @@ const docTemplate = `{
                 }
             }
         },
+        "models.TestSendPayload": {
+            "type": "object",
+            "required": [
+                "channel",
+                "recipientEmail"
+            ],
+            "properties": {
+                "channel": {
+                    "type": "string"
+                },
+                "recipientEmail": {
+                    "type": "string"
+                },
+                "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.ToggleMaintenanceRequest": {
+            "type": "object",
+            "properties": {
+                "allowedAdminIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enable": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TransferOwnershipPayload": {
+            "type": "object",
+            "required": [
+                "newOwnerId"
+            ],
+            "properties": {
+                "newOwnerId": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TriggerBackupRequest": {
+            "type": "object",
+            "required": [
+                "backupType"
+            ],
+            "properties": {
+                "backupType": {
+                    "$ref": "#/definitions/models.BackupType"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UpdateCommunityDTO": {
             "type": "object",
             "properties": {
@@ -36208,6 +54037,54 @@ const docTemplate = `{
                     }
                 },
                 "visibility": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateCompanyStatusPayload": {
+            "type": "object",
+            "required": [
+                "reason",
+                "status"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Active, Restricted, Suspended",
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateCoverLetterPayload": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "closing": {
+                    "type": "string"
+                },
+                "fullContent": {
+                    "type": "string"
+                },
+                "introduction": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "openingGreeting": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "templateName": {
+                    "type": "string"
+                },
+                "tone": {
                     "type": "string"
                 }
             }
@@ -36293,6 +54170,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UpdateMentorshipGoalDTO": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "progress": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "target_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UpdateMentorshipRequestDTO": {
             "type": "object",
             "required": [
@@ -36304,6 +54201,58 @@ const docTemplate = `{
                 },
                 "status": {
                     "description": "accepted, rejected, cancelled",
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateMentorshipSessionDTO": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "duration_minutes": {
+                    "type": "integer"
+                },
+                "meeting_url": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "scheduled_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateNetworkingGoalDTO": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "currentCount": {
+                    "type": "integer"
+                },
+                "deadline": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "targetCount": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -36350,6 +54299,29 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UpdatePolicyPayload": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "enforcement_guidance": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "models.UpdatePreferencePayload": {
             "type": "object",
             "required": [
@@ -36375,6 +54347,90 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "smsEnabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.UpdatePreparationRequest": {
+            "type": "object",
+            "properties": {
+                "company_name": {
+                    "type": "string"
+                },
+                "experience_level": {
+                    "type": "string"
+                },
+                "interview_date": {
+                    "type": "string"
+                },
+                "interview_round": {
+                    "type": "string"
+                },
+                "interview_type": {
+                    "type": "string"
+                },
+                "job_description": {
+                    "type": "string"
+                },
+                "job_title": {
+                    "type": "string"
+                },
+                "preparation_duration": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdatePrivacyPayload": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "resolution_notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdatePrivacyPreferencesPayload": {
+            "type": "object",
+            "properties": {
+                "ai_data_usage": {
+                    "type": "boolean"
+                },
+                "analytics_consent": {
+                    "type": "boolean"
+                },
+                "community_visibility": {
+                    "type": "string"
+                },
+                "discover_in_search": {
+                    "type": "boolean"
+                },
+                "marketing_consent": {
+                    "type": "boolean"
+                },
+                "messaging_permission": {
+                    "type": "string"
+                },
+                "profile_visibility": {
+                    "type": "string"
+                },
+                "recruiter_contactable": {
+                    "type": "boolean"
+                },
+                "recruiter_discoverable": {
+                    "type": "boolean"
+                },
+                "search_personalization": {
+                    "type": "boolean"
+                },
+                "show_resume_to_recruiters": {
                     "type": "boolean"
                 }
             }
@@ -36470,6 +54526,64 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UpdateQuestionPracticeRequest": {
+            "type": "object",
+            "properties": {
+                "is_practiced": {
+                    "type": "boolean"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "star_action": {
+                    "type": "string"
+                },
+                "star_result": {
+                    "type": "string"
+                },
+                "star_situation": {
+                    "type": "string"
+                },
+                "star_task": {
+                    "type": "string"
+                },
+                "user_answer": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateReportStatusPayload": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateRetentionPayload": {
+            "type": "object",
+            "required": [
+                "data_category",
+                "retention_days"
+            ],
+            "properties": {
+                "action_type": {
+                    "type": "string"
+                },
+                "data_category": {
+                    "type": "string"
+                },
+                "retention_days": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.UpdateSecurityAlertPayload": {
             "type": "object",
             "properties": {
@@ -36550,6 +54664,34 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserBlock": {
+            "type": "object",
+            "properties": {
+                "blocked_id": {
+                    "type": "string"
+                },
+                "blocked_type": {
+                    "description": "user, recruiter, company",
+                    "type": "string"
+                },
+                "blocker_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "all, messaging, networking",
                     "type": "string"
                 }
             }
@@ -36666,6 +54808,30 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "profileId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserMute": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "muted_id": {
+                    "type": "string"
+                },
+                "muted_type": {
+                    "description": "user, community, conversation, job",
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -36979,6 +55145,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.VerificationStatus": {
+            "type": "string",
+            "enum": [
+                "unverified",
+                "verified",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "VerificationUnverified",
+                "VerificationVerified",
+                "VerificationFailed"
+            ]
         },
         "models.VerificationSubmitPayload": {
             "type": "object",

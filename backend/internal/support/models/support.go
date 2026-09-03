@@ -175,3 +175,17 @@ type SupportAnalyticsSummary struct {
 	CSATScore               float64          `json:"csat_score"`
 	TicketsByCategory       map[string]int64 `json:"tickets_by_category"`
 }
+
+type ResolveTicketPayload struct {
+	ResolutionNotes string `json:"resolution_notes"`
+}
+
+type CreateArticlePayload struct {
+	Title        string   `json:"title" binding:"required"`
+	Slug         string   `json:"slug"`
+	Summary      string   `json:"summary"`
+	Content      string   `json:"content" binding:"required"`
+	CategoryCode string   `json:"category_code" binding:"required"`
+	Tags         []string `json:"tags"`
+}
+
