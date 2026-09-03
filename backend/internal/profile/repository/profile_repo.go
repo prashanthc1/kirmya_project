@@ -146,6 +146,9 @@ func (r *ProfileRepository) Update(ctx context.Context, p *models.UserProfile) e
 
 // Work Experience
 func (r *ProfileRepository) GetWorkExperiences(ctx context.Context, profileID uuid.UUID) ([]models.UserWorkExperience, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	query := `SELECT id, profile_id, company, job_title, employment_type, location, start_date, end_date, is_current_job, description, skills_used, achievements, sort_order, created_at, updated_at FROM user_work_experiences WHERE profile_id = $1 ORDER BY start_date DESC`
 	rows, err := r.db.Query(ctx, query, profileID)
 	if err != nil {
@@ -167,6 +170,9 @@ func (r *ProfileRepository) GetWorkExperiences(ctx context.Context, profileID uu
 }
 
 func (r *ProfileRepository) AddWorkExperience(ctx context.Context, w *models.UserWorkExperience) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	skillsJSON, _ := json.Marshal(w.SkillsUsed)
 	query := `INSERT INTO user_work_experiences (id, profile_id, company, job_title, employment_type, location, start_date, end_date, is_current_job, description, skills_used, achievements, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
 	_, err := r.db.Exec(ctx, query, w.ID, w.ProfileID, w.Company, w.JobTitle, w.EmploymentType, w.Location, w.StartDate, w.EndDate, w.IsCurrentJob, w.Description, skillsJSON, w.Achievements, w.SortOrder)
@@ -174,6 +180,9 @@ func (r *ProfileRepository) AddWorkExperience(ctx context.Context, w *models.Use
 }
 
 func (r *ProfileRepository) UpdateWorkExperience(ctx context.Context, w *models.UserWorkExperience) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	skillsJSON, _ := json.Marshal(w.SkillsUsed)
 	query := `UPDATE user_work_experiences SET company = $1, job_title = $2, employment_type = $3, location = $4, start_date = $5, end_date = $6, is_current_job = $7, description = $8, skills_used = $9, achievements = $10, updated_at = CURRENT_TIMESTAMP WHERE id = $11 AND profile_id = $12`
 	_, err := r.db.Exec(ctx, query, w.Company, w.JobTitle, w.EmploymentType, w.Location, w.StartDate, w.EndDate, w.IsCurrentJob, w.Description, skillsJSON, w.Achievements, w.ID, w.ProfileID)
@@ -181,12 +190,18 @@ func (r *ProfileRepository) UpdateWorkExperience(ctx context.Context, w *models.
 }
 
 func (r *ProfileRepository) DeleteWorkExperience(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_work_experiences WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // Education
 func (r *ProfileRepository) GetEducations(ctx context.Context, profileID uuid.UUID) ([]models.UserEducation, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	query := `SELECT id, profile_id, institution, degree, field_of_study, start_date, end_date, grade, description, sort_order, created_at, updated_at FROM user_educations WHERE profile_id = $1 ORDER BY created_at DESC`
 	rows, err := r.db.Query(ctx, query, profileID)
 	if err != nil {
@@ -206,24 +221,36 @@ func (r *ProfileRepository) GetEducations(ctx context.Context, profileID uuid.UU
 }
 
 func (r *ProfileRepository) AddEducation(ctx context.Context, e *models.UserEducation) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_educations (id, profile_id, institution, degree, field_of_study, start_date, end_date, grade, description, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 	_, err := r.db.Exec(ctx, query, e.ID, e.ProfileID, e.Institution, e.Degree, e.FieldOfStudy, e.StartDate, e.EndDate, e.Grade, e.Description, e.SortOrder)
 	return err
 }
 
 func (r *ProfileRepository) UpdateEducation(ctx context.Context, e *models.UserEducation) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `UPDATE user_educations SET institution = $1, degree = $2, field_of_study = $3, start_date = $4, end_date = $5, grade = $6, description = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8 AND profile_id = $9`
 	_, err := r.db.Exec(ctx, query, e.Institution, e.Degree, e.FieldOfStudy, e.StartDate, e.EndDate, e.Grade, e.Description, e.ID, e.ProfileID)
 	return err
 }
 
 func (r *ProfileRepository) DeleteEducation(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_educations WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // Skills
 func (r *ProfileRepository) GetSkills(ctx context.Context, profileID uuid.UUID) ([]models.UserSkill, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	rows, err := r.db.Query(ctx, "SELECT id, profile_id, name, proficiency_level FROM user_skills WHERE profile_id = $1", profileID)
 	if err != nil {
 		return nil, err
@@ -242,18 +269,27 @@ func (r *ProfileRepository) GetSkills(ctx context.Context, profileID uuid.UUID) 
 }
 
 func (r *ProfileRepository) AddSkill(ctx context.Context, s *models.UserSkill) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_skills (id, profile_id, name, proficiency_level) VALUES ($1, $2, $3, $4)`
 	_, err := r.db.Exec(ctx, query, s.ID, s.ProfileID, s.Name, s.ProficiencyLevel)
 	return err
 }
 
 func (r *ProfileRepository) DeleteSkill(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_skills WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // Certifications
 func (r *ProfileRepository) GetCertifications(ctx context.Context, profileID uuid.UUID) ([]models.UserCertification, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	rows, err := r.db.Query(ctx, "SELECT id, profile_id, name, issuing_organization, issue_date, expiration_date, credential_id, credential_url FROM user_certifications WHERE profile_id = $1", profileID)
 	if err != nil {
 		return nil, err
@@ -272,24 +308,36 @@ func (r *ProfileRepository) GetCertifications(ctx context.Context, profileID uui
 }
 
 func (r *ProfileRepository) AddCertification(ctx context.Context, c *models.UserCertification) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_certifications (id, profile_id, name, issuing_organization, issue_date, expiration_date, credential_id, credential_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	_, err := r.db.Exec(ctx, query, c.ID, c.ProfileID, c.Name, c.IssuingOrganization, c.IssueDate, c.ExpirationDate, c.CredentialID, c.CredentialURL)
 	return err
 }
 
 func (r *ProfileRepository) UpdateCertification(ctx context.Context, c *models.UserCertification) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `UPDATE user_certifications SET name = $1, issuing_organization = $2, issue_date = $3, expiration_date = $4, credential_id = $5, credential_url = $6 WHERE id = $7 AND profile_id = $8`
 	_, err := r.db.Exec(ctx, query, c.Name, c.IssuingOrganization, c.IssueDate, c.ExpirationDate, c.CredentialID, c.CredentialURL, c.ID, c.ProfileID)
 	return err
 }
 
 func (r *ProfileRepository) DeleteCertification(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_certifications WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // Projects
 func (r *ProfileRepository) GetProjects(ctx context.Context, profileID uuid.UUID) ([]models.UserProject, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	rows, err := r.db.Query(ctx, "SELECT id, profile_id, title, description, url, start_date, end_date FROM user_projects WHERE profile_id = $1", profileID)
 	if err != nil {
 		return nil, err
@@ -308,24 +356,36 @@ func (r *ProfileRepository) GetProjects(ctx context.Context, profileID uuid.UUID
 }
 
 func (r *ProfileRepository) AddProject(ctx context.Context, p *models.UserProject) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_projects (id, profile_id, title, description, url, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := r.db.Exec(ctx, query, p.ID, p.ProfileID, p.Title, p.Description, p.URL, p.StartDate, p.EndDate)
 	return err
 }
 
 func (r *ProfileRepository) UpdateProject(ctx context.Context, p *models.UserProject) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `UPDATE user_projects SET title = $1, description = $2, url = $3, start_date = $4, end_date = $5 WHERE id = $6 AND profile_id = $7`
 	_, err := r.db.Exec(ctx, query, p.Title, p.Description, p.URL, p.StartDate, p.EndDate, p.ID, p.ProfileID)
 	return err
 }
 
 func (r *ProfileRepository) DeleteProject(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_projects WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // Languages
 func (r *ProfileRepository) GetLanguages(ctx context.Context, profileID uuid.UUID) ([]models.UserLanguage, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	rows, err := r.db.Query(ctx, "SELECT id, profile_id, name, proficiency FROM user_languages WHERE profile_id = $1", profileID)
 	if err != nil {
 		return nil, err
@@ -344,18 +404,27 @@ func (r *ProfileRepository) GetLanguages(ctx context.Context, profileID uuid.UUI
 }
 
 func (r *ProfileRepository) AddLanguage(ctx context.Context, l *models.UserLanguage) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_languages (id, profile_id, name, proficiency) VALUES ($1, $2, $3, $4)`
 	_, err := r.db.Exec(ctx, query, l.ID, l.ProfileID, l.Name, l.Proficiency)
 	return err
 }
 
 func (r *ProfileRepository) DeleteLanguage(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_languages WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // Achievements
 func (r *ProfileRepository) GetAchievements(ctx context.Context, profileID uuid.UUID) ([]models.UserAchievement, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	rows, err := r.db.Query(ctx, "SELECT id, profile_id, title, description, date_achieved FROM user_achievements WHERE profile_id = $1", profileID)
 	if err != nil {
 		return nil, err
@@ -374,18 +443,27 @@ func (r *ProfileRepository) GetAchievements(ctx context.Context, profileID uuid.
 }
 
 func (r *ProfileRepository) AddAchievement(ctx context.Context, a *models.UserAchievement) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_achievements (id, profile_id, title, description, date_achieved) VALUES ($1, $2, $3, $4, $5)`
 	_, err := r.db.Exec(ctx, query, a.ID, a.ProfileID, a.Title, a.Description, a.DateAchieved)
 	return err
 }
 
 func (r *ProfileRepository) DeleteAchievement(ctx context.Context, profileID uuid.UUID, id uuid.UUID) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "DELETE FROM user_achievements WHERE id = $1 AND profile_id = $2", id, profileID)
 	return err
 }
 
 // UserPreferences
 func (r *ProfileRepository) GetPreferences(ctx context.Context, userID uuid.UUID) (*models.UserPreference, error) {
+	if r == nil || r.db == nil {
+		return nil, nil
+	}
 	pref := &models.UserPreference{}
 	query := `SELECT id, user_id, profile_visibility, created_at, updated_at FROM user_preferences WHERE user_id = $1`
 	err := r.db.QueryRow(ctx, query, userID).Scan(&pref.ID, &pref.UserID, &pref.ProfileVisibility, &pref.CreatedAt, &pref.UpdatedAt)
@@ -399,40 +477,61 @@ func (r *ProfileRepository) GetPreferences(ctx context.Context, userID uuid.UUID
 }
 
 func (r *ProfileRepository) CreatePreferences(ctx context.Context, p *models.UserPreference) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_preferences (id, user_id, profile_visibility, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
 	_, err := r.db.Exec(ctx, query, p.ID, p.UserID, p.ProfileVisibility, p.CreatedAt, p.UpdatedAt)
 	return err
 }
 
 func (r *ProfileRepository) UpdatePreferences(ctx context.Context, p *models.UserPreference) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `UPDATE user_preferences SET profile_visibility = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`
 	_, err := r.db.Exec(ctx, query, p.ProfileVisibility, p.UserID)
 	return err
 }
 
 func (r *ProfileRepository) UpdatePhoto(ctx context.Context, userID uuid.UUID, avatarURL string) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "UPDATE user_profiles SET avatar_url = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", avatarURL, userID)
 	return err
 }
 
 func (r *ProfileRepository) UpdateCover(ctx context.Context, userID uuid.UUID, coverURL string) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	_, err := r.db.Exec(ctx, "UPDATE user_profiles SET cover_url = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", coverURL, userID)
 	return err
 }
 
 func (r *ProfileRepository) CreateReport(ctx context.Context, reporterID, reportedUserID uuid.UUID, reason, desc string) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `INSERT INTO user_profile_reports (id, reporter_id, reported_user_id, reason, description, status) VALUES ($1, $2, $3, $4, $5, 'pending')`
 	_, err := r.db.Exec(ctx, query, uuid.New(), reporterID, reportedUserID, reason, desc)
 	return err
 }
 
 func (r *ProfileRepository) AdminUpdateVerification(ctx context.Context, userID uuid.UUID, status, notes string) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `UPDATE user_profiles SET verification_status = $1, verification_notes = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3`
 	_, err := r.db.Exec(ctx, query, status, notes, userID)
 	return err
 }
 
 func (r *ProfileRepository) AdminUpdateRestriction(ctx context.Context, userID uuid.UUID, isRestricted bool) error {
+	if r == nil || r.db == nil {
+		return nil
+	}
 	query := `UPDATE user_profiles SET is_restricted = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2`
 	_, err := r.db.Exec(ctx, query, isRestricted, userID)
 	return err

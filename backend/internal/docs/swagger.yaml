@@ -15056,7 +15056,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Applies moderation restrictions to a user profile.
+      - multipart/form-data
+      description: |-
+        Applies moderation restrictions to a user profile.
+        Uploads and sets user profile cover photo. Requires a valid Bearer access token.
       parameters:
       - description: User ID
         in: path
@@ -15069,7 +15072,13 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/models.AdminRestrictionDTO'
+      - description: Cover image file (JPG, PNG, WEBP, max 5MB)
+        in: formData
+        name: cover
+        required: true
+        type: file
       produces:
+      - application/json
       - application/json
       responses:
         "200":
@@ -15080,11 +15089,21 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Admin restrict profile
+      - BearerAuth: []
+      summary: Upload profile cover photo
       tags:
       - Admin
+      - Profiles
   /api/v1/admin/users/{id}/profile/verify:
     post:
       consumes:
@@ -30205,6 +30224,76 @@ paths:
       summary: Get profile completeness
       tags:
       - Profiles
+  /api/v1/profile/me/cover:
+    delete:
+      description: Removes current user profile cover photo. Requires a valid Bearer
+        access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete profile cover photo
+      tags:
+      - Profiles
+    post:
+      consumes:
+      - application/json
+      - multipart/form-data
+      description: |-
+        Applies moderation restrictions to a user profile.
+        Uploads and sets user profile cover photo. Requires a valid Bearer access token.
+      parameters:
+      - description: Restriction payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AdminRestrictionDTO'
+      - description: Cover image file (JPG, PNG, WEBP, max 5MB)
+        in: formData
+        name: cover
+        required: true
+        type: file
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Upload profile cover photo
+      tags:
+      - Admin
+      - Profiles
   /api/v1/profile/me/education:
     post:
       consumes:
@@ -30849,6 +30938,30 @@ paths:
       security:
       - BearerAuth: []
       summary: Request profile verification
+      tags:
+      - Profiles
+  /api/v1/profile/me/verification-status:
+    get:
+      description: Returns current verification state and badge review notes. Requires
+        a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get verification status
       tags:
       - Profiles
   /api/v1/profile/photo:

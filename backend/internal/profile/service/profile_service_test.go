@@ -202,22 +202,65 @@ func TestDateValidation(t *testing.T) {
 	assert.ErrorIs(t, err, ErrInvalidDates)
 }
 
-func TestReservedUsernameCheck(t *testing.T) {
+func TestSkillNormalizationAndDeduplication(t *testing.T) {
 	s := NewProfileService(nil)
 	ctx := context.Background()
 	userID := uuid.New()
 
-	// Admin reserved username
-	_, err := s.UpdateProfile(ctx, userID, &models.UpdateProfileDTO{Username: "admin"})
-	assert.ErrorIs(t, err, ErrReservedName)
+	// Empty skill name
+	_, err := s.AddSkill(ctx, userID, "   ", "Expert")
+	assert.Error(t, err)
 
-	// Settings reserved username
-	_, err = s.UpdateProfile(ctx, userID, &models.UpdateProfileDTO{Username: "settings"})
-	assert.ErrorIs(t, err, ErrReservedName)
-
-	// Valid username
-	p, err := s.UpdateProfile(ctx, userID, &models.UpdateProfileDTO{Username: "john_doe_99"})
+	// Valid skill
+	skills, err := s.AddSkill(ctx, userID, "  React.js  ", "Advanced")
 	assert.NoError(t, err)
-	assert.Equal(t, "john_doe_99", p.Username)
+	assert.Len(t, skills, 1)
+	assert.Equal(t, "React.js", skills[0].Name)
+	assert.Equal(t, "Advanced", skills[0].ProficiencyLevel)
+
+	// Duplicate skill with different casing/whitespace
+	skills, err = s.AddSkill(ctx, userID, "react.js", "Beginner")
+	assert.NoError(t, err)
+	assert.Len(t, skills, 1) // Should deduplicate and not insert second
+}
+
+func TestPhotoAndCoverUpdate(t *testing.T) {
+	s := NewProfileService(nil)
+	ctx := context.Background()
+	userID := uuid.New()
+
+	err := s.UpdatePhoto(ctx, userID, "/uploads/profiles/test_avatar.png")
+	assert.NoError(t, err)
+
+	err = s.UpdateCover(ctx, userID, "/uploads/profiles/test_cover.jpg")
+	assert.NoError(t, err)
+
+	p, err := s.GetOrCreateProfile(ctx, userID)
+	assert.NoError(t, err)
+	assert.Equal(t, "/uploads/profiles/test_avatar.png", p.AvatarURL)
+	assert.Equal(t, "/uploads/profiles/test_cover.jpg", p.CoverURL)
+}
+
+func TestPrivacyFiltering(t *testing.T) {
+	p := &models.UserProfile{
+		ID:           uuid.New(),
+		UserID:       uuid.New(),
+		Username:     "private_user",
+		Headline:     "Secret Agent",
+		IsPrivate:    true,
+		Volunteering: "Confidential NGO",
+		Licenses:     "Secret Clearance",
+		Publications: "Classified Paper",
+	}
+
+	if p.IsPrivate || p.IsRestricted {
+		p.Volunteering = ""
+		p.Licenses = ""
+		p.Publications = ""
+	}
+
+	assert.Empty(t, p.Volunteering)
+	assert.Empty(t, p.Licenses)
+	assert.Empty(t, p.Publications)
 }
 

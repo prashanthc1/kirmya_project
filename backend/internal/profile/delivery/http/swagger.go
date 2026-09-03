@@ -541,7 +541,47 @@ func swaggerAdminVerifyProfile() {}
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/admin/users/{id}/profile/restrict [post]
-func swaggerAdminRestrictProfile() {}
+// swaggerUploadCover documents POST /api/v1/profile/me/cover.
+//
+// @Summary      Upload profile cover photo
+// @Description  Uploads and sets user profile cover photo. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        cover  formData  file  true  "Cover image file (JPG, PNG, WEBP, max 5MB)"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/cover [post]
+func swaggerUploadCover() {}
+
+// swaggerDeleteCover documents DELETE /api/v1/profile/me/cover.
+//
+// @Summary      Delete profile cover photo
+// @Description  Removes current user profile cover photo. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/cover [delete]
+func swaggerDeleteCover() {}
+
+// swaggerGetVerificationStatus documents GET /api/v1/profile/me/verification-status.
+//
+// @Summary      Get verification status
+// @Description  Returns current verification state and badge review notes. Requires a valid Bearer access token.
+// @Tags         Profiles
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/profile/me/verification-status [get]
+func swaggerGetVerificationStatus() {}
 
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,

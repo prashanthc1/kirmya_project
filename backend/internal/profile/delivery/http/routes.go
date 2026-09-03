@@ -52,11 +52,14 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*auth
 		// Media & Privacy
 		protectedSingular.POST("/me/photo", handler.UploadPhoto)
 		protectedSingular.DELETE("/me/photo", handler.DeletePhoto)
+		protectedSingular.POST("/me/cover", handler.UploadCover)
+		protectedSingular.DELETE("/me/cover", handler.DeleteCover)
 		protectedSingular.PUT("/me/privacy", handler.UpdatePreferences)
 
 		// Profile Enhancements & Identity
 		protectedSingular.GET("/me/completeness", handler.GetCompleteness)
 		protectedSingular.POST("/me/verification", handler.RequestVerification)
+		protectedSingular.GET("/me/verification-status", handler.GetVerificationStatus)
 		protectedSingular.PUT("/me/career-preferences", handler.UpdateCareerPreferences)
 		protectedSingular.GET("/me/resume-consistency", handler.GetResumeConsistency)
 		protectedSingular.GET("/me/analytics", handler.GetAnalytics)
@@ -72,6 +75,10 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*auth
 	{
 		protectedPlural.GET("/me", handler.GetMyProfile)
 		protectedPlural.PUT("/me", handler.UpdateProfile)
+		protectedPlural.POST("/me/photo", handler.UploadPhoto)
+		protectedPlural.DELETE("/me/photo", handler.DeletePhoto)
+		protectedPlural.POST("/me/cover", handler.UploadCover)
+		protectedPlural.DELETE("/me/cover", handler.DeleteCover)
 		protectedPlural.POST("/me/skills", handler.AddSkill)
 		protectedPlural.DELETE("/me/skills/:id", handler.DeleteSkill)
 		protectedPlural.POST("/me/certifications", handler.AddCertification)
@@ -86,6 +93,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*auth
 		protectedPlural.PUT("/me/preferences", handler.UpdatePreferences)
 		protectedPlural.GET("/me/completeness", handler.GetCompleteness)
 		protectedPlural.POST("/me/verification", handler.RequestVerification)
+		protectedPlural.GET("/me/verification-status", handler.GetVerificationStatus)
 		protectedPlural.PUT("/me/career-preferences", handler.UpdateCareerPreferences)
 		protectedPlural.GET("/me/resume-consistency", handler.GetResumeConsistency)
 		protectedPlural.GET("/me/analytics", handler.GetAnalytics)

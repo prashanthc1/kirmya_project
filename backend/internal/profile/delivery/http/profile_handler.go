@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -557,6 +558,32 @@ func (h *ProfileHandler) DeleteAchievement(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Achievement deleted successfully"})
 }
 
+func validateImageUpload(file *multipart.FileHeader) error {
+	if file.Size > 5*1024*1024 {
+		return errors.New("file size exceeds 5MB limit")
+	}
+
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
+		return errors.New("allowed formats: JPG, PNG, WEBP")
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return errors.New("failed to read uploaded file")
+	}
+	defer src.Close()
+
+	buf := make([]byte, 512)
+	n, _ := src.Read(buf)
+	mimeType := http.DetectContentType(buf[:n])
+	if !strings.HasPrefix(mimeType, "image/") {
+		return errors.New("invalid file format: uploaded content is not an image")
+	}
+
+	return nil
+}
+
 // Media Upload
 func (h *ProfileHandler) UploadPhoto(c *gin.Context) {
 	userID, ok := getUserID(c)
@@ -570,12 +597,12 @@ func (h *ProfileHandler) UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Allowed formats: JPG, PNG, WEBP"})
+	if err := validateImageUpload(file); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	ext := strings.ToLower(filepath.Ext(file.Filename))
 	photoURL := "/uploads/profiles/" + userID.String() + "_avatar" + ext
 	if err := h.service.UpdatePhoto(c.Request.Context(), userID, photoURL); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -595,6 +622,64 @@ func (h *ProfileHandler) DeletePhoto(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Profile photo removed"})
+}
+
+func (h *ProfileHandler) UploadCover(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	file, err := c.FormFile("cover")
+	if err != nil {
+		file, err = c.FormFile("photo")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cover photo file is required"})
+			return
+		}
+	}
+
+	if err := validateImageUpload(file); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	coverURL := "/uploads/profiles/" + userID.String() + "_cover" + ext
+	if err := h.service.UpdateCover(c.Request.Context(), userID, coverURL); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Cover photo updated successfully", "cover_url": coverURL})
+}
+
+func (h *ProfileHandler) DeleteCover(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+	if err := h.service.UpdateCover(c.Request.Context(), userID, ""); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Cover photo removed"})
+}
+
+func (h *ProfileHandler) GetVerificationStatus(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+	p, err := h.service.GetOrCreateProfile(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status": p.VerificationStatus,
+		"notes":  p.VerificationNotes,
+	})
 }
 
 // Preferences & Privacy

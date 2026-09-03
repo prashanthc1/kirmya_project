@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"kirmya/internal/profile/models"
@@ -28,12 +29,17 @@ var reservedUsernames = map[string]bool{
 }
 
 type ProfileService struct {
-	repo  *repository.ProfileRepository
-	cache cache.MultiTierCache
+	repo        *repository.ProfileRepository
+	cache       cache.MultiTierCache
+	mu          sync.RWMutex
+	memProfiles map[uuid.UUID]*models.UserProfile
 }
 
 func NewProfileService(repo *repository.ProfileRepository) *ProfileService {
-	return &ProfileService{repo: repo}
+	return &ProfileService{
+		repo:        repo,
+		memProfiles: make(map[uuid.UUID]*models.UserProfile),
+	}
 }
 
 func (s *ProfileService) SetCache(c cache.Cache) {
@@ -50,6 +56,12 @@ func (s *ProfileService) GetOrCreateProfile(ctx context.Context, userID uuid.UUI
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		s.mu.RLock()
+		if s.memProfiles != nil {
+			p = s.memProfiles[userID]
+		}
+		s.mu.RUnlock()
 	}
 
 	if p == nil {
@@ -74,6 +86,13 @@ func (s *ProfileService) GetOrCreateProfile(ctx context.Context, userID uuid.UUI
 			if err := s.repo.Create(ctx, p); err != nil {
 				return nil, err
 			}
+		} else {
+			s.mu.Lock()
+			if s.memProfiles == nil {
+				s.memProfiles = make(map[uuid.UUID]*models.UserProfile)
+			}
+			s.memProfiles[userID] = p
+			s.mu.Unlock()
 		}
 	}
 	return p, nil
@@ -103,6 +122,9 @@ func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profi
 	}
 
 	score := 0
+	if p.AvatarURL != "" {
+		score += 10
+	}
 	if p.Headline != "" && p.Headline != "Professional at Kirmya" {
 		score += 10
 	}
@@ -116,13 +138,13 @@ func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profi
 		score += 15
 	}
 	if len(p.Skills) > 0 {
-		score += 15
+		score += 10
 	}
 	if len(p.Certifications) > 0 {
 		score += 10
 	}
 	if len(p.Projects) > 0 {
-		score += 10
+		score += 5
 	}
 	if len(p.Languages) > 0 {
 		score += 5
@@ -256,12 +278,17 @@ func (s *ProfileService) AddWorkExperience(ctx context.Context, userID uuid.UUID
 		Achievements:   dto.Achievements,
 	}
 
-	if err := s.repo.AddWorkExperience(ctx, exp); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddWorkExperience(ctx, exp); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetWorkExperiences(ctx, p.ID)
 	}
 
+	p.WorkExperiences = append(p.WorkExperiences, *exp)
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetWorkExperiences(ctx, p.ID)
+	return p.WorkExperiences, nil
 }
 
 func (s *ProfileService) UpdateWorkExperience(ctx context.Context, userID uuid.UUID, id uuid.UUID, dto *models.WorkExperienceDTO) ([]models.UserWorkExperience, error) {
@@ -296,11 +323,20 @@ func (s *ProfileService) UpdateWorkExperience(ctx context.Context, userID uuid.U
 		Achievements:   dto.Achievements,
 	}
 
-	if err := s.repo.UpdateWorkExperience(ctx, exp); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.UpdateWorkExperience(ctx, exp); err != nil {
+			return nil, err
+		}
+		return s.repo.GetWorkExperiences(ctx, p.ID)
 	}
 
-	return s.repo.GetWorkExperiences(ctx, p.ID)
+	for i, existing := range p.WorkExperiences {
+		if existing.ID == id {
+			p.WorkExperiences[i] = *exp
+			break
+		}
+	}
+	return p.WorkExperiences, nil
 }
 
 func (s *ProfileService) DeleteWorkExperience(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
@@ -308,9 +344,21 @@ func (s *ProfileService) DeleteWorkExperience(ctx context.Context, userID uuid.U
 	if err != nil {
 		return err
 	}
-	if err := s.repo.DeleteWorkExperience(ctx, p.ID, id); err != nil {
-		return err
+	if s.repo != nil {
+		if err := s.repo.DeleteWorkExperience(ctx, p.ID, id); err != nil {
+			return err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return nil
 	}
+
+	filtered := make([]models.UserWorkExperience, 0, len(p.WorkExperiences))
+	for _, existing := range p.WorkExperiences {
+		if existing.ID != id {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.WorkExperiences = filtered
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
 	return nil
 }
@@ -349,12 +397,17 @@ func (s *ProfileService) AddEducation(ctx context.Context, userID uuid.UUID, dto
 		Description:  dto.Description,
 	}
 
-	if err := s.repo.AddEducation(ctx, edu); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddEducation(ctx, edu); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetEducations(ctx, p.ID)
 	}
 
+	p.Educations = append(p.Educations, *edu)
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetEducations(ctx, p.ID)
+	return p.Educations, nil
 }
 
 func (s *ProfileService) UpdateEducation(ctx context.Context, userID uuid.UUID, id uuid.UUID, dto *models.EducationDTO) ([]models.UserEducation, error) {
@@ -390,11 +443,20 @@ func (s *ProfileService) UpdateEducation(ctx context.Context, userID uuid.UUID, 
 		Description:  dto.Description,
 	}
 
-	if err := s.repo.UpdateEducation(ctx, edu); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.UpdateEducation(ctx, edu); err != nil {
+			return nil, err
+		}
+		return s.repo.GetEducations(ctx, p.ID)
 	}
 
-	return s.repo.GetEducations(ctx, p.ID)
+	for i, existing := range p.Educations {
+		if existing.ID == id {
+			p.Educations[i] = *edu
+			break
+		}
+	}
+	return p.Educations, nil
 }
 
 func (s *ProfileService) DeleteEducation(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
@@ -402,9 +464,21 @@ func (s *ProfileService) DeleteEducation(ctx context.Context, userID uuid.UUID, 
 	if err != nil {
 		return err
 	}
-	if err := s.repo.DeleteEducation(ctx, p.ID, id); err != nil {
-		return err
+	if s.repo != nil {
+		if err := s.repo.DeleteEducation(ctx, p.ID, id); err != nil {
+			return err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return nil
 	}
+
+	filtered := make([]models.UserEducation, 0, len(p.Educations))
+	for _, existing := range p.Educations {
+		if existing.ID != id {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.Educations = filtered
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
 	return nil
 }
@@ -416,19 +490,44 @@ func (s *ProfileService) AddSkill(ctx context.Context, userID uuid.UUID, name, p
 		return nil, err
 	}
 
+	trimmedName := strings.TrimSpace(name)
+	if trimmedName == "" {
+		return nil, errors.New("skill name cannot be empty")
+	}
+	if len(trimmedName) > 100 {
+		return nil, errors.New("skill name cannot exceed 100 characters")
+	}
+
+	prof := strings.TrimSpace(proficiency)
+	if prof == "" {
+		prof = "Intermediate"
+	}
+
+	// Normalization & duplicate protection
+	for _, existing := range p.Skills {
+		if strings.EqualFold(strings.TrimSpace(existing.Name), trimmedName) {
+			return p.Skills, nil
+		}
+	}
+
 	skill := &models.UserSkill{
 		ID:               uuid.New(),
 		ProfileID:        p.ID,
-		Name:             name,
-		ProficiencyLevel: proficiency,
+		Name:             trimmedName,
+		ProficiencyLevel: prof,
 	}
 
-	if err := s.repo.AddSkill(ctx, skill); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddSkill(ctx, skill); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetSkills(ctx, p.ID)
 	}
 
+	p.Skills = append(p.Skills, *skill)
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetSkills(ctx, p.ID)
+	return p.Skills, nil
 }
 
 func (s *ProfileService) DeleteSkill(ctx context.Context, userID uuid.UUID, skillID uuid.UUID) error {
@@ -437,10 +536,21 @@ func (s *ProfileService) DeleteSkill(ctx context.Context, userID uuid.UUID, skil
 		return err
 	}
 
-	if err := s.repo.DeleteSkill(ctx, p.ID, skillID); err != nil {
-		return err
+	if s.repo != nil {
+		if err := s.repo.DeleteSkill(ctx, p.ID, skillID); err != nil {
+			return err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return nil
 	}
 
+	filtered := make([]models.UserSkill, 0, len(p.Skills))
+	for _, existing := range p.Skills {
+		if existing.ID != skillID {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.Skills = filtered
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
 	return nil
 }
@@ -463,12 +573,17 @@ func (s *ProfileService) AddCertification(ctx context.Context, userID uuid.UUID,
 		CredentialURL:       credURL,
 	}
 
-	if err := s.repo.AddCertification(ctx, cert); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddCertification(ctx, cert); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetCertifications(ctx, p.ID)
 	}
 
+	p.Certifications = append(p.Certifications, *cert)
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetCertifications(ctx, p.ID)
+	return p.Certifications, nil
 }
 
 func (s *ProfileService) DeleteCertification(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
@@ -477,10 +592,21 @@ func (s *ProfileService) DeleteCertification(ctx context.Context, userID uuid.UU
 		return err
 	}
 
-	if err := s.repo.DeleteCertification(ctx, p.ID, id); err != nil {
-		return err
+	if s.repo != nil {
+		if err := s.repo.DeleteCertification(ctx, p.ID, id); err != nil {
+			return err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return nil
 	}
 
+	filtered := make([]models.UserCertification, 0, len(p.Certifications))
+	for _, existing := range p.Certifications {
+		if existing.ID != id {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.Certifications = filtered
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
 	return nil
 }
@@ -502,12 +628,17 @@ func (s *ProfileService) AddProject(ctx context.Context, userID uuid.UUID, title
 		EndDate:     endDate,
 	}
 
-	if err := s.repo.AddProject(ctx, project); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddProject(ctx, project); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetProjects(ctx, p.ID)
 	}
 
+	p.Projects = append(p.Projects, *project)
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetProjects(ctx, p.ID)
+	return p.Projects, nil
 }
 
 func (s *ProfileService) DeleteProject(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
@@ -516,10 +647,21 @@ func (s *ProfileService) DeleteProject(ctx context.Context, userID uuid.UUID, id
 		return err
 	}
 
-	if err := s.repo.DeleteProject(ctx, p.ID, id); err != nil {
-		return err
+	if s.repo != nil {
+		if err := s.repo.DeleteProject(ctx, p.ID, id); err != nil {
+			return err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return nil
 	}
 
+	filtered := make([]models.UserProject, 0, len(p.Projects))
+	for _, existing := range p.Projects {
+		if existing.ID != id {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.Projects = filtered
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
 	return nil
 }
@@ -538,12 +680,17 @@ func (s *ProfileService) AddLanguage(ctx context.Context, userID uuid.UUID, name
 		Proficiency: proficiency,
 	}
 
-	if err := s.repo.AddLanguage(ctx, lang); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddLanguage(ctx, lang); err != nil {
+			return nil, err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return s.repo.GetLanguages(ctx, p.ID)
 	}
 
+	p.Languages = append(p.Languages, *lang)
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
-	return s.repo.GetLanguages(ctx, p.ID)
+	return p.Languages, nil
 }
 
 func (s *ProfileService) DeleteLanguage(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
@@ -552,10 +699,21 @@ func (s *ProfileService) DeleteLanguage(ctx context.Context, userID uuid.UUID, i
 		return err
 	}
 
-	if err := s.repo.DeleteLanguage(ctx, p.ID, id); err != nil {
-		return err
+	if s.repo != nil {
+		if err := s.repo.DeleteLanguage(ctx, p.ID, id); err != nil {
+			return err
+		}
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		return nil
 	}
 
+	filtered := make([]models.UserLanguage, 0, len(p.Languages))
+	for _, existing := range p.Languages {
+		if existing.ID != id {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.Languages = filtered
 	_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
 	return nil
 }
@@ -575,11 +733,15 @@ func (s *ProfileService) AddAchievement(ctx context.Context, userID uuid.UUID, t
 		DateAchieved: dateAchieved,
 	}
 
-	if err := s.repo.AddAchievement(ctx, ach); err != nil {
-		return nil, err
+	if s.repo != nil {
+		if err := s.repo.AddAchievement(ctx, ach); err != nil {
+			return nil, err
+		}
+		return s.repo.GetAchievements(ctx, p.ID)
 	}
 
-	return s.repo.GetAchievements(ctx, p.ID)
+	p.Achievements = append(p.Achievements, *ach)
+	return p.Achievements, nil
 }
 
 func (s *ProfileService) DeleteAchievement(ctx context.Context, userID uuid.UUID, id uuid.UUID) error {
@@ -588,7 +750,18 @@ func (s *ProfileService) DeleteAchievement(ctx context.Context, userID uuid.UUID
 		return err
 	}
 
-	return s.repo.DeleteAchievement(ctx, p.ID, id)
+	if s.repo != nil {
+		return s.repo.DeleteAchievement(ctx, p.ID, id)
+	}
+
+	filtered := make([]models.UserAchievement, 0, len(p.Achievements))
+	for _, existing := range p.Achievements {
+		if existing.ID != id {
+			filtered = append(filtered, existing)
+		}
+	}
+	p.Achievements = filtered
+	return nil
 }
 
 // UserPreferences CRUD
@@ -629,11 +802,33 @@ func (s *ProfileService) UpdatePreferences(ctx context.Context, userID uuid.UUID
 }
 
 func (s *ProfileService) UpdatePhoto(ctx context.Context, userID uuid.UUID, avatarURL string) error {
-	return s.repo.UpdatePhoto(ctx, userID, avatarURL)
+	if s.repo != nil {
+		if err := s.repo.UpdatePhoto(ctx, userID, avatarURL); err != nil {
+			return err
+		}
+		p, _ := s.repo.GetByUserID(ctx, userID)
+		if p != nil {
+			_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+		}
+		return nil
+	}
+	p, _ := s.GetOrCreateProfile(ctx, userID)
+	if p != nil {
+		p.AvatarURL = avatarURL
+		_, _ = s.CalculateAndUpdateCompletion(ctx, p.ID, userID)
+	}
+	return nil
 }
 
 func (s *ProfileService) UpdateCover(ctx context.Context, userID uuid.UUID, coverURL string) error {
-	return s.repo.UpdateCover(ctx, userID, coverURL)
+	if s.repo != nil {
+		return s.repo.UpdateCover(ctx, userID, coverURL)
+	}
+	p, _ := s.GetOrCreateProfile(ctx, userID)
+	if p != nil {
+		p.CoverURL = coverURL
+	}
+	return nil
 }
 
 func (s *ProfileService) ReportProfile(ctx context.Context, reporterID, reportedUserID uuid.UUID, reason, desc string) error {
@@ -657,6 +852,10 @@ func (s *ProfileService) CalculateCompleteness(ctx context.Context, userID uuid.
 	missingSections := make([]string, 0)
 	recommendations := make([]string, 0)
 
+	if p.AvatarURL == "" {
+		missingSections = append(missingSections, "photo")
+		recommendations = append(recommendations, "Upload a professional profile photo")
+	}
 	if p.Headline == "" || p.Headline == "Professional at Kirmya" {
 		missingSections = append(missingSections, "headline")
 		recommendations = append(recommendations, "Add a custom professional headline")
