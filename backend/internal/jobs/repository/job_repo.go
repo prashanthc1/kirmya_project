@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -25,6 +26,34 @@ func NewJobRepository(db *pgxpool.Pool) *JobRepository {
 	return &JobRepository{db: db}
 }
 
+func parseLinesOrJSON(raw string) []string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return []string{}
+	}
+	if strings.HasPrefix(raw, "[") && strings.HasSuffix(raw, "]") {
+		var list []string
+		if err := json.Unmarshal([]byte(raw), &list); err == nil {
+			return list
+		}
+	}
+	lines := strings.Split(raw, "\n")
+	var result []string
+	for _, l := range lines {
+		l = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(l), "-"))
+		l = strings.TrimPrefix(strings.TrimSpace(l), "*")
+		l = strings.TrimPrefix(strings.TrimSpace(l), "•")
+		l = strings.TrimSpace(l)
+		if l != "" {
+			result = append(result, l)
+		}
+	}
+	if len(result) == 0 {
+		return []string{raw}
+	}
+	return result
+}
+
 func normalizePage(page, limit int) (int, int, int) {
 	if page < 1 {
 		page = 1
@@ -44,7 +73,7 @@ func normalizePage(page, limit int) (int, int, int) {
 // only corrected by a sweep, so a posting past `expires_at` must not surface
 // just because nothing has run yet.
 func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery) (*models.JobListPage, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil, ErrNoDatabase
 	}
 	page, limit, offset := normalizePage(q.Page, q.Limit)
@@ -68,7 +97,7 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 			OR lower(COALESCE(j.department, '')) LIKE %[1]s
 			OR lower(COALESCE(c.name, '')) LIKE %[1]s
 			OR EXISTS (
-			    SELECT 1 FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb))), sk
+			    SELECT 1 FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb)) sk
 			    WHERE lower(sk) LIKE %[1]s
 			))`, p))
 	}
@@ -97,6 +126,8 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 		order = "j.title ASC"
 	case "salary":
 		order = "j.salary_max DESC NULLS LAST, j.salary_min DESC NULLS LAST"
+	case "deadline":
+		order = "j.expires_at ASC NULLS LAST"
 	}
 
 	from := `
@@ -172,7 +203,7 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 
 // GetJobByID fetches the full detail of a specific active job posting.
 func (r *JobRepository) GetJobByID(ctx context.Context, id string) (*models.JobDetail, error) {
-	if r.db == nil {
+	if r == nil || r.db == nil {
 		return nil, ErrNoDatabase
 	}
 	id = strings.TrimSpace(id)
@@ -185,6 +216,7 @@ func (r *JobRepository) GetJobByID(ctx context.Context, id string) (*models.JobD
 		LEFT JOIN companies c ON c.id = j.company_id AND c.status = 'active'
 		LEFT JOIN company_profiles p ON p.company_id = c.id`
 
+	var rawReq, rawResp, rawBenefits string
 	row := r.db.QueryRow(ctx, `
 		SELECT
 			j.id, j.title, j.company_id,
@@ -198,9 +230,9 @@ func (r *JobRepository) GetJobByID(ctx context.Context, id string) (*models.JobD
 			j.is_featured,
 			j.published_at, j.created_at,
 			COALESCE(j.description, ''),
-			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.requirements, '[]'::jsonb))), '{}'),
-			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.responsibilities, '[]'::jsonb))), '{}'),
-			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.benefits, '[]'::jsonb))), '{}'),
+			COALESCE(j.requirements, ''),
+			COALESCE(j.responsibilities, ''),
+			COALESCE(j.benefits, ''),
 			j.status, j.expires_at`+from+`
 		WHERE j.id::text = $1 AND j.status = 'active' AND (j.expires_at IS NULL OR j.expires_at > NOW())`, id)
 
@@ -216,12 +248,15 @@ func (r *JobRepository) GetJobByID(ctx context.Context, id string) (*models.JobD
 		&j.Skills, &j.IsFeatured,
 		&j.PublishedAt, &j.CreatedAt,
 		&j.Description,
-		&j.Requirements,
-		&j.Responsibilities,
-		&j.Benefits,
+		&rawReq,
+		&rawResp,
+		&rawBenefits,
 		&j.Status, &j.ExpiresAt,
 	); err != nil {
 		return nil, err
 	}
+	j.Requirements = parseLinesOrJSON(rawReq)
+	j.Responsibilities = parseLinesOrJSON(rawResp)
+	j.Benefits = parseLinesOrJSON(rawBenefits)
 	return &j, nil
 }

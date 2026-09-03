@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"kirmya/internal/recruiter/models"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -92,13 +94,51 @@ func (r *RecruiterRepository) UpdateOrgProfile(ctx context.Context, profile *mod
 	return err
 }
 
-// CreateJob inserts a recruiter job.
+// CreateJob inserts a recruiter job into both the canonical jobs table and recruiter_jobs table.
 func (r *RecruiterRepository) CreateJob(ctx context.Context, job *models.RecruiterJob) error {
 	if r.db == nil {
 		return nil
 	}
+
+	skillsJSON, _ := json.Marshal(job.RequiredSkills)
+	canonStatus := strings.ToLower(job.Status)
+	if canonStatus == "published" {
+		canonStatus = "active"
+	} else if canonStatus != "draft" && canonStatus != "active" && canonStatus != "paused" && canonStatus != "closed" && canonStatus != "expired" {
+		canonStatus = "draft"
+	}
+
+	workMode := strings.ToLower(job.WorkplaceType)
+	if workMode != "onsite" && workMode != "hybrid" && workMode != "remote" {
+		workMode = "remote"
+	}
+
+	// Insert into canonical jobs table
+	canonQuery := `
+		INSERT INTO jobs (
+			id, recruiter_id, title, description, responsibilities, requirements, qualifications, benefits,
+			department, location, work_mode, employment_type, experience_level,
+			salary_range, skills, status, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17)
+		ON CONFLICT (id) DO UPDATE SET
+			title = EXCLUDED.title,
+			description = EXCLUDED.description,
+			status = EXCLUDED.status,
+			updated_at = EXCLUDED.updated_at
+	`
+	_, _ = r.db.Exec(ctx, canonQuery,
+		job.ID, job.RecruiterID, job.Title, job.Description, job.Responsibilities, job.Qualifications, job.Qualifications, job.Benefits,
+		job.Department, job.Location, workMode, job.EmploymentType, job.ExperienceLevel,
+		job.SalaryRange, skillsJSON, canonStatus, job.CreatedAt,
+	)
+
+	// Also insert into recruiter_jobs
 	query := `INSERT INTO recruiter_jobs (id, recruiter_id, title, description, department, location, salary_range, status, created_at)
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	          ON CONFLICT (id) DO UPDATE SET
+	              title = EXCLUDED.title,
+	              description = EXCLUDED.description,
+	              status = EXCLUDED.status`
 	_, err := r.db.Exec(ctx, query, job.ID, job.RecruiterID, job.Title, job.Description, job.Department, job.Location, job.SalaryRange, job.Status, job.CreatedAt)
 	return err
 }
@@ -145,6 +185,13 @@ func (r *RecruiterRepository) UpdateJobStatus(ctx context.Context, jobID uuid.UU
 	if r.db == nil {
 		return nil
 	}
+
+	canonStatus := strings.ToLower(status)
+	if canonStatus == "published" {
+		canonStatus = "active"
+	}
+	_, _ = r.db.Exec(ctx, `UPDATE jobs SET status = $1, updated_at = NOW() WHERE id = $2`, canonStatus, jobID)
+
 	query := `UPDATE recruiter_jobs SET status = $1 WHERE id = $2`
 	_, err := r.db.Exec(ctx, query, status, jobID)
 	return err

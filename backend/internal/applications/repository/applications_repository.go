@@ -32,6 +32,23 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		}
 		defer tx.Rollback(ctx)
 
+		// Check if job exists, is active, and unexpired
+		var jobStatus string
+		var expiresAt *time.Time
+		jobCheckQuery := `SELECT status, expires_at FROM jobs WHERE id = $1`
+		if err := tx.QueryRow(ctx, jobCheckQuery, payload.JobID).Scan(&jobStatus, &expiresAt); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, errors.New("job posting not found")
+			}
+			return nil, err
+		}
+		if jobStatus != "active" {
+			return nil, errors.New("job is no longer accepting applications")
+		}
+		if expiresAt != nil && expiresAt.Before(now) {
+			return nil, errors.New("job posting has expired")
+		}
+
 		// Check if candidate already applied
 		var alreadyApplied bool
 		checkQuery := `SELECT EXISTS(SELECT 1 FROM job_applications WHERE job_id = $1 AND candidate_id = $2)`
@@ -59,6 +76,9 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		if _, err := tx.Exec(ctx, stageHistoryQuery, stageID, appID, candidateID, now); err != nil {
 			return nil, err
 		}
+
+		// Atomically increment application count on job
+		_, _ = tx.Exec(ctx, `UPDATE jobs SET applications_count = applications_count + 1 WHERE id = $1`, payload.JobID)
 
 		if err := tx.Commit(ctx); err != nil {
 			return nil, err
@@ -187,12 +207,63 @@ func (r *ApplicationsRepository) WithdrawApplication(ctx context.Context, candid
 		return nil
 	}
 
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var currentStage string
+	if err := tx.QueryRow(ctx, `SELECT current_stage FROM job_applications WHERE id = $1 AND candidate_id = $2`, appID, candidateID).Scan(&currentStage); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errors.New("application not found")
+		}
+		return err
+	}
+
 	query := `UPDATE job_applications SET current_stage = 'Withdrawn', updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND candidate_id = $2`
-	_, err := r.db.Exec(ctx, query, appID, candidateID)
-	return err
+	if _, err := tx.Exec(ctx, query, appID, candidateID); err != nil {
+		return err
+	}
+
+	stageHistoryQuery := `
+		INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)
+		VALUES ($1, $2, $3, 'Withdrawn', $4, 'Candidate withdrew application', CURRENT_TIMESTAMP)
+	`
+	if _, err := tx.Exec(ctx, stageHistoryQuery, uuid.New(), appID, currentStage, candidateID); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (r *ApplicationsRepository) GetApplicationTimeline(ctx context.Context, appID uuid.UUID) []models.ApplicationTimelineItem {
+	if r.db != nil {
+		query := `
+			SELECT id, to_stage, from_stage, COALESCE(notes, ''), moved_at, COALESCE(moved_by::text, 'System')
+			FROM application_stage_history
+			WHERE application_id = $1
+			ORDER BY moved_at ASC
+		`
+		rows, err := r.db.Query(ctx, query, appID)
+		if err == nil {
+			defer rows.Close()
+			var items []models.ApplicationTimelineItem
+			for rows.Next() {
+				var item models.ApplicationTimelineItem
+				var fromStage, movedBy string
+				if err := rows.Scan(&item.ID, &item.Status, &fromStage, &item.Description, &item.Date, &movedBy); err == nil {
+					item.Title = fmt.Sprintf("Stage changed to %s", item.Status)
+					item.MovedBy = movedBy
+					items = append(items, item)
+				}
+			}
+			if len(items) > 0 {
+				return items
+			}
+		}
+	}
+
 	return []models.ApplicationTimelineItem{
 		{ID: uuid.New(), Status: "Applied", Title: "Application Submitted", Description: "Your application and resume were successfully delivered.", Date: time.Now().Add(-14 * 24 * time.Hour), MovedBy: "Candidate"},
 		{ID: uuid.New(), Status: "Viewed", Title: "Resume Reviewed", Description: "Recruiter Sarah Jenkins viewed your application profile.", Date: time.Now().Add(-10 * 24 * time.Hour), MovedBy: "Recruiter"},

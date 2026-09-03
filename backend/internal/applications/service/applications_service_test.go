@@ -131,3 +131,32 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 		t.Error("Expected applications sent count")
 	}
 }
+
+func TestApplicationsService_CreateApplication(t *testing.T) {
+	repo := repository.NewApplicationsRepository(nil)
+	svc := NewApplicationsService(repo)
+	ctx := context.Background()
+	candidateID := uuid.New()
+	jobID := uuid.New()
+	resumeID := uuid.New()
+
+	payload := models.CreateApplicationPayload{
+		JobID:       jobID,
+		ResumeID:    &resumeID,
+		CoverLetter: "I am excited to apply for this role.",
+	}
+
+	detail, err := svc.CreateApplication(ctx, candidateID, payload)
+	if err != nil {
+		t.Fatalf("CreateApplication failed: %v", err)
+	}
+	if detail == nil {
+		t.Fatal("Expected created application detail")
+	}
+	if detail.Summary.JobID != jobID {
+		t.Errorf("Expected job ID %s, got %s", jobID, detail.Summary.JobID)
+	}
+	if detail.Summary.StatusExplanation == "" {
+		t.Error("Expected non-empty status explanation")
+	}
+}
