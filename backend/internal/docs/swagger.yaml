@@ -1613,6 +1613,13 @@ definitions:
       user:
         $ref: '#/definitions/dto.UserProfileDTO'
     type: object
+  dto.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -1689,6 +1696,19 @@ definitions:
         type: string
     required:
     - email
+    type: object
+  dto.ResetPasswordRequest:
+    properties:
+      new_password:
+        type: string
+      newPassword:
+        type: string
+      password:
+        type: string
+      token:
+        type: string
+    required:
+    - token
     type: object
   dto.SessionDTO:
     properties:
@@ -16178,6 +16198,37 @@ paths:
       summary: Get user results
       tags:
       - Profiles
+  /api/v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Initiates a password recovery request and emails a single-use reset
+        token if the account exists. Responds generically to prevent email enumeration.
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid email format
+          schema:
+            $ref: '#/definitions/swagger.ValidationErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Request password reset
+      tags:
+      - Authentication
   /api/v1/auth/login:
     post:
       consumes:
@@ -16353,6 +16404,37 @@ paths:
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       summary: Resend verification email
+      tags:
+      - Authentication
+  /api/v1/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the single-use reset token and updates the account password.
+        Automatically revokes all existing active sessions upon successful reset.
+      parameters:
+      - description: Reset token and new password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid/expired token or password does not meet policy
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Reset password
       tags:
       - Authentication
   /api/v1/auth/session:

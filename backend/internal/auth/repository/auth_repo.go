@@ -18,19 +18,21 @@ type AuthRepository struct {
 	mu sync.RWMutex
 
 	// In-memory fallbacks when DB pool is nil during unit testing
-	memUsers         map[string]*models.User
-	memSessions      map[string]*models.Session
-	memVerifications map[string]*models.EmailVerification
-	memAuditLogs     []*models.AuditLog
+	memUsers          map[string]*models.User
+	memSessions       map[string]*models.Session
+	memVerifications  map[string]*models.EmailVerification
+	memPasswordResets map[string]*models.PasswordReset
+	memAuditLogs      []*models.AuditLog
 }
 
 func NewAuthRepository(db *pgxpool.Pool) *AuthRepository {
 	return &AuthRepository{
-		db:               db,
-		memUsers:         make(map[string]*models.User),
-		memSessions:      make(map[string]*models.Session),
-		memVerifications: make(map[string]*models.EmailVerification),
-		memAuditLogs:     make([]*models.AuditLog, 0),
+		db:                db,
+		memUsers:          make(map[string]*models.User),
+		memSessions:       make(map[string]*models.Session),
+		memVerifications:  make(map[string]*models.EmailVerification),
+		memPasswordResets: make(map[string]*models.PasswordReset),
+		memAuditLogs:      make([]*models.AuditLog, 0),
 	}
 }
 
@@ -423,3 +425,91 @@ func (r *AuthRepository) CreateAuditLog(ctx context.Context, al *models.AuditLog
 	r.memAuditLogs = append(r.memAuditLogs, al)
 	return nil
 }
+
+// Password Reset methods
+func (r *AuthRepository) CreatePasswordReset(ctx context.Context, pr *models.PasswordReset) error {
+	if pr.ID == uuid.Nil {
+		pr.ID = uuid.New()
+	}
+	if pr.CreatedAt.IsZero() {
+		pr.CreatedAt = time.Now().UTC()
+	}
+
+	if r.db != nil {
+		query := `INSERT INTO password_resets (id, user_id, token_hash, expires_at, used_at, ip_address, user_agent, created_at)
+		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		_, err := r.db.Exec(ctx, query, pr.ID, pr.UserID, pr.TokenHash, pr.ExpiresAt, pr.UsedAt, pr.IPAddress, pr.UserAgent, pr.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.memPasswordResets[pr.TokenHash] = pr
+	return nil
+}
+
+func (r *AuthRepository) GetPasswordResetByTokenHash(ctx context.Context, tokenHash string) (*models.PasswordReset, error) {
+	if r.db != nil {
+		pr := &models.PasswordReset{}
+		query := `SELECT id, user_id, token_hash, expires_at, used_at, ip_address, user_agent, created_at 
+		          FROM password_resets WHERE token_hash = $1`
+		err := r.db.QueryRow(ctx, query, tokenHash).Scan(
+			&pr.ID, &pr.UserID, &pr.TokenHash, &pr.ExpiresAt, &pr.UsedAt, &pr.IPAddress, &pr.UserAgent, &pr.CreatedAt,
+		)
+		if err == nil {
+			return pr, nil
+		}
+	}
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if pr, exists := r.memPasswordResets[tokenHash]; exists {
+		prCopy := *pr
+		return &prCopy, nil
+	}
+	return nil, errors.New("password reset token not found")
+}
+
+func (r *AuthRepository) MarkPasswordResetUsed(ctx context.Context, id uuid.UUID) error {
+	now := time.Now().UTC()
+	if r.db != nil {
+		query := `UPDATE password_resets SET used_at = $1 WHERE id = $2`
+		_, err := r.db.Exec(ctx, query, now, id)
+		if err != nil {
+			return err
+		}
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, pr := range r.memPasswordResets {
+		if pr.ID == id {
+			pr.UsedAt = &now
+		}
+	}
+	return nil
+}
+
+func (r *AuthRepository) DeleteExpiredPasswordResets(ctx context.Context) error {
+	now := time.Now().UTC()
+	if r.db != nil {
+		query := `DELETE FROM password_resets WHERE expires_at < $1 OR used_at IS NOT NULL`
+		_, err := r.db.Exec(ctx, query, now)
+		if err != nil {
+			return err
+		}
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for hash, pr := range r.memPasswordResets {
+		if pr.ExpiresAt.Before(now) || pr.UsedAt != nil {
+			delete(r.memPasswordResets, hash)
+		}
+	}
+	return nil
+}
+

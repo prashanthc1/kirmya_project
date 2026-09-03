@@ -183,6 +183,53 @@ func (h *AuthHandler) ResendVerification(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Verification email resent successfully."})
 }
 
+// ForgotPassword handles POST /api/v1/auth/forgot-password
+func (h *AuthHandler) ForgotPassword(c *gin.Context) {
+	var payload dto.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ipAddress := c.ClientIP()
+	userAgent := c.Request.UserAgent()
+	_ = h.service.ForgotPassword(c.Request.Context(), &payload, ipAddress, userAgent)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "If an account exists for this email address, password reset instructions have been sent.",
+	})
+}
+
+// ResetPassword handles POST /api/v1/auth/reset-password
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	var payload dto.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if payload.Token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Reset token is required"})
+		return
+	}
+
+	pwd := payload.GetPassword()
+	if pwd == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "New password is required"})
+		return
+	}
+
+	ipAddress := c.ClientIP()
+	if err := h.service.ResetPassword(c.Request.Context(), &payload, ipAddress); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Your password has been successfully reset. You can now sign in with your new credentials.",
+	})
+}
+
 // GetMe handles GET /api/v1/auth/me
 func (h *AuthHandler) GetMe(c *gin.Context) {
 	userIDVal, exists := c.Get("userID")

@@ -199,6 +199,16 @@ export const authService = {
     return res.data;
   },
 
+  async forgotPassword(email: string) {
+    const res = await authApiClient.post('/auth/forgot-password', { email });
+    return res.data;
+  },
+
+  async resetPassword(payload: { token: string; password?: string; new_password?: string; newPassword?: string }) {
+    const res = await authApiClient.post('/auth/reset-password', payload);
+    return res.data;
+  },
+
   async getMe(): Promise<UserMeResponse> {
     const res = await authApiClient.get('/auth/me');
     return res.data;

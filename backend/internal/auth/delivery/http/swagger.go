@@ -124,11 +124,42 @@ func swaggerGetSession() {}
 // @Router       /api/v1/auth/me [get]
 func swaggerGetMe() {}
 
+// swaggerForgotPassword documents POST /api/v1/auth/forgot-password.
+//
+// @Summary      Request password reset
+// @Description  Initiates a password recovery request and emails a single-use reset token if the account exists. Responds generically to prevent email enumeration.
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.ForgotPasswordRequest  true  "Email address"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ValidationErrorResponse  "Invalid email format"
+// @Failure      429      {object}  swagger.ErrorResponse            "Rate limit exceeded"
+// @Router       /api/v1/auth/forgot-password [post]
+func swaggerForgotPassword() {}
+
+// swaggerResetPassword documents POST /api/v1/auth/reset-password.
+//
+// @Summary      Reset password
+// @Description  Verifies the single-use reset token and updates the account password. Automatically revokes all existing active sessions upon successful reset.
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.ResetPasswordRequest  true  "Reset token and new password"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse  "Invalid/expired token or password does not meet policy"
+// @Failure      429      {object}  swagger.ErrorResponse  "Rate limit exceeded"
+// @Router       /api/v1/auth/reset-password [post]
+func swaggerResetPassword() {}
+
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,
 // and package names such as `dto` are not unique across modules, so the
 // imports have to be explicit rather than inferred.
 var (
 	_ dto.LoginRequest
+	_ dto.ForgotPasswordRequest
+	_ dto.ResetPasswordRequest
 	_ swagger.ErrorResponse
 )
+

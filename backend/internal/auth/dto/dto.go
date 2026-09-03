@@ -80,6 +80,30 @@ type ResendVerificationRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
+// ForgotPasswordRequest contains email to request password reset.
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// ResetPasswordRequest contains token and new password for reset.
+type ResetPasswordRequest struct {
+	Token            string `json:"token" binding:"required"`
+	Password         string `json:"password"`
+	NewPassword      string `json:"new_password"`
+	NewPasswordCamel string `json:"newPassword"`
+}
+
+// GetPassword returns whichever password field was populated.
+func (r *ResetPasswordRequest) GetPassword() string {
+	if r.Password != "" {
+		return r.Password
+	}
+	if r.NewPassword != "" {
+		return r.NewPassword
+	}
+	return r.NewPasswordCamel
+}
+
 // UserProfileDTO represents non-sensitive public user information.
 type UserProfileDTO struct {
 	ID               uuid.UUID `json:"id"`

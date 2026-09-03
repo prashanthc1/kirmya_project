@@ -525,11 +525,13 @@ POST /api/v1/ai/resume-analysis
 POST /api/v1/ai/skill-gap
 POST /api/v1/applications
 POST /api/v1/assessments/:id/submit
+POST /api/v1/auth/forgot-password
 POST /api/v1/auth/login
 POST /api/v1/auth/logout
 POST /api/v1/auth/refresh
 POST /api/v1/auth/register
 POST /api/v1/auth/resend-verification
+POST /api/v1/auth/reset-password
 POST /api/v1/auth/verify-email
 POST /api/v1/billing/checkout
 POST /api/v1/billing/webhooks/:provider

@@ -60,6 +60,18 @@ type EmailVerification struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+// PasswordReset stores cryptographically hashed password reset tokens.
+type PasswordReset struct {
+	ID        uuid.UUID  `json:"id"`
+	UserID    uuid.UUID  `json:"userId"`
+	TokenHash string     `json:"tokenHash"`
+	ExpiresAt time.Time  `json:"expiresAt"`
+	UsedAt    *time.Time `json:"usedAt,omitempty"`
+	IPAddress string     `json:"ipAddress"`
+	UserAgent string     `json:"userAgent"`
+	CreatedAt time.Time  `json:"createdAt"`
+}
+
 // AuditLog tracks security actions.
 type AuditLog struct {
 	ID        uuid.UUID `json:"id"`

@@ -1,0 +1,2 @@
+-- down migration: drop password_resets table
+DROP TABLE IF EXISTS password_resets CASCADE;

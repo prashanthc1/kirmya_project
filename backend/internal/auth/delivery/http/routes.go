@@ -16,6 +16,8 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AuthHandler, authMiddleware *
 		authGroup.POST("/logout", handler.Logout)
 		authGroup.POST("/verify-email", handler.VerifyEmail)
 		authGroup.POST("/resend-verification", handler.ResendVerification)
+		authGroup.POST("/forgot-password", handler.ForgotPassword)
+		authGroup.POST("/reset-password", handler.ResetPassword)
 		authGroup.GET("/session", handler.GetSession)
 
 		authGroup.GET("/me", authMiddleware.RequireAuth(), handler.GetMe)
