@@ -11,6 +11,7 @@ import (
 	"html"
 	"log/slog"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -26,9 +27,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// emailSender is the slice of the mailer this service uses. It is an interface
+// rather than *mailer.Mailer so a test can observe the message that was sent —
+// which is the only way to exercise the password reset flow end to end with the
+// token the service actually generated, rather than one the test inserted into
+// the repository itself.
+type emailSender interface {
+	Enabled() bool
+	Send(to, subject, htmlBody string) error
+}
+
 type AuthService struct {
 	repo       *repository.AuthRepository
-	mail       *mailer.Mailer
+	mail       emailSender
 	appBaseURL string
 }
 
@@ -37,6 +48,44 @@ func NewAuthService(repo *repository.AuthRepository) *AuthService {
 		repo:       repo,
 		mail:       mailer.FromEnv(),
 		appBaseURL: configPkg.AppBaseURL(),
+	}
+}
+
+// Password reset policy.
+const (
+	// passwordResetTTL is how long a reset link stays redeemable. Short enough
+	// that a link sitting in a mailbox is not a standing key to the account,
+	// long enough that a user who reads mail on another device still makes it.
+	// The email copy is generated from this value rather than restating it, so
+	// changing the constant cannot leave the message telling users something
+	// untrue.
+	passwordResetTTL = time.Hour
+
+	// A user may be sent this many links per window. The IP rate limiter caps
+	// how fast one source can ask; this caps how much mail one account can be
+	// made to receive no matter how many sources ask.
+	maxResetsPerUser  = 3
+	resetThrottleSpan = time.Hour
+)
+
+// isProductionEnv reports whether this process is running in production, which
+// decides whether a reset link may be written to a log.
+func isProductionEnv() bool {
+	env := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+	return env == "production" || env == "prod"
+}
+
+// humanDuration renders a reset lifetime the way the email should read it.
+func humanDuration(d time.Duration) string {
+	switch {
+	case d >= time.Hour && d%time.Hour == 0:
+		if hours := int(d / time.Hour); hours == 1 {
+			return "1 hour"
+		} else {
+			return fmt.Sprintf("%d hours", hours)
+		}
+	default:
+		return fmt.Sprintf("%d minutes", int(d/time.Minute))
 	}
 }
 
@@ -176,13 +225,24 @@ func (s *AuthService) sendVerificationEmail(u *models.User, token string) bool {
 
 // sendPasswordResetEmail delivers the reset link.
 func (s *AuthService) sendPasswordResetEmail(u *models.User, token string) bool {
+	link := fmt.Sprintf("%s/reset-password?token=%s", s.appBaseURL, url.QueryEscape(token))
+
 	if !s.mail.Enabled() {
-		slog.Warn("SMTP is not configured; password reset email skipped",
-			slog.String("user_id", u.ID.String()))
+		// Without SMTP there is no way to deliver the link, which would leave
+		// the flow untestable on a fresh checkout. Outside production the link
+		// is logged so a developer can complete the reset; in production it
+		// never is — a reset link in a log file is a live credential, readable
+		// by anyone with log access.
+		if isProductionEnv() {
+			slog.Error("SMTP is not configured; password reset email could not be delivered",
+				slog.String("user_id", u.ID.String()))
+		} else {
+			slog.Warn("SMTP is not configured; password reset link logged for local development only",
+				slog.String("user_id", u.ID.String()),
+				slog.String("reset_link", link))
+		}
 		return false
 	}
-
-	link := fmt.Sprintf("%s/reset-password?token=%s", s.appBaseURL, url.QueryEscape(token))
 	name := u.FirstName
 	if name == "" {
 		name = "there"
@@ -199,10 +259,10 @@ func (s *AuthService) sendPasswordResetEmail(u *models.User, token string) bool 
         <a href="%s" style="background:#0071e3;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;display:inline-block">Reset Password</a>
       </div>
       <p style="font-size:13px;color:#86868b">Or copy and paste this link into your browser:<br><span style="color:#0071e3;word-break:break-all">%s</span></p>
-      <p style="font-size:13px;color:#86868b;margin-bottom:0">This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
+      <p style="font-size:13px;color:#86868b;margin-bottom:0">This link expires in %s. If you did not request a password reset, you can safely ignore this email.</p>
     </div>
   </body>
-</html>`, html.EscapeString(name), link, html.EscapeString(link))
+</html>`, html.EscapeString(name), link, html.EscapeString(link), humanDuration(passwordResetTTL))
 
 	if err := s.mail.Send(u.Email, "Reset your Kirmya password", body); err != nil {
 		slog.Error("Failed to send password reset email",
@@ -443,7 +503,32 @@ func (s *AuthService) ResendVerification(ctx context.Context, email, ipAddress s
 	return nil
 }
 
-// ForgotPassword handles password reset request and delivers secure reset email.
+// ErrPasswordResetThrottled is recorded internally when an account has already
+// been sent its allowance of reset links. It never reaches the caller: the
+// endpoint answers identically either way, or it would become an oracle for
+// which addresses have accounts.
+var ErrPasswordResetThrottled = errors.New("too many password reset requests for this account")
+
+// accountEligibleForReset reports whether a reset link should be issued.
+//
+// Login already refuses locked, suspended and disabled accounts, so mailing one
+// a reset link only invites a user to set a password they still cannot sign in
+// with — and, for an account disabled in response to abuse, hands its holder a
+// working link to a mailbox they may still control.
+func accountEligibleForReset(u *models.User) bool {
+	switch strings.ToLower(strings.TrimSpace(u.Status)) {
+	case "locked", "suspended", "disabled", "deleted", "banned":
+		return false
+	}
+	return true
+}
+
+// ForgotPassword issues a single-use, time-limited reset token and emails it.
+//
+// Every failure path returns nil. An unknown address, an ineligible account and
+// a throttled one must be indistinguishable from success to the caller, because
+// the response to this endpoint is otherwise a membership test against the user
+// table that anyone can run.
 func (s *AuthService) ForgotPassword(ctx context.Context, req *dto.ForgotPasswordRequest, ipAddress, userAgent string) error {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 	u, err := s.repo.GetUserByEmail(ctx, email)
@@ -452,16 +537,58 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req *dto.ForgotPasswor
 		return nil
 	}
 
+	if !accountEligibleForReset(u) {
+		slog.Warn("Password reset requested for an ineligible account",
+			slog.String("user_id", u.ID.String()),
+			slog.String("status", u.Status))
+		return nil
+	}
+
+	// Per-account throttle. The IP limiter in front of this route does nothing
+	// about many sources aimed at one mailbox, which is how reset endpoints get
+	// used to bury someone in mail.
+	since := time.Now().UTC().Add(-resetThrottleSpan)
+	if recent, countErr := s.repo.CountRecentPasswordResets(ctx, u.ID, since); countErr == nil && recent >= maxResetsPerUser {
+		slog.Warn("Password reset throttled for account",
+			slog.String("user_id", u.ID.String()),
+			slog.Int("recent_requests", recent))
+		_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{
+			ID:        uuid.New(),
+			UserID:    u.ID,
+			Action:    "FORGOT_PASSWORD_THROTTLED",
+			IPAddress: ipAddress,
+			CreatedAt: time.Now().UTC(),
+		})
+		return nil
+	}
+
 	rawToken, err := generateSecureToken(32)
 	if err != nil {
-		rawToken = uuid.New().String()
+		// uuid.New() is a v4 UUID: 122 bits from the same source, but only 122,
+		// and it is not what the security of this token is meant to rest on. If
+		// the system CSPRNG is unavailable, issue nothing rather than quietly
+		// dropping to a weaker token.
+		slog.Error("Password reset token generation failed",
+			slog.String("user_id", u.ID.String()),
+			slog.String("error", err.Error()))
+		return nil
+	}
+
+	// Retire any link already outstanding for this user. Issuing a new one has
+	// to invalidate the old, or every reset ever requested stays redeemable for
+	// its full lifetime.
+	if invErr := s.repo.InvalidateUserPasswordResets(ctx, u.ID); invErr != nil {
+		slog.Error("Could not invalidate previous password resets",
+			slog.String("user_id", u.ID.String()),
+			slog.String("error", invErr.Error()))
+		return nil
 	}
 
 	pr := &models.PasswordReset{
 		ID:        uuid.New(),
 		UserID:    u.ID,
 		TokenHash: hashToken(rawToken),
-		ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
+		ExpiresAt: time.Now().UTC().Add(passwordResetTTL),
 		IPAddress: ipAddress,
 		UserAgent: userAgent,
 		CreatedAt: time.Now().UTC(),
@@ -483,7 +610,11 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req *dto.ForgotPasswor
 	return nil
 }
 
-// ResetPassword verifies the token, updates password hash, invalidates sessions, and records audit log.
+// ResetPassword redeems a reset token and sets a new password.
+//
+// The order matters: the token is validated, then consumed, and only a request
+// that successfully consumed it goes on to change the password. Consuming first
+// is what makes two requests racing on one link resolve to a single reset.
 func (s *AuthService) ResetPassword(ctx context.Context, req *dto.ResetPasswordRequest, ipAddress string) error {
 	pwd := req.GetPassword()
 	if err := validators.ValidatePasswordPolicy(pwd); err != nil {
@@ -493,6 +624,8 @@ func (s *AuthService) ResetPassword(ctx context.Context, req *dto.ResetPasswordR
 	tokenHash := hashToken(req.Token)
 	pr, err := s.repo.GetPasswordResetByTokenHash(ctx, tokenHash)
 	if err != nil {
+		// Deliberately one message for "no such token" and for a database
+		// failure: the caller learns nothing about which tokens exist.
 		return errors.New("invalid or expired reset token")
 	}
 
@@ -504,18 +637,42 @@ func (s *AuthService) ResetPassword(ctx context.Context, req *dto.ResetPasswordR
 		return errors.New("password reset token has expired. Please request a new one")
 	}
 
+	// The account must still be one that may sign in. A suspended account that
+	// resets its password is a suspended account with a password the platform
+	// did not choose to grant.
+	if u, userErr := s.repo.GetUserByID(ctx, pr.UserID); userErr == nil && u != nil && !accountEligibleForReset(u) {
+		slog.Warn("Password reset attempted on an ineligible account",
+			slog.String("user_id", u.ID.String()),
+			slog.String("status", u.Status))
+		return errors.New("this account cannot be reset. Please contact support")
+	}
+
 	hashBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 12)
 	if err != nil {
 		return err
+	}
+
+	// Consume the token before writing the password. MarkPasswordResetUsed
+	// updates only where used_at is still null and reports whether it won, so
+	// of two concurrent redemptions of the same link exactly one proceeds.
+	if err := s.repo.MarkPasswordResetUsed(ctx, pr.ID); err != nil {
+		if errors.Is(err, repository.ErrPasswordResetAlreadyUsed) {
+			return errors.New("this password reset link has already been used")
+		}
+		return errors.New("could not complete password reset. Please request a new link")
 	}
 
 	if err := s.repo.UpdateUserPasswordHash(ctx, pr.UserID, string(hashBytes)); err != nil {
 		return err
 	}
 
-	_ = s.repo.MarkPasswordResetUsed(ctx, pr.ID)
-
-	// Invalidate all existing sessions for this user to prevent session hijacking
+	// Revoke every session so a password reset ends any access an attacker
+	// already had. Refresh tokens are session-backed and die here; an access
+	// token already issued is a stateless JWT and stays valid for the remainder
+	// of its 15-minute lifetime, since nothing on the request path consults the
+	// session table. Closing that window means checking revocation on every
+	// authenticated request, which is a change to the authentication
+	// architecture rather than to this flow.
 	_ = s.repo.RevokeAllUserSessions(ctx, pr.UserID)
 
 	_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{

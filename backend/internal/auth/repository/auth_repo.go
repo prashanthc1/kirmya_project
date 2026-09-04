@@ -13,6 +13,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// ErrPasswordResetAlreadyUsed is returned when a reset token is redeemed a
+// second time, including when two requests race on the same link.
+var ErrPasswordResetAlreadyUsed = errors.New("this password reset link has already been used")
+
 type AuthRepository struct {
 	db *pgxpool.Pool
 	mu sync.RWMutex
@@ -427,6 +431,16 @@ func (r *AuthRepository) CreateAuditLog(ctx context.Context, al *models.AuditLog
 }
 
 // Password Reset methods
+//
+// These follow the same rule as every other method here: when a database pool
+// is configured it is the only source of truth, and the in-memory maps exist
+// solely for the nil-pool unit-test path. They previously wrote to the memory
+// map as well as the database and fell back to it whenever a query returned an
+// error, which is not a harmless belt-and-braces: a reset consumed on one
+// replica is marked used in the database and in *that* replica's memory only,
+// so a transient database error on a second replica would serve its own stale
+// copy with used_at still nil and let the same link be redeemed twice. It also
+// leaked a map entry per reset request for the life of the process.
 func (r *AuthRepository) CreatePasswordReset(ctx context.Context, pr *models.PasswordReset) error {
 	if pr.ID == uuid.Nil {
 		pr.ID = uuid.New()
@@ -439,9 +453,7 @@ func (r *AuthRepository) CreatePasswordReset(ctx context.Context, pr *models.Pas
 		query := `INSERT INTO password_resets (id, user_id, token_hash, expires_at, used_at, ip_address, user_agent, created_at)
 		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 		_, err := r.db.Exec(ctx, query, pr.ID, pr.UserID, pr.TokenHash, pr.ExpiresAt, pr.UsedAt, pr.IPAddress, pr.UserAgent, pr.CreatedAt)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	r.mu.Lock()
@@ -453,14 +465,20 @@ func (r *AuthRepository) CreatePasswordReset(ctx context.Context, pr *models.Pas
 func (r *AuthRepository) GetPasswordResetByTokenHash(ctx context.Context, tokenHash string) (*models.PasswordReset, error) {
 	if r.db != nil {
 		pr := &models.PasswordReset{}
-		query := `SELECT id, user_id, token_hash, expires_at, used_at, ip_address, user_agent, created_at 
+		query := `SELECT id, user_id, token_hash, expires_at, used_at, ip_address, user_agent, created_at
 		          FROM password_resets WHERE token_hash = $1`
 		err := r.db.QueryRow(ctx, query, tokenHash).Scan(
 			&pr.ID, &pr.UserID, &pr.TokenHash, &pr.ExpiresAt, &pr.UsedAt, &pr.IPAddress, &pr.UserAgent, &pr.CreatedAt,
 		)
-		if err == nil {
-			return pr, nil
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, errors.New("password reset token not found")
+			}
+			// A database error is reported, never silently downgraded to a
+			// lookup in this process's memory.
+			return nil, err
 		}
+		return pr, nil
 	}
 
 	r.mu.RLock()
@@ -473,24 +491,87 @@ func (r *AuthRepository) GetPasswordResetByTokenHash(ctx context.Context, tokenH
 	return nil, errors.New("password reset token not found")
 }
 
+// MarkPasswordResetUsed consumes a token. The database update is conditional on
+// used_at still being null, so two requests racing on the same link cannot both
+// observe it as unused: exactly one updates a row, and the other is told the
+// token is already spent. That check is what makes "single-use" hold under
+// concurrency rather than only in a sequential test.
 func (r *AuthRepository) MarkPasswordResetUsed(ctx context.Context, id uuid.UUID) error {
 	now := time.Now().UTC()
 	if r.db != nil {
-		query := `UPDATE password_resets SET used_at = $1 WHERE id = $2`
-		_, err := r.db.Exec(ctx, query, now, id)
+		query := `UPDATE password_resets SET used_at = $1 WHERE id = $2 AND used_at IS NULL`
+		tag, err := r.db.Exec(ctx, query, now, id)
 		if err != nil {
 			return err
 		}
+		if tag.RowsAffected() == 0 {
+			return ErrPasswordResetAlreadyUsed
+		}
+		return nil
 	}
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for _, pr := range r.memPasswordResets {
 		if pr.ID == id {
+			if pr.UsedAt != nil {
+				return ErrPasswordResetAlreadyUsed
+			}
 			pr.UsedAt = &now
+			return nil
+		}
+	}
+	return errors.New("password reset token not found")
+}
+
+// InvalidateUserPasswordResets spends every outstanding reset for a user.
+//
+// Issuing a new link must retire the old ones. Without this, every reset ever
+// requested stays redeemable until it expires, so an old email in a mailbox —
+// or one an attacker triggered before the user changed anything — remains a
+// live path into the account.
+func (r *AuthRepository) InvalidateUserPasswordResets(ctx context.Context, userID uuid.UUID) error {
+	now := time.Now().UTC()
+	if r.db != nil {
+		query := `UPDATE password_resets SET used_at = $1 WHERE user_id = $2 AND used_at IS NULL`
+		_, err := r.db.Exec(ctx, query, now, userID)
+		return err
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, pr := range r.memPasswordResets {
+		if pr.UserID == userID && pr.UsedAt == nil {
+			used := now
+			pr.UsedAt = &used
 		}
 	}
 	return nil
+}
+
+// CountRecentPasswordResets reports how many resets a user has been sent since
+// a cutoff. This is the per-account half of the throttle: the middleware limits
+// how fast one IP can ask, which does nothing about a botnet pointing at a
+// single mailbox.
+func (r *AuthRepository) CountRecentPasswordResets(ctx context.Context, userID uuid.UUID, since time.Time) (int, error) {
+	if r.db != nil {
+		var count int
+		query := `SELECT COUNT(*) FROM password_resets WHERE user_id = $1 AND created_at >= $2`
+		if err := r.db.QueryRow(ctx, query, userID, since).Scan(&count); err != nil {
+			return 0, err
+		}
+		return count, nil
+	}
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	count := 0
+	for _, pr := range r.memPasswordResets {
+		if pr.UserID == userID && !pr.CreatedAt.Before(since) {
+			count++
+		}
+	}
+	return count, nil
 }
 
 func (r *AuthRepository) DeleteExpiredPasswordResets(ctx context.Context) error {
@@ -498,9 +579,7 @@ func (r *AuthRepository) DeleteExpiredPasswordResets(ctx context.Context) error 
 	if r.db != nil {
 		query := `DELETE FROM password_resets WHERE expires_at < $1 OR used_at IS NOT NULL`
 		_, err := r.db.Exec(ctx, query, now)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	r.mu.Lock()
@@ -512,4 +591,3 @@ func (r *AuthRepository) DeleteExpiredPasswordResets(ctx context.Context) error 
 	}
 	return nil
 }
-

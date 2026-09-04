@@ -18,29 +18,51 @@ import AuthCard from '../../components/auth/AuthCard';
 import AuthHeader from '../../components/auth/AuthHeader';
 import AuthFooter from '../../components/auth/AuthFooter';
 import AuthErrorBoundary from '../../components/auth/ErrorBoundary';
-import { authApiClient } from '../../services/authService';
+import { authApiClient, extractApiError } from '../../services/authService';
 import { tokens } from '../../theme/tokens';
 
 export const dynamic = 'force-dynamic';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    const address = email.trim().toLowerCase();
+    if (!address) return;
+
+    if (!EMAIL_PATTERN.test(address)) {
+      setError('Enter a valid email address.');
+      return;
+    }
 
     setLoading(true);
+    setError(null);
     try {
-      await authApiClient.post('/auth/forgot-password', {
-        email: email.trim().toLowerCase(),
-      });
+      await authApiClient.post('/auth/forgot-password', { email: address });
       setSubmitted(true);
-    } catch {
-      // Privacy protection: show success state even if email doesn't exist
-      setSubmitted(true);
+    } catch (err) {
+      const parsed = extractApiError(
+        err,
+        'We could not send the reset email. Please check your connection and try again.'
+      );
+
+      // The backend answers 200 whether or not the address has an account, so
+      // there is no "user not found" response to hide here. Every error that
+      // does arrive is a real failure — rate limiting, a validation refusal, a
+      // server or network fault — and showing "check your email" for those
+      // leaves someone waiting for a message that is never coming. This
+      // previously reported success for all of them.
+      if (parsed.status === 429) {
+        setError('Too many reset requests. Please wait a few minutes before trying again.');
+      } else {
+        setError(parsed.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -72,10 +94,29 @@ function ForgotPasswordForm() {
           >
             Return to Sign In
           </Button>
+
+          <Button
+            variant="text"
+            fullWidth
+            onClick={() => setSubmitted(false)}
+            sx={{ mt: 1, fontWeight: 600 }}
+          >
+            Use a different email address
+          </Button>
         </Box>
       ) : (
         <form onSubmit={handleSubmit} noValidate>
           <Stack spacing={2.5}>
+            {error && (
+              <Alert
+                severity="error"
+                sx={{ borderRadius: `${tokens.radius.sm}px` }}
+                onClose={() => setError(null)}
+              >
+                {error}
+              </Alert>
+            )}
+
             <TextField
               label="Email Address"
               placeholder="name@company.com"

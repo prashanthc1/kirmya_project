@@ -21,7 +21,7 @@ import AuthFooter from '../../components/auth/AuthFooter';
 import PasswordInput from '../../components/auth/PasswordInput';
 import PasswordStrengthIndicator from '../../components/auth/PasswordStrength';
 import AuthErrorBoundary from '../../components/auth/ErrorBoundary';
-import { authApiClient } from '../../services/authService';
+import { authApiClient, extractApiError } from '../../services/authService';
 import { tokens } from '../../theme/tokens';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +36,7 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkRejected, setLinkRejected] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,15 +61,63 @@ function ResetPasswordForm() {
         new_password: password,
       });
       setSuccess(true);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-          'Failed to reset password. The link may have expired or is invalid.'
+    } catch (err) {
+      const parsed = extractApiError(
+        err,
+        'Failed to reset password. The link may have expired or is invalid.'
       );
+      setError(
+        parsed.status === 429
+          ? 'Too many attempts. Please wait a few minutes before trying again.'
+          : parsed.message
+      );
+      // A refused token cannot be retried with a different password, so the
+      // recovery is a new link rather than another submission.
+      setLinkRejected(parsed.status === 400 || parsed.status === 401);
     } finally {
       setLoading(false);
     }
   };
+
+  if (!token) {
+    // Reached by opening /reset-password directly, or by following a link that
+    // a mail client truncated. Rendering the form here would take a password,
+    // post an empty token and fail with a generic server error; naming the
+    // problem and offering the way back is the honest response.
+    return (
+      <AuthCard>
+        <AuthHeader
+          title="Reset link is incomplete"
+          subtitle="This page needs the link from your password reset email."
+        />
+        <Alert severity="warning" sx={{ borderRadius: `${tokens.radius.sm}px`, mb: 2.5 }}>
+          The reset link is missing its token. Open the most recent link from your email, or
+          request a new one below.
+        </Alert>
+        <Stack spacing={1.5}>
+          <Button
+            component={Link}
+            href="/forgot-password"
+            variant="contained"
+            fullWidth
+            sx={{ py: 1.3, fontWeight: 700, borderRadius: `${tokens.radius.md}px` }}
+          >
+            Request a new reset link
+          </Button>
+          <Button
+            component={Link}
+            href="/login"
+            variant="outlined"
+            fullWidth
+            sx={{ py: 1.2, fontWeight: 600, borderRadius: `${tokens.radius.md}px` }}
+          >
+            Back to Sign In
+          </Button>
+        </Stack>
+        <AuthFooter />
+      </AuthCard>
+    );
+  }
 
   return (
     <AuthCard>
@@ -105,6 +154,13 @@ function ResetPasswordForm() {
                 severity="error"
                 sx={{ borderRadius: `${tokens.radius.sm}px` }}
                 onClose={() => setError(null)}
+                action={
+                  linkRejected ? (
+                    <Button component={Link} href="/forgot-password" size="small" color="inherit">
+                      Get a new link
+                    </Button>
+                  ) : undefined
+                }
               >
                 {error}
               </Alert>
