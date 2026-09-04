@@ -709,6 +709,44 @@ definitions:
       title:
         type: string
     type: object
+  domain.FileRecord:
+    properties:
+      category:
+        type: string
+      checksum:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      detected_content_type:
+        type: string
+      extension:
+        type: string
+      file_size:
+        type: integer
+      id:
+        type: string
+      media_type:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      original_filename:
+        type: string
+      owner_id:
+        type: string
+      status:
+        type: string
+      storage_key:
+        type: string
+      updated_at:
+        type: string
+      url:
+        type: string
+      visibility:
+        type: string
+    type: object
   domain.GenerateCareerRequest:
     properties:
       topic:
@@ -995,6 +1033,32 @@ definitions:
     - file_size
     - file_type
     type: object
+  domain.PresignedUploadRequest:
+    properties:
+      category:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_type:
+        type: string
+    required:
+    - file_name
+    - file_size
+    - file_type
+    type: object
+  domain.PresignedUploadResponse:
+    properties:
+      expires_at:
+        type: string
+      file_id:
+        type: string
+      presigned_url:
+        type: string
+      storage_key:
+        type: string
+    type: object
   domain.PrivacyIncidentItem:
     properties:
       breach_type:
@@ -1236,6 +1300,15 @@ definitions:
     required:
     - end_time
     - start_time
+    type: object
+  domain.SignedURLResponse:
+    properties:
+      expires_at:
+        type: string
+      file_id:
+        type: string
+      signed_url:
+        type: string
     type: object
   domain.SkillGapRequest:
     properties:
@@ -23145,6 +23218,260 @@ paths:
       summary: Report a bug
       tags:
       - Feedback
+  /api/v1/files/{id}:
+    delete:
+      description: Soft deletes file metadata and removes object from storage provider.
+      parameters:
+      - description: File ID UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete file
+      tags:
+      - Files
+    get:
+      description: Returns metadata for an uploaded file if requester is authorized.
+      parameters:
+      - description: File ID UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.FileRecord'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get file metadata
+      tags:
+      - Files
+  /api/v1/files/{id}/download:
+    get:
+      description: Streams file with Content-Disposition attachment header.
+      parameters:
+      - description: File ID UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download file
+      tags:
+      - Files
+  /api/v1/files/{id}/signed-url:
+    get:
+      description: Generates a short-lived cryptographic signed URL for authorized
+        access.
+      parameters:
+      - description: File ID UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 15
+        description: Expiration time in minutes
+        in: query
+        name: expiry_minutes
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SignedURLResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate signed access URL
+      tags:
+      - Files
+  /api/v1/files/{id}/view:
+    get:
+      description: Streams file content inline with appropriate Content-Type and caching
+        headers.
+      parameters:
+      - description: File ID UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Signed access token for browser streaming
+        in: query
+        name: token
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: View file content
+      tags:
+      - Files
+  /api/v1/files/presign:
+    post:
+      consumes:
+      - application/json
+      description: Requests a presigned direct upload URL for client uploads.
+      parameters:
+      - description: Presigned upload parameters
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PresignedUploadRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.PresignedUploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Presign upload session
+      tags:
+      - Files
+  /api/v1/files/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a multipart file with validation against magic bytes and
+        category size bounds.
+      parameters:
+      - description: Binary file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - default: general
+        description: File category (avatar, cover, resume, application_document, message_attachment,
+          etc.)
+        in: formData
+        name: category
+        type: string
+      - default: private
+        description: File visibility (public, private)
+        in: formData
+        name: visibility
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.FileRecord'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload file
+      tags:
+      - Files
   /api/v1/freelance/contracts:
     get:
       description: Returns user contracts via the Kirmya freelance marketplace module.

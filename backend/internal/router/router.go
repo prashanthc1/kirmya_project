@@ -37,6 +37,7 @@ import (
 	landingHttp "kirmya/internal/landing/delivery/http"
 	learningHttp "kirmya/internal/learning/delivery/http"
 	legalHttp "kirmya/internal/legal/delivery/http"
+	mediaHttp "kirmya/internal/media/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
 	mobileHttp "kirmya/internal/mobile/delivery/http"
 	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
@@ -130,6 +131,7 @@ type RouterDependencies struct {
 	DataOperationsHandler       *dataOpsHttp.DataOperationsHandler
 	SystemHealthHandler         *sysHealthHttp.SystemHealthHandler
 	MentorshipHandler           *mentorshipHttp.MentorshipHandler
+	FileHandler                 *mediaHttp.FileHandler
 }
 
 type Handlers = RouterDependencies
@@ -246,6 +248,9 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	applicationsHttp.RegisterRoutes(api, deps.ApplicationsHandler)
 	jobAlertsHttp.RegisterRoutes(api, deps.JobAlertsHandler)
 	jobsHttp.RegisterRoutes(api, deps.JobsHandler)
+	if deps.FileHandler != nil {
+		mediaHttp.RegisterRoutes(api, deps.FileHandler)
+	}
 	if deps.MentorshipHandler != nil {
 		mentorshipHttp.RegisterRoutes(api, deps.MentorshipHandler)
 	}

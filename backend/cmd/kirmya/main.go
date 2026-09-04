@@ -239,6 +239,11 @@ import (
 	mentorshipRepo "kirmya/internal/mentorship/repository"
 	mentorshipSvc "kirmya/internal/mentorship/service"
 
+	mediaHttp "kirmya/internal/media/delivery/http"
+	mediaRepo "kirmya/internal/media/repository"
+	mediaSvc "kirmya/internal/media/service"
+	storagePkg "kirmya/internal/shared/storage"
+
 	"kirmya/internal/router"
 	cachePkg "kirmya/internal/shared/cache"
 	configPkg "kirmya/internal/shared/config"
@@ -637,6 +642,40 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 
 	adminAnalyticsHandler := analyticsHttp.NewAdminAnalyticsHandler(analyticsService)
 
+	uploadDir := os.Getenv("UPLOAD_DIRECTORY")
+	if uploadDir == "" {
+		uploadDir = "./uploads"
+	}
+	localStorageProvider, err := storagePkg.NewLocalStorageProvider(uploadDir, cfg.AppBaseURL, cfg.JWTSecret)
+	if err != nil {
+		slog.Error("Failed to initialize local storage provider", "error", err)
+	}
+
+	var storageProvider storagePkg.StorageProvider = localStorageProvider
+	s3Endpoint := os.Getenv("STORAGE_ENDPOINT")
+	if s3Endpoint != "" {
+		bucket := os.Getenv("STORAGE_BUCKET")
+		if bucket == "" {
+			bucket = "kirmya-storage"
+		}
+		region := os.Getenv("STORAGE_REGION")
+		if region == "" {
+			region = "auto"
+		}
+		storageProvider = storagePkg.NewS3StorageProvider(storagePkg.S3Config{
+			Endpoint:        s3Endpoint,
+			Bucket:          bucket,
+			Region:          region,
+			AccessKeyID:     os.Getenv("STORAGE_ACCESS_KEY_ID"),
+			SecretAccessKey: os.Getenv("STORAGE_SECRET_ACCESS_KEY"),
+			PublicBaseURL:   os.Getenv("STORAGE_PUBLIC_BASE_URL"),
+		}, localStorageProvider)
+	}
+
+	fileRepository := mediaRepo.NewFileRepository(dbPool)
+	fileService := mediaSvc.NewFileService(fileRepository, storageProvider)
+	fileHandler := mediaHttp.NewFileHandler(fileService)
+
 	return router.RouterDependencies{
 		AuthHandler:                 authHandler,
 		AuthMiddleware:              authMiddleware,
@@ -699,5 +738,6 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		AdminSupportHandler:         adminSupportHandler,
 		SystemHealthHandler:         sysHealthHandler,
 		MentorshipHandler:           mentorshipHandler,
+		FileHandler:                 fileHandler,
 	}
 }
