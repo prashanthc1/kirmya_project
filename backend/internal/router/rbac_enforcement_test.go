@@ -95,13 +95,34 @@ func tokenWithRole(t *testing.T, role string) string {
 	return signed
 }
 
-// adminRoutes lists the concrete (non-parameterised) admin paths on the built
-// router. Parameterised paths are skipped only because a synthetic ":id" would
-// exercise handler parsing rather than the guard.
+// resolveParams substitutes a syntactically valid UUID for every :param and a
+// path segment for any *wildcard, so a parameterised route can be requested for
+// real. A guard runs before the handler parses anything, so the value only has
+// to be well formed, not to exist.
+func resolveParams(path string) string {
+	segs := strings.Split(path, "/")
+	for i, s := range segs {
+		switch {
+		case strings.HasPrefix(s, ":"):
+			segs[i] = "00000000-0000-0000-0000-000000000001"
+		case strings.HasPrefix(s, "*"):
+			segs[i] = "probe"
+		}
+	}
+	return strings.Join(segs, "/")
+}
+
+// adminRoutes lists every admin path on the built router, parameterised ones
+// included. An earlier version of this test skipped anything containing ":",
+// which left 64 admin routes unverified — among them the whole
+// /admin/users/:id/profile group and the security incident and alert endpoints.
+// Skipping the routes that carry an object identifier skipped exactly the ones
+// where an authorization mistake is most costly.
 func adminRoutes(engine *gin.Engine) []gin.RouteInfo {
 	var out []gin.RouteInfo
 	for _, rt := range engine.Routes() {
-		if strings.HasPrefix(rt.Path, "/api/v1/admin/") && !strings.Contains(rt.Path, ":") {
+		if strings.HasPrefix(rt.Path, "/api/v1/admin/") {
+			rt.Path = resolveParams(rt.Path)
 			out = append(out, rt)
 		}
 	}
@@ -126,7 +147,7 @@ func requestAs(engine *gin.Engine, rt gin.RouteInfo, bearer string) int {
 func TestEveryAdminRouteRejectsNonAdmins(t *testing.T) {
 	engine := adminSurfaceRouter()
 	routes := adminRoutes(engine)
-	if len(routes) < 100 {
+	if len(routes) < 230 {
 		t.Fatalf("only %d admin routes discovered; the router is not fully built "+
 			"and this test would pass vacuously", len(routes))
 	}
@@ -243,6 +264,90 @@ func TestPublicRoutesStayPublic(t *testing.T) {
 		if code == http.StatusUnauthorized || code == http.StatusForbidden {
 			t.Errorf("%s %s returned %d without a token; it is meant to be public",
 				rt.Method, rt.Path, code)
+		}
+	}
+}
+
+// TestProfileAdminRoutesRequireAdmin pins the profile administration group by
+// name. It is covered by the sweep above too, but only since parameterised
+// routes were included — before that this entire group was unverified, and a
+// named test makes a future regression here read as what it is rather than as
+// one line in a list of 241.
+func TestProfileAdminRoutesRequireAdmin(t *testing.T) {
+	engine := adminSurfaceRouter()
+	const base = "/api/v1/admin/users/00000000-0000-0000-0000-000000000001/profile"
+
+	routes := []gin.RouteInfo{
+		{Method: http.MethodGet, Path: base},
+		{Method: http.MethodPut, Path: base},
+		{Method: http.MethodPost, Path: base + "/verify"},
+		{Method: http.MethodPost, Path: base + "/restrict"},
+	}
+
+	for _, rt := range routes {
+		if code := requestAs(engine, rt, tokenWithRole(t, middleware.RoleUser)); code != http.StatusForbidden {
+			t.Errorf("%s %s returned %d to an ordinary user, want 403", rt.Method, rt.Path, code)
+		}
+		if code := requestAs(engine, rt, ""); code != http.StatusUnauthorized {
+			t.Errorf("%s %s returned %d to an anonymous caller, want 401", rt.Method, rt.Path, code)
+		}
+		if code := requestAs(engine, rt, tokenWithRole(t, middleware.RoleAdmin)); code == http.StatusForbidden {
+			t.Errorf("%s %s denied an admin", rt.Method, rt.Path)
+		}
+	}
+}
+
+// TestSecurityAdminRoutesRequireAdmin pins the administrative security surface:
+// incident and alert records, platform security settings and detection rules.
+func TestSecurityAdminRoutesRequireAdmin(t *testing.T) {
+	engine := adminSurfaceRouter()
+	const id = "00000000-0000-0000-0000-000000000001"
+
+	routes := []gin.RouteInfo{
+		{Method: http.MethodGet, Path: "/api/v1/admin/security"},
+		{Method: http.MethodGet, Path: "/api/v1/admin/security/incidents"},
+		{Method: http.MethodPost, Path: "/api/v1/admin/security/incidents"},
+		{Method: http.MethodGet, Path: "/api/v1/admin/security/incidents/" + id},
+		{Method: http.MethodPut, Path: "/api/v1/admin/security/incidents/" + id},
+		{Method: http.MethodGet, Path: "/api/v1/admin/security/settings"},
+		{Method: http.MethodPut, Path: "/api/v1/admin/security/settings"},
+		{Method: http.MethodGet, Path: "/api/v1/admin/security/alerts/" + id},
+		{Method: http.MethodPut, Path: "/api/v1/admin/security/rules/" + id},
+		{Method: http.MethodGet, Path: "/api/v1/admin/security/risk-scores"},
+	}
+
+	for _, rt := range routes {
+		if code := requestAs(engine, rt, tokenWithRole(t, middleware.RoleUser)); code != http.StatusForbidden {
+			t.Errorf("%s %s returned %d to an ordinary user, want 403", rt.Method, rt.Path, code)
+		}
+		if code := requestAs(engine, rt, tokenWithRole(t, middleware.RoleModerator)); code != http.StatusForbidden {
+			t.Errorf("%s %s returned %d to a moderator, want 403", rt.Method, rt.Path, code)
+		}
+	}
+}
+
+// TestSecurityUserRoutesStayUserScoped is the counterpart: the self-service
+// security endpoints must NOT acquire an admin guard. They are protected by
+// ownership checks in the service (see security_idor_test.go), not by role, and
+// gating them on admin would lock every user out of their own account settings.
+func TestSecurityUserRoutesStayUserScoped(t *testing.T) {
+	engine := adminSurfaceRouter()
+	token := tokenWithRole(t, middleware.RoleUser)
+
+	for _, rt := range []gin.RouteInfo{
+		{Method: http.MethodGet, Path: "/api/v1/security"},
+		{Method: http.MethodGet, Path: "/api/v1/security/sessions"},
+		{Method: http.MethodGet, Path: "/api/v1/security/devices"},
+		{Method: http.MethodGet, Path: "/api/v1/security/api-keys"},
+		{Method: http.MethodGet, Path: "/api/v1/security/login-history"},
+		{Method: http.MethodGet, Path: "/api/v1/privacy/settings"},
+	} {
+		if code := requestAs(engine, rt, token); code == http.StatusForbidden {
+			t.Errorf("%s %s returned 403 to an ordinary user; a self-service security "+
+				"route was caught by an admin guard", rt.Method, rt.Path)
+		}
+		if code := requestAs(engine, rt, ""); code != http.StatusUnauthorized {
+			t.Errorf("%s %s returned %d anonymously, want 401", rt.Method, rt.Path, code)
 		}
 	}
 }
