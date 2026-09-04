@@ -51,6 +51,7 @@ import (
 	landingHttp "kirmya/internal/landing/delivery/http"
 	learningHttp "kirmya/internal/learning/delivery/http"
 	legalHttp "kirmya/internal/legal/delivery/http"
+	mediaHttp "kirmya/internal/media/delivery/http"
 	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
 	mobileHttp "kirmya/internal/mobile/delivery/http"
@@ -270,6 +271,7 @@ func compareRoutes(documented map[string]bool) []string {
 		DataOperationsHandler:       &dataOpsHttp.DataOperationsHandler{},
 		SystemHealthHandler:         &sysHealthHttp.SystemHealthHandler{},
 		MentorshipHandler:           &mentorshipHttp.MentorshipHandler{},
+		FileHandler:                 &mediaHttp.FileHandler{},
 	}, router.SwaggerConfig{})
 
 	var problems []string

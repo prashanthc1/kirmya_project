@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -242,6 +243,7 @@ import (
 	mediaHttp "kirmya/internal/media/delivery/http"
 	mediaRepo "kirmya/internal/media/repository"
 	mediaSvc "kirmya/internal/media/service"
+	sharedAI "kirmya/internal/shared/ai"
 	storagePkg "kirmya/internal/shared/storage"
 
 	"kirmya/internal/router"
@@ -423,9 +425,30 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	analyticsService := analyticsSvc.NewAnalyticsService(analyticsRepository)
 	analyticsHandler := analyticsHttp.NewAnalyticsHandler(analyticsService)
 
+	// Canonical AI Provider Subsystem
+	var canonicalAIProvider sharedAI.AIProvider = sharedAI.NewLocalDeterministicProvider()
+	aiProviderType := strings.ToLower(os.Getenv("AI_PROVIDER"))
+	if aiProviderType == "openai" || os.Getenv("OPENAI_API_KEY") != "" {
+		canonicalAIProvider = sharedAI.NewOpenAIProvider(sharedAI.OpenAIConfig{
+			BaseURL: os.Getenv("OPENAI_BASE_URL"),
+			APIKey:  os.Getenv("OPENAI_API_KEY"),
+			Model:   os.Getenv("OPENAI_MODEL"),
+		}, canonicalAIProvider)
+	} else if aiProviderType == "gemini" || os.Getenv("GEMINI_API_KEY") != "" {
+		canonicalAIProvider = sharedAI.NewGeminiProvider(sharedAI.GeminiConfig{
+			APIKey: os.Getenv("GEMINI_API_KEY"),
+			Model:  os.Getenv("GEMINI_MODEL"),
+		}, canonicalAIProvider)
+	} else if aiProviderType == "anthropic" || os.Getenv("ANTHROPIC_API_KEY") != "" {
+		canonicalAIProvider = sharedAI.NewAnthropicProvider(sharedAI.AnthropicConfig{
+			APIKey: os.Getenv("ANTHROPIC_API_KEY"),
+			Model:  os.Getenv("ANTHROPIC_MODEL"),
+		}, canonicalAIProvider)
+	}
+
 	aiRepository := aiRepo.NewAIRepository(dbPool)
-	mockAIProvider := aiProvider.NewMockAIProvider()
-	aiService := aiSvc.NewAIService(aiRepository, mockAIProvider)
+	canonicalGenericAI := aiProvider.NewCanonicalGenericAIAdapter(canonicalAIProvider)
+	aiService := aiSvc.NewAIService(aiRepository, canonicalGenericAI)
 	aiHandler := aiHttp.NewAIHandler(aiService)
 
 	companyRepository := companyRepo.NewCompanyRepository(dbPool)
@@ -461,13 +484,13 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	assessmentHandler := assessmentHttp.NewAssessmentHandler(assessmentService)
 
 	careerAIRepository := careerAIRepo.NewCareerAIRepository(dbPool)
-	careerAIProv := careerAIProvider.NewMockCareerAIProvider()
+	careerAIProv := careerAIProvider.NewCanonicalCareerAIAdapter(canonicalAIProvider)
 	promptMgr := careerAIPrompts.NewPromptManager()
 	careerAIService := careerAISvc.NewCareerAIService(careerAIRepository, careerAIProv, promptMgr)
 	careerAIHandler := careerAIHttp.NewCareerAIHandler(careerAIService)
 
 	resumeAnalysisRepository := resumeAnalysisRepo.NewResumeAnalysisRepository(dbPool)
-	aiResumeProv := resumeAnalysisProvider.NewMockResumeAIProvider()
+	aiResumeProv := resumeAnalysisProvider.NewCanonicalResumeAIAdapter(canonicalAIProvider)
 	resumeAnalysisService := resumeAnalysisSvc.NewResumeAnalysisService(resumeAnalysisRepository, aiResumeProv)
 	resumeAnalysisHandler := resumeAnalysisHttp.NewResumeAnalysisHandler(resumeAnalysisService)
 
@@ -514,7 +537,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	mobileHandler := mobileHttp.NewMobileHandler(mobileService)
 
 	companionRepository := companionRepo.NewCompanionRepository(dbPool)
-	companionAIProvider := companionProvider.NewMockCareerAIProvider()
+	companionAIProvider := companionProvider.NewCanonicalCompanionAIAdapter(canonicalAIProvider)
 	companionPromptMgr := companionPrompt.NewPromptManager()
 	companionService := companionSvc.NewCompanionService(companionRepository, companionAIProvider, companionPromptMgr)
 	companionHandler := companionHttp.NewCompanionHandler(companionService)

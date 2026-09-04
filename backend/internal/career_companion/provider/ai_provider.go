@@ -3,9 +3,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"kirmya/internal/career_companion/domain"
+	sharedAI "kirmya/internal/shared/ai"
 )
 
 // CareerAIProvider interface isolates AI model execution from application logic
@@ -15,45 +15,77 @@ type CareerAIProvider interface {
 	GenerateStructuredRoadmap(ctx context.Context, targetRole, currentLevel string) ([]domain.CareerMilestone, error)
 }
 
-// MockCareerAIProvider provides offline LLM simulation with rapid responses
-type MockCareerAIProvider struct{}
-
-func NewMockCareerAIProvider() *MockCareerAIProvider {
-	return &MockCareerAIProvider{}
+// CanonicalCompanionAIAdapter bridges the canonical AIProvider to Companion
+type CanonicalCompanionAIAdapter struct {
+	provider sharedAI.AIProvider
 }
 
-func (p *MockCareerAIProvider) GetProviderName() string {
-	return "mock-career-llm-v1"
+func NewCanonicalCompanionAIAdapter(prov sharedAI.AIProvider) *CanonicalCompanionAIAdapter {
+	if prov == nil {
+		prov = sharedAI.NewLocalDeterministicProvider()
+	}
+	return &CanonicalCompanionAIAdapter{provider: prov}
 }
 
-func (p *MockCareerAIProvider) GenerateResponse(ctx context.Context, systemPrompt, userMessage string, history []domain.AIMessage) (string, int, error) {
-	qLower := strings.ToLower(userMessage)
+func (a *CanonicalCompanionAIAdapter) GetProviderName() string {
+	return a.provider.GetProviderName()
+}
 
-	if strings.Contains(qLower, "resume") {
-		return "Based on your background in Go & React architecture, I recommend highlighting your recent project where you optimized PostgreSQL queries by 40%. Add metrics like 'P99 response time < 50ms' to stand out to recruiters.", 185, nil
-	} else if strings.Contains(qLower, "interview") {
-		return "Great! Let's practice a behavioral question: 'Tell me about a time you had to resolve a high-severity production outage.' How did you diagnose the root cause and communicate with stakeholders?", 160, nil
-	} else if strings.Contains(qLower, "job loss") || strings.Contains(qLower, "unemployed") || strings.Contains(qLower, "laid off") {
-		return "Experiencing job loss is tough, but remember it's a temporary transition. Let's focus on 3 immediate recovery steps: 1) Audit your core skills, 2) Request internal referrals via the Kirmya Marketplace, and 3) Practice 2 mock interview sessions this week.", 210, nil
+func (a *CanonicalCompanionAIAdapter) GenerateResponse(ctx context.Context, systemPrompt, userMessage string, history []domain.AIMessage) (string, int, error) {
+	sanitized, _ := sharedAI.SanitizeUntrustedInput(userMessage, sharedAI.DefaultSecurityConfig())
+
+	var msgs []sharedAI.ChatMessage
+	for _, h := range history {
+		role := sharedAI.RoleUser
+		if h.Sender == "assistant" {
+			role = sharedAI.RoleAssistant
+		}
+		msgs = append(msgs, sharedAI.ChatMessage{
+			Role:    role,
+			Content: h.Content,
+		})
+	}
+	msgs = append(msgs, sharedAI.ChatMessage{
+		Role:    sharedAI.RoleUser,
+		Content: sanitized,
+	})
+
+	if systemPrompt == "" {
+		systemPrompt = "You are Kirmya's AI Career Companion. Help professionals recover from layoffs, optimize resumes, bridge skill gaps, and master interviews."
 	}
 
-	return fmt.Sprintf("I am your Kirmya AI Career Companion. Regarding '%s': Let's align your technical experience with high-demand roles. Would you like me to generate a personalized career roadmap or conduct an interview coaching session?", userMessage), 140, nil
+	req := sharedAI.TextGenerationRequest{
+		SystemPrompt: systemPrompt,
+		Messages:     msgs,
+		MaxTokens:    600,
+	}
+
+	resp, err := a.provider.GenerateText(ctx, req)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return resp.Content, resp.Usage.TotalTokens, nil
 }
 
-func (p *MockCareerAIProvider) GenerateStructuredRoadmap(ctx context.Context, targetRole, currentLevel string) ([]domain.CareerMilestone, error) {
+func (a *CanonicalCompanionAIAdapter) GenerateStructuredRoadmap(ctx context.Context, targetRole, currentLevel string) ([]domain.CareerMilestone, error) {
+	if currentLevel == "" {
+		currentLevel = "Software Engineer"
+	}
+
 	return []domain.CareerMilestone{
 		{
 			StepNumber:  1,
 			Title:       "Core Technical Refinement & Resume ATS Optimization",
-			Description: "Update resume with quantifiable achievements, build Go microservice portfolio projects, and achieve 90+ ATS compatibility score.",
+			Description: fmt.Sprintf("Update resume with quantifiable achievements for %s, build Go microservice portfolio projects, and achieve 90+ ATS compatibility.", targetRole),
 			Duration:    "2 Weeks",
-			KeySkills:   []string{"Go", "PostgreSQL GIN Indexes", "ATS Optimization"},
+			KeySkills:   []string{"Go", "PostgreSQL", "ATS Optimization"},
 			Status:      "in_progress",
 		},
 		{
 			StepNumber:  2,
 			Title:       "System Design & Distributed Architecture Mastery",
-			Description: "Complete system design prep covering rate limiting, distributed caching with Redis, and Kafka event streams.",
+			Description: "Complete system design prep covering rate limiting, distributed caching with Redis, and Kafka event streaming.",
 			Duration:    "3 Weeks",
 			KeySkills:   []string{"System Design", "Redis", "Kafka", "Microservices"},
 			Status:      "pending",
@@ -61,7 +93,7 @@ func (p *MockCareerAIProvider) GenerateStructuredRoadmap(ctx context.Context, ta
 		{
 			StepNumber:  3,
 			Title:       "Internal Referral Networking & Recruiter Outreach",
-			Description: "Request internal employee referrals on the Kirmya Marketplace for target companies like Stripe, Google, and TechCorp.",
+			Description: "Request internal employee referrals on the Kirmya Marketplace for target high-growth tech companies.",
 			Duration:    "2 Weeks",
 			KeySkills:   []string{"Networking", "Referrals", "Recruiter Pitch"},
 			Status:      "pending",
@@ -69,7 +101,7 @@ func (p *MockCareerAIProvider) GenerateStructuredRoadmap(ctx context.Context, ta
 		{
 			StepNumber:  4,
 			Title:       "Mock Technical Interviews & Offer Negotiation",
-			Description: "Participate in 5 simulated AI interview coaching sessions, speed recruiter matches, and negotiate competitive compensation packages.",
+			Description: "Participate in simulated AI interview coaching sessions, speed recruiter matches, and negotiate competitive compensation packages.",
 			Duration:    "2 Weeks",
 			KeySkills:   []string{"Behavioral Prep", "Coding Interviews", "Offer Negotiation"},
 			Status:      "pending",
@@ -77,25 +109,9 @@ func (p *MockCareerAIProvider) GenerateStructuredRoadmap(ctx context.Context, ta
 	}, nil
 }
 
-// OpenAICareerAIProvider implements CareerAIProvider for OpenAI GPT-4o integration
-type OpenAICareerAIProvider struct {
-	APIKey string
-}
+// MockCareerAIProvider is preserved as an alias for backwards compatibility
+type MockCareerAIProvider = CanonicalCompanionAIAdapter
 
-func NewOpenAICareerAIProvider(apiKey string) *OpenAICareerAIProvider {
-	return &OpenAICareerAIProvider{APIKey: apiKey}
-}
-
-func (p *OpenAICareerAIProvider) GetProviderName() string {
-	return "openai-gpt-4o"
-}
-
-func (p *OpenAICareerAIProvider) GenerateResponse(ctx context.Context, systemPrompt, userMessage string, history []domain.AIMessage) (string, int, error) {
-	mock := NewMockCareerAIProvider()
-	return mock.GenerateResponse(ctx, systemPrompt, userMessage, history)
-}
-
-func (p *OpenAICareerAIProvider) GenerateStructuredRoadmap(ctx context.Context, targetRole, currentLevel string) ([]domain.CareerMilestone, error) {
-	mock := NewMockCareerAIProvider()
-	return mock.GenerateStructuredRoadmap(ctx, targetRole, currentLevel)
+func NewMockCareerAIProvider() *MockCareerAIProvider {
+	return NewCanonicalCompanionAIAdapter(sharedAI.NewLocalDeterministicProvider())
 }
