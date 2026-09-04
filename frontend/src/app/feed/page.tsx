@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   Grid,
@@ -8,63 +8,33 @@ import {
   Typography,
   Card,
   CardContent,
-  CardActionArea,
   Button,
   Avatar,
   Chip,
   LinearProgress,
-  IconButton,
   Divider,
   useTheme,
-  Skeleton,
 } from '@mui/material';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import TuneIcon from '@mui/icons-material/Tune';
 
 import { AuthenticatedLayout } from '../../components/shell';
 import { useAuth } from '../../hooks/useAuth';
-import { jobsApi } from '../../features/jobs/api';
-import { JobSummary } from '../../features/jobs/types';
 import { ROUTES } from '../../shared/routes';
 import { tokens } from '../../theme/tokens';
-import { EmptyState, ErrorState, LoadingState } from '../../components/common';
+import { LoadingState } from '../../components/common';
+import { PersonalizedFeedStream } from '../../components/recommendations';
 
 export default function FeedPage() {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-
-  const [recommendedJobs, setRecommendedJobs] = useState<JobSummary[]>([]);
-  const [jobsLoading, setJobsLoading] = useState(true);
-  const [jobsError, setJobsError] = useState(false);
-
-  const fetchJobs = async () => {
-    setJobsLoading(true);
-    setJobsError(false);
-    try {
-      const data = await jobsApi.search({ limit: 4 });
-      setRecommendedJobs(data.data || []);
-    } catch {
-      setJobsError(true);
-    } finally {
-      setJobsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
 
   if (authLoading) {
     return (
@@ -176,7 +146,7 @@ export default function FeedPage() {
           </Stack>
         </Grid>
 
-        {/* Center Column: Personalized Greeting & Recommended Jobs Stream */}
+        {/* Center Column: Personalized Feed Stream */}
         <Grid item xs={12} md={6}>
           <Stack spacing={3}>
             {/* Welcome Banner Card */}
@@ -194,13 +164,13 @@ export default function FeedPage() {
                 Welcome back, {greetingName}.
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Explore opportunities tailored to your career transition goals.
+                Explore real-time opportunities, peer connections, and community discussions curated for your career journey.
               </Typography>
 
               <Stack direction="row" spacing={1.5} flexWrap="wrap">
                 <Chip
                   icon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />}
-                  label="AI Job Matching Active"
+                  label="Multi-Factor AI Ranking Active"
                   color="primary"
                   size="small"
                   sx={{ fontWeight: 600 }}
@@ -214,104 +184,39 @@ export default function FeedPage() {
               </Stack>
             </Card>
 
-            {/* Recommended Jobs Section */}
-            <Box>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Recommended Jobs For You
-                </Typography>
-                <Button
-                  component={Link}
-                  href={ROUTES.JOBS}
-                  endIcon={<ArrowForwardIcon />}
-                  size="small"
-                  sx={{ fontWeight: 600 }}
-                >
-                  View All
-                </Button>
-              </Stack>
-
-              {jobsLoading ? (
-                <Stack spacing={2}>
-                  <Skeleton variant="rounded" height={130} />
-                  <Skeleton variant="rounded" height={130} />
-                  <Skeleton variant="rounded" height={130} />
-                </Stack>
-              ) : jobsError ? (
-                <ErrorState
-                  title="Unable to load recommended jobs"
-                  message="We had trouble reaching the job service. Please try again."
-                  onRetry={fetchJobs}
-                />
-              ) : recommendedJobs.length === 0 ? (
-                <EmptyState
-                  title="No active job postings right now"
-                  description="New openings are posted daily. Check back shortly or explore the full job board."
-                  actionLabel="Search All Jobs"
-                  onAction={() => router.push(ROUTES.JOBS)}
-                />
-              ) : (
-                <Stack spacing={2}>
-                  {recommendedJobs.map((job) => (
-                    <Card
-                      key={job.id}
-                      elevation={1}
-                      sx={{
-                        borderRadius: `${tokens.radius.lg}px`,
-                        transition: 'transform 150ms ease, box-shadow 150ms ease',
-                        '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: theme.shadows[2],
-                        },
-                      }}
-                    >
-                      <CardActionArea
-                        component={Link}
-                        href={ROUTES.JOB_DETAIL(job.id)}
-                        sx={{ p: 2.5 }}
-                      >
-                        <Stack spacing={1.5}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                            <Box>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                                {job.title}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {job.company_name || 'Verified Company'}
-                              </Typography>
-                            </Box>
-                            <Chip
-                              label={job.employment_type || 'Full-time'}
-                              size="small"
-                              variant="outlined"
-                              sx={{ fontWeight: 600 }}
-                            />
-                          </Stack>
-
-                          <Stack direction="row" spacing={2} alignItems="center" color="text.secondary">
-                            <Stack direction="row" spacing={0.5} alignItems="center">
-                              <LocationOnOutlinedIcon sx={{ fontSize: 16 }} />
-                              <Typography variant="caption">{job.location || 'Remote'}</Typography>
-                            </Stack>
-                            {job.salary_range && (
-                              <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                                {job.salary_range}
-                              </Typography>
-                            )}
-                          </Stack>
-                        </Stack>
-                      </CardActionArea>
-                    </Card>
-                  ))}
-                </Stack>
-              )}
-            </Box>
+            {/* Canonical Personalized Feed Component */}
+            <PersonalizedFeedStream initialLimit={15} showTabs={true} />
           </Stack>
         </Grid>
 
-        {/* Right Column: AI Tools & Action Rail */}
+        {/* Right Column: AI Tools & Recommendations Shortcuts */}
         <Grid item xs={12} md={3}>
           <Stack spacing={2.5}>
+            {/* Preferences Management Card */}
+            <Card elevation={1} sx={{ p: 2.5, borderRadius: `${tokens.radius.lg}px` }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                <Avatar sx={{ width: 36, height: 36, bgcolor: 'secondary.main' }}>
+                  <TuneIcon sx={{ fontSize: 20 }} />
+                </Avatar>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  Personalization Config
+                </Typography>
+              </Stack>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: '0.85rem' }}>
+                Refine target job titles, preferred locations, and expected compensation to tune recommendations.
+              </Typography>
+              <Button
+                component={Link}
+                href="/jobs/recommendations"
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ borderRadius: `${tokens.radius.sm}px` }}
+              >
+                Tune Preferences
+              </Button>
+            </Card>
+
             {/* AI Career Assistant Launcher */}
             <Card
               elevation={1}
@@ -344,7 +249,7 @@ export default function FeedPage() {
               </Button>
             </Card>
 
-            {/* Communities & Networking Action */}
+            {/* Communities Action */}
             <Card elevation={1} sx={{ p: 2.5, borderRadius: `${tokens.radius.lg}px` }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                 Peer Communities

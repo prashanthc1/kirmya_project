@@ -395,10 +395,6 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	rSvc := resumeSvc.NewResumeService(rRepo)
 	rHandler := resumeHttp.NewResumeHandler(rSvc)
 
-	recRepository := recRepo.NewRecommendationRepository(dbPool)
-	recService := recSvc.NewRecommendationService(recRepository, pRepo)
-	recHandler := recHttp.NewRecommendationHandler(recService)
-
 	netRepository := netRepo.NewNetworkingRepository(dbPool)
 	netService := netSvc.NewNetworkingService(netRepository, pRepo)
 	netHandler := netHttp.NewNetworkingHandler(netService)
@@ -450,6 +446,10 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	canonicalGenericAI := aiProvider.NewCanonicalGenericAIAdapter(canonicalAIProvider)
 	aiService := aiSvc.NewAIService(aiRepository, canonicalGenericAI)
 	aiHandler := aiHttp.NewAIHandler(aiService)
+
+	recRepository := recRepo.NewRecommendationRepository(dbPool)
+	recService := recSvc.NewRecommendationServiceWithAI(recRepository, pRepo, canonicalAIProvider, appCache)
+	recHandler := recHttp.NewRecommendationHandler(recService)
 
 	companyRepository := companyRepo.NewCompanyRepository(dbPool)
 	companyManagementRepository := companyRepo.NewManagementRepository(dbPool)

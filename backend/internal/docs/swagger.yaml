@@ -1943,6 +1943,7 @@ definitions:
         - like
         - dislike
         - dismiss
+        - save
         type: string
     required:
     - feedbackType
@@ -23154,6 +23155,40 @@ paths:
       summary: Get user registrations
       tags:
       - Communities
+  /api/v1/feed:
+    get:
+      description: Returns a personalized, interleaved stream of jobs, suggested peers,
+        and community discovery for the authenticated user.
+      parameters:
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - default: 15
+        description: Items count
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get personalized home feed
+      tags:
+      - Recommendations
   /api/v1/feedback:
     post:
       consumes:
@@ -31560,6 +31595,98 @@ paths:
       summary: Submit feedback
       tags:
       - AI Matching
+  /api/v1/recommendations/communities:
+    get:
+      description: Returns recommended peer discussion groups and professional communities.
+      parameters:
+      - default: 10
+        description: Items count
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get recommended communities
+      tags:
+      - Recommendations
+  /api/v1/recommendations/feed:
+    get:
+      description: Returns a personalized stream of jobs, suggested peers, and communities.
+      parameters:
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - default: 15
+        description: Items count
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get personalized recommendations feed
+      tags:
+      - Recommendations
+  /api/v1/recommendations/people:
+    get:
+      description: Returns suggested professionals and peers grounded in real user
+        profiles.
+      parameters:
+      - default: 10
+        description: Items count
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get recommended professionals
+      tags:
+      - Recommendations
   /api/v1/recommendations/preferences:
     get:
       description: Returns preferences via the Kirmya recommendation module. Requires

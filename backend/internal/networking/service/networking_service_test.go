@@ -5,19 +5,34 @@ import (
 	"strings"
 	"testing"
 
+	"kirmya/internal/networking/models"
+	"kirmya/internal/networking/repository"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestComputeMutualsAndScore(t *testing.T) {
-	svc := &NetworkingService{}
+	repo := repository.NewNetworkingRepository(nil)
+	svc := &NetworkingService{repo: repo}
+
+	salimID := uuid.MustParse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+	candID := uuid.MustParse("11112222-3333-4444-5555-666677778888") // Ayesha
+
+	reqID := uuid.New()
+	_ = repo.CreateRequest(context.Background(), &models.ConnectionRequest{
+		ID:         reqID,
+		SenderID:   candID,
+		ReceiverID: salimID,
+		Status:     "pending",
+	})
+	_ = repo.AcceptRequestTx(context.Background(), reqID, salimID)
 
 	userConns := []uuid.UUID{
-		uuid.MustParse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"), // Salim (mutual bridge)
+		salimID, // Salim (mutual bridge)
 		uuid.MustParse("99998888-7777-6666-5555-444433332222"), // Fatima
 	}
 
-	candID := uuid.MustParse("11112222-3333-4444-5555-666677778888") // Ayesha
 	candLoc := "Dubai"
 	candInd := "Technology"
 

@@ -210,7 +210,7 @@ func (s *NetworkingService) ListConnections(ctx context.Context, userID uuid.UUI
 
 	var list []netModels.ConnectionRecommendation
 	for _, connID := range conns {
-		name, headline, location, industry := getMockProfileInfo(connID)
+		name, headline, location, industry := s.getProfileInfo(ctx, connID)
 		list = append(list, netModels.ConnectionRecommendation{
 			UserID:           connID,
 			Name:             name,
@@ -231,7 +231,7 @@ func (s *NetworkingService) GetMutualConnections(ctx context.Context, currentUse
 	for _, id1 := range c1 {
 		for _, id2 := range c2 {
 			if id1 == id2 {
-				name, headline, location, industry := getMockProfileInfo(id1)
+				name, headline, location, industry := s.getProfileInfo(ctx, id1)
 				mutuals = append(mutuals, netModels.PeopleSearchResult{
 					UserID:           id1,
 					Name:             name,
@@ -259,11 +259,6 @@ func (s *NetworkingService) GetRecommendations(ctx context.Context, userID uuid.
 
 	dismissedIDs, _ := s.repo.GetDismissedIDs(ctx, userID)
 
-	if len(userConns) == 0 {
-		salimID := uuid.MustParse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
-		userConns = append(userConns, salimID)
-	}
-
 	candidates := getMockNetworkingCandidates(userID, userConns)
 
 	var recs []netModels.ConnectionRecommendation
@@ -284,6 +279,15 @@ func (s *NetworkingService) GetRecommendations(ctx context.Context, userID uuid.
 		}
 		if isDismissed {
 			continue
+		}
+
+		// Hydrate with real profile if available
+		name, headline, loc, ind := s.getProfileInfo(ctx, cand.UserID)
+		if name != "Kirmya Member" {
+			cand.Name = name
+			cand.Headline = headline
+			cand.Location = loc
+			cand.Industry = ind
 		}
 
 		mutuals, matchScore := s.computeMutualsAndScore(ctx, userConns, cand.UserID, cand.Location, cand.Industry)
@@ -310,16 +314,11 @@ func (s *NetworkingService) computeMutualsAndScore(ctx context.Context, userConn
 		candConns, _ = s.repo.ListConnections(ctx, candID)
 	}
 
-	if len(candConns) == 0 {
-		salimID := uuid.MustParse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
-		candConns = append(candConns, salimID)
-	}
-
 	var mutualNames []string
 	for _, uc := range userConns {
 		for _, cc := range candConns {
 			if uc == cc {
-				name, _, _, _ := getMockProfileInfo(uc)
+				name, _, _, _ := s.getProfileInfo(ctx, uc)
 				mutualNames = append(mutualNames, name)
 				break
 			}
@@ -330,7 +329,7 @@ func (s *NetworkingService) computeMutualsAndScore(ctx context.Context, userConn
 	if score > 40 {
 		score = 40
 	}
-	if strings.EqualFold(candLoc, "Dubai") {
+	if strings.Contains(strings.ToLower(candLoc), "dubai") || strings.Contains(strings.ToLower(candLoc), "uae") {
 		score += 20
 	}
 	if strings.EqualFold(candInd, "Technology") {
@@ -351,6 +350,34 @@ func (s *NetworkingService) GetAdminAnalytics(ctx context.Context) (*netModels.A
 
 func (s *NetworkingService) GetAdminReports(ctx context.Context) ([]netModels.NetworkReport, error) {
 	return s.repo.ListAdminReports(ctx)
+}
+
+func (s *NetworkingService) getProfileInfo(ctx context.Context, id uuid.UUID) (string, string, string, string) {
+	if s.profileRepo != nil {
+		if p, err := s.profileRepo.GetByUserID(ctx, id); err == nil && p != nil {
+			name := strings.TrimSpace(fmt.Sprintf("%s %s", p.FirstName, p.LastName))
+			if name == "" {
+				name = p.Username
+			}
+			if name == "" {
+				name = "Kirmya Member"
+			}
+			headline := p.Headline
+			if headline == "" {
+				headline = "Professional Member"
+			}
+			loc := p.Location
+			if loc == "" {
+				loc = "Dubai, UAE"
+			}
+			ind := p.Industry
+			if ind == "" {
+				ind = "Technology"
+			}
+			return name, headline, loc, ind
+		}
+	}
+	return getMockProfileInfo(id)
 }
 
 // Helpers

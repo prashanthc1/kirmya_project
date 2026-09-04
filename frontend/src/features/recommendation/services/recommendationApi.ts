@@ -1,46 +1,60 @@
-import axios from 'axios';
+import { authApiClient } from '../../../services/authService';
+import {
+  FeedResponse,
+  JobRecommendation,
+  RecommendedCommunity,
+  RecommendedPerson,
+  UserJobPreferences,
+} from '../types';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
+export * from '../types';
 
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-client.interceptors.request.use((config: any) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  return config;
-});
+const apiClient = authApiClient;
 
 export const recommendationApi = {
-  getMockUserId: () => MOCK_USER_ID,
+  getMockUserId: () => '00000000-0000-0000-0000-000000000001',
 
-  getRecommendations: async () => {
-    const response = await client.get('/recommendations');
+  getFeed: async (params?: { cursor?: string; limit?: number }): Promise<FeedResponse> => {
+    const response = await apiClient.get<FeedResponse>('/feed', { params });
     return response.data;
   },
 
-  submitFeedback: async (id: string, feedbackType: string, comments: string = '') => {
-    const response = await client.post(`/recommendations/${id}/feedback`, { feedbackType, comments });
+  getRecommendations: async (params?: { page?: number; limit?: number }): Promise<JobRecommendation[]> => {
+    const response = await apiClient.get<JobRecommendation[]>('/recommendations', { params });
     return response.data;
   },
 
-  getPreferences: async () => {
-    const response = await client.get('/recommendations/preferences');
+  getPeopleRecommendations: async (params?: { limit?: number }): Promise<RecommendedPerson[]> => {
+    const response = await apiClient.get<RecommendedPerson[]>('/recommendations/people', { params });
     return response.data;
   },
 
-  updatePreferences: async (data: {
-    preferredTitles: string[];
-    preferredLocations: string[];
-    preferredIndustries: string[];
-    minSalary: number;
-    currency: string;
-  }) => {
-    const response = await client.put('/recommendations/preferences', data);
+  getCommunityRecommendations: async (params?: { limit?: number }): Promise<RecommendedCommunity[]> => {
+    const response = await apiClient.get<RecommendedCommunity[]>('/recommendations/communities', { params });
+    return response.data;
+  },
+
+  submitFeedback: async (
+    id: string,
+    feedbackType: 'like' | 'dislike' | 'dismiss' | 'save',
+    comments: string = ''
+  ): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>(`/recommendations/${id}/feedback`, {
+      feedbackType,
+      comments,
+    });
+    return response.data;
+  },
+
+  getPreferences: async (): Promise<UserJobPreferences> => {
+    const response = await apiClient.get<UserJobPreferences>('/recommendations/preferences');
+    return response.data;
+  },
+
+  updatePreferences: async (data: UserJobPreferences): Promise<UserJobPreferences> => {
+    const response = await apiClient.put<UserJobPreferences>('/recommendations/preferences', data);
     return response.data;
   },
 };
+
+export default recommendationApi;

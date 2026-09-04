@@ -74,6 +74,65 @@ func swaggerGetPreferences() {}
 // @Router       /api/v1/recommendations/preferences [put]
 func swaggerUpdatePreferences() {}
 
+// swaggerGetFeed documents GET /api/v1/feed.
+//
+// @Summary      Get personalized home feed
+// @Description  Returns a personalized, interleaved stream of jobs, suggested peers, and community discovery for the authenticated user.
+// @Tags         Recommendations
+// @Produce      json
+// @Param        cursor query string false "Pagination cursor"
+// @Param        limit  query int    false "Items count" default(15)
+// @Success      200    {object} swagger.PaginationResponse
+// @Failure      401    {object} swagger.ErrorResponse
+// @Failure      500    {object} swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/feed [get]
+func swaggerGetFeed() {}
+
+// swaggerGetRecommendationsFeed documents GET /api/v1/recommendations/feed.
+//
+// @Summary      Get personalized recommendations feed
+// @Description  Returns a personalized stream of jobs, suggested peers, and communities.
+// @Tags         Recommendations
+// @Produce      json
+// @Param        cursor query string false "Pagination cursor"
+// @Param        limit  query int    false "Items count" default(15)
+// @Success      200    {object} swagger.PaginationResponse
+// @Failure      401    {object} swagger.ErrorResponse
+// @Failure      500    {object} swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recommendations/feed [get]
+func swaggerGetRecommendationsFeed() {}
+
+// swaggerGetPeopleRecommendations documents GET /api/v1/recommendations/people.
+//
+// @Summary      Get recommended professionals
+// @Description  Returns suggested professionals and peers grounded in real user profiles.
+// @Tags         Recommendations
+// @Produce      json
+// @Param        limit query int false "Items count" default(10)
+// @Success      200   {object} swagger.PaginationResponse
+// @Failure      401   {object} swagger.ErrorResponse
+// @Failure      500   {object} swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recommendations/people [get]
+func swaggerGetPeopleRecommendations() {}
+
+// swaggerGetCommunityRecommendations documents GET /api/v1/recommendations/communities.
+//
+// @Summary      Get recommended communities
+// @Description  Returns recommended peer discussion groups and professional communities.
+// @Tags         Recommendations
+// @Produce      json
+// @Param        limit query int false "Items count" default(10)
+// @Success      200   {object} swagger.PaginationResponse
+// @Failure      401   {object} swagger.ErrorResponse
+// @Failure      500   {object} swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recommendations/communities [get]
+func swaggerGetCommunityRecommendations() {}
+
+
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,
 // and package names such as `domain` and `models` are not unique across

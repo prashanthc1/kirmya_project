@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Container,
   Grid,
   Card,
   CardContent,
@@ -23,8 +22,10 @@ import {
   Divider,
   Stack,
   Alert,
-  CircularProgress,
   Tooltip,
+  useTheme,
+  alpha,
+  Skeleton,
 } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
@@ -34,45 +35,21 @@ import WorkIcon from '@mui/icons-material/Work';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import SettingsIcon from '@mui/icons-material/Settings';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
+import Link from 'next/link';
 
-import { useColorMode } from '../../providers';
+import { AuthenticatedLayout } from '../../../components/shell';
 import { recommendationApi } from '../../../features/recommendation/services/recommendationApi';
-
-interface JobDetails {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  salaryMax: number;
-  currency: string;
-  industry: string;
-  requiredSkills: string[];
-}
-
-interface JobRecommendation {
-  id: string;
-  userId: string;
-  jobId: string;
-  matchScore: number;
-  matchReasons: string; // JSON array string
-  isActive: boolean;
-  jobDetails?: JobDetails;
-}
-
-interface JobPreferences {
-  preferredTitles: string[];
-  preferredLocations: string[];
-  preferredIndustries: string[];
-  minSalary: number;
-  currency: string;
-}
+import { JobRecommendation, UserJobPreferences } from '../../../features/recommendation/types';
+import { tokens } from '../../../theme/tokens';
+import { EmptyState, ErrorState } from '../../../components/common';
+import { ROUTES } from '../../../shared/routes';
 
 export default function JobRecommendationsPage() {
-  const { mode, toggleColorMode } = useColorMode();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
   const [recommendations, setRecommendations] = useState<JobRecommendation[]>([]);
-  const [preferences, setPreferences] = useState<JobPreferences>({
+  const [preferences, setPreferences] = useState<UserJobPreferences>({
     preferredTitles: [],
     preferredLocations: [],
     preferredIndustries: [],
@@ -80,132 +57,61 @@ export default function JobRecommendationsPage() {
     currency: 'AED',
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [prefOpen, setPrefOpen] = useState(false);
+  const [savingPref, setSavingPref] = useState(false);
 
-  // Pref forms
+  // Pref form state
   const [prefTitlesText, setPrefTitlesText] = useState('');
   const [prefLocsText, setPrefLocsText] = useState('');
   const [prefIndsText, setPrefIndsText] = useState('');
   const [prefMinSalary, setPrefMinSalary] = useState(0);
   const [prefCurrency, setPrefCurrency] = useState('AED');
 
-  // Success alert
-  const [alertMsg, setAlertMsg] = useState('');
+  // Feedback status
+  const [alertMsg, setAlertMsg] = useState<{ severity: 'success' | 'info' | 'error'; text: string } | null>(null);
 
-  const fetchRecommendationsList = async () => {
+  const fetchRecommendationsList = useCallback(async () => {
     try {
       setLoading(true);
-      const list = await recommendationApi.getRecommendations();
-      setRecommendations(list);
+      setError(null);
 
-      const pref = await recommendationApi.getPreferences();
-      setPreferences({
-        preferredTitles: pref.preferredTitles || [],
-        preferredLocations: pref.preferredLocations || [],
-        preferredIndustries: pref.preferredIndustries || [],
-        minSalary: pref.minSalary || 0,
-        currency: pref.currency || 'AED',
-      });
+      const [list, pref] = await Promise.all([
+        recommendationApi.getRecommendations({ limit: 20 }),
+        recommendationApi.getPreferences().catch(() => ({
+          preferredTitles: [],
+          preferredLocations: [],
+          preferredIndustries: [],
+          minSalary: 0,
+          currency: 'AED',
+        })),
+      ]);
+
+      setRecommendations(list || []);
+      setPreferences(pref);
       setPrefTitlesText((pref.preferredTitles || []).join(', '));
       setPrefLocsText((pref.preferredLocations || []).join(', '));
       setPrefIndsText((pref.preferredIndustries || []).join(', '));
       setPrefMinSalary(pref.minSalary || 0);
       setPrefCurrency(pref.currency || 'AED');
-    } catch (err) {
-      console.warn('Backend not running or schema unapplied, using client-side mock sandbox data.');
-      // Load fallback mock data
-      const mockJobs: JobDetails[] = [
-        {
-          id: '11111111-1111-1111-1111-111111111111',
-          title: 'Senior Go Backend Engineer',
-          company: 'Kirmya Technology',
-          location: 'Dubai',
-          salaryMax: 25000,
-          currency: 'AED',
-          industry: 'Technology',
-          requiredSkills: ['Go', 'PostgreSQL', 'Redis'],
-        },
-        {
-          id: '22222222-2222-2222-2222-222222222222',
-          title: 'Lead React / Next.js Developer',
-          company: 'E-Commerce Solutions',
-          location: 'Abu Dhabi',
-          salaryMax: 20000,
-          currency: 'AED',
-          industry: 'Technology',
-          requiredSkills: ['Next.js', 'MUI v6', 'React'],
-        },
-        {
-          id: '33333333-3333-3333-3333-333333333333',
-          title: 'Machine Learning / AI Developer',
-          company: 'Gemini Labs',
-          location: 'Dubai',
-          salaryMax: 30000,
-          currency: 'AED',
-          industry: 'Finance',
-          requiredSkills: ['Python', 'Vertex AI', 'pgvector'],
-        },
-      ];
-
-      const mockRecs: JobRecommendation[] = [
-        {
-          id: 'rec-uuid-1',
-          userId: recommendationApi.getMockUserId(),
-          jobId: mockJobs[0].id,
-          matchScore: 98,
-          matchReasons: `["Matches your target job titles", "Matches 3 of your core skills (Go, PostgreSQL, Redis)", "Located in your preferred city (Dubai)", "Meets your salary expectations"]`,
-          isActive: true,
-          jobDetails: mockJobs[0],
-        },
-        {
-          id: 'rec-uuid-2',
-          userId: recommendationApi.getMockUserId(),
-          jobId: mockJobs[1].id,
-          matchScore: 75,
-          matchReasons: `["Matches 2 of your core skills (Next.js, React)", "Located in your preferred city (Abu Dhabi)", "Meets your salary expectations"]`,
-          isActive: true,
-          jobDetails: mockJobs[1],
-        },
-        {
-          id: 'rec-uuid-3',
-          userId: recommendationApi.getMockUserId(),
-          jobId: mockJobs[2].id,
-          matchScore: 40,
-          matchReasons: `["Matches your preferred location (Dubai)", "Meets your salary expectations"]`,
-          isActive: true,
-          jobDetails: mockJobs[2],
-        },
-      ];
-
-      setRecommendations(mockRecs);
-      const mockPref: JobPreferences = {
-        preferredTitles: ['Go Developer', 'Software Engineer'],
-        preferredLocations: ['Dubai', 'Abu Dhabi'],
-        preferredIndustries: ['Technology', 'Finance'],
-        minSalary: 15000,
-        currency: 'AED',
-      };
-      setPreferences(mockPref);
-      setPrefTitlesText(mockPref.preferredTitles.join(', '));
-      setPrefLocsText(mockPref.preferredLocations.join(', '));
-      setPrefIndsText(mockPref.preferredIndustries.join(', '));
-      setPrefMinSalary(mockPref.minSalary);
-      setPrefCurrency(mockPref.currency);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.message || 'Failed to load recommendations');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRecommendationsList();
-  }, []);
+  }, [fetchRecommendationsList]);
 
   const handleUpdatePreferences = async () => {
-    const titles = prefTitlesText.split(',').map((t: string) => t.trim()).filter(Boolean);
-    const locs = prefLocsText.split(',').map((l: string) => l.trim()).filter(Boolean);
-    const inds = prefIndsText.split(',').map((i: string) => i.trim()).filter(Boolean);
+    const titles = prefTitlesText.split(',').map((t) => t.trim()).filter(Boolean);
+    const locs = prefLocsText.split(',').map((l) => l.trim()).filter(Boolean);
+    const inds = prefIndsText.split(',').map((i) => i.trim()).filter(Boolean);
 
     try {
+      setSavingPref(true);
       const updated = await recommendationApi.updatePreferences({
         preferredTitles: titles,
         preferredLocations: locs,
@@ -213,53 +119,39 @@ export default function JobRecommendationsPage() {
         minSalary: prefMinSalary,
         currency: prefCurrency,
       });
-      setPreferences({
-        preferredTitles: updated.preferredTitles,
-        preferredLocations: updated.preferredLocations,
-        preferredIndustries: updated.preferredIndustries,
-        minSalary: updated.minSalary,
-        currency: updated.currency,
-      });
+
+      setPreferences(updated);
       setPrefOpen(false);
-      setAlertMsg('Job preferences saved successfully. Regenerating matches...');
-      setTimeout(() => setAlertMsg(''), 4000);
+      setAlertMsg({ severity: 'success', text: 'Career preferences saved. Recalculating job matches...' });
+      setTimeout(() => setAlertMsg(null), 4000);
       fetchRecommendationsList();
-    } catch (err) {
-      const mockUpdated: JobPreferences = {
-        preferredTitles: titles,
-        preferredLocations: locs,
-        preferredIndustries: inds,
-        minSalary: prefMinSalary,
-        currency: prefCurrency,
-      };
-      setPreferences(mockUpdated);
-      setPrefOpen(false);
-      setAlertMsg('Job preferences saved successfully. Regenerating matches...');
-      setTimeout(() => setAlertMsg(''), 4000);
+    } catch (err: any) {
+      setAlertMsg({
+        severity: 'error',
+        text: err?.response?.data?.error || 'Could not save preferences. Please try again.',
+      });
+    } finally {
+      setSavingPref(false);
     }
   };
 
-  const handleFeedback = async (id: string, type: 'like' | 'dislike' | 'dismiss') => {
+  const handleFeedback = async (id: string, type: 'like' | 'dislike' | 'dismiss' | 'save') => {
     try {
+      if (type === 'dislike' || type === 'dismiss') {
+        setRecommendations((prev) => prev.filter((rec) => rec.id !== id));
+      }
       await recommendationApi.submitFeedback(id, type);
-      if (type === 'dislike' || type === 'dismiss') {
-        setRecommendations(recommendations.filter((rec: JobRecommendation) => rec.id !== id));
-      }
-      setAlertMsg(`Feedback logged: ${type.toUpperCase()}`);
-      setTimeout(() => setAlertMsg(''), 3000);
-    } catch (err) {
-      if (type === 'dislike' || type === 'dismiss') {
-        setRecommendations(recommendations.filter((rec: JobRecommendation) => rec.id !== id));
-      }
-      setAlertMsg(`Feedback logged: ${type.toUpperCase()}`);
-      setTimeout(() => setAlertMsg(''), 3000);
+      setAlertMsg({ severity: 'info', text: `Feedback logged: ${type.toUpperCase()}` });
+      setTimeout(() => setAlertMsg(null), 3000);
+    } catch {
+      // Ignored
     }
   };
 
   const getMatchScoreColor = (score: number) => {
-    if (score >= 80) return '#10b981'; // Emerald Green
-    if (score >= 50) return '#f59e0b'; // Amber Gold
-    return '#ef4444'; // Red
+    if (score >= 80) return theme.palette.success.main;
+    if (score >= 50) return theme.palette.warning.main;
+    return theme.palette.primary.main;
   };
 
   const parseReasons = (reasonsJson: string) => {
@@ -267,95 +159,156 @@ export default function JobRecommendationsPage() {
       const arr = JSON.parse(reasonsJson);
       if (Array.isArray(arr)) {
         return (
-          <Stack spacing={1} sx={{ mt: 1.5 }}>
+          <Stack spacing={0.75} sx={{ mt: 1 }}>
             {arr.map((reason: string, i: number) => (
               <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AutoAwesomeIcon color="secondary" sx={{ fontSize: 14 }} />
-                <Typography variant="caption" color="text.secondary">{reason}</Typography>
+                <AutoAwesomeIcon color="secondary" sx={{ fontSize: 13 }} />
+                <Typography variant="caption" color="text.secondary">
+                  {reason}
+                </Typography>
               </Box>
             ))}
           </Stack>
         );
       }
-    } catch (e) {
-      // Return raw
+    } catch {
+      // Fallback
     }
-    return <Typography variant="caption" color="text.secondary">{reasonsJson}</Typography>;
+    return (
+      <Typography variant="caption" color="text.secondary">
+        {reasonsJson}
+      </Typography>
+    );
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ width: '100%', mt: 10, px: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <CircularProgress color="primary" />
-        <Typography sx={{ mt: 2 }}>Loading Personalized Job Matches...</Typography>
-      </Box>
-    );
-  }
-
   return (
-    <Box sx={{ minHeight: '100dvh', py: 4, background: mode === 'light' ? 'linear-gradient(135deg, #eef2f6 0%, #cbd5e1 100%)' : 'linear-gradient(135deg, #020617 0%, #1e1b4b 100%)' }}>
-      
-      {/* Global Header Bar */}
-      <Container maxWidth="lg" sx={{ mb: 4 }}>
-        <Card sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, background: 'linear-gradient(45deg, #818cf8, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            KIRMYA JOB RECOMMENDATION SYSTEM
-          </Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Button startIcon={<SettingsIcon />} variant="outlined" onClick={() => setPrefOpen(true)}>
-              Target Preferences
-            </Button>
-            <IconButton onClick={toggleColorMode} color="inherit">
-              {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
-            </IconButton>
-          </Stack>
+    <AuthenticatedLayout maxWidth="wide">
+      <Stack spacing={3}>
+        {/* Header Bar */}
+        <Card
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: `${tokens.radius.lg}px`,
+            border: `1px solid ${
+              isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+            }`,
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.6) 100%)'
+              : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              AI Job Recommendations
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Personalized career matches powered by multi-factor scoring (Skills, Title, Location, Compensation, Industry).
+            </Typography>
+          </Box>
+          <Button
+            startIcon={<SettingsIcon />}
+            variant="contained"
+            onClick={() => setPrefOpen(true)}
+            sx={{ borderRadius: `${tokens.radius.md}px`, fontWeight: 600 }}
+          >
+            Target Preferences
+          </Button>
         </Card>
-      </Container>
 
-      {/* Main Container */}
-      <Container maxWidth="lg">
-        {alertMsg && <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert>}
-        
+        {alertMsg && (
+          <Alert severity={alertMsg.severity} sx={{ borderRadius: `${tokens.radius.md}px` }}>
+            {alertMsg.text}
+          </Alert>
+        )}
+
         <Grid container spacing={3}>
-          
           {/* Left Column: Preferences Overview */}
           <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Job Preferences</Typography>
-                
-                <Stack spacing={2}>
+            <Card
+              elevation={0}
+              sx={{
+                borderRadius: `${tokens.radius.lg}px`,
+                border: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+                }`,
+              }}
+            >
+              <CardContent sx={{ p: 2.5 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    Active Criteria
+                  </Typography>
+                  <Button size="small" onClick={() => setPrefOpen(true)}>
+                    Edit
+                  </Button>
+                </Stack>
+
+                <Stack spacing={2.5}>
                   <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Target Titles</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Target Titles
+                    </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                      {preferences.preferredTitles.map((title: string, i: number) => (
-                        <Chip key={i} label={title} size="small" color="primary" variant="outlined" />
-                      ))}
+                      {(preferences.preferredTitles || []).length > 0 ? (
+                        preferences.preferredTitles.map((title, i) => (
+                          <Chip key={i} label={title} size="small" color="primary" variant="outlined" />
+                        ))
+                      ) : (
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                          No titles specified
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
 
                   <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Target Locations</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Target Locations
+                    </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                      {preferences.preferredLocations.map((loc: string, i: number) => (
-                        <Chip key={i} label={loc} size="small" variant="outlined" />
-                      ))}
+                      {(preferences.preferredLocations || []).length > 0 ? (
+                        preferences.preferredLocations.map((loc, i) => (
+                          <Chip key={i} label={loc} size="small" variant="outlined" />
+                        ))
+                      ) : (
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                          All locations
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
 
                   <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Target Industries</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Target Industries
+                    </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                      {preferences.preferredIndustries.map((ind: string, i: number) => (
-                        <Chip key={i} label={ind} size="small" color="secondary" variant="outlined" />
-                      ))}
+                      {(preferences.preferredIndustries || []).length > 0 ? (
+                        preferences.preferredIndustries.map((ind, i) => (
+                          <Chip key={i} label={ind} size="small" color="secondary" variant="outlined" />
+                        ))
+                      ) : (
+                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                          All industries
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
 
                   <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Expected Minimum Salary</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Expected Minimum Salary
+                    </Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 0.5 }}>
-                      {preferences.minSalary.toLocaleString()} {preferences.currency} / month
+                      {preferences.minSalary > 0
+                        ? `${preferences.minSalary.toLocaleString()} ${preferences.currency || 'AED'} / month`
+                        : 'No minimum set'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -365,94 +318,201 @@ export default function JobRecommendationsPage() {
 
           {/* Right Column: Recommendations Stream */}
           <Grid item xs={12} md={8}>
-            <Stack spacing={3}>
-              
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>Personalized Matching Openings</Typography>
-              
-              {recommendations.length === 0 ? (
-                <Alert severity="info">No recommendations match your current parameters. Expand your preferred locations or industries to discover more opportunities.</Alert>
+            <Stack spacing={2.5}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Matched Opportunities ({recommendations.length})
+              </Typography>
+
+              {loading ? (
+                <Stack spacing={2}>
+                  <Skeleton variant="rounded" height={160} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+                  <Skeleton variant="rounded" height={160} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+                  <Skeleton variant="rounded" height={160} sx={{ borderRadius: `${tokens.radius.lg}px` }} />
+                </Stack>
+              ) : error ? (
+                <ErrorState
+                  title="Could not load recommendations"
+                  message={error}
+                  onRetry={fetchRecommendationsList}
+                />
+              ) : recommendations.length === 0 ? (
+                <EmptyState
+                  title="No job recommendations found"
+                  description="Try broadening your target titles, locations, or salary expectations to see more matches."
+                  actionLabel="Adjust Preferences"
+                  onAction={() => setPrefOpen(true)}
+                />
               ) : (
-                recommendations.map((rec: JobRecommendation) => {
+                recommendations.map((rec) => {
                   const job = rec.jobDetails;
                   if (!job) return null;
+                  const scoreColor = getMatchScoreColor(rec.matchScore);
+
                   return (
-                    <Card key={rec.id} sx={{ position: 'relative', overflow: 'visible' }}>
-                      
-                      {/* Frosted Match score indicator */}
-                      <Box 
-                        sx={{ 
-                          position: 'absolute', 
-                          top: -15, 
-                          right: 20, 
-                          backgroundColor: getMatchScoreColor(rec.matchScore), 
-                          color: 'white', 
-                          px: 2, 
-                          py: 0.5, 
-                          borderRadius: '12px',
-                          boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
-                          fontWeight: 700,
-                          fontSize: '0.85rem'
-                        }}
-                      >
-                        {rec.matchScore}% MATCH
-                      </Box>
+                    <Card
+                      key={rec.id}
+                      elevation={0}
+                      sx={{
+                        position: 'relative',
+                        borderRadius: `${tokens.radius.lg}px`,
+                        border: `1px solid ${
+                          isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+                        }`,
+                        background: isDark
+                          ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.6) 100%)'
+                          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+                        backdropFilter: 'blur(16px)',
+                        transition: 'all 200ms ease',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          borderColor: alpha(scoreColor, 0.3),
+                        },
+                      }}
+                    >
+                      <CardContent sx={{ p: 2.5 }}>
+                        <Stack spacing={1.5}>
+                          {/* Header row with Match Badge */}
+                          <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                            <Box>
+                              <Typography
+                                component={Link}
+                                href={ROUTES.JOB_DETAIL(job.id)}
+                                variant="h6"
+                                sx={{
+                                  fontWeight: 700,
+                                  textDecoration: 'none',
+                                  color: 'text.primary',
+                                  '&:hover': { color: theme.palette.primary.main },
+                                }}
+                              >
+                                {job.title}
+                              </Typography>
+                              <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 600 }}>
+                                {job.company || 'Verified Employer'}
+                              </Typography>
+                            </Box>
 
-                      <CardContent sx={{ pt: 3 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{job.title}</Typography>
-                        <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 600, mt: 0.5 }}>{job.company}</Typography>
+                            <Chip
+                              icon={<AutoAwesomeIcon sx={{ fontSize: '13px !important' }} />}
+                              label={`${rec.matchScore}% Match`}
+                              size="small"
+                              sx={{
+                                fontWeight: 700,
+                                bgcolor: alpha(scoreColor, isDark ? 0.2 : 0.1),
+                                color: scoreColor,
+                                border: `1px solid ${alpha(scoreColor, 0.3)}`,
+                              }}
+                            />
+                          </Stack>
 
-                        <Stack direction="row" spacing={3} sx={{ mt: 2, mb: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <LocationOnIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">{job.location}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <PaymentsIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">{job.salaryMax.toLocaleString()} {job.currency} / month</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <WorkIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">{job.industry}</Typography>
-                          </Box>
-                        </Stack>
+                          {/* Metadata row */}
+                          <Stack direction="row" spacing={3} flexWrap="wrap" sx={{ gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <LocationOnIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" color="text.secondary">
+                                {job.location || 'Remote'}
+                              </Typography>
+                            </Box>
+                            {job.salaryMax > 0 && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <PaymentsIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                  {job.salaryMax.toLocaleString()} {job.currency || 'AED'} / month
+                                </Typography>
+                              </Box>
+                            )}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <WorkIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" color="text.secondary">
+                                {job.industry || 'Technology'}
+                              </Typography>
+                            </Box>
+                          </Stack>
 
-                        <Divider sx={{ my: 1.5 }} />
+                          {/* Match Analysis Details */}
+                          {rec.matchReasons && (
+                            <Box
+                              sx={{
+                                p: 1.5,
+                                borderRadius: `${tokens.radius.md}px`,
+                                bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(15, 23, 42, 0.02)',
+                                border: `1px solid ${
+                                  isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)'
+                                }`,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: 700,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.5,
+                                }}
+                              >
+                                <AutoAwesomeIcon color="secondary" sx={{ fontSize: 13 }} /> MATCH ANALYSIS
+                              </Typography>
+                              {parseReasons(rec.matchReasons)}
+                            </Box>
+                          )}
 
-                        {/* Match Explanations */}
-                        <Box sx={{ p: 2, borderRadius: '8px', backgroundColor: 'rgba(0,0,0,0.01)', border: '1px solid rgba(0,0,0,0.03)' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <AutoAwesomeIcon color="secondary" sx={{ fontSize: 14 }} /> MATCH ANALYSIS DETAILS
-                          </Typography>
-                          {parseReasons(rec.matchReasons)}
-                        </Box>
+                          {/* Skills and Feedback Row */}
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            flexWrap="wrap"
+                            sx={{ gap: 1, pt: 1 }}
+                          >
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                              {(job.requiredSkills || []).slice(0, 5).map((skill, i) => (
+                                <Chip
+                                  key={i}
+                                  label={skill}
+                                  size="small"
+                                  sx={{
+                                    height: 22,
+                                    fontSize: '0.72rem',
+                                    bgcolor: isDark
+                                      ? 'rgba(255, 255, 255, 0.06)'
+                                      : 'rgba(15, 23, 42, 0.04)',
+                                  }}
+                                />
+                              ))}
+                            </Box>
 
-                        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2, alignItems: 'center' }}>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            {job.requiredSkills.map((skill: string, i: number) => (
-                              <Chip key={i} label={skill} size="small" variant="filled" color="primary" sx={{ opacity: 0.85 }} />
-                            ))}
-                          </Box>
-                          
-                          {/* Feedback options */}
-                          <Stack direction="row" spacing={1}>
-                            <Tooltip title="Helpful Recommendation">
-                              <IconButton onClick={() => handleFeedback(rec.id, 'like')} color="primary" size="small">
-                                <ThumbUpIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Not Relevant">
-                              <IconButton onClick={() => handleFeedback(rec.id, 'dislike')} color="error" size="small">
-                                <ThumbDownIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Dismiss">
-                              <IconButton onClick={() => handleFeedback(rec.id, 'dismiss')} size="small">
-                                <CloseIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
+                            {/* Feedback options */}
+                            <Stack direction="row" spacing={0.5}>
+                              <Tooltip title="Helpful Recommendation">
+                                <IconButton
+                                  onClick={() => handleFeedback(rec.id, 'like')}
+                                  color="primary"
+                                  size="small"
+                                >
+                                  <ThumbUpIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Not Relevant">
+                                <IconButton
+                                  onClick={() => handleFeedback(rec.id, 'dislike')}
+                                  color="error"
+                                  size="small"
+                                >
+                                  <ThumbDownIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Dismiss">
+                                <IconButton
+                                  onClick={() => handleFeedback(rec.id, 'dismiss')}
+                                  size="small"
+                                  sx={{ color: 'text.secondary' }}
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
                           </Stack>
                         </Stack>
-
                       </CardContent>
                     </Card>
                   );
@@ -460,67 +520,77 @@ export default function JobRecommendationsPage() {
               )}
             </Stack>
           </Grid>
-
         </Grid>
-      </Container>
 
-      {/* ----------------- DIALOG MODALS ----------------- */}
-
-      {/* Edit Job Preferences Modal */}
-      <Dialog open={prefOpen} onClose={() => setPrefOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Configure Target Job Preferences</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField 
-              label="Target Job Titles (comma separated)" 
-              placeholder="Go Developer, Tech Lead" 
-              fullWidth 
-              value={prefTitlesText} 
-              onChange={(e) => setPrefTitlesText(e.target.value)} 
-            />
-            <TextField 
-              label="Preferred Locations (comma separated)" 
-              placeholder="Dubai, Abu Dhabi" 
-              fullWidth 
-              value={prefLocsText} 
-              onChange={(e) => setPrefLocsText(e.target.value)} 
-            />
-            <TextField 
-              label="Preferred Industries (comma separated)" 
-              placeholder="Technology, Finance" 
-              fullWidth 
-              value={prefIndsText} 
-              onChange={(e) => setPrefIndsText(e.target.value)} 
-            />
-            <Grid container spacing={2}>
-              <Grid item xs={8}>
-                <TextField 
-                  label="Minimum Target Salary" 
-                  type="number" 
-                  fullWidth 
-                  value={prefMinSalary} 
-                  onChange={(e) => setPrefMinSalary(Number(e.target.value))} 
-                />
+        {/* Edit Preferences Dialog Modal */}
+        <Dialog open={prefOpen} onClose={() => setPrefOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 700 }}>Configure Target Job Preferences</DialogTitle>
+          <DialogContent sx={{ pt: 2 }}>
+            <Stack spacing={2.5} sx={{ mt: 1 }}>
+              <TextField
+                label="Target Job Titles (comma separated)"
+                placeholder="Senior Go Backend Architect, Staff Engineer"
+                fullWidth
+                value={prefTitlesText}
+                onChange={(e) => setPrefTitlesText(e.target.value)}
+              />
+              <TextField
+                label="Preferred Locations (comma separated)"
+                placeholder="Dubai, Abu Dhabi, Remote"
+                fullWidth
+                value={prefLocsText}
+                onChange={(e) => setPrefLocsText(e.target.value)}
+              />
+              <TextField
+                label="Preferred Industries (comma separated)"
+                placeholder="Technology, Financial Services, AI"
+                fullWidth
+                value={prefIndsText}
+                onChange={(e) => setPrefIndsText(e.target.value)}
+              />
+              <Grid container spacing={2}>
+                <Grid item xs={8}>
+                  <TextField
+                    label="Minimum Target Salary"
+                    type="number"
+                    fullWidth
+                    value={prefMinSalary}
+                    onChange={(e) => setPrefMinSalary(Number(e.target.value))}
+                  />
+                </Grid>
+                <Grid item xs={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      value={prefCurrency}
+                      label="Currency"
+                      onChange={(e) => setPrefCurrency(e.target.value)}
+                    >
+                      <MenuItem value="AED">AED</MenuItem>
+                      <MenuItem value="USD">USD</MenuItem>
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="GBP">GBP</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
               </Grid>
-              <Grid item xs={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Currency</InputLabel>
-                  <Select value={prefCurrency} label="Currency" onChange={(e) => setPrefCurrency(e.target.value)}>
-                    <MenuItem value="AED">AED</MenuItem>
-                    <MenuItem value="USD">USD</MenuItem>
-                    <MenuItem value="EUR">EUR</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPrefOpen(false)}>Cancel</Button>
-          <Button onClick={handleUpdatePreferences} variant="contained">Regenerate Matches</Button>
-        </DialogActions>
-      </Dialog>
-
-    </Box>
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button onClick={() => setPrefOpen(false)} disabled={savingPref}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdatePreferences}
+              variant="contained"
+              disabled={savingPref}
+              sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 600 }}
+            >
+              {savingPref ? 'Saving...' : 'Save & Recalculate'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Stack>
+    </AuthenticatedLayout>
   );
 }

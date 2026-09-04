@@ -116,11 +116,26 @@ func (h *RecommendationHandler) AdminGetMetrics(c *gin.Context) {
 }
 
 func (h *RecommendationHandler) getUserID(c *gin.Context) uuid.UUID {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		return uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	if val, exists := c.Get("userID"); exists {
+		if uid, ok := val.(uuid.UUID); ok {
+			return uid
+		}
+		if strID, ok := val.(string); ok {
+			if parsed, err := uuid.Parse(strID); err == nil {
+				return parsed
+			}
+		}
 	}
-	return userID
+	if val, exists := c.Get("user_id"); exists {
+		if uid, ok := val.(uuid.UUID); ok {
+			return uid
+		}
+		if strID, ok := val.(string); ok {
+			if parsed, err := uuid.Parse(strID); err == nil {
+				return parsed
+			}
+		}
+	}
+	return uuid.Nil
 }
 

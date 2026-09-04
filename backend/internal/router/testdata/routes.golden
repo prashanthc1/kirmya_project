@@ -289,6 +289,7 @@ GET /api/v1/enterprise/teams
 GET /api/v1/events
 GET /api/v1/events/:id
 GET /api/v1/events/my-events
+GET /api/v1/feed
 GET /api/v1/freelance/contracts
 GET /api/v1/freelance/profile
 GET /api/v1/freelance/projects
@@ -402,6 +403,9 @@ GET /api/v1/recommendation-engine/career-gaps
 GET /api/v1/recommendation-engine/preferences
 GET /api/v1/recommendation-engine/unified
 GET /api/v1/recommendations
+GET /api/v1/recommendations/communities
+GET /api/v1/recommendations/feed
+GET /api/v1/recommendations/people
 GET /api/v1/recommendations/preferences
 GET /api/v1/recruiter-ai/sessions
 GET /api/v1/recruiter/analytics
