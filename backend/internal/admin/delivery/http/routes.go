@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware ...*authMiddlewarePkg.AuthMiddleware) {
@@ -10,9 +11,10 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 		return
 	}
 	admin := api.Group("/admin")
-	if len(authMiddleware) > 0 && authMiddleware[0] != nil {
-		admin.Use(authMiddleware[0].RequireAuth(), authMiddleware[0].RequireRole("admin", "super_admin"))
-	}
+	// Unconditional. This guard previously applied only when an AuthMiddleware
+	// value was supplied, so constructing the router without one left the whole
+	// administrative surface open rather than closed.
+	admin.Use(sharedMiddleware.RequireAdmin())
 	{
 		admin.GET("/dashboard", handler.GetDashboard)
 

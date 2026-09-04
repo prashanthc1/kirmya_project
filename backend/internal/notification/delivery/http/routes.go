@@ -50,7 +50,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 	}
 
 	admin := api.Group("/admin/notifications")
-	admin.Use(sharedMiddleware.AuthRequired())
+	admin.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
 		admin.GET("", handler.ListNotifications)
 		admin.GET("/templates", handler.AdminGetTemplates)

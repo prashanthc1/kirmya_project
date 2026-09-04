@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 func RegisterRoutes(router *gin.RouterGroup, analyticsHandler interface{}, adminHandler *AdminAnalyticsHandler) {
@@ -109,6 +110,7 @@ func RegisterAdminAnalyticsRoutes(router *gin.RouterGroup, handler *AdminAnalyti
 	}
 
 	adminAnalytics := router.Group("/admin/analytics")
+	adminAnalytics.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminAnalytics.GET("/overview", getOverview)
 		adminAnalytics.GET("/users", getUserGrowth)

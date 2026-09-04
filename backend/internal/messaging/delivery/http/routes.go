@@ -43,7 +43,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *MessagingHandler) {
 
 	// Admin messaging desk
 	admin := api.Group("/admin/messaging")
-	admin.Use(sharedMiddleware.AuthRequired())
+	admin.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
 		admin.GET("/analytics", handler.GetAdminAnalytics)
 		admin.GET("/reports", handler.GetAdminReports)

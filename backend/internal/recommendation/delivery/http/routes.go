@@ -25,4 +25,3 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecommendationHandler) {
 		recommendations.PUT("/preferences", handler.UpdatePreferences)
 	}
 }
-

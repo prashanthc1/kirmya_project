@@ -11,11 +11,7 @@ func RegisterAdminBackupRoutes(api *gin.RouterGroup, handler *BackupHandler, aut
 		return
 	}
 	backups := api.Group("/admin/backups")
-	if authMiddleware != nil {
-		backups.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
-	} else {
-		backups.Use(sharedMiddleware.AuthRequired())
-	}
+	backups.Use(sharedMiddleware.RequireAdmin())
 	{
 		backups.GET("", handler.ListBackups)
 		backups.POST("", handler.TriggerBackup)

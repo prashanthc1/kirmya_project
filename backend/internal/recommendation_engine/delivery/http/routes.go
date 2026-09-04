@@ -17,11 +17,10 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecommendationHandler) {
 	}
 
 	adminGroup := api.Group("/admin/recommendations")
-	adminGroup.Use(sharedMiddleware.AuthRequired())
+	adminGroup.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
 		adminGroup.GET("/config", handler.AdminGetConfig)
 		adminGroup.PUT("/config", handler.AdminUpdateConfig)
 		adminGroup.GET("/metrics", handler.AdminGetMetrics)
 	}
 }
-

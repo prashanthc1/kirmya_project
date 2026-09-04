@@ -30,7 +30,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ComplianceHandler) {
 	}
 
 	adminComplianceGroup := api.Group("/admin/compliance")
-	adminComplianceGroup.Use(sharedMiddleware.AuthRequired())
+	adminComplianceGroup.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
 		adminComplianceGroup.GET("/dsr", adminHandler.GetAllDataRequests)
 		adminComplianceGroup.PATCH("/dsr/:id", adminHandler.UpdateDataRequest)
@@ -48,7 +48,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ComplianceHandler) {
 	}
 
 	adminGovernanceGroup := api.Group("/admin/data-governance")
-	adminGovernanceGroup.Use(sharedMiddleware.AuthRequired())
+	adminGovernanceGroup.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
 		adminGovernanceGroup.GET("/inventory", adminHandler.GetDataInventory)
 		adminGovernanceGroup.POST("/inventory", adminHandler.AddInventoryItem)

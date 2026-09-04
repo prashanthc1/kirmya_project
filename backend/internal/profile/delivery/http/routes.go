@@ -103,11 +103,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*auth
 
 	// Admin Profile Management
 	adminUserGroup := api.Group("/admin/users/:id/profile")
-	if len(auth) > 0 && auth[0] != nil {
-		adminUserGroup.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
-	} else {
-		adminUserGroup.Use(sharedMiddleware.AuthRequired())
-	}
+	adminUserGroup.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminUserGroup.GET("", handler.AdminGetProfile)
 		adminUserGroup.PUT("", handler.AdminUpdateProfile)

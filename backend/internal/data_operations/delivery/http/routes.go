@@ -20,11 +20,7 @@ func RegisterAdminRoutes(api *gin.RouterGroup, handler *DataOperationsHandler, a
 		return
 	}
 	adminOps := api.Group("/admin/data-operations")
-	if authMiddleware != nil {
-		adminOps.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
-	} else {
-		adminOps.Use(sharedMiddleware.AuthRequired())
-	}
+	adminOps.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminOps.POST("/imports/preview", handler.PreviewImport)
 		adminOps.POST("/imports", handler.CreateImport)

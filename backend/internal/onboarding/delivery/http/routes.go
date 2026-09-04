@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 )
@@ -38,6 +39,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddle
 
 	// Admin endpoints
 	adminGroup := api.Group("/admin/onboarding")
+	adminGroup.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminGroup.GET("", handler.GetAnalyticsSummary)
 		adminGroup.GET("/analytics", handler.GetAnalyticsSummary)

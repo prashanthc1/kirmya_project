@@ -10,7 +10,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *MentorshipHandler) {
 		return
 	}
 	group := api.Group("/mentorship")
-	
+
 	// Public / Search endpoints
 	group.GET("/mentors/search", handler.SearchMentors)
 	group.GET("/mentors/recommendations", handler.GetRecommendations)

@@ -6,21 +6,30 @@ import (
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(router *gin.RouterGroup, handler interface{}) {
-	switch h := handler.(type) {
-	case *TrustSafetyHandler:
-		RegisterSafetyRoutes(router, h)
-		RegisterTrustRoutes(router, h)
-	case *TrustHandler:
-		if h != nil {
-			trust := router.Group("/trust")
-			trust.Use(sharedMiddleware.AuthRequired())
-			{
-				trust.POST("/reports", h.SubmitReport)
-				trust.GET("/reports", h.GetReports)
-				trust.POST("/reports/:id/action", h.ExecuteModerationAction)
-			}
-		}
+// RegisterRoutes mounts the user-facing trust endpoints.
+//
+// The parameter is a concrete *TrustHandler rather than an interface{} with a
+// type switch. The previous signature accepted anything and silently mounted
+// nothing when the value did not match a case, so passing the wrong handler —
+// or a typed nil — produced a router with no trust routes and no error at
+// startup or in any test. A wrong type is now a compile error instead of a
+// silently missing set of endpoints.
+//
+// The *TrustSafetyHandler branch this switch also carried was unreachable:
+// SetupRouter mounts that handler through RegisterSafetyRoutes directly.
+func RegisterRoutes(router *gin.RouterGroup, handler *TrustHandler) {
+	if handler == nil {
+		return
+	}
+
+	trust := router.Group("/trust")
+	trust.Use(sharedMiddleware.AuthRequired())
+	{
+		trust.POST("/reports", handler.SubmitReport)
+		trust.GET("/reports", handler.GetReports)
+		// Executing a moderation action is an administrative capability, not
+		// something any signed-in user may do to another user's report.
+		trust.POST("/reports/:id/action", sharedMiddleware.RequireAdmin(), handler.ExecuteModerationAction)
 	}
 }
 
@@ -76,11 +85,7 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 	}
 
 	adminTrustSafety := router.Group("/admin/trust-safety")
-	if auth != nil {
-		adminTrustSafety.Use(auth.RequireAuth(), auth.RequireRole("admin", "super_admin"))
-	} else {
-		adminTrustSafety.Use(sharedMiddleware.AuthRequired())
-	}
+	adminTrustSafety.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminTrustSafety.GET("", handler.GetAdminSummary)
 		adminTrustSafety.GET("/queue", handler.GetAdminQueue)
@@ -114,11 +119,7 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 	}
 
 	adminSafetyLegacy := router.Group("/admin/safety")
-	if auth != nil {
-		adminSafetyLegacy.Use(auth.RequireAuth(), auth.RequireRole("admin", "super_admin"))
-	} else {
-		adminSafetyLegacy.Use(sharedMiddleware.AuthRequired())
-	}
+	adminSafetyLegacy.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminSafetyLegacy.GET("/cases", handler.GetAdminCases)
 		adminSafetyLegacy.POST("/cases/:id/actions", handler.ApplyAction)

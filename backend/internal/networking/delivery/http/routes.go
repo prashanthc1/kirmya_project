@@ -73,7 +73,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NetworkingHandler) {
 
 	// Admin Network Management Group
 	adminNetwork := api.Group("/admin/network")
-	adminNetwork.Use(sharedMiddleware.AuthRequired())
+	adminNetwork.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
 		adminNetwork.GET("/analytics", handler.GetAdminAnalytics)
 		adminNetwork.GET("/reports", handler.GetAdminReports)

@@ -28,10 +28,14 @@ func setupTestRouter() (*gin.Engine, *AdminHandler, *service.AdminService, uuid.
 
 	adminID := uuid.New()
 
-	// Authenticated admin context middleware for testing
+	// Stand in for the auth middleware, populating the context keys the RBAC
+	// middleware actually reads. This previously set "userRole", which nothing
+	// reads: the suite passed only because RegisterRoutes left the /admin group
+	// unguarded when given no AuthMiddleware, so these tests were asserting
+	// against an open surface while appearing to authenticate as an admin.
 	r.Use(func(c *gin.Context) {
 		c.Set("userID", adminID)
-		c.Set("userRole", "super_admin")
+		c.Set("role", "super_admin")
 		c.Next()
 	})
 

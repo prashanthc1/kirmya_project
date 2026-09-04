@@ -44,11 +44,7 @@ func RegisterAdminSecurityRoutes(router *gin.RouterGroup, handler *AdminSecurity
 		return
 	}
 	adminSecurity := router.Group("/admin/security")
-	if len(auth) > 0 && auth[0] != nil {
-		adminSecurity.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
-	} else {
-		adminSecurity.Use(sharedMiddleware.AuthRequired())
-	}
+	adminSecurity.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminSecurity.GET("", handler.GetAdminSecuritySummary)
 		adminSecurity.GET("/events", handler.GetSecurityEvents)

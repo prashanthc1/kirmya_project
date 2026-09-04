@@ -45,11 +45,7 @@ func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandle
 		return
 	}
 	adminLegal := router.Group("/admin/legal")
-	if len(auth) > 0 && auth[0] != nil {
-		adminLegal.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
-	} else {
-		adminLegal.Use(sharedMiddleware.AuthRequired())
-	}
+	adminLegal.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminLegal.GET("/documents", handler.GetAdminDocuments)
 		adminLegal.GET("/privacy-requests", handler.GetPrivacyRequests)
@@ -58,11 +54,7 @@ func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandle
 	}
 
 	adminPrivacy := router.Group("/admin/privacy")
-	if len(auth) > 0 && auth[0] != nil {
-		adminPrivacy.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
-	} else {
-		adminPrivacy.Use(sharedMiddleware.AuthRequired())
-	}
+	adminPrivacy.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminPrivacy.GET("", handler.GetAdminPrivacySummary)
 		adminPrivacy.GET("/requests", handler.GetPrivacyRequests)

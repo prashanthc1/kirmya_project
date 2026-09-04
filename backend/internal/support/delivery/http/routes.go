@@ -70,11 +70,7 @@ func RegisterAdminSupportRoutes(router *gin.RouterGroup, handler *AdminSupportHa
 	}
 
 	adminSupport := router.Group("/admin/support")
-	if len(auth) > 0 && auth[0] != nil {
-		adminSupport.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
-	} else {
-		adminSupport.Use(sharedMiddleware.AuthRequired())
-	}
+	adminSupport.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminSupport.GET("", handler.GetAnalyticsSummary)
 		adminSupport.GET("/analytics", handler.GetAnalyticsSummary)

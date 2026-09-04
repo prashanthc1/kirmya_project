@@ -18,4 +18,3 @@ func RegisterRoutes(api *gin.RouterGroup, handler *SearchHandler) {
 		unifiedSearchGroup.POST("/reindex", handler.Reindex)
 	}
 }
-

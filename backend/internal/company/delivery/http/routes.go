@@ -2,6 +2,7 @@ package http
 
 import (
 	authMiddleware "kirmya/internal/auth/middleware"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -144,7 +145,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *CompanyHandler, management *M
 	// company itself. RequireRole gates the route and the service re-checks the
 	// platform role, so neither alone is load-bearing.
 	admin := api.Group("/admin/company-verifications")
-	admin.Use(auth.RequireAuth(), auth.RequireRole("admin", "super_admin"))
+	admin.Use(sharedMiddleware.RequireAdmin())
 	{
 		admin.GET("", management.ListPendingVerifications)
 		admin.PUT("/:verificationId", management.DecideVerification)

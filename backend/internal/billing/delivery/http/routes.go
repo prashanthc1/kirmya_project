@@ -35,11 +35,7 @@ func RegisterAdminBillingRoutes(router *gin.RouterGroup, handler *AdminBillingHa
 		return
 	}
 	adminBilling := router.Group("/admin/billing")
-	if len(auth) > 0 && auth[0] != nil {
-		adminBilling.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
-	} else {
-		adminBilling.Use(sharedMiddleware.AuthRequired())
-	}
+	adminBilling.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminBilling.GET("/status", handler.GetAdminStatus)
 		adminBilling.GET("/plans", handler.GetAdminPlans)
