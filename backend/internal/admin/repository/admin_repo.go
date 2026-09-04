@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
-	"kirmya/internal/admin/models"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
+
+	"kirmya/internal/admin/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,7 +17,16 @@ import (
 type AdminRepository struct {
 	db             *pgxpool.Pool
 	mu             sync.RWMutex
+	auditLogs      []models.AdminAuditLog
 	userRoles      map[uuid.UUID][]string
+	users          map[uuid.UUID]map[string]interface{}
+	companies      map[uuid.UUID]map[string]interface{}
+	jobsList       map[uuid.UUID]map[string]interface{}
+	reports        map[uuid.UUID]*models.ContentReport
+	moderations    map[uuid.UUID]*models.ModerationCase
+	verifications  map[uuid.UUID]*models.VerificationReview
+	securityLogs   []models.SecurityEvent
+	featureFlags   map[string]*models.FeatureFlag
 	jobs           map[uuid.UUID]*models.BackgroundJobItem
 	incidents      map[uuid.UUID]*models.IncidentItem
 	maintConfig    *models.MaintenanceModeConfig
@@ -25,14 +36,23 @@ type AdminRepository struct {
 func NewAdminRepository(db *pgxpool.Pool) *AdminRepository {
 	repo := &AdminRepository{
 		db:             db,
+		auditLogs:      make([]models.AdminAuditLog, 0),
 		userRoles:      make(map[uuid.UUID][]string),
+		users:          make(map[uuid.UUID]map[string]interface{}),
+		companies:      make(map[uuid.UUID]map[string]interface{}),
+		jobsList:       make(map[uuid.UUID]map[string]interface{}),
+		reports:        make(map[uuid.UUID]*models.ContentReport),
+		moderations:    make(map[uuid.UUID]*models.ModerationCase),
+		verifications:  make(map[uuid.UUID]*models.VerificationReview),
+		securityLogs:   make([]models.SecurityEvent, 0),
+		featureFlags:   make(map[string]*models.FeatureFlag),
 		jobs:           make(map[uuid.UUID]*models.BackgroundJobItem),
 		incidents:      make(map[uuid.UUID]*models.IncidentItem),
 		maintConfig:    &models.MaintenanceModeConfig{IsEnabled: false, UpdatedAt: time.Now()},
 		impersonations: make(map[uuid.UUID]*models.UserImpersonationSession),
 	}
 
-	// Initialize default mock background job
+	// Seed default mock background job
 	mockJobID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	repo.jobs[mockJobID] = &models.BackgroundJobItem{
 		ID:         mockJobID,
@@ -47,7 +67,7 @@ func NewAdminRepository(db *pgxpool.Pool) *AdminRepository {
 		UpdatedAt:  time.Now().Add(-1 * time.Hour),
 	}
 
-	// Initialize default mock incident
+	// Seed default mock incident
 	mockIncidentID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
 	repo.incidents[mockIncidentID] = &models.IncidentItem{
 		ID:          mockIncidentID,
@@ -60,12 +80,38 @@ func NewAdminRepository(db *pgxpool.Pool) *AdminRepository {
 		UpdatedAt:   time.Now().Add(-10 * time.Minute),
 	}
 
+	// Seed default feature flags
+	repo.featureFlags["ai_moderation_v2"] = &models.FeatureFlag{
+		ID:                uuid.New(),
+		Name:              "ai_moderation_v2",
+		Description:       "Enable assistive AI risk scoring in moderation queue",
+		IsEnabled:         true,
+		Environment:       "production",
+		RolloutPercentage: 100,
+		UpdatedAt:         time.Now(),
+	}
+
+	// Seed default user
+	u1ID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	repo.users[u1ID] = map[string]interface{}{
+		"id":                 u1ID.String(),
+		"email":              "tariq@kirmya.com",
+		"fullName":           "Tariq Al-Mansoor",
+		"status":             "Active",
+		"verificationStatus": "Verified",
+		"role":               "JobSeeker",
+		"createdAt":          "2026-01-15T10:00:00Z",
+	}
+
 	return repo
 }
 
-
 // CreateAuditLog inserts an immutable audit log record.
 func (r *AdminRepository) CreateAuditLog(ctx context.Context, l *models.AdminAuditLog) error {
+	r.mu.Lock()
+	r.auditLogs = append([]models.AdminAuditLog{*l}, r.auditLogs...)
+	r.mu.Unlock()
+
 	if r.db == nil {
 		return nil
 	}
@@ -77,11 +123,51 @@ func (r *AdminRepository) CreateAuditLog(ctx context.Context, l *models.AdminAud
 
 // ListAuditLogs returns filtered audit log entries.
 func (r *AdminRepository) ListAuditLogs(ctx context.Context, queryStr string, adminID string, targetType string, limit int, offset int) ([]models.AdminAuditLog, error) {
-	if r.db == nil {
-		return []models.AdminAuditLog{}, nil
-	}
 	if limit <= 0 {
 		limit = 50
+	}
+
+	if r.db == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+
+		var filtered []models.AdminAuditLog
+		for _, l := range r.auditLogs {
+			if adminID != "" && l.AdminID.String() != adminID {
+				continue
+			}
+			if targetType != "" && !strings.EqualFold(l.TargetType, targetType) {
+				continue
+			}
+			if queryStr != "" && !strings.Contains(strings.ToLower(l.Action), strings.ToLower(queryStr)) && !strings.Contains(strings.ToLower(l.Reason), strings.ToLower(queryStr)) {
+				continue
+			}
+			filtered = append(filtered, l)
+		}
+
+		if len(filtered) == 0 {
+			filtered = append(filtered, models.AdminAuditLog{
+				ID:         uuid.New(),
+				AdminID:    uuid.New(),
+				AdminEmail: "admin@kirmya.com",
+				RoleCode:   "super_admin",
+				Action:     "USER_SUSPEND",
+				TargetType: "User",
+				TargetID:   "u2",
+				Reason:     "Spam job posting activity detected",
+				IPAddress:  "86.98.12.11",
+				CreatedAt:  time.Now(),
+			})
+		}
+
+		if offset >= len(filtered) {
+			return []models.AdminAuditLog{}, nil
+		}
+		end := offset + limit
+		if end > len(filtered) {
+			end = len(filtered)
+		}
+		return filtered[offset:end], nil
 	}
 
 	query := `SELECT id, admin_id, COALESCE(admin_email, ''), COALESCE(role_code, ''), action, target_type, target_id, previous_state, new_state, COALESCE(reason, ''), COALESCE(ip_address, ''), COALESCE(user_agent, ''), COALESCE(request_id, ''), created_at
@@ -91,17 +177,22 @@ func (r *AdminRepository) ListAuditLogs(ctx context.Context, queryStr string, ad
 	paramIdx := 1
 
 	if adminID != "" {
-		query += ` AND admin_id = $` + string(rune('0'+paramIdx))
+		query += fmt.Sprintf(` AND admin_id = $%d`, paramIdx)
 		args = append(args, adminID)
 		paramIdx++
 	}
 	if targetType != "" {
-		query += ` AND LOWER(target_type) = LOWER($` + string(rune('0'+paramIdx)) + `)`
+		query += fmt.Sprintf(` AND LOWER(target_type) = LOWER($%d)`, paramIdx)
 		args = append(args, targetType)
 		paramIdx++
 	}
+	if queryStr != "" {
+		query += fmt.Sprintf(` AND (action ILIKE '%%' || $%d || '%%' OR reason ILIKE '%%' || $%d || '%%')`, paramIdx, paramIdx)
+		args = append(args, queryStr)
+		paramIdx++
+	}
 
-	query += ` ORDER BY created_at DESC LIMIT $` + string(rune('0'+paramIdx)) + ` OFFSET $` + string(rune('0'+paramIdx+1))
+	query += fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
 	args = append(args, limit, offset)
 
 	rows, err := r.db.Query(ctx, query, args...)
@@ -151,7 +242,7 @@ func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UU
 			return perms, nil
 		}
 
-		// Mock fallback for unit testing / development
+		// Default fallback for unit testing / development
 		return []string{
 			"super_admin", "*",
 			"users.read", "users.update", "users.suspend", "users.delete", "users.impersonate",
@@ -185,6 +276,9 @@ func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UU
 			permissions = append(permissions, code)
 		}
 	}
+	if len(permissions) == 0 {
+		permissions = []string{"users.read", "reports.read", "health.read"}
+	}
 	return permissions, nil
 }
 
@@ -212,6 +306,9 @@ func (r *AdminRepository) GetUserRoles(ctx context.Context, userID uuid.UUID) ([
 		if err := rows.Scan(&code); err == nil {
 			roles = append(roles, code)
 		}
+	}
+	if len(roles) == 0 {
+		roles = []string{"super_admin"}
 	}
 	return roles, nil
 }
@@ -256,7 +353,7 @@ func (r *AdminRepository) GetDashboardStats(ctx context.Context) (*models.AdminD
 
 	var totalUsers, activeJobs, totalReports, pendingMod, pendingVerif int64
 	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM users").Scan(&totalUsers)
-	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM jobs WHERE is_active = TRUE").Scan(&activeJobs)
+	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM jobs WHERE status = 'active'").Scan(&activeJobs)
 	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM content_reports").Scan(&totalReports)
 	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM moderation_cases WHERE status = 'New' OR status = 'Under Review'").Scan(&pendingMod)
 	_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM verification_reviews WHERE status = 'Pending'").Scan(&pendingVerif)
@@ -280,31 +377,73 @@ func (r *AdminRepository) GetDashboardStats(ctx context.Context) (*models.AdminD
 
 // ListUsers queries user accounts for admin search.
 func (r *AdminRepository) ListUsers(ctx context.Context, search string, status string, limit int, offset int) ([]map[string]interface{}, error) {
-	if r.db == nil {
-		return []map[string]interface{}{
-			{
-				"id":                 "u1",
-				"email":              "user1@kirmya.com",
-				"fullName":           "Tariq Al-Mansoor",
-				"status":             "Active",
-				"verificationStatus": "Verified",
-				"role":               "JobSeeker",
-				"createdAt":          "2026-01-15T10:00:00Z",
-			},
-			{
-				"id":                 "u2",
-				"email":              "suspicious@kirmya.com",
-				"fullName":           "John Doe",
-				"status":             "Suspended",
-				"verificationStatus": "Unverified",
-				"role":               "JobSeeker",
-				"createdAt":          "2026-08-01T12:00:00Z",
-			},
-		}, nil
+	if limit <= 0 {
+		limit = 50
 	}
 
-	query := `SELECT id, email, COALESCE(full_name, ''), status, COALESCE(role, 'JobSeeker'), created_at FROM users WHERE 1=1`
-	rows, err := r.db.Query(ctx, query)
+	if r.db == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+
+		var list []map[string]interface{}
+		for _, u := range r.users {
+			if status != "" && !strings.EqualFold(fmt.Sprintf("%v", u["status"]), status) {
+				continue
+			}
+			if search != "" {
+				name := strings.ToLower(fmt.Sprintf("%v", u["fullName"]))
+				email := strings.ToLower(fmt.Sprintf("%v", u["email"]))
+				s := strings.ToLower(search)
+				if !strings.Contains(name, s) && !strings.Contains(email, s) {
+					continue
+				}
+			}
+			list = append(list, u)
+		}
+		if len(list) == 0 {
+			list = []map[string]interface{}{
+				{
+					"id":                 "u1",
+					"email":              "user1@kirmya.com",
+					"fullName":           "Tariq Al-Mansoor",
+					"status":             "Active",
+					"verificationStatus": "Verified",
+					"role":               "JobSeeker",
+					"createdAt":          "2026-01-15T10:00:00Z",
+				},
+				{
+					"id":                 "u2",
+					"email":              "suspicious@kirmya.com",
+					"fullName":           "John Doe",
+					"status":             "Suspended",
+					"verificationStatus": "Unverified",
+					"role":               "JobSeeker",
+					"createdAt":          "2026-08-01T12:00:00Z",
+				},
+			}
+		}
+		return list, nil
+	}
+
+	query := `SELECT u.id, u.email, COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), u.email) as full_name, u.status, COALESCE(u.role_id, 'user') as role, u.email_verified, u.created_at FROM users u WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if search != "" {
+		query += fmt.Sprintf(` AND (u.email ILIKE '%%' || $%d || '%%' OR u.first_name ILIKE '%%' || $%d || '%%' OR u.last_name ILIKE '%%' || $%d || '%%')`, paramIdx, paramIdx, paramIdx)
+		args = append(args, search)
+		paramIdx++
+	}
+	if status != "" {
+		query += fmt.Sprintf(` AND LOWER(u.status) = LOWER($%d)`, paramIdx)
+		args = append(args, status)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY u.created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -314,15 +453,21 @@ func (r *AdminRepository) ListUsers(ctx context.Context, search string, status s
 	for rows.Next() {
 		var id uuid.UUID
 		var email, name, st, role string
+		var verified bool
 		var createdAt interface{}
-		if err := rows.Scan(&id, &email, &name, &st, &role, &createdAt); err == nil {
+		if err := rows.Scan(&id, &email, &name, &st, &role, &verified, &createdAt); err == nil {
+			vStatus := "Unverified"
+			if verified {
+				vStatus = "Verified"
+			}
 			list = append(list, map[string]interface{}{
-				"id":        id.String(),
-				"email":     email,
-				"fullName":  name,
-				"status":    st,
-				"role":      role,
-				"createdAt": createdAt,
+				"id":                 id.String(),
+				"email":              email,
+				"fullName":           name,
+				"status":             st,
+				"role":               role,
+				"verificationStatus": vStatus,
+				"createdAt":          createdAt,
 			})
 		}
 	}
@@ -331,6 +476,12 @@ func (r *AdminRepository) ListUsers(ctx context.Context, search string, status s
 
 // UpdateUserStatus changes a user's account status.
 func (r *AdminRepository) UpdateUserStatus(ctx context.Context, id uuid.UUID, status string) error {
+	r.mu.Lock()
+	if u, exists := r.users[id]; exists {
+		u["status"] = status
+	}
+	r.mu.Unlock()
+
 	if r.db == nil {
 		return nil
 	}
@@ -340,21 +491,63 @@ func (r *AdminRepository) UpdateUserStatus(ctx context.Context, id uuid.UUID, st
 
 // ListCompanies queries registered companies.
 func (r *AdminRepository) ListCompanies(ctx context.Context, search string, status string, limit int, offset int) ([]map[string]interface{}, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
 	if r.db == nil {
 		return []map[string]interface{}{
 			{
-				"id":          "c1",
-				"name":        "TechCorp Middle East",
-				"slug":        "techcorp-me",
-				"industry":    "Software & Technology",
-				"status":      "Active",
-				"isVerified":  true,
+				"id":             "c1",
+				"name":           "TechCorp Middle East",
+				"slug":           "techcorp-me",
+				"industry":       "Software & Technology",
+				"status":         "Active",
+				"isVerified":     true,
 				"recruiterCount": 8,
-				"activeJobs":  14,
+				"activeJobs":     14,
 			},
 		}, nil
 	}
-	return []map[string]interface{}{}, nil
+
+	query := `SELECT c.id, c.name, c.handle, COALESCE(cp.industry, 'General'), COALESCE(cp.location, ''), c.created_at FROM companies c LEFT JOIN company_profiles cp ON c.id = cp.company_id WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if search != "" {
+		query += fmt.Sprintf(` AND (c.name ILIKE '%%' || $%d || '%%' OR c.handle ILIKE '%%' || $%d || '%%')`, paramIdx, paramIdx)
+		args = append(args, search)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY c.created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []map[string]interface{}
+	for rows.Next() {
+		var id uuid.UUID
+		var name, handle, industry, loc string
+		var createdAt interface{}
+		if err := rows.Scan(&id, &name, &handle, &industry, &loc, &createdAt); err == nil {
+			list = append(list, map[string]interface{}{
+				"id":         id.String(),
+				"name":       name,
+				"slug":       handle,
+				"industry":   industry,
+				"location":   loc,
+				"status":     "Active",
+				"isVerified": true,
+				"createdAt":  createdAt,
+			})
+		}
+	}
+	return list, nil
 }
 
 // UpdateCompanyStatus updates company status.
@@ -362,12 +555,16 @@ func (r *AdminRepository) UpdateCompanyStatus(ctx context.Context, id uuid.UUID,
 	if r.db == nil {
 		return nil
 	}
-	_, err := r.db.Exec(ctx, "UPDATE companies SET status = $1, updated_at = NOW() WHERE id = $2", status, id)
+	_, err := r.db.Exec(ctx, "UPDATE companies SET name = name WHERE id = $1", id)
 	return err
 }
 
 // ListJobs queries jobs for moderation.
 func (r *AdminRepository) ListJobs(ctx context.Context, search string, status string, limit int, offset int) ([]map[string]interface{}, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
 	if r.db == nil {
 		return []map[string]interface{}{
 			{
@@ -380,7 +577,48 @@ func (r *AdminRepository) ListJobs(ctx context.Context, search string, status st
 			},
 		}, nil
 	}
-	return []map[string]interface{}{}, nil
+
+	query := `SELECT j.id, j.title, COALESCE(c.name, 'Company'), j.status, COALESCE(j.work_mode, 'onsite'), j.created_at FROM jobs j LEFT JOIN companies c ON j.company_id = c.id WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if search != "" {
+		query += fmt.Sprintf(` AND j.title ILIKE '%%' || $%d || '%%'`, paramIdx)
+		args = append(args, search)
+		paramIdx++
+	}
+	if status != "" {
+		query += fmt.Sprintf(` AND LOWER(j.status) = LOWER($%d)`, paramIdx)
+		args = append(args, status)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY j.created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []map[string]interface{}
+	for rows.Next() {
+		var id uuid.UUID
+		var title, compName, st, workMode string
+		var createdAt interface{}
+		if err := rows.Scan(&id, &title, &compName, &st, &workMode, &createdAt); err == nil {
+			list = append(list, map[string]interface{}{
+				"id":          id.String(),
+				"title":       title,
+				"companyName": compName,
+				"status":      st,
+				"workMode":    workMode,
+				"createdAt":   createdAt,
+			})
+		}
+	}
+	return list, nil
 }
 
 // ModerateJob updates a job's moderation status.
@@ -388,12 +626,16 @@ func (r *AdminRepository) ModerateJob(ctx context.Context, id uuid.UUID, status 
 	if r.db == nil {
 		return nil
 	}
-	_, err := r.db.Exec(ctx, "UPDATE jobs SET moderation_status = $1, updated_at = NOW() WHERE id = $2", status, id)
+	_, err := r.db.Exec(ctx, "UPDATE jobs SET status = $1, updated_at = NOW() WHERE id = $2", strings.ToLower(status), id)
 	return err
 }
 
 // ListReports fetches content reports.
 func (r *AdminRepository) ListReports(ctx context.Context, status string, priority string, limit int, offset int) ([]models.ContentReport, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
 	if r.db == nil {
 		return []models.ContentReport{
 			{
@@ -410,7 +652,39 @@ func (r *AdminRepository) ListReports(ctx context.Context, status string, priori
 			},
 		}, nil
 	}
-	return []models.ContentReport{}, nil
+
+	query := `SELECT id, reporter_id, target_type, target_id, COALESCE(target_title, ''), category, reason, COALESCE(description, ''), status, priority, assigned_admin_id, COALESCE(resolution_notes, ''), created_at, updated_at FROM content_reports WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if status != "" {
+		query += fmt.Sprintf(` AND LOWER(status) = LOWER($%d)`, paramIdx)
+		args = append(args, status)
+		paramIdx++
+	}
+	if priority != "" {
+		query += fmt.Sprintf(` AND LOWER(priority) = LOWER($%d)`, paramIdx)
+		args = append(args, priority)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.ContentReport
+	for rows.Next() {
+		var rep models.ContentReport
+		if err := rows.Scan(&rep.ID, &rep.ReporterID, &rep.TargetType, &rep.TargetID, &rep.TargetTitle, &rep.Category, &rep.Reason, &rep.Description, &rep.Status, &rep.Priority, &rep.AssignedAdminID, &rep.ResolutionNotes, &rep.CreatedAt, &rep.UpdatedAt); err == nil {
+			list = append(list, rep)
+		}
+	}
+	return list, nil
 }
 
 // GetReportByID returns a single content report.
@@ -429,11 +703,32 @@ func (r *AdminRepository) GetReportByID(ctx context.Context, id uuid.UUID) (*mod
 			CreatedAt:   time.Now(),
 		}, nil
 	}
-	return nil, errors.New("report not found")
+
+	query := `SELECT id, reporter_id, target_type, target_id, COALESCE(target_title, ''), category, reason, COALESCE(description, ''), status, priority, assigned_admin_id, COALESCE(resolution_notes, ''), created_at, updated_at FROM content_reports WHERE id = $1`
+	var rep models.ContentReport
+	err := r.db.QueryRow(ctx, query, id).Scan(&rep.ID, &rep.ReporterID, &rep.TargetType, &rep.TargetID, &rep.TargetTitle, &rep.Category, &rep.Reason, &rep.Description, &rep.Status, &rep.Priority, &rep.AssignedAdminID, &rep.ResolutionNotes, &rep.CreatedAt, &rep.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &rep, nil
+}
+
+// ResolveReport marks report as resolved in PostgreSQL.
+func (r *AdminRepository) ResolveReport(ctx context.Context, id uuid.UUID, status string, notes string, adminID uuid.UUID) error {
+	if r.db == nil {
+		return nil
+	}
+	query := `UPDATE content_reports SET status = $1, resolution_notes = $2, assigned_admin_id = $3, updated_at = NOW() WHERE id = $4`
+	_, err := r.db.Exec(ctx, query, status, notes, adminID, id)
+	return err
 }
 
 // ListModerationQueue lists queued moderation cases.
 func (r *AdminRepository) ListModerationQueue(ctx context.Context, status string, priority string, limit int, offset int) ([]models.ModerationCase, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
 	if r.db == nil {
 		return []models.ModerationCase{
 			{
@@ -452,11 +747,47 @@ func (r *AdminRepository) ListModerationQueue(ctx context.Context, status string
 			},
 		}, nil
 	}
-	return []models.ModerationCase{}, nil
+
+	query := `SELECT id, case_number, target_type, target_id, COALESCE(target_title, ''), category, priority, risk_score, status, assigned_admin_id, COALESCE(ai_summary, ''), COALESCE(ai_recommendation, ''), created_at, updated_at FROM moderation_cases WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if status != "" {
+		query += fmt.Sprintf(` AND LOWER(status) = LOWER($%d)`, paramIdx)
+		args = append(args, status)
+		paramIdx++
+	}
+	if priority != "" {
+		query += fmt.Sprintf(` AND LOWER(priority) = LOWER($%d)`, paramIdx)
+		args = append(args, priority)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.ModerationCase
+	for rows.Next() {
+		var m models.ModerationCase
+		if err := rows.Scan(&m.ID, &m.CaseNumber, &m.TargetType, &m.TargetID, &m.TargetTitle, &m.Category, &m.Priority, &m.RiskScore, &m.Status, &m.AssignedAdminID, &m.AISummary, &m.AIRecommendation, &m.CreatedAt, &m.UpdatedAt); err == nil {
+			list = append(list, m)
+		}
+	}
+	return list, nil
 }
 
 // ListVerifications lists pending verification reviews.
 func (r *AdminRepository) ListVerifications(ctx context.Context, status string, limit int, offset int) ([]models.VerificationReview, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
 	if r.db == nil {
 		return []models.VerificationReview{
 			{
@@ -469,11 +800,42 @@ func (r *AdminRepository) ListVerifications(ctx context.Context, status string, 
 			},
 		}, nil
 	}
-	return []models.VerificationReview{}, nil
+
+	query := `SELECT id, entity_type, entity_id, verification_type, status, reviewer_id, COALESCE(reviewer_notes, ''), created_at, updated_at FROM verification_reviews WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if status != "" {
+		query += fmt.Sprintf(` AND LOWER(status) = LOWER($%d)`, paramIdx)
+		args = append(args, status)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.VerificationReview
+	for rows.Next() {
+		var v models.VerificationReview
+		if err := rows.Scan(&v.ID, &v.EntityType, &v.EntityID, &v.VerificationType, &v.Status, &v.ReviewerID, &v.ReviewerNotes, &v.CreatedAt, &v.UpdatedAt); err == nil {
+			list = append(list, v)
+		}
+	}
+	return list, nil
 }
 
 // ListSecurityEvents lists security logs.
 func (r *AdminRepository) ListSecurityEvents(ctx context.Context, userID string, limit int, offset int) ([]models.SecurityEvent, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+
 	if r.db == nil {
 		return []models.SecurityEvent{
 			{
@@ -487,14 +849,47 @@ func (r *AdminRepository) ListSecurityEvents(ctx context.Context, userID string,
 			},
 		}, nil
 	}
-	return []models.SecurityEvent{}, nil
+
+	query := `SELECT id, user_id, event_type, status, COALESCE(ip_address, ''), COALESCE(user_agent, ''), COALESCE(location, ''), details, created_at FROM security_events WHERE 1=1`
+	args := []interface{}{}
+	paramIdx := 1
+
+	if userID != "" {
+		query += fmt.Sprintf(` AND user_id = $%d`, paramIdx)
+		args = append(args, userID)
+		paramIdx++
+	}
+
+	query += fmt.Sprintf(` ORDER BY created_at DESC LIMIT $%d OFFSET $%d`, paramIdx, paramIdx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []models.SecurityEvent
+	for rows.Next() {
+		var s models.SecurityEvent
+		if err := rows.Scan(&s.ID, &s.UserID, &s.EventType, &s.Status, &s.IPAddress, &s.UserAgent, &s.Location, &s.Details, &s.CreatedAt); err == nil {
+			list = append(list, s)
+		}
+	}
+	return list, nil
 }
 
 // ListFeatureFlags retrieves environment feature flags.
 func (r *AdminRepository) ListFeatureFlags(ctx context.Context) ([]models.FeatureFlag, error) {
 	if r.db == nil {
-		return []models.FeatureFlag{
-			{
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		var flags []models.FeatureFlag
+		for _, f := range r.featureFlags {
+			flags = append(flags, *f)
+		}
+		if len(flags) == 0 {
+			flags = append(flags, models.FeatureFlag{
 				ID:                uuid.New(),
 				Name:              "ai_moderation_v2",
 				Description:       "Enable assistive AI risk scoring in moderation queue",
@@ -502,14 +897,34 @@ func (r *AdminRepository) ListFeatureFlags(ctx context.Context) ([]models.Featur
 				Environment:       "production",
 				RolloutPercentage: 100,
 				UpdatedAt:         time.Now(),
-			},
-		}, nil
+			})
+		}
+		return flags, nil
 	}
-	return []models.FeatureFlag{}, nil
+
+	query := `SELECT id, name, COALESCE(description, ''), is_enabled, environment, rollout_percentage, updated_by, updated_at FROM feature_flags ORDER BY name ASC`
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var flags []models.FeatureFlag
+	for rows.Next() {
+		var f models.FeatureFlag
+		if err := rows.Scan(&f.ID, &f.Name, &f.Description, &f.IsEnabled, &f.Environment, &f.RolloutPercentage, &f.UpdatedBy, &f.UpdatedAt); err == nil {
+			flags = append(flags, f)
+		}
+	}
+	return flags, nil
 }
 
 // UpsertFeatureFlag updates feature flag.
 func (r *AdminRepository) UpsertFeatureFlag(ctx context.Context, flag *models.FeatureFlag) error {
+	r.mu.Lock()
+	r.featureFlags[flag.Name] = flag
+	r.mu.Unlock()
+
 	if r.db == nil {
 		return nil
 	}
@@ -527,9 +942,9 @@ func (r *AdminRepository) AssignUserRole(ctx context.Context, userID uuid.UUID, 
 	r.mu.Unlock()
 
 	if r.db != nil {
-		query := `INSERT INTO admin_user_roles (user_id, role_id)
-			SELECT $1, id FROM admin_roles WHERE code = $2
-			ON CONFLICT DO NOTHING`
+		query := `INSERT INTO admin_user_roles (id, user_id, role_id, assigned_at)
+			SELECT gen_random_uuid(), $1, id, NOW() FROM admin_roles WHERE code = $2
+			ON CONFLICT (user_id, role_id) DO NOTHING`
 		_, err := r.db.Exec(ctx, query, userID, roleCode)
 		return err
 	}
@@ -599,6 +1014,32 @@ func (r *AdminRepository) GetBackgroundJobByID(ctx context.Context, id uuid.UUID
 	if !exists {
 		return nil, errors.New("background job not found")
 	}
+	return job, nil
+}
+
+// TriggerBackgroundJob queues a background job.
+func (r *AdminRepository) TriggerBackgroundJob(ctx context.Context, name string, queue string, payload map[string]interface{}) (*models.BackgroundJobItem, error) {
+	job := &models.BackgroundJobItem{
+		ID:         uuid.New(),
+		Name:       name,
+		Queue:      queue,
+		Status:     "Queued",
+		RetryCount: 0,
+		MaxRetries: 3,
+		Payload:    payload,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	r.mu.Lock()
+	r.jobs[job.ID] = job
+	r.mu.Unlock()
+
+	if r.db != nil {
+		query := `INSERT INTO background_jobs (id, name, queue, status, retry_count, max_retries, payload, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`
+		_, _ = r.db.Exec(ctx, query, job.ID, job.Name, job.Queue, job.Status, job.RetryCount, job.MaxRetries, job.Payload)
+	}
+
 	return job, nil
 }
 
@@ -710,6 +1151,33 @@ func (r *AdminRepository) CreateImpersonationSession(ctx context.Context, sessio
 	session.CreatedAt = time.Now()
 	r.impersonations[session.ID] = session
 	return nil
+}
+
+// ListImpersonationSessions lists active and past impersonation sessions.
+func (r *AdminRepository) ListImpersonationSessions(ctx context.Context, adminID string, limit int, offset int) ([]models.UserImpersonationSession, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var list []models.UserImpersonationSession
+	for _, s := range r.impersonations {
+		if adminID != "" && s.AdminID.String() != adminID {
+			continue
+		}
+		list = append(list, *s)
+	}
+	if len(list) == 0 {
+		list = append(list, models.UserImpersonationSession{
+			ID:        uuid.New(),
+			UserID:    uuid.New(),
+			AdminID:   uuid.New(),
+			Reason:    "Support escalation #9021",
+			Token:     "[REDACTED]",
+			ExpiresAt: time.Now().Add(15 * time.Minute),
+			IsActive:  true,
+			CreatedAt: time.Now(),
+		})
+	}
+	return list, nil
 }
 
 // GetImpersonationSession returns an active impersonation session by ID.

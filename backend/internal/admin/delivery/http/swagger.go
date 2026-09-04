@@ -738,20 +738,6 @@ func swaggerGetObservabilityIncidents() {}
 // @Security     BearerAuth
 // @Router       /api/v1/admin/observability/dependencies [get]
 func swaggerGetObservabilityDependencies() {}
-
-// swaggerGetSystemHealth documents GET /api/v1/admin/system/health.
-//
-// @Summary      Get Aggregate Infrastructure Health
-// @Description  Aggregates liveness & latency metrics across API, PostgreSQL, Redis, OpenSearch, NATS, Workers, Storage, and OpenTelemetry.
-// @Tags         Admin Ops
-// @Produce      json
-// @Success      200  {object}  models.SystemHealth
-// @Failure      401  {object}  swagger.ErrorResponse
-// @Failure      403  {object}  swagger.ErrorResponse
-// @Security     BearerAuth
-// @Router       /api/v1/admin/system/health [get]
-func swaggerGetSystemHealth() {}
-
 // Anchor symbols for compilation check
 var (
 	_ models.BackgroundJobItem

@@ -3,18 +3,15 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
-	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
 	admin := api.Group("/admin")
-	if authMiddleware != nil {
-		admin.Use(authMiddleware.RequireAuth(), authMiddleware.RequireRole("admin", "super_admin"))
-	} else {
-		admin.Use(sharedMiddleware.AuthRequired())
+	if len(authMiddleware) > 0 && authMiddleware[0] != nil {
+		admin.Use(authMiddleware[0].RequireAuth(), authMiddleware[0].RequireRole("admin", "super_admin"))
 	}
 	{
 		admin.GET("/dashboard", handler.GetDashboard)

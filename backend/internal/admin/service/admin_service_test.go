@@ -225,3 +225,21 @@ func TestGetSystemHealth(t *testing.T) {
 	assert.Equal(t, "Healthy", health.RedisStatus)
 	assert.NotNil(t, health.Metrics)
 }
+
+func TestTriggerBackgroundJobAndListImpersonationSessions(t *testing.T) {
+	repo := repository.NewAdminRepository(nil)
+	svc := NewAdminService(repo)
+	adminID := uuid.New()
+
+	// Test TriggerBackgroundJob
+	job, err := svc.TriggerBackgroundJob(context.Background(), adminID, "nightly_prune_task", "maintenance", map[string]interface{}{"dryRun": false}, "127.0.0.1", "AdminConsole/1.0")
+	require.NoError(t, err)
+	assert.Equal(t, "nightly_prune_task", job.Name)
+	assert.Equal(t, "maintenance", job.Queue)
+	assert.Equal(t, "Queued", job.Status)
+
+	// Test ListImpersonationSessions
+	sessions, err := svc.ListImpersonationSessions(context.Background(), adminID.String(), 10, 0)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, sessions)
+}

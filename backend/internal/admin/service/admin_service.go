@@ -527,5 +527,29 @@ func (s *AdminService) GetSystemHealth(ctx context.Context) (*models.SystemHealt
 	}, nil
 }
 
+// ListImpersonationSessions retrieves past and active support impersonation sessions.
+func (s *AdminService) ListImpersonationSessions(ctx context.Context, adminID string, limit int, offset int) ([]models.UserImpersonationSession, error) {
+	return s.repo.ListImpersonationSessions(ctx, adminID, limit, offset)
+}
 
+// TriggerBackgroundJob dispatches a new background job with audit logging.
+func (s *AdminService) TriggerBackgroundJob(ctx context.Context, adminID uuid.UUID, name string, queue string, payload map[string]interface{}, ip string, userAgent string) (*models.BackgroundJobItem, error) {
+	if name == "" {
+		return nil, errors.New("job name is required")
+	}
+	if queue == "" {
+		queue = "default"
+	}
 
+	job, err := s.repo.TriggerBackgroundJob(ctx, name, queue, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	prev := map[string]interface{}{}
+	next := map[string]interface{}{"name": name, "queue": queue, "jobId": job.ID.String()}
+
+	_ = s.LogAction(ctx, adminID, "admin@kirmya.com", "operations_admin", "background_job.trigger", "BackgroundJob", job.ID.String(), prev, next, "Triggered background job", ip, userAgent, "")
+
+	return job, nil
+}

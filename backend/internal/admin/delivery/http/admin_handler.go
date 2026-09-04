@@ -759,3 +759,40 @@ func (h *AdminHandler) GetSystemHealth(c *gin.Context) {
 	c.JSON(http.StatusOK, health)
 }
 
+func (h *AdminHandler) ListImpersonationSessions(c *gin.Context) {
+	adminID := c.Query("adminId")
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	offset, _ := strconv.Atoi(c.Query("offset"))
+
+	sessions, err := h.service.ListImpersonationSessions(c.Request.Context(), adminID, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, sessions)
+}
+
+func (h *AdminHandler) TriggerBackgroundJob(c *gin.Context) {
+	adminID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var payload struct {
+		JobName string                 `json:"jobName" binding:"required"`
+		Queue   string                 `json:"queue"`
+		Payload map[string]interface{} `json:"payload"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	job, err := h.service.TriggerBackgroundJob(c.Request.Context(), adminID, payload.JobName, payload.Queue, payload.Payload, c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "jobId": job.ID.String(), "job": job})
+}
