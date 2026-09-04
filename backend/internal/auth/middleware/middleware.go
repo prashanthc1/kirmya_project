@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"kirmya/internal/auth/service"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -80,36 +81,19 @@ func (m *AuthMiddleware) OptionalAuth() gin.HandlerFunc {
 }
 
 // RequireRole enforces specific user roles (e.g., 'admin', 'user').
+// RequireRole enforces specific user roles.
+//
+// It delegates to shared/middleware.RequireRole, which is the single
+// implementation of role checking in the codebase. This method is kept as a
+// thin adapter so the call sites that reach RBAC through the AuthMiddleware
+// value keep working, but there is only one place where the decision is
+// actually made — two copies of an authorization rule is two places for it to
+// drift, and the copy that drifts is the one that lets someone through.
+//
+// Behaviour is a superset of the previous local implementation: an
+// unauthenticated caller now gets 401 rather than a 403 claiming their role was
+// missing. Every existing call site pairs this with RequireAuth, which already
+// rejects such callers first, so the status they observe is unchanged.
 func (m *AuthMiddleware) RequireRole(roles ...string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userRoleVal, exists := c.Get("role")
-		if !exists {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Role missing from token context"})
-			c.Abort()
-			return
-		}
-
-		userRole, ok := userRoleVal.(string)
-		if !ok {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Invalid role specification"})
-			c.Abort()
-			return
-		}
-
-		allowed := false
-		for _, r := range roles {
-			if strings.EqualFold(r, userRole) {
-				allowed = true
-				break
-			}
-		}
-
-		if !allowed {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Insufficient role privileges"})
-			c.Abort()
-			return
-		}
-
-		c.Next()
-	}
+	return sharedMiddleware.RequireRole(roles...)
 }

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -19,50 +20,75 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-// AuthRequired verifies a cryptographically signed JWT token.
+// verifyRequestToken extracts and cryptographically verifies the access token
+// on a request, returning its claims.
+//
+// Split out of AuthRequired so that the role middleware in rbac.go authenticates
+// through exactly the same code path rather than a second copy of it: two
+// implementations of token verification are two things that can drift apart,
+// and the one that drifts is the one that lets someone in.
+//
+// The error is safe to return to the caller — it distinguishes a malformed
+// header from a missing or invalid token, and never reveals why a signature
+// failed.
+func verifyRequestToken(c *gin.Context) (*JWTClaims, error) {
+	authHeader := c.GetHeader("Authorization")
+	var tokenStr string
+	if authHeader != "" {
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			return nil, errors.New("Authorization header must be Bearer token")
+		}
+		tokenStr = parts[1]
+	} else {
+		// Fallback to query parameter (needed for browser WebSocket connections)
+		tokenStr = c.Query("token")
+	}
+
+	if tokenStr == "" {
+		return nil, errors.New("Authorization token is required")
+	}
+
+	// Cryptographic JWT signature verification against shared JWT_SECRET
+	token, err := jwt.ParseWithClaims(tokenStr, &JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return configPkg.GetJWTSecretBytes(), nil
+	})
+
+	if err != nil {
+		return nil, errors.New("Invalid or expired token")
+	}
+
+	claims, ok := token.Claims.(*JWTClaims)
+	if !ok || !token.Valid {
+		return nil, errors.New("Invalid token claims")
+	}
+
+	return claims, nil
+}
+
+// setAuthContext publishes the verified identity for downstream handlers.
+// "userID" holds a uuid.UUID; read it with GetUserID rather than c.GetString,
+// which type-asserts to string and yields "" for every authenticated user.
+func setAuthContext(c *gin.Context, claims *JWTClaims) {
+	c.Set("userID", claims.UserID)
+	c.Set("email", claims.Email)
+	c.Set("role", claims.Role)
+}
+
+// AuthRequired verifies a cryptographically signed JWT token. It establishes
+// identity only; use RequireRole or RequireAdmin from rbac.go where a route also
+// needs an authorization decision.
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		var tokenStr string
-		if authHeader != "" {
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header must be Bearer token"})
-				return
-			}
-			tokenStr = parts[1]
-		} else {
-			// Fallback to query parameter (needed for browser WebSocket connections)
-			tokenStr = c.Query("token")
-		}
-
-		if tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token is required"})
-			return
-		}
-
-		// Cryptographic JWT signature verification against shared JWT_SECRET
-		token, err := jwt.ParseWithClaims(tokenStr, &JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-			return configPkg.GetJWTSecretBytes(), nil
-		})
-
+		claims, err := verifyRequestToken(c)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-
-		claims, ok := token.Claims.(*JWTClaims)
-		if !ok || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
-			return
-		}
-
-		c.Set("userID", claims.UserID)
-		c.Set("email", claims.Email)
-		c.Set("role", claims.Role)
+		setAuthContext(c, claims)
 		c.Next()
 	}
 }
@@ -112,28 +138,4 @@ func GetUserEmail(c *gin.Context) string {
 		}
 	}
 	return ""
-}
-
-// RequireRole ensures the authenticated user has at least one of the specified roles.
-func RequireRole(allowedRoles ...string) gin.HandlerFunc {
-	allowed := make(map[string]struct{}, len(allowedRoles))
-	for _, r := range allowedRoles {
-		allowed[strings.ToLower(strings.TrimSpace(r))] = struct{}{}
-	}
-
-	return func(c *gin.Context) {
-		role := strings.ToLower(GetUserRole(c))
-		if _, ok := allowed[role]; !ok {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-				"error": "Forbidden: insufficient permissions for this resource",
-			})
-			return
-		}
-		c.Next()
-	}
-}
-
-// RequireAdmin is a shortcut for RequireRole("admin", "super_admin", "platform_admin").
-func RequireAdmin() gin.HandlerFunc {
-	return RequireRole("admin", "super_admin", "platform_admin")
 }
