@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"kirmya/internal/mentorship/models"
 	"kirmya/internal/mentorship/service"
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type MentorshipHandler struct {
@@ -20,23 +22,40 @@ func NewMentorshipHandler(svc service.MentorshipService) *MentorshipHandler {
 	}
 }
 
+// getUserID returns the caller's ID, taken only from the authenticated request
+// context that the auth middleware populated from verified JWT claims.
+//
+// It is deliberately the single source of identity for this module. Nothing the
+// client controls is ever consulted — not an X-User-ID header, not a user_id
+// query parameter, not a field in the request body — because every one of those
+// is attacker-supplied, and trusting any of them lets any caller act as any
+// other user. A caller may only ever be identified by a token the server itself
+// signed and verified.
+//
+// It delegates to middleware.GetUserID because the middleware stores a
+// uuid.UUID rather than a string: a plain c.GetString("userID") type-asserts to
+// string, fails, and silently yields "" for every real authenticated user.
 func getUserID(c *gin.Context) string {
-	if val, exists := c.Get("userID"); exists {
-		switch uid := val.(type) {
-		case string:
-			if uid != "" {
-				return uid
-			}
-		default:
-			if uidStr := c.GetString("userID"); uidStr != "" {
-				return uidStr
-			}
-		}
-	}
-	if uid := c.GetString("user_id"); uid != "" {
-		return uid
+	if uid, ok := sharedMiddleware.GetUserID(c); ok {
+		return uid.String()
 	}
 	return ""
+}
+
+// respondServiceError translates a service error into a status code.
+//
+// The service enforces the ownership rules for this module: a caller may only
+// touch a mentorship they are the mentor or the mentee of, and anything else
+// comes back as ErrUnauthorized. That is an authorization refusal, so it has to
+// surface as 403 — reporting it as 400 told the caller their request was
+// malformed and made a denied action indistinguishable from a typo, in the logs
+// and in the client.
+func respondServiceError(c *gin.Context, err error, fallback int) {
+	if errors.Is(err, service.ErrUnauthorized) {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(fallback, gin.H{"error": err.Error()})
 }
 
 // CreateOrUpdateProfile POST /api/v1/mentorship/mentors/profile
@@ -59,7 +78,7 @@ func (h *MentorshipHandler) CreateOrUpdateProfile(c *gin.Context) {
 
 	profile, err := h.svc.CreateOrUpdateProfile(c.Request.Context(), userID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -128,7 +147,7 @@ func (h *MentorshipHandler) SearchMentors(c *gin.Context) {
 
 	profiles, total, err := h.svc.SearchMentors(c.Request.Context(), params)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -156,7 +175,7 @@ func (h *MentorshipHandler) GetRecommendations(c *gin.Context) {
 
 	mentors, err := h.svc.GetRecommendations(c.Request.Context(), userID, skills)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -183,7 +202,7 @@ func (h *MentorshipHandler) CreateMentorshipRequest(c *gin.Context) {
 
 	req, err := h.svc.CreateMentorshipRequest(c.Request.Context(), userID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -214,7 +233,7 @@ func (h *MentorshipHandler) RespondToMentorshipRequest(c *gin.Context) {
 
 	req, err := h.svc.RespondToMentorshipRequest(c.Request.Context(), userID, requestID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -239,7 +258,7 @@ func (h *MentorshipHandler) GetUserRequests(c *gin.Context) {
 	role := c.Query("role")
 	requests, err := h.svc.GetUserRequests(c.Request.Context(), userID, role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -260,7 +279,7 @@ func (h *MentorshipHandler) GetActiveMentorships(c *gin.Context) {
 
 	mentorships, err := h.svc.GetUserMentorships(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -309,7 +328,7 @@ func (h *MentorshipHandler) CreateGoal(c *gin.Context) {
 
 	goal, err := h.svc.CreateGoal(c.Request.Context(), userID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -339,7 +358,7 @@ func (h *MentorshipHandler) GetGoals(c *gin.Context) {
 
 	goals, err := h.svc.GetGoals(c.Request.Context(), userID, mentorshipID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -367,7 +386,7 @@ func (h *MentorshipHandler) UpdateGoal(c *gin.Context) {
 
 	goal, err := h.svc.UpdateGoal(c.Request.Context(), userID, goalID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -397,7 +416,7 @@ func (h *MentorshipHandler) CreateSession(c *gin.Context) {
 
 	session, err := h.svc.CreateSession(c.Request.Context(), userID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -427,7 +446,7 @@ func (h *MentorshipHandler) GetSessions(c *gin.Context) {
 
 	sessions, err := h.svc.GetSessions(c.Request.Context(), userID, mentorshipID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -455,7 +474,7 @@ func (h *MentorshipHandler) UpdateSession(c *gin.Context) {
 
 	session, err := h.svc.UpdateSession(c.Request.Context(), userID, sessionID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -485,7 +504,7 @@ func (h *MentorshipHandler) SubmitFeedback(c *gin.Context) {
 
 	fb, err := h.svc.SubmitFeedback(c.Request.Context(), userID, dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
@@ -515,7 +534,7 @@ func (h *MentorshipHandler) GetFeedback(c *gin.Context) {
 
 	feedbacks, err := h.svc.GetFeedbackForMentorship(c.Request.Context(), userID, mentorshipID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondServiceError(c, err, http.StatusBadRequest)
 		return
 	}
 
