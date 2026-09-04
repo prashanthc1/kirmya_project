@@ -488,7 +488,14 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	organizationHandler := organizationHttp.NewOrganizationHandler(organizationService)
 
 	searchRepository := searchRepo.NewSearchRepository(dbPool)
-	searchEngineAdapter := searchAdapter.NewPostgreSQLSearchAdapter(dbPool)
+	var searchEngineAdapter searchAdapter.SearchEngineAdapter = searchAdapter.NewPostgreSQLSearchAdapter(dbPool)
+	if cfg.OpenSearchEn {
+		openSearchURL := os.Getenv("OPENSEARCH_URL")
+		if openSearchURL == "" {
+			openSearchURL = "http://localhost:9200"
+		}
+		searchEngineAdapter = searchAdapter.NewOpenSearchAdapter(openSearchURL, searchEngineAdapter)
+	}
 	searchService := searchSvc.NewSearchService(searchRepository, searchEngineAdapter, appCache)
 	searchHandler := searchHttp.NewSearchHandler(searchService)
 
