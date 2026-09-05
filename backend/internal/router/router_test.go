@@ -6,19 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	authMiddleware "kirmya/internal/auth/middleware"
-	authService "kirmya/internal/auth/service"
-	adminHttp "kirmya/internal/admin/delivery/http"
-	backupHttp "kirmya/internal/backup/delivery/http"
-	billingHttp "kirmya/internal/billing/delivery/http"
-	complianceHttp "kirmya/internal/compliance/delivery/http"
-	coverLetterHttp "kirmya/internal/cover_letter/delivery/http"
-	dataOpsHttp "kirmya/internal/data_operations/delivery/http"
-	interviewPrepHttp "kirmya/internal/interview_prep/delivery/http"
-	legalHttp "kirmya/internal/legal/delivery/http"
-	securityHttp "kirmya/internal/security/delivery/http"
-	supportHttp "kirmya/internal/support/delivery/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,31 +17,19 @@ const goldenPath = "testdata/routes.golden"
 func TestRouteTable(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	// Zero-value handlers: routes are registered by method value, never called.
-	// Swagger stays disabled so the golden file covers the API surface only.
+	// Every handler is populated, by reflection, in fullyPopulatedRouter. This
+	// list used to be written by hand and held 14 of the 62 handler fields, so
+	// the golden file described a quarter of the API and the other three
+	// quarters could change freely without this test noticing. A route only
+	// exists on a gin engine if its handler was non-nil at registration, which
+	// is also why four duplicate registrations once reached production as a
+	// startup panic with this test green: the colliding pair was never
+	// registered here at all.
 	//
-	// The auth middleware is the exception. Modules that refuse to mount their
-	// write routes without one — the company module does — would otherwise be
-	// represented in the golden file by their public reads alone, and the
-	// authenticated half of the API would drift unnoticed. The service behind
-	// it is hollow because nothing here serves a request.
-	engine := New(Handlers{
-		AuthMiddleware:       authMiddleware.NewAuthMiddleware(&authService.AuthService{}),
-		AdminHandler:         &adminHttp.AdminHandler{},
-		BillingHandler:       &billingHttp.BillingHandler{},
-		AdminBillingHandler:  &billingHttp.AdminBillingHandler{},
-		LegalHandler:         &legalHttp.LegalHandler{},
-		AdminLegalHandler:    &legalHttp.AdminLegalHandler{},
-		SecurityHandler:      &securityHttp.SecurityHandler{},
-		AdminSecurityHandler: &securityHttp.AdminSecurityHandler{},
-		SupportHandler:       &supportHttp.SupportHandler{},
-		AdminSupportHandler:  &supportHttp.AdminSupportHandler{},
-		AdminBackupHandler:   &backupHttp.BackupHandler{},
-		DataOperationsHandler: &dataOpsHttp.DataOperationsHandler{},
-		CoverLetterHandler:   &coverLetterHttp.CoverLetterHandler{},
-		InterviewPrepHandler: &interviewPrepHttp.InterviewPrepHandler{},
-		ComplianceHandler:    &complianceHttp.ComplianceHandler{},
-	}, SwaggerConfig{})
+	// Handlers are zero values; routes are registered by method value and
+	// nothing here serves a request. Swagger stays disabled so the golden file
+	// covers the API surface only.
+	engine := fullyPopulatedRouter(t)
 
 	var got []string
 	for _, route := range engine.Routes() {

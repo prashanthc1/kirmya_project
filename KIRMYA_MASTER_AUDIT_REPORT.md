@@ -327,14 +327,62 @@ sequenceDiagram
 ```
 
 ### Complete P0 Security Defect Registry:
-1. **Mentorship Identity Spoofing**: `mentorship_handler.go` respects `c.GetHeader("X-User-ID")`.
-2. **Trust & Safety Admin RBAC Bypass**: `/admin/safety/*` uses `AuthRequired()` only.
-3. **Core Admin Module RBAC Bypass**: `/admin/*` lacks role check in `routes.go`.
-4. **Profile Admin Endpoint IDOR / RBAC Bypass**: `/admin/users/:id/profile` uses `AuthRequired()` only.
-5. **Legal & Privacy Admin RBAC Bypass**: `/admin/legal/*` and `/admin/privacy/*` lack role check.
-6. **Data Operations Admin RBAC Bypass**: `/admin/data-operations/*` lacks role check.
-7. **System Health Diagnostics Admin RBAC Bypass**: `/admin/system/health/*` lacks role check.
-8. **Unauthenticated Billing Module**: `/api/v1/billing/*` and `/api/v1/admin/billing/*` have zero auth guards.
+
+> **Status: all eight closed in Security Phase 1** (commits `b96e6dc`…`a665a7a`).
+> Full verification, evidence and residual risks: **[SECURITY_PHASE1_COMPLETION.md](SECURITY_PHASE1_COMPLETION.md)**.
+>
+> Several entries below described the defect inaccurately. Each was verified against the code
+> before being changed, and the correction is recorded here so this registry is not cited as
+> fact later. In every case a real defect was present — it was not always the one described.
+>
+> **The shape of entries 2–7 as they actually existed.** These groups did carry a role check,
+> but conditionally:
+>
+> ```go
+> if len(auth) > 0 && auth[0] != nil {
+>     adminX.Use(auth[0].RequireAuth(), auth[0].RequireRole("admin", "super_admin"))
+> } else {
+>     adminX.Use(sharedMiddleware.AuthRequired())   // authentication only — no role check
+> }
+> ```
+>
+> So the protection depended on the auth middleware being wired at the call site, and the
+> fallback authenticated without authorizing: any logged-in user reached the admin surface.
+> The enumerated `"admin", "super_admin"` also omitted `platform_admin`, which existed
+> elsewhere in the codebase. All are now one unconditional `sharedMiddleware.RequireAdmin()`.
+
+1. **Mentorship Identity Spoofing** — ✅ **Fixed** (`b96e6dc`).
+   *Correction:* the handler never read `X-User-ID`; no such header is read anywhere in the
+   backend. The real defect was `c.GetString("userID")` against a context value holding a
+   `uuid.UUID`, which type-asserts to `string` and returned `""` for every authenticated user.
+2. **Trust & Safety Admin RBAC Bypass** — ✅ **Fixed** (`2f009cb`). `/admin/safety/*` now requires
+   an admin role unconditionally.
+3. **Core Admin Module RBAC Bypass** — ✅ **Fixed** (`2f009cb`). See the shape note above.
+4. **Profile Admin Endpoint IDOR / RBAC Bypass** — ✅ **Fixed** (`0db1f9d`). Parameterised admin
+   routes were also being skipped by the enforcement test, leaving 64 of 241 unverified; the
+   sweep now resolves `:params` and covers them.
+5. **Legal & Privacy Admin RBAC Bypass** — ✅ **Fixed** (`2f009cb`). Both `/admin/legal/*` and
+   `/admin/privacy/*`; see the shape note above.
+6. **Data Operations Admin RBAC Bypass** — ✅ **Fixed** (`2f009cb`). See the shape note above.
+7. **System Health Diagnostics Admin RBAC Bypass** — ✅ **Fixed** (`2f009cb`). See the shape note above.
+8. **Unauthenticated Billing Module** — ✅ **Fixed** (`f95984a`).
+   *Correction:* the billing routes were not unauthenticated. `/billing/status|subscription|checkout`
+   carried `AuthRequired`, and `/admin/billing/*` was covered by entry 3's fix. The genuine and
+   more serious defect was the payment webhook: it verified nothing at all — the provider's
+   signature check returned `true` unconditionally, the service never called it, and the handler
+   passed a nil payload — so any unauthenticated POST recorded a `payment_succeeded` event.
+
+**Verified after the fixes, against a running server and a live PostgreSQL database:** all 241
+`/admin/*` routes return 401 anonymously and 403 to `user`, `recruiter`, `hiring_manager` and
+`moderator`, while all three admin roles reach all 241; a token signed with the wrong key is
+refused everywhere.
+
+**Not closed — the leading residual risk.** 79 handler call sites across 31 modules still resolve
+the caller from the context key `user_id`, which nothing sets, and fall back to a hardcoded or
+randomly generated UUID. Those routes remain authenticated, so this is a cross-tenant
+data-integrity failure rather than an open door, but it is not fixed. It is pinned by
+`test/security/phase1_boundaries_test.go` so the number cannot grow unnoticed, and detailed in
+§4.1 of the Phase 1 completion report.
 
 ---
 
