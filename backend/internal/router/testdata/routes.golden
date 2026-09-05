@@ -231,6 +231,7 @@ GET /api/v1/applications/:id
 GET /api/v1/applications/:id/timeline
 GET /api/v1/applications/ai-insights
 GET /api/v1/applications/analytics
+GET /api/v1/applications/insights
 GET /api/v1/assessments
 GET /api/v1/assessments/:id
 GET /api/v1/assessments/badges
@@ -368,6 +369,7 @@ GET /api/v1/job-recommendations
 GET /api/v1/job-recommendations/:id
 GET /api/v1/jobs
 GET /api/v1/jobs/:id
+GET /api/v1/jobs/:id/saved-state
 GET /api/v1/jobs/matches
 GET /api/v1/jobs/matches/:id
 GET /api/v1/jobs/saved
@@ -617,6 +619,7 @@ POST /api/v1/ai/job-matching
 POST /api/v1/ai/resume-analysis
 POST /api/v1/ai/skill-gap
 POST /api/v1/applications
+POST /api/v1/applications/:id/archive
 POST /api/v1/assessments/:id/submit
 POST /api/v1/auth/forgot-password
 POST /api/v1/auth/login

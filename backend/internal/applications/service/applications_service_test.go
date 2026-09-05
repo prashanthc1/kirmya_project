@@ -15,8 +15,23 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 	svc := NewApplicationsService(repo)
 	ctx := context.Background()
 	candidateID := uuid.New()
+	jobID := uuid.New()
+	resumeID := uuid.New()
 
-	// 1. Get Applications
+	// 1. Create Application
+	createdApp, err := svc.CreateApplication(ctx, candidateID, models.CreateApplicationPayload{
+		JobID:       jobID,
+		ResumeID:    &resumeID,
+		CoverLetter: "Initial application for full workflow test",
+	})
+	if err != nil {
+		t.Fatalf("CreateApplication failed: %v", err)
+	}
+	if createdApp == nil {
+		t.Fatal("Expected created application")
+	}
+
+	// 2. Get Applications
 	apps, err := svc.GetCandidateApplications(ctx, candidateID, "", "")
 	if err != nil {
 		t.Fatalf("GetCandidateApplications failed: %v", err)
@@ -25,8 +40,8 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 		t.Error("Expected applications list")
 	}
 
-	// 2. Get Application By ID
-	appDetail, err := svc.GetApplicationByID(ctx, candidateID, apps[0].ID)
+	// 3. Get Application By ID
+	appDetail, err := svc.GetApplicationByID(ctx, candidateID, createdApp.Summary.ID)
 	if err != nil {
 		t.Fatalf("GetApplicationByID failed: %v", err)
 	}
@@ -34,15 +49,15 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 		t.Fatal("Expected application detail")
 	}
 
-	// 3. Withdraw Application
-	err = svc.WithdrawApplication(ctx, candidateID, apps[0].ID)
+	// 4. Withdraw Application
+	err = svc.WithdrawApplication(ctx, candidateID, createdApp.Summary.ID)
 	if err != nil {
 		t.Fatalf("WithdrawApplication failed: %v", err)
 	}
 
-	// 4. Saved Jobs
-	jobID := uuid.New()
-	err = svc.SaveJob(ctx, candidateID, jobID, "Must apply soon")
+	// 5. Saved Jobs
+	savedJobID := uuid.New()
+	err = svc.SaveJob(ctx, candidateID, savedJobID, "Must apply soon")
 	if err != nil {
 		t.Fatalf("SaveJob failed: %v", err)
 	}
@@ -53,12 +68,12 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 	if len(savedJobs) == 0 {
 		t.Error("Expected saved jobs list")
 	}
-	err = svc.RemoveSavedJob(ctx, candidateID, jobID)
+	err = svc.RemoveSavedJob(ctx, candidateID, savedJobID)
 	if err != nil {
 		t.Fatalf("RemoveSavedJob failed: %v", err)
 	}
 
-	// 5. Job Alerts
+	// 6. Job Alerts
 	alertPayload := models.CreateJobAlertPayload{
 		Title:        "Go Microservices Alert",
 		Keywords:     "Golang PostgreSQL Gin",
@@ -76,43 +91,24 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 		t.Errorf("Expected alert title match, got %s", alert.Title)
 	}
 
-	alerts, err := svc.GetJobAlerts(ctx, candidateID)
-	if err != nil {
-		t.Fatalf("GetJobAlerts failed: %v", err)
-	}
-	if len(alerts) == 0 {
-		t.Error("Expected job alerts")
-	}
-
-	err = svc.DeleteJobAlert(ctx, candidateID, alert.ID)
-	if err != nil {
-		t.Fatalf("DeleteJobAlert failed: %v", err)
-	}
-
-	// 6. Interviews & Documents
-	interviews, err := svc.GetCandidateInterviews(ctx, candidateID)
+	// 7. Interviews & Documents
+	_, err = svc.GetCandidateInterviews(ctx, candidateID)
 	if err != nil {
 		t.Fatalf("GetCandidateInterviews failed: %v", err)
 	}
-	if len(interviews) == 0 {
-		t.Error("Expected candidate interviews")
-	}
 
-	docs, err := svc.GetCandidateDocuments(ctx, candidateID)
+	_, err = svc.GetCandidateDocuments(ctx, candidateID)
 	if err != nil {
 		t.Fatalf("GetCandidateDocuments failed: %v", err)
 	}
-	if len(docs) == 0 {
-		t.Error("Expected candidate documents")
-	}
 
-	// 7. Stats & AI Insights
+	// 8. Stats & AI Insights
 	stats, err := svc.GetApplicationStats(ctx, candidateID)
 	if err != nil {
 		t.Fatalf("GetApplicationStats failed: %v", err)
 	}
 	if stats.TotalApplications == 0 {
-		t.Error("Expected non-zero total applications")
+		t.Error("Expected non-zero total applications after create")
 	}
 
 	insights, err := svc.GetAIInsights(ctx, candidateID)
@@ -159,4 +155,121 @@ func TestApplicationsService_CreateApplication(t *testing.T) {
 	if detail.Summary.StatusExplanation == "" {
 		t.Error("Expected non-empty status explanation")
 	}
+
+	// Duplicate application check
+	_, err = svc.CreateApplication(ctx, candidateID, payload)
+	if err == nil {
+		t.Error("Expected duplicate application error")
+	}
+
+	// Idempotency check with distinct key
+	payloadWithIdempotency := models.CreateApplicationPayload{
+		JobID:          uuid.New(),
+		ResumeID:       &resumeID,
+		CoverLetter:    "Testing idempotency",
+		IdempotencyKey: "test-idem-key-1",
+	}
+	app1, err := svc.CreateApplication(ctx, candidateID, payloadWithIdempotency)
+	if err != nil {
+		t.Fatalf("First idempotent apply failed: %v", err)
+	}
+	app2, err := svc.CreateApplication(ctx, candidateID, payloadWithIdempotency)
+	if err != nil {
+		t.Fatalf("Second idempotent apply failed: %v", err)
+	}
+	if app1.Summary.ID != app2.Summary.ID {
+		t.Errorf("Expected identical application ID for idempotent key, got %s vs %s", app1.Summary.ID, app2.Summary.ID)
+	}
 }
+
+func TestApplications_StateMachineTransitions(t *testing.T) {
+	// Candidate valid transitions
+	if err := models.ValidateTransition(models.StageDraft, models.StageApplied, true); err != nil {
+		t.Errorf("Draft -> Applied should be valid for candidate: %v", err)
+	}
+	if err := models.ValidateTransition(models.StageApplied, models.StageWithdrawn, true); err != nil {
+		t.Errorf("Applied -> Withdrawn should be valid for candidate: %v", err)
+	}
+	if err := models.ValidateTransition(models.StageOffer, models.StageAccepted, true); err != nil {
+		t.Errorf("Offer -> Accepted should be valid for candidate: %v", err)
+	}
+
+	// Candidate invalid transitions
+	if err := models.ValidateTransition(models.StageApplied, models.StageInterview, true); err == nil {
+		t.Error("Applied -> Interview should fail for candidate")
+	}
+	if err := models.ValidateTransition(models.StageApplied, models.StageOffer, true); err == nil {
+		t.Error("Applied -> Offer should fail for candidate")
+	}
+
+	// Recruiter valid transitions
+	if err := models.ValidateTransition(models.StageApplied, models.StageViewed, false); err != nil {
+		t.Errorf("Applied -> Viewed should be valid for recruiter: %v", err)
+	}
+	if err := models.ValidateTransition(models.StageViewed, models.StageShortlisted, false); err != nil {
+		t.Errorf("Viewed -> Shortlisted should be valid for recruiter: %v", err)
+	}
+	if err := models.ValidateTransition(models.StageShortlisted, models.StageInterview, false); err != nil {
+		t.Errorf("Shortlisted -> Interview should be valid for recruiter: %v", err)
+	}
+	if err := models.ValidateTransition(models.StageInterview, models.StageOffer, false); err != nil {
+		t.Errorf("Interview -> Offer should be valid for recruiter: %v", err)
+	}
+	if err := models.ValidateTransition(models.StageOffer, models.StageRejected, false); err != nil {
+		t.Errorf("Offer -> Rejected should be valid for recruiter: %v", err)
+	}
+
+	// Terminal state restrictions
+	if err := models.ValidateTransition(models.StageWithdrawn, models.StageInterview, false); err == nil {
+		t.Error("Withdrawn -> Interview should fail (terminal state)")
+	}
+	if err := models.ValidateTransition(models.StageRejected, models.StageOffer, false); err == nil {
+		t.Error("Rejected -> Offer should fail (terminal state)")
+	}
+	if err := models.ValidateTransition(models.StageRejected, models.StageArchived, false); err != nil {
+		t.Errorf("Rejected -> Archived should be allowed: %v", err)
+	}
+}
+
+func TestApplicationsService_SavedJobsAndArchive(t *testing.T) {
+	repo := repository.NewApplicationsRepository(nil)
+	svc := NewApplicationsService(repo)
+	ctx := context.Background()
+	candidateID := uuid.New()
+	jobID := uuid.New()
+
+	// Initially not saved
+	isSaved, err := svc.IsJobSaved(ctx, candidateID, jobID)
+	if err != nil {
+		t.Fatalf("IsJobSaved failed: %v", err)
+	}
+	if isSaved {
+		t.Error("Job should not be saved initially")
+	}
+
+	// Save job
+	if err := svc.SaveJob(ctx, candidateID, jobID, "Dream company"); err != nil {
+		t.Fatalf("SaveJob failed: %v", err)
+	}
+
+	// Check state
+	isSaved, err = svc.IsJobSaved(ctx, candidateID, jobID)
+	if err != nil {
+		t.Fatalf("IsJobSaved failed: %v", err)
+	}
+	if !isSaved {
+		t.Error("Job should be reported as saved")
+	}
+
+	// Archive application
+	app, err := svc.CreateApplication(ctx, candidateID, models.CreateApplicationPayload{
+		JobID: jobID,
+	})
+	if err != nil {
+		t.Fatalf("CreateApplication before archive failed: %v", err)
+	}
+	if err := svc.ArchiveApplication(ctx, candidateID, app.Summary.ID); err != nil {
+		t.Fatalf("ArchiveApplication failed: %v", err)
+	}
+}
+

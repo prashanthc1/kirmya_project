@@ -11667,6 +11667,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/applications/insights": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Observations drawn from the candidate's own application history.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "AI insights on the caller's applications (alias)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AIApplicationInsightsDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/applications/{id}": {
             "get": {
                 "security": [
@@ -11712,6 +11749,58 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "No such application for this candidate",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/applications/{id}/archive": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Non-destructively archives the candidate's application.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Archive an application",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Application id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\\\"message\\\": \\\"Application archived successfully\\\"}",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid application ID",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -20728,7 +20817,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the résumés, cover letters and certificates the candidate has stored for attaching to applications. The list is the candidate's own; nobody else's documents are ever returned here.",
+                "description": "Returns the résumés, cover letters and certificates the candidate has stored for attaching to applications.",
                 "produces": [
                     "application/json"
                 ],
@@ -20768,7 +20857,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Records a document against the candidate's profile by reference. The file itself is uploaded to storage separately and named here by URL; the reference is private to the candidate and to the employers they attach it to.",
+                "description": "Records a document against the candidate's profile by reference.",
                 "consumes": [
                     "application/json"
                 ],
@@ -26832,6 +26921,58 @@ const docTemplate = `{
                         "description": "{\\\"message\\\": \\\"Saved job removed successfully\\\"}",
                         "schema": {
                             "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid job ID",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jobs/{id}/saved-state": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Checks whether the signed-in candidate has saved a given job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get job saved state",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.JobSavedStateResponse"
                         }
                     },
                     "400": {
@@ -46625,6 +46766,17 @@ const docTemplate = `{
                 }
             }
         },
+        "http.JobSavedStateResponse": {
+            "type": "object",
+            "properties": {
+                "is_saved": {
+                    "type": "boolean"
+                },
+                "job_id": {
+                    "type": "string"
+                }
+            }
+        },
         "http.LockPostPayload": {
             "type": "object",
             "properties": {
@@ -46728,7 +46880,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "notes": {
-                    "description": "Notes is the candidate's private reminder about the job. It is never\nshown to the employer.",
                     "type": "string",
                     "example": "Ask about the remote policy"
                 }
@@ -46799,12 +46950,10 @@ const docTemplate = `{
                     "example": "resume"
                 },
                 "file_url": {
-                    "description": "FileURL points at the object already placed in storage.",
                     "type": "string",
                     "example": "https://files.kirmya.com/candidates/cv.pdf"
                 },
                 "is_default": {
-                    "description": "IsDefault attaches this document to applications unless another is chosen.",
                     "type": "boolean",
                     "example": true
                 },
@@ -47617,9 +47766,32 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ApplicationAnswer": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string"
+                },
+                "question_id": {
+                    "type": "string"
+                },
+                "question_text": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ApplicationDetail": {
             "type": "object",
             "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ApplicationAnswer"
+                    }
+                },
+                "cover_letter_text": {
+                    "type": "string"
+                },
                 "interviews": {
                     "type": "array",
                     "items": {
@@ -47693,6 +47865,7 @@ const docTemplate = `{
         "models.ApplicationStage": {
             "type": "string",
             "enum": [
+                "Draft",
                 "Applied",
                 "Viewed",
                 "Shortlisted",
@@ -47700,9 +47873,11 @@ const docTemplate = `{
                 "Offer",
                 "Accepted",
                 "Rejected",
-                "Withdrawn"
+                "Withdrawn",
+                "Archived"
             ],
             "x-enum-varnames": [
+                "StageDraft",
                 "StageApplied",
                 "StageViewed",
                 "StageShortlisted",
@@ -47710,7 +47885,8 @@ const docTemplate = `{
                 "StageOffer",
                 "StageAccepted",
                 "StageRejected",
-                "StageWithdrawn"
+                "StageWithdrawn",
+                "StageArchived"
             ]
         },
         "models.ApplicationStageHistoryDTO": {
@@ -47761,6 +47937,9 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "total_applications": {
+                    "type": "integer"
+                },
+                "withdrawn_count": {
                     "type": "integer"
                 }
             }
@@ -47820,6 +47999,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "recruiter_name": {
+                    "type": "string"
+                },
+                "resume_url": {
                     "type": "string"
                 },
                 "salary_range": {
@@ -50500,13 +50682,28 @@ const docTemplate = `{
                 "job_id"
             ],
             "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ApplicationAnswer"
+                    }
+                },
                 "cover_letter": {
+                    "type": "string"
+                },
+                "idempotency_key": {
                     "type": "string"
                 },
                 "job_id": {
                     "type": "string"
                 },
                 "resume_id": {
+                    "type": "string"
+                },
+                "resume_url": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -50841,6 +51038,56 @@ const docTemplate = `{
                 },
                 "severity": {
                     "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateJobAlertPayload": {
+            "type": "object",
+            "properties": {
+                "channel_email": {
+                    "type": "boolean"
+                },
+                "channel_in_app": {
+                    "type": "boolean"
+                },
+                "channel_push": {
+                    "type": "boolean"
+                },
+                "employment_type": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "job_titles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "keywords": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "title": {
                     "type": "string"
@@ -52363,6 +52610,72 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "work_authorization": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.JobAlertDTO": {
+            "type": "object",
+            "properties": {
+                "candidate_id": {
+                    "type": "string"
+                },
+                "channel_email": {
+                    "type": "boolean"
+                },
+                "channel_in_app": {
+                    "type": "boolean"
+                },
+                "channel_push": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "employment_type": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "description": "'Instant', 'Daily', 'Weekly'",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "job_titles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "keywords": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "salary_max": {
+                    "type": "integer"
+                },
+                "salary_min": {
+                    "type": "integer"
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -54360,6 +54673,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
                 },
                 "job_id": {
                     "type": "string"

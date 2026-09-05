@@ -13,8 +13,10 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ApplicationsHandler) {
 		appGroup.POST("", handler.ApplyToJob)
 		appGroup.GET("/analytics", handler.GetAnalytics)
 		appGroup.GET("/ai-insights", handler.GetAIInsights)
+		appGroup.GET("/insights", handler.GetAIInsights)
 		appGroup.GET("/:id", handler.GetApplicationByID)
 		appGroup.PUT("/:id/withdraw", handler.WithdrawApplication)
+		appGroup.POST("/:id/archive", handler.ArchiveApplication)
 		appGroup.GET("/:id/timeline", handler.GetApplicationTimeline)
 	}
 
@@ -35,6 +37,12 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ApplicationsHandler) {
 	{
 		jobSaveGroup.POST("", handler.SaveJob)
 		jobSaveGroup.DELETE("", handler.RemoveSavedJob)
+	}
+
+	jobStateGroup := api.Group("/jobs/:id/saved-state")
+	jobStateGroup.Use(sharedMiddleware.AuthRequired())
+	{
+		jobStateGroup.GET("", handler.GetJobSavedState)
 	}
 
 	docGroup := api.Group("/documents")

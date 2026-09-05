@@ -20,7 +20,7 @@ func NewApplicationsHandler(svc *service.ApplicationsService) *ApplicationsHandl
 	return &ApplicationsHandler{svc: svc}
 }
 
-// POST /api/v1/applications
+// POST /api/v1/applications or POST /api/v1/jobs/:id/apply
 func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
 	candID, ok := h.getCandidateID(c)
 	if !ok {
@@ -38,10 +38,19 @@ func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
 		}
 	}
 
+	if payload.JobID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "job_id is required"})
+		return
+	}
+
 	detail, err := h.svc.CreateApplication(c.Request.Context(), candID, payload)
 	if err != nil {
 		if strings.Contains(err.Error(), "already applied") {
 			c.JSON(http.StatusConflict, gin.H{"error": "You have already applied to this job"})
+			return
+		}
+		if strings.Contains(err.Error(), "no longer accepting") || strings.Contains(err.Error(), "expired") || strings.Contains(err.Error(), "not found") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -127,10 +136,35 @@ func (h *ApplicationsHandler) WithdrawApplication(c *gin.Context) {
 
 	err = h.svc.WithdrawApplication(c.Request.Context(), candID, appID)
 	if err != nil {
+		if strings.Contains(err.Error(), "cannot transition") || strings.Contains(err.Error(), "not authorized") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Application withdrawn successfully"})
+}
+
+// POST /api/v1/applications/:id/archive
+func (h *ApplicationsHandler) ArchiveApplication(c *gin.Context) {
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
+	idStr := c.Param("id")
+	appID, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid application ID"})
+		return
+	}
+
+	err = h.svc.ArchiveApplication(c.Request.Context(), candID, appID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Application archived successfully"})
 }
 
 // GET /api/v1/applications/:id/timeline
@@ -213,6 +247,27 @@ func (h *ApplicationsHandler) RemoveSavedJob(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Saved job removed successfully"})
+}
+
+// GET /api/v1/jobs/:id/saved-state
+func (h *ApplicationsHandler) GetJobSavedState(c *gin.Context) {
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
+	jobIDStr := c.Param("id")
+	jobID, err := uuid.Parse(jobIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
+		return
+	}
+
+	isSaved, err := h.svc.IsJobSaved(c.Request.Context(), candID, jobID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"job_id": jobID, "is_saved": isSaved})
 }
 
 // GET /api/v1/job-alerts
@@ -368,7 +423,7 @@ func (h *ApplicationsHandler) GetAnalytics(c *gin.Context) {
 	})
 }
 
-// GET /api/v1/applications/ai-insights
+// GET /api/v1/applications/ai-insights & GET /api/v1/applications/insights
 func (h *ApplicationsHandler) GetAIInsights(c *gin.Context) {
 	candID, ok := h.getCandidateID(c)
 	if !ok {

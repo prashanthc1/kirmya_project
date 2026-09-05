@@ -27,6 +27,11 @@ export interface JobDetail extends JobSummary {
   benefits?: string[];
   status?: string;
   expires_at?: string;
+  screening_questions?: Array<{
+    id: string;
+    question: string;
+    required?: boolean;
+  }>;
 }
 
 export interface JobListPage {

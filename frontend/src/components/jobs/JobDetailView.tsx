@@ -35,6 +35,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../shared/routes';
 import { tokens } from '../../theme/tokens';
 import SavedJobButton from './SavedJobButton';
+import ApplyJobModal from '../applications/ApplyJobModal';
 
 export interface JobDetailViewProps {
   job: JobDetail;
@@ -44,18 +45,25 @@ export interface JobDetailViewProps {
 
 export const JobDetailView: React.FC<JobDetailViewProps> = ({
   job,
-  isSaved = false,
+  isSaved: initialSaved = false,
   onSaveToggle,
 }) => {
   const theme = useTheme();
   const router = useRouter();
-  const { user, authenticated } = useAuth();
+  const { authenticated } = useAuth();
 
   const [applyModalOpen, setApplyModalOpen] = useState(false);
-  const [coverNote, setCoverNote] = useState('');
-  const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
-  const [applyError, setApplyError] = useState<string | null>(null);
+  const [savedState, setSavedState] = useState(initialSaved);
+
+  // Sync saved state with backend when authenticated
+  React.useEffect(() => {
+    if (authenticated && job?.id) {
+      jobsApi.isJobSaved(job.id).then((saved) => {
+        setSavedState(saved);
+      }).catch(() => {});
+    }
+  }, [authenticated, job?.id]);
 
   const handleApplyClick = () => {
     if (!authenticated) {
@@ -65,18 +73,9 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
     setApplyModalOpen(true);
   };
 
-  const handleApplySubmit = async () => {
-    setApplying(true);
-    setApplyError(null);
-    try {
-      await jobsApi.applyToJob(job.id, { notes: coverNote });
-      setApplied(true);
-      setApplyModalOpen(false);
-    } catch {
-      setApplyError('Failed to submit application. Please try again.');
-    } finally {
-      setApplying(false);
-    }
+  const handleSaveToggle = (nextSaved: boolean) => {
+    setSavedState(nextSaved);
+    onSaveToggle?.(nextSaved);
   };
 
   return (
@@ -128,8 +127,8 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
             <SavedJobButton
               jobId={job.id}
               jobTitle={job.title}
-              initialSaved={isSaved}
-              onToggle={onSaveToggle}
+              initialSaved={savedState}
+              onToggle={handleSaveToggle}
               size="medium"
             />
           </Stack>
@@ -290,49 +289,15 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
         )}
       </Stack>
 
-      {/* Application Dialog Modal */}
-      <Dialog
+      {/* Interactive Multi-Step Application Modal */}
+      <ApplyJobModal
         open={applyModalOpen}
+        job={job}
         onClose={() => setApplyModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 700 }}>
-          Apply to {job.title}
-        </DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2.5} sx={{ pt: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Your profile credentials, contact info, and default resume will be sent directly to {job.company_name || 'the hiring team'}.
-            </Typography>
-
-            {applyError && <Alert severity="error">{applyError}</Alert>}
-
-            <TextField
-              label="Cover Note / Introduction (Optional)"
-              multiline
-              rows={4}
-              value={coverNote}
-              onChange={(e) => setCoverNote(e.target.value)}
-              placeholder="Highlight why your skills and experience are a great fit for this position..."
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setApplyModalOpen(false)} color="inherit">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleApplySubmit}
-            variant="contained"
-            disabled={applying}
-            startIcon={applying ? <CircularProgress size={16} /> : null}
-          >
-            {applying ? 'Submitting...' : 'Submit Application'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onSuccess={() => {
+          setApplied(true);
+        }}
+      />
     </Box>
   );
 };

@@ -9,6 +9,7 @@ import { ApplicationCard, getStatusChipProps } from '../components/applications/
 import { ApplicationDetails } from '../components/applications/ApplicationDetails';
 import { ApplicationTimeline } from '../components/applications/ApplicationTimeline';
 import { ApplicationDashboard } from '../components/applications/ApplicationDashboard';
+import { ApplyJobModal } from '../components/applications/ApplyJobModal';
 import { authApiClient } from '../services/authService';
 
 const mockPush = vi.fn();
@@ -271,6 +272,123 @@ describe('Job Applications & Candidate Pipeline Experience (Prompt 23/50)', () =
       const res = await applicationsApi.withdrawApplication('app-101');
       expect(authApiClient.put).toHaveBeenCalledWith('/applications/app-101/withdraw');
       expect(res.message).toBe('withdrawn');
+    });
+
+    it('archiveApplication calls POST /applications/:id/archive', async () => {
+      (authApiClient.post as any).mockResolvedValueOnce({ data: { message: 'archived' } });
+
+      const res = await applicationsApi.archiveApplication('app-101');
+      expect(authApiClient.post).toHaveBeenCalledWith('/applications/app-101/archive');
+      expect(res.message).toBe('archived');
+    });
+
+    it('isJobSaved calls GET /jobs/:id/saved-state', async () => {
+      (authApiClient.get as any).mockResolvedValueOnce({ data: { is_saved: true } });
+
+      const res = await applicationsApi.isJobSaved('job-501');
+      expect(authApiClient.get).toHaveBeenCalledWith('/jobs/job-501/saved-state');
+      expect(res).toBe(true);
+    });
+  });
+
+  describe('ApplyJobModal Component', () => {
+    const mockJobDetail = {
+      id: 'job-501',
+      title: 'Staff Backend Distributed Systems Engineer',
+      company_name: 'Kirmya Global Cloud',
+      company_id: 'comp-10',
+      location: 'Dubai, UAE (Hybrid)',
+      employment_type: 'Full-time',
+      work_mode: 'hybrid' as const,
+      salary_range: 'AED 35,000 - 45,000 / month',
+      screening_questions: [
+        { id: 'sq-1', question: 'How many years of production Go experience do you have?' },
+      ],
+      description: 'Test job description',
+      status: 'active',
+      created_at: '2026-08-20T10:00:00Z',
+    };
+
+    it('renders modal with contact info and steps through application workflow', async () => {
+      (authApiClient.get as any).mockResolvedValueOnce({
+        data: [
+          {
+            id: 'doc-1',
+            candidate_id: 'u1',
+            title: 'Senior_Go_Resume.pdf',
+            document_type: 'Resume',
+            file_url: 'https://cdn.kirmya.com/resume.pdf',
+            size_bytes: 200000,
+            file_type: 'pdf',
+            is_default: true,
+            uploaded_at: '2026-08-20T10:00:00Z',
+          },
+        ],
+      });
+
+      const handleClose = vi.fn();
+      const handleSuccess = vi.fn();
+
+      renderWithTheme(
+        <ApplyJobModal
+          open={true}
+          job={mockJobDetail as any}
+          onClose={handleClose}
+          onSuccess={handleSuccess}
+        />
+      );
+
+      // Step 0: Contact Info
+      expect(screen.getByText(/Apply to Staff Backend Distributed Systems Engineer/i)).toBeDefined();
+      expect(screen.getByLabelText(/Full Name/i)).toBeDefined();
+      expect(screen.getByLabelText(/Email Address/i)).toBeDefined();
+
+      // Proceed to Step 1: Select Resume
+      const continueBtn = screen.getByRole('button', { name: /Continue/i });
+      fireEvent.click(continueBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Select a tailored resume/i)).toBeDefined();
+      });
+
+      // Proceed to Step 2: Cover Note
+      fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+      await waitFor(() => {
+        expect(screen.getByText(/Add a personalized note/i)).toBeDefined();
+      });
+
+      // Proceed to Step 3: Screening Questions
+      fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+      await waitFor(() => {
+        expect(screen.getByText(/How many years of production Go experience do you have/i)).toBeDefined();
+      });
+
+      // Proceed to Step 4: Review & Submit
+      fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+      await waitFor(() => {
+        expect(screen.getByText(/Please review your application summary/i)).toBeDefined();
+        expect(screen.getByRole('button', { name: /Submit Application/i })).toBeDefined();
+      });
+
+      // Submit application
+      (authApiClient.post as any).mockResolvedValueOnce({
+        data: {
+          summary: {
+            id: 'app-999',
+            job_id: 'job-501',
+            job_title: 'Staff Backend Distributed Systems Engineer',
+          },
+        },
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Submit Application/i }));
+
+      await waitFor(() => {
+        expect(authApiClient.post).toHaveBeenCalledWith('/applications', expect.objectContaining({
+          job_id: 'job-501',
+        }));
+        expect(handleSuccess).toHaveBeenCalledWith('app-999');
+      });
     });
   });
 });

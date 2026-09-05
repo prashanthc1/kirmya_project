@@ -1962,6 +1962,13 @@ definitions:
     required:
     - invitedUserId
     type: object
+  http.JobSavedStateResponse:
+    properties:
+      is_saved:
+        type: boolean
+      job_id:
+        type: string
+    type: object
   http.LockPostPayload:
     properties:
       isLocked:
@@ -2032,9 +2039,6 @@ definitions:
   http.SaveJobBody:
     properties:
       notes:
-        description: |-
-          Notes is the candidate's private reminder about the job. It is never
-          shown to the employer.
         example: Ask about the remote policy
         type: string
     type: object
@@ -2083,12 +2087,9 @@ definitions:
         example: resume
         type: string
       file_url:
-        description: FileURL points at the object already placed in storage.
         example: https://files.kirmya.com/candidates/cv.pdf
         type: string
       is_default:
-        description: IsDefault attaches this document to applications unless another
-          is chosen.
         example: true
         type: boolean
       title:
@@ -2636,8 +2637,23 @@ definitions:
       uniqueVisitors:
         type: integer
     type: object
+  models.ApplicationAnswer:
+    properties:
+      answer:
+        type: string
+      question_id:
+        type: string
+      question_text:
+        type: string
+    type: object
   models.ApplicationDetail:
     properties:
+      answers:
+        items:
+          $ref: '#/definitions/models.ApplicationAnswer'
+        type: array
+      cover_letter_text:
+        type: string
       interviews:
         items:
           $ref: '#/definitions/models.CandidateInterview'
@@ -2686,6 +2702,7 @@ definitions:
     type: object
   models.ApplicationStage:
     enum:
+    - Draft
     - Applied
     - Viewed
     - Shortlisted
@@ -2694,8 +2711,10 @@ definitions:
     - Accepted
     - Rejected
     - Withdrawn
+    - Archived
     type: string
     x-enum-varnames:
+    - StageDraft
     - StageApplied
     - StageViewed
     - StageShortlisted
@@ -2704,6 +2723,7 @@ definitions:
     - StageAccepted
     - StageRejected
     - StageWithdrawn
+    - StageArchived
   models.ApplicationStageHistoryDTO:
     properties:
       applicationId:
@@ -2736,6 +2756,8 @@ definitions:
       response_rate:
         type: number
       total_applications:
+        type: integer
+      withdrawn_count:
         type: integer
     type: object
   models.ApplicationSummary:
@@ -2775,6 +2797,8 @@ definitions:
       recruiter_id:
         type: string
       recruiter_name:
+        type: string
+      resume_url:
         type: string
       salary_range:
         type: string
@@ -4585,11 +4609,21 @@ definitions:
     type: object
   models.CreateApplicationPayload:
     properties:
+      answers:
+        items:
+          $ref: '#/definitions/models.ApplicationAnswer'
+        type: array
       cover_letter:
+        type: string
+      idempotency_key:
         type: string
       job_id:
         type: string
       resume_id:
+        type: string
+      resume_url:
+        type: string
+      source:
         type: string
     required:
     - job_id
@@ -4818,6 +4852,39 @@ definitions:
     - description
     - severity
     - title
+    type: object
+  models.CreateJobAlertPayload:
+    properties:
+      channel_email:
+        type: boolean
+      channel_in_app:
+        type: boolean
+      channel_push:
+        type: boolean
+      employment_type:
+        type: string
+      frequency:
+        type: string
+      industry:
+        type: string
+      job_titles:
+        items:
+          type: string
+        type: array
+      keywords:
+        type: string
+      location:
+        type: string
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      skills:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
     type: object
   models.CreateJobPayload:
     properties:
@@ -5860,6 +5927,50 @@ definitions:
       visa_sponsorship:
         type: boolean
       work_authorization:
+        type: string
+    type: object
+  models.JobAlertDTO:
+    properties:
+      candidate_id:
+        type: string
+      channel_email:
+        type: boolean
+      channel_in_app:
+        type: boolean
+      channel_push:
+        type: boolean
+      created_at:
+        type: string
+      employment_type:
+        type: string
+      frequency:
+        description: '''Instant'', ''Daily'', ''Weekly'''
+        type: string
+      id:
+        type: string
+      industry:
+        type: string
+      is_active:
+        type: boolean
+      job_titles:
+        items:
+          type: string
+        type: array
+      keywords:
+        type: string
+      location:
+        type: string
+      salary_max:
+        type: integer
+      salary_min:
+        type: integer
+      skills:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
         type: string
     type: object
   models.JobAnalytics:
@@ -7204,6 +7315,8 @@ definitions:
         type: string
       id:
         type: string
+      is_active:
+        type: boolean
       job_id:
         type: string
       job_title:
@@ -15989,6 +16102,39 @@ paths:
       summary: Get one application
       tags:
       - Jobs
+  /api/v1/applications/{id}/archive:
+    post:
+      description: Non-destructively archives the candidate's application.
+      parameters:
+      - description: Application id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{\"message\": \"Application archived successfully\"}'
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Invalid application ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Archive an application
+      tags:
+      - Jobs
   /api/v1/applications/{id}/timeline:
     get:
       description: The dated sequence of what has happened to an application — submitted,
@@ -16108,6 +16254,29 @@ paths:
       security:
       - BearerAuth: []
       summary: Application statistics
+      tags:
+      - Jobs
+  /api/v1/applications/insights:
+    get:
+      description: Observations drawn from the candidate's own application history.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AIApplicationInsightsDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: AI insights on the caller's applications (alias)
       tags:
       - Jobs
   /api/v1/assessments:
@@ -21998,8 +22167,7 @@ paths:
   /api/v1/documents:
     get:
       description: Returns the résumés, cover letters and certificates the candidate
-        has stored for attaching to applications. The list is the candidate's own;
-        nobody else's documents are ever returned here.
+        has stored for attaching to applications.
       produces:
       - application/json
       responses:
@@ -22061,9 +22229,6 @@ paths:
       consumes:
       - application/json
       description: Records a document against the candidate's profile by reference.
-        The file itself is uploaded to storage separately and named here by URL; the
-        reference is private to the candidate and to the employers they attach it
-        to.
       parameters:
       - description: Document to register
         in: body
@@ -25862,6 +26027,39 @@ paths:
       security:
       - BearerAuth: []
       summary: Save a job
+      tags:
+      - Jobs
+  /api/v1/jobs/{id}/saved-state:
+    get:
+      description: Checks whether the signed-in candidate has saved a given job.
+      parameters:
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.JobSavedStateResponse'
+        "400":
+          description: Invalid job ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get job saved state
       tags:
       - Jobs
   /api/v1/jobs/matches:

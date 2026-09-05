@@ -27,7 +27,9 @@ export const applicationsApi = {
     job_id: string;
     resume_id?: string;
     cover_letter?: string;
+    answers?: Array<{ question_id: string; question_text: string; answer: string }>;
     screening_answers?: Record<string, any>;
+    idempotency_key?: string;
   }): Promise<ApplicationDetail> => {
     const res = await apiClient.post<ApplicationDetail>('/applications', payload);
     return res.data;
@@ -43,9 +45,23 @@ export const applicationsApi = {
     return res.data;
   },
 
+  archiveApplication: async (id: string): Promise<{ message: string }> => {
+    const res = await apiClient.post<{ message: string }>(`/applications/${id}/archive`);
+    return res.data;
+  },
+
   getApplicationTimeline: async (id: string): Promise<ApplicationTimelineItem[]> => {
     const res = await apiClient.get<ApplicationTimelineItem[]>(`/applications/${id}/timeline`);
     return res.data;
+  },
+
+  isJobSaved: async (jobId: string): Promise<boolean> => {
+    try {
+      const res = await apiClient.get<{ is_saved: boolean }>(`/jobs/${jobId}/saved-state`);
+      return Boolean(res.data?.is_saved);
+    } catch {
+      return false;
+    }
   },
 
   getSavedJobs: async (): Promise<SavedJobDTO[]> => {

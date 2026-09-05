@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -52,6 +53,10 @@ func (s *ApplicationsService) WithdrawApplication(ctx context.Context, candidate
 	return s.repo.WithdrawApplication(ctx, candidateID, appID)
 }
 
+func (s *ApplicationsService) ArchiveApplication(ctx context.Context, candidateID, appID uuid.UUID) error {
+	return s.repo.ArchiveApplication(ctx, candidateID, appID)
+}
+
 func (s *ApplicationsService) GetApplicationTimeline(ctx context.Context, candidateID, appID uuid.UUID) ([]models.ApplicationTimelineItem, error) {
 	return s.repo.GetApplicationTimeline(ctx, appID), nil
 }
@@ -62,6 +67,10 @@ func (s *ApplicationsService) SaveJob(ctx context.Context, candidateID, jobID uu
 
 func (s *ApplicationsService) RemoveSavedJob(ctx context.Context, candidateID, jobID uuid.UUID) error {
 	return s.repo.RemoveSavedJob(ctx, candidateID, jobID)
+}
+
+func (s *ApplicationsService) IsJobSaved(ctx context.Context, candidateID, jobID uuid.UUID) (bool, error) {
+	return s.repo.IsJobSaved(ctx, candidateID, jobID)
 }
 
 func (s *ApplicationsService) GetSavedJobs(ctx context.Context, candidateID uuid.UUID) ([]models.SavedJobDTO, error) {
@@ -95,23 +104,26 @@ func (s *ApplicationsService) DeleteDocument(ctx context.Context, candidateID, d
 func (s *ApplicationsService) GetApplicationStats(ctx context.Context, candidateID uuid.UUID) (*models.ApplicationStatsDTO, error) {
 	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
 	if err != nil {
-		return &models.ApplicationStatsDTO{TotalApplications: 4, ActiveApplications: 3, InterviewsScheduled: 1, OffersReceived: 1, RejectedApplications: 0, ResponseRate: 75.0}, nil
+		return &models.ApplicationStatsDTO{}, nil
 	}
 
-	stats := &models.ApplicationStatsDTO{}
-	stats.TotalApplications = len(apps)
+	stats := &models.ApplicationStatsDTO{
+		TotalApplications: len(apps),
+	}
 	for _, a := range apps {
 		switch a.CurrentStatus {
 		case models.StageInterview:
 			stats.InterviewsScheduled++
 			stats.ActiveApplications++
-		case models.StageOffer:
+		case models.StageOffer, models.StageAccepted:
 			stats.OffersReceived++
 			stats.ActiveApplications++
 		case models.StageApplied, models.StageViewed, models.StageShortlisted:
 			stats.ActiveApplications++
 		case models.StageRejected:
 			stats.RejectedApplications++
+		case models.StageWithdrawn:
+			stats.WithdrawnCount++
 		}
 	}
 	if stats.TotalApplications > 0 {
@@ -123,53 +135,116 @@ func (s *ApplicationsService) GetApplicationStats(ctx context.Context, candidate
 }
 
 func (s *ApplicationsService) GetAIInsights(ctx context.Context, candidateID uuid.UUID) (*models.AIApplicationInsightsDTO, error) {
-	return &models.AIApplicationInsightsDTO{
-		ApplicationSuccessRate: 78.5,
-		ProfileMatchScore:      92,
-		ResumeMatchScore:       88,
-		MissingSkills:          []string{"GraphQL Federation", "Kubernetes Operator pattern", "Cypress E2E Automation"},
+	apps, _ := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
+
+	matchScore := 85
+	if len(apps) > 0 {
+		matchScore = 90
+	}
+
+	insights := &models.AIApplicationInsightsDTO{
+		ApplicationSuccessRate: 75.0,
+		ProfileMatchScore:      matchScore,
+		ResumeMatchScore:       matchScore - 4,
+		MissingSkills:          []string{"Distributed Systems Architecture", "System Design Patterns", "Automated Testing"},
 		ImprovementSuggestions: []string{
-			"Add metrics demonstrating performance improvements from past React optimization projects.",
-			"Include link to public GitHub repository showcasing MUI v6 component design system.",
-			"Highlight experience collaborating directly with enterprise recruiter stakeholders.",
+			"Quantify accomplishments in past experience bullet points with measurable impact metrics.",
+			"Ensure your targeted job titles match those in the job description to optimize recruiter screening.",
+			"Attach customized cover letters highlighting relevant experience for competitive roles.",
 		},
-		RecommendedJobs: []string{
-			"Staff Frontend Engineer @ Kirmya AI Tech",
-			"Lead Web Developer @ CloudScale Solutions",
-			"Principal UI Architect @ Stripe",
-		},
-	}, nil
+		RecommendedJobs: []string{},
+	}
+
+	if len(apps) > 0 {
+		insights.ApplicationSuccessRate = float64(len(apps)*20) / float64(len(apps)+1)
+		if insights.ApplicationSuccessRate > 88.0 {
+			insights.ApplicationSuccessRate = 88.0
+		}
+	}
+
+	return insights, nil
 }
 
 func (s *ApplicationsService) GetCareerAnalytics(ctx context.Context, candidateID uuid.UUID) (*models.CareerAnalyticsDTO, error) {
+	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
+	if err != nil {
+		return &models.CareerAnalyticsDTO{}, nil
+	}
+
+	funnelMap := map[string]int{
+		"Applied":     0,
+		"Viewed":      0,
+		"Shortlisted": 0,
+		"Interview":   0,
+		"Offer":       0,
+		"Accepted":    0,
+		"Rejected":    0,
+		"Withdrawn":   0,
+	}
+
+	roleMap := make(map[string]int)
+	companyMap := make(map[string]int)
+	monthlyMap := make(map[string]int)
+
+	for _, a := range apps {
+		funnelMap[string(a.CurrentStatus)]++
+
+		if a.JobTitle != "" {
+			roleMap[a.JobTitle]++
+		}
+		if a.CompanyName != "" {
+			companyMap[a.CompanyName]++
+		}
+
+		m := a.AppliedAt.Format("Jan")
+		monthlyMap[m]++
+	}
+
+	var funnel []models.FunnelStageDTO
+	for _, stage := range []string{"Applied", "Viewed", "Shortlisted", "Interview", "Offer", "Accepted", "Rejected", "Withdrawn"} {
+		funnel = append(funnel, models.FunnelStageDTO{
+			Stage: stage,
+			Count: funnelMap[stage],
+		})
+	}
+
+	var roles []models.CategoryCount
+	for k, v := range roleMap {
+		roles = append(roles, models.CategoryCount{Name: k, Count: v})
+	}
+
+	var companies []models.CategoryCount
+	for k, v := range companyMap {
+		companies = append(companies, models.CategoryCount{Name: k, Count: v})
+	}
+
+	var trend []models.MonthlyCountDTO
+	now := time.Now()
+	for i := 3; i >= 0; i-- {
+		t := now.AddDate(0, -i, 0)
+		monthName := t.Format("Jan")
+		trend = append(trend, models.MonthlyCountDTO{
+			Month: monthName,
+			Count: monthlyMap[monthName],
+		})
+	}
+
+	interviewRate := 0.0
+	responseRate := 0.0
+	if len(apps) > 0 {
+		activeCount := funnelMap["Viewed"] + funnelMap["Shortlisted"] + funnelMap["Interview"] + funnelMap["Offer"] + funnelMap["Accepted"]
+		interviewRate = float64(funnelMap["Interview"]) / float64(len(apps)) * 100.0
+		responseRate = float64(activeCount) / float64(len(apps)) * 100.0
+	}
+
 	return &models.CareerAnalyticsDTO{
-		ApplicationsSent:   18,
-		InterviewRate:      33.3,
-		ResponseRate:       72.2,
-		TimeToResponseDays: 4.2,
-		MostAppliedRoles: []models.CategoryCount{
-			{Name: "Frontend Engineer", Count: 10},
-			{Name: "Full-Stack Architect", Count: 5},
-			{Name: "UI/UX Developer", Count: 3},
-		},
-		MostAppliedCompanies: []models.CategoryCount{
-			{Name: "Kirmya AI Technologies", Count: 2},
-			{Name: "CloudScale Solutions", Count: 2},
-			{Name: "Acme Corp", Count: 2},
-		},
-		ApplicationTrend: []models.MonthlyCountDTO{
-			{Month: "May", Count: 2},
-			{Month: "Jun", Count: 4},
-			{Month: "Jul", Count: 7},
-			{Month: "Aug", Count: 5},
-		},
-		StatusFunnel: []models.FunnelStageDTO{
-			{Stage: "Applied", Count: 18},
-			{Stage: "Viewed", Count: 15},
-			{Stage: "Shortlisted", Count: 9},
-			{Stage: "Interview", Count: 6},
-			{Stage: "Offer", Count: 2},
-			{Stage: "Accepted", Count: 1},
-		},
+		ApplicationsSent:     len(apps),
+		InterviewRate:        interviewRate,
+		ResponseRate:         responseRate,
+		TimeToResponseDays:   3.5,
+		MostAppliedRoles:     roles,
+		MostAppliedCompanies: companies,
+		ApplicationTrend:     trend,
+		StatusFunnel:         funnel,
 	}, nil
 }

@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,10 +17,23 @@ import (
 
 type ApplicationsRepository struct {
 	db *pgxpool.Pool
+
+	// In-memory test store when db is nil
+	mu       sync.RWMutex
+	memApps  map[string]*models.ApplicationDetail
+	memSaves map[string]*models.SavedJobDTO
+	memIdem  map[string]uuid.UUID
+	memCand  map[string]uuid.UUID
 }
 
 func NewApplicationsRepository(db *pgxpool.Pool) *ApplicationsRepository {
-	return &ApplicationsRepository{db: db}
+	return &ApplicationsRepository{
+		db:       db,
+		memApps:  make(map[string]*models.ApplicationDetail),
+		memSaves: make(map[string]*models.SavedJobDTO),
+		memIdem:  make(map[string]uuid.UUID),
+		memCand:  make(map[string]uuid.UUID),
+	}
 }
 
 func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidateID uuid.UUID, payload models.CreateApplicationPayload) (*models.ApplicationDetail, error) {
@@ -32,7 +47,17 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		}
 		defer tx.Rollback(ctx)
 
-		// Check if job exists, is active, and unexpired
+		// 1. Idempotency Check
+		if payload.IdempotencyKey != "" {
+			var existingID uuid.UUID
+			err := tx.QueryRow(ctx, `SELECT id FROM job_applications WHERE idempotency_key = $1 AND candidate_id = $2`, payload.IdempotencyKey, candidateID).Scan(&existingID)
+			if err == nil && existingID != uuid.Nil {
+				_ = tx.Commit(ctx)
+				return r.GetApplicationByID(ctx, candidateID, existingID)
+			}
+		}
+
+		// 2. Check if job exists, is active/published, and unexpired
 		var jobStatus string
 		var expiresAt *time.Time
 		jobCheckQuery := `SELECT status, expires_at FROM jobs WHERE id = $1`
@@ -42,14 +67,14 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 			}
 			return nil, err
 		}
-		if jobStatus != "active" {
-			return nil, errors.New("job is no longer accepting applications")
+		if jobStatus != "active" && jobStatus != "published" {
+			return nil, fmt.Errorf("job is no longer accepting applications (status: %s)", jobStatus)
 		}
 		if expiresAt != nil && expiresAt.Before(now) {
 			return nil, errors.New("job posting has expired")
 		}
 
-		// Check if candidate already applied
+		// 3. Check if candidate already applied
 		var alreadyApplied bool
 		checkQuery := `SELECT EXISTS(SELECT 1 FROM job_applications WHERE job_id = $1 AND candidate_id = $2)`
 		if err := tx.QueryRow(ctx, checkQuery, payload.JobID, candidateID).Scan(&alreadyApplied); err != nil {
@@ -59,15 +84,30 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 			return nil, errors.New("candidate has already applied to this job")
 		}
 
+		answersJSON, _ := json.Marshal(payload.Answers)
+		if len(payload.Answers) == 0 {
+			answersJSON = []byte("[]")
+		}
+		source := payload.Source
+		if source == "" {
+			source = "Direct"
+		}
+
 		insertQuery := `
-			INSERT INTO job_applications (id, job_id, candidate_id, current_stage, rating, applied_at, updated_at)
-			VALUES ($1, $2, $3, 'Applied', 5, $4, $4)
+			INSERT INTO job_applications (
+				id, job_id, candidate_id, current_stage, rating, applied_at, updated_at,
+				resume_id, resume_url, cover_letter, answers, source, idempotency_key
+			)
+			VALUES ($1, $2, $3, 'Applied', 5, $4, $4, $5, $6, $7, $8, $9, $10)
 		`
-		if _, err := tx.Exec(ctx, insertQuery, appID, payload.JobID, candidateID, now); err != nil {
+		if _, err := tx.Exec(ctx, insertQuery,
+			appID, payload.JobID, candidateID, now,
+			payload.ResumeID, payload.ResumeURL, payload.CoverLetter, answersJSON, source, payload.IdempotencyKey,
+		); err != nil {
 			return nil, err
 		}
 
-		// Record stage history
+		// 4. Record initial stage history
 		stageID := uuid.New()
 		stageHistoryQuery := `
 			INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)
@@ -77,7 +117,7 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 			return nil, err
 		}
 
-		// Atomically increment application count on job
+		// 5. Atomically increment application count on job
 		_, _ = tx.Exec(ctx, `UPDATE jobs SET applications_count = applications_count + 1 WHERE id = $1`, payload.JobID)
 
 		if err := tx.Commit(ctx); err != nil {
@@ -87,25 +127,86 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		return r.GetApplicationByID(ctx, candidateID, appID)
 	}
 
-	mockDetail := r.getMockApplicationDetail(ctx, appID)
-	mockDetail.Summary.JobID = payload.JobID
-	return mockDetail, nil
+	// In-memory fallback for test harnesses without DB pool
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// 1. Idempotency Check
+	if payload.IdempotencyKey != "" {
+		if existingID, ok := r.memIdem[candidateID.String()+":"+payload.IdempotencyKey]; ok {
+			if existingApp, exists := r.memApps[existingID.String()]; exists {
+				return existingApp, nil
+			}
+		}
+	}
+
+	// 2. Duplicate Check
+	for appKey, a := range r.memApps {
+		if a.Summary.JobID == payload.JobID && r.memCand[appKey] == candidateID {
+			return nil, errors.New("candidate has already applied to this job")
+		}
+	}
+
+	app := &models.ApplicationDetail{
+		Summary: models.ApplicationSummary{
+			ID:             appID,
+			JobID:          payload.JobID,
+			JobTitle:       "Software Engineer",
+			CompanyName:    "Enterprise Systems",
+			CurrentStatus:  models.StageApplied,
+			AppliedAt:      now,
+			LastUpdate:     now,
+			ResumeURL:      payload.ResumeURL,
+			EmploymentType: "Full-time",
+		},
+		CoverLetterText: payload.CoverLetter,
+		Answers:         payload.Answers,
+		Timeline: []models.ApplicationTimelineItem{
+			{
+				ID:          uuid.New(),
+				Status:      "Applied",
+				Title:       "Application Submitted",
+				Description: "Application submitted online",
+				Date:        now,
+				MovedBy:     candidateID.String(),
+			},
+		},
+	}
+	r.memApps[appID.String()] = app
+	r.memCand[appID.String()] = candidateID
+	if payload.IdempotencyKey != "" {
+		r.memIdem[candidateID.String()+":"+payload.IdempotencyKey] = appID
+	}
+	return app, nil
 }
 
 func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, candidateID uuid.UUID, status string, search string) ([]models.ApplicationSummary, error) {
 	if r.db == nil {
-		return r.getMockApplications(candidateID), nil
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		var res []models.ApplicationSummary
+		for appKey, a := range r.memApps {
+			if r.memCand[appKey] != candidateID {
+				continue
+			}
+			if status != "" && string(a.Summary.CurrentStatus) != status {
+				continue
+			}
+			res = append(res, a.Summary)
+		}
+		return res, nil
 	}
 
 	query := `
 		SELECT 
-			a.id, a.job_id, COALESCE(j.title, 'Software Engineer'),
+			a.id, a.job_id, COALESCE(j.title, 'Job Position'),
 			COALESCE(j.company_id, '00000000-0000-0000-0000-000000000001'::uuid),
-			COALESCE(c.name, 'TechCorp Inc.'), COALESCE(c.logo_url, '/images/companies/default.png'),
-			COALESCE(j.location, 'Remote / San Francisco, CA'), COALESCE(j.employment_type, 'Full-time'),
-			COALESCE(j.salary_range, '$120k - $160k'), a.current_stage,
+			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(j.location, 'Remote'), COALESCE(j.employment_type, 'Full-time'),
+			COALESCE(j.salary_range, ''), a.current_stage,
 			a.applied_at, a.updated_at, a.recruiter_id,
-			EXISTS(SELECT 1 FROM saved_jobs sj WHERE sj.candidate_id = a.candidate_id AND sj.job_id = a.job_id) AS is_saved
+			EXISTS(SELECT 1 FROM saved_jobs sj WHERE sj.candidate_id = a.candidate_id AND sj.job_id = a.job_id) AS is_saved,
+			COALESCE(a.resume_url, '')
 		FROM job_applications a
 		LEFT JOIN jobs j ON a.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
@@ -139,7 +240,7 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 			&app.CompanyID, &app.CompanyName, &app.CompanyLogo,
 			&app.Location, &app.EmploymentType, &app.SalaryRange,
 			&app.CurrentStatus, &app.AppliedAt, &app.LastUpdate,
-			&recID, &app.IsSaved,
+			&recID, &app.IsSaved, &app.ResumeURL,
 		)
 		if err != nil {
 			continue
@@ -153,11 +254,18 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 
 func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candidateID, appID uuid.UUID) (*models.ApplicationDetail, error) {
 	if r.db == nil {
-		return r.getMockApplicationDetail(ctx, appID), nil
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		if a, ok := r.memApps[appID.String()]; ok {
+			return a, nil
+		}
+		return nil, errors.New("application not found")
 	}
 
 	var detail models.ApplicationDetail
 	var recID *uuid.UUID
+	var answersRaw []byte
+	var coverLetter, resumeURL string
 
 	query := `
 		SELECT 
@@ -167,7 +275,11 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 			COALESCE(j.location, 'Remote'), COALESCE(j.employment_type, 'Full-time'),
 			COALESCE(j.salary_range, ''), a.current_stage,
 			a.applied_at, a.updated_at, a.recruiter_id,
-			COALESCE(j.description, '')
+			COALESCE(j.description, ''),
+			COALESCE(a.cover_letter, ''),
+			COALESCE(a.resume_url, ''),
+			COALESCE(a.answers, '[]'::jsonb),
+			EXISTS(SELECT 1 FROM saved_jobs sj WHERE sj.candidate_id = a.candidate_id AND sj.job_id = a.job_id) AS is_saved
 		FROM job_applications a
 		LEFT JOIN jobs j ON a.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
@@ -180,6 +292,7 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 		&detail.Summary.Location, &detail.Summary.EmploymentType, &detail.Summary.SalaryRange,
 		&detail.Summary.CurrentStatus, &detail.Summary.AppliedAt, &detail.Summary.LastUpdate,
 		&recID, &detail.JobDescription,
+		&coverLetter, &resumeURL, &answersRaw, &detail.Summary.IsSaved,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -189,6 +302,11 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 	}
 
 	detail.Summary.RecruiterID = recID
+	detail.Summary.ResumeURL = resumeURL
+	detail.CoverLetterText = coverLetter
+	if len(answersRaw) > 0 {
+		_ = json.Unmarshal(answersRaw, &detail.Answers)
+	}
 	detail.Requirements = []string{}
 	detail.Skills = []string{}
 
@@ -203,8 +321,20 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 }
 
 func (r *ApplicationsRepository) WithdrawApplication(ctx context.Context, candidateID, appID uuid.UUID) error {
+	now := time.Now().UTC()
+
 	if r.db == nil {
-		return nil
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if a, ok := r.memApps[appID.String()]; ok {
+			if err := models.ValidateTransition(a.Summary.CurrentStatus, models.StageWithdrawn, true); err != nil {
+				return err
+			}
+			a.Summary.CurrentStatus = models.StageWithdrawn
+			a.Summary.LastUpdate = now
+			return nil
+		}
+		return errors.New("application not found")
 	}
 
 	tx, err := r.db.Begin(ctx)
@@ -214,23 +344,72 @@ func (r *ApplicationsRepository) WithdrawApplication(ctx context.Context, candid
 	defer tx.Rollback(ctx)
 
 	var currentStage string
-	if err := tx.QueryRow(ctx, `SELECT current_stage FROM job_applications WHERE id = $1 AND candidate_id = $2`, appID, candidateID).Scan(&currentStage); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT current_stage FROM job_applications WHERE id = $1 AND candidate_id = $2 FOR UPDATE`, appID, candidateID).Scan(&currentStage); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return errors.New("application not found")
 		}
 		return err
 	}
 
-	query := `UPDATE job_applications SET current_stage = 'Withdrawn', updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND candidate_id = $2`
-	if _, err := tx.Exec(ctx, query, appID, candidateID); err != nil {
+	// Validate state machine
+	if err := models.ValidateTransition(models.ApplicationStage(currentStage), models.StageWithdrawn, true); err != nil {
+		return err
+	}
+
+	query := `UPDATE job_applications SET current_stage = 'Withdrawn', withdrawn_at = $1, updated_at = $1 WHERE id = $2 AND candidate_id = $3`
+	if _, err := tx.Exec(ctx, query, now, appID, candidateID); err != nil {
 		return err
 	}
 
 	stageHistoryQuery := `
 		INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)
-		VALUES ($1, $2, $3, 'Withdrawn', $4, 'Candidate withdrew application', CURRENT_TIMESTAMP)
+		VALUES ($1, $2, $3, 'Withdrawn', $4, 'Candidate withdrew application', $5)
 	`
-	if _, err := tx.Exec(ctx, stageHistoryQuery, uuid.New(), appID, currentStage, candidateID); err != nil {
+	if _, err := tx.Exec(ctx, stageHistoryQuery, uuid.New(), appID, currentStage, candidateID, now); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+
+func (r *ApplicationsRepository) ArchiveApplication(ctx context.Context, candidateID, appID uuid.UUID) error {
+	now := time.Now().UTC()
+
+	if r.db == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if a, ok := r.memApps[appID.String()]; ok {
+			a.Summary.CurrentStatus = models.StageArchived
+			a.Summary.LastUpdate = now
+			return nil
+		}
+		return errors.New("application not found")
+	}
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	var currentStage string
+	if err := tx.QueryRow(ctx, `SELECT current_stage FROM job_applications WHERE id = $1 AND candidate_id = $2 FOR UPDATE`, appID, candidateID).Scan(&currentStage); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errors.New("application not found")
+		}
+		return err
+	}
+
+	query := `UPDATE job_applications SET current_stage = 'Archived', archived_at = $1, updated_at = $1 WHERE id = $2 AND candidate_id = $3`
+	if _, err := tx.Exec(ctx, query, now, appID, candidateID); err != nil {
+		return err
+	}
+
+	stageHistoryQuery := `
+		INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)
+		VALUES ($1, $2, $3, 'Archived', $4, 'Application archived by candidate', $5)
+	`
+	if _, err := tx.Exec(ctx, stageHistoryQuery, uuid.New(), appID, currentStage, candidateID, now); err != nil {
 		return err
 	}
 
@@ -258,22 +437,26 @@ func (r *ApplicationsRepository) GetApplicationTimeline(ctx context.Context, app
 					items = append(items, item)
 				}
 			}
-			if len(items) > 0 {
-				return items
-			}
+			return items
 		}
 	}
 
-	return []models.ApplicationTimelineItem{
-		{ID: uuid.New(), Status: "Applied", Title: "Application Submitted", Description: "Your application and resume were successfully delivered.", Date: time.Now().Add(-14 * 24 * time.Hour), MovedBy: "Candidate"},
-		{ID: uuid.New(), Status: "Viewed", Title: "Resume Reviewed", Description: "Recruiter Sarah Jenkins viewed your application profile.", Date: time.Now().Add(-10 * 24 * time.Hour), MovedBy: "Recruiter"},
-		{ID: uuid.New(), Status: "Shortlisted", Title: "Candidate Shortlisted", Description: "You passed initial screening and were shortlisted for interviews.", Date: time.Now().Add(-7 * 24 * time.Hour), MovedBy: "Hiring Manager"},
-		{ID: uuid.New(), Status: "Interview", Title: "Technical Interview Scheduled", Description: "Invited to 60-min Virtual Technical Deep Dive.", Date: time.Now().Add(-2 * 24 * time.Hour), MovedBy: "Recruiter"},
-	}
+	return []models.ApplicationTimelineItem{}
 }
 
 func (r *ApplicationsRepository) SaveJob(ctx context.Context, candidateID, jobID uuid.UUID, notes string) error {
 	if r.db == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		r.memSaves[candidateID.String()+":"+jobID.String()] = &models.SavedJobDTO{
+			ID:          uuid.New(),
+			CandidateID: candidateID,
+			JobID:       jobID,
+			JobTitle:    "Saved Job",
+			Notes:       notes,
+			SavedAt:     time.Now(),
+			IsActive:    true,
+		}
 		return nil
 	}
 
@@ -288,6 +471,9 @@ func (r *ApplicationsRepository) SaveJob(ctx context.Context, candidateID, jobID
 
 func (r *ApplicationsRepository) RemoveSavedJob(ctx context.Context, candidateID, jobID uuid.UUID) error {
 	if r.db == nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		delete(r.memSaves, candidateID.String()+":"+jobID.String())
 		return nil
 	}
 
@@ -296,19 +482,42 @@ func (r *ApplicationsRepository) RemoveSavedJob(ctx context.Context, candidateID
 	return err
 }
 
+func (r *ApplicationsRepository) IsJobSaved(ctx context.Context, candidateID, jobID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		_, ok := r.memSaves[candidateID.String()+":"+jobID.String()]
+		return ok, nil
+	}
+
+	var isSaved bool
+	query := `SELECT EXISTS(SELECT 1 FROM saved_jobs WHERE candidate_id = $1 AND job_id = $2)`
+	err := r.db.QueryRow(ctx, query, candidateID, jobID).Scan(&isSaved)
+	return isSaved, err
+}
+
 func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID uuid.UUID) ([]models.SavedJobDTO, error) {
 	if r.db == nil {
-		return r.getMockSavedJobs(candidateID), nil
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		var list []models.SavedJobDTO
+		for _, s := range r.memSaves {
+			if s.CandidateID == candidateID {
+				list = append(list, *s)
+			}
+		}
+		return list, nil
 	}
 
 	query := `
 		SELECT 
 			sj.id, sj.candidate_id, sj.job_id,
-			COALESCE(j.title, 'Senior Frontend Engineer'),
-			COALESCE(c.name, 'Innovate Inc.'), COALESCE(c.logo_url, '/images/companies/innovate.png'),
-			COALESCE(j.location, 'Remote'), COALESCE(j.salary_range, '$130k - $170k'),
+			COALESCE(j.title, 'Job Title'),
+			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(j.location, 'Remote'), COALESCE(j.salary_range, ''),
 			COALESCE(j.employment_type, 'Full-time'), sj.collection_id,
-			COALESCE(sjc.name, 'General Saved'), COALESCE(sj.notes, ''), sj.saved_at
+			COALESCE(sjc.name, 'General Saved'), COALESCE(sj.notes, ''), sj.saved_at,
+			(j.status = 'active' OR j.status = 'published') AS is_active
 		FROM saved_jobs sj
 		LEFT JOIN jobs j ON sj.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
@@ -319,11 +528,11 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return r.getMockSavedJobs(candidateID), nil
+		return []models.SavedJobDTO{}, nil
 	}
 	defer rows.Close()
 
-	var list []models.SavedJobDTO
+	list := make([]models.SavedJobDTO, 0)
 	for rows.Next() {
 		var item models.SavedJobDTO
 		err := rows.Scan(
@@ -331,6 +540,7 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 			&item.JobTitle, &item.CompanyName, &item.CompanyLogo,
 			&item.Location, &item.SalaryRange, &item.EmploymentType,
 			&item.CollectionID, &item.CollectionName, &item.Notes, &item.SavedAt,
+			&item.IsActive,
 		)
 		if err != nil {
 			continue
@@ -338,16 +548,12 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 		list = append(list, item)
 	}
 
-	if len(list) == 0 {
-		return r.getMockSavedJobs(candidateID), nil
-	}
-
 	return list, nil
 }
 
 func (r *ApplicationsRepository) GetJobAlerts(ctx context.Context, candidateID uuid.UUID) ([]models.JobAlertDTO, error) {
 	if r.db == nil {
-		return r.getMockJobAlerts(candidateID), nil
+		return []models.JobAlertDTO{}, nil
 	}
 
 	query := `
@@ -360,11 +566,11 @@ func (r *ApplicationsRepository) GetJobAlerts(ctx context.Context, candidateID u
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return r.getMockJobAlerts(candidateID), nil
+		return []models.JobAlertDTO{}, nil
 	}
 	defer rows.Close()
 
-	var alerts []models.JobAlertDTO
+	alerts := make([]models.JobAlertDTO, 0)
 	for rows.Next() {
 		var alert models.JobAlertDTO
 		err := rows.Scan(
@@ -377,10 +583,6 @@ func (r *ApplicationsRepository) GetJobAlerts(ctx context.Context, candidateID u
 			continue
 		}
 		alerts = append(alerts, alert)
-	}
-
-	if len(alerts) == 0 {
-		return r.getMockJobAlerts(candidateID), nil
 	}
 
 	return alerts, nil
@@ -438,17 +640,17 @@ func (r *ApplicationsRepository) DeleteJobAlert(ctx context.Context, candidateID
 
 func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, candidateID uuid.UUID) ([]models.CandidateInterview, error) {
 	if r.db == nil {
-		return r.getMockInterviews(candidateID), nil
+		return []models.CandidateInterview{}, nil
 	}
 
 	query := `
 		SELECT 
 			i.id, COALESCE(i.job_id, '00000000-0000-0000-0000-000000000001'::uuid),
-			COALESCE(j.title, 'Technical Round'), COALESCE(c.name, 'Enterprise Systems'),
-			COALESCE(c.logo_url, '/images/companies/enterprise.png'), i.title,
+			COALESCE(j.title, 'Interview'), COALESCE(c.name, 'Company'),
+			COALESCE(c.logo_url, '/images/companies/default.png'), i.title,
 			i.status, i.scheduled_start, i.scheduled_end,
-			COALESCE(i.location_type, 'virtual'), COALESCE(i.meeting_link, 'https://meet.kirmya.com/int-9082'),
-			COALESCE(i.notes, 'Prepare system design architecture notes.')
+			COALESCE(i.location_type, 'virtual'), COALESCE(i.meeting_link, ''),
+			COALESCE(i.notes, '')
 		FROM interviews i
 		LEFT JOIN jobs j ON i.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
@@ -457,11 +659,11 @@ func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, can
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return r.getMockInterviews(candidateID), nil
+		return []models.CandidateInterview{}, nil
 	}
 	defer rows.Close()
 
-	var list []models.CandidateInterview
+	list := make([]models.CandidateInterview, 0)
 	for rows.Next() {
 		var item models.CandidateInterview
 		err := rows.Scan(
@@ -472,12 +674,7 @@ func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, can
 		if err != nil {
 			continue
 		}
-		item.Interviewer = "David Miller (Lead Architect)"
 		list = append(list, item)
-	}
-
-	if len(list) == 0 {
-		return r.getMockInterviews(candidateID), nil
 	}
 
 	return list, nil
@@ -485,7 +682,7 @@ func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, can
 
 func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, candidateID uuid.UUID) ([]models.CandidateDocument, error) {
 	if r.db == nil {
-		return r.getMockDocuments(candidateID), nil
+		return []models.CandidateDocument{}, nil
 	}
 
 	query := `
@@ -496,11 +693,11 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return r.getMockDocuments(candidateID), nil
+		return []models.CandidateDocument{}, nil
 	}
 	defer rows.Close()
 
-	var docs []models.CandidateDocument
+	docs := make([]models.CandidateDocument, 0)
 	for rows.Next() {
 		var doc models.CandidateDocument
 		err := rows.Scan(
@@ -511,10 +708,6 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 			continue
 		}
 		docs = append(docs, doc)
-	}
-
-	if len(docs) == 0 {
-		return r.getMockDocuments(candidateID), nil
 	}
 
 	return docs, nil
@@ -529,278 +722,66 @@ func (r *ApplicationsRepository) DeleteDocument(ctx context.Context, candidateID
 }
 
 func (r *ApplicationsRepository) GetApplicationNotes(ctx context.Context, candidateID, appID uuid.UUID) []models.ApplicationNote {
-	return []models.ApplicationNote{
-		{ID: uuid.New(), ApplicationID: appID, CandidateID: candidateID, NoteText: "Followed up with Sarah regarding technical assessment timeline.", CreatedAt: time.Now().Add(-5 * 24 * time.Hour), UpdatedAt: time.Now().Add(-5 * 24 * time.Hour)},
-		{ID: uuid.New(), ApplicationID: appID, CandidateID: candidateID, NoteText: "Prepared system architecture diagrams for microservices discussion.", CreatedAt: time.Now().Add(-1 * 24 * time.Hour), UpdatedAt: time.Now().Add(-1 * 24 * time.Hour)},
+	if r.db == nil {
+		return []models.ApplicationNote{}
 	}
+
+	query := `
+		SELECT id, application_id, candidate_id, note_text, created_at, updated_at
+		FROM application_notes
+		WHERE application_id = $1 AND candidate_id = $2
+		ORDER BY created_at DESC
+	`
+	rows, err := r.db.Query(ctx, query, appID, candidateID)
+	if err != nil {
+		return []models.ApplicationNote{}
+	}
+	defer rows.Close()
+
+	var notes []models.ApplicationNote
+	for rows.Next() {
+		var n models.ApplicationNote
+		if err := rows.Scan(&n.ID, &n.ApplicationID, &n.CandidateID, &n.NoteText, &n.CreatedAt, &n.UpdatedAt); err == nil {
+			notes = append(notes, n)
+		}
+	}
+	return notes
 }
 
 func (r *ApplicationsRepository) GetApplicationInterviews(ctx context.Context, candidateID, appID uuid.UUID) []models.CandidateInterview {
-	return []models.CandidateInterview{
-		{
-			ID:             uuid.New(),
-			ApplicationID:  appID,
-			JobTitle:       "Senior Frontend Engineer",
-			CompanyName:    "Acme Corp",
-			CompanyLogo:    "/images/companies/acme.png",
-			Title:          "System Design & Frontend Architecture",
-			Status:         "scheduled",
-			ScheduledStart: time.Now().Add(24 * time.Hour),
-			ScheduledEnd:   time.Now().Add(25 * time.Hour),
-			LocationType:   "virtual",
-			MeetingLink:    "https://meet.kirmya.com/acme-tech-01",
-			Notes:          "Focus on SSR hydration, caching strategy, and MUI v6 design tokens.",
-			Interviewer:    "Sarah Jenkins (Engineering Manager)",
-		},
-	}
-}
-
-// Fallback stubs for initial environment / offline testing
-func (r *ApplicationsRepository) getMockApplications(candidateID uuid.UUID) []models.ApplicationSummary {
-	now := time.Now()
-	recID := uuid.New()
-	return []models.ApplicationSummary{
-		{
-			ID:              uuid.MustParse("10000000-0000-0000-0000-000000000001"),
-			JobID:           uuid.MustParse("20000000-0000-0000-0000-000000000001"),
-			JobTitle:        "Staff Frontend Engineer",
-			CompanyID:       uuid.MustParse("30000000-0000-0000-0000-000000000001"),
-			CompanyName:     "Kirmya AI Technologies",
-			CompanyLogo:     "/images/companies/kirmya.png",
-			Location:        "San Francisco, CA (Remote)",
-			EmploymentType:  "Full-time",
-			SalaryRange:     "$160,000 - $200,000",
-			CurrentStatus:   models.StageInterview,
-			AppliedAt:       now.Add(-12 * 24 * time.Hour),
-			LastUpdate:      now.Add(-2 * 24 * time.Hour),
-			RecruiterID:     &recID,
-			RecruiterName:   "Alex Rivera",
-			RecruiterEmail:  "a.rivera@kirmya.com",
-			RecruiterAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-			IsSaved:         true,
-			NotesCount:      3,
-		},
-		{
-			ID:              uuid.MustParse("10000000-0000-0000-0000-000000000002"),
-			JobID:           uuid.MustParse("20000000-0000-0000-0000-000000000002"),
-			JobTitle:        "Lead Full-Stack Architect",
-			CompanyID:       uuid.MustParse("30000000-0000-0000-0000-000000000002"),
-			CompanyName:     "CloudScale Solutions",
-			CompanyLogo:     "/images/companies/cloudscale.png",
-			Location:        "New York, NY (Hybrid)",
-			EmploymentType:  "Full-time",
-			SalaryRange:     "$175,000 - $210,000",
-			CurrentStatus:   models.StageShortlisted,
-			AppliedAt:       now.Add(-8 * 24 * time.Hour),
-			LastUpdate:      now.Add(-1 * 24 * time.Hour),
-			RecruiterID:     &recID,
-			RecruiterName:   "Elena Rostova",
-			RecruiterEmail:  "elena@cloudscale.io",
-			RecruiterAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-			IsSaved:         false,
-			NotesCount:      1,
-		},
-		{
-			ID:              uuid.MustParse("10000000-0000-0000-0000-000000000003"),
-			JobID:           uuid.MustParse("20000000-0000-0000-0000-000000000003"),
-			JobTitle:        "Senior UI/UX & Web Developer",
-			CompanyID:       uuid.MustParse("30000000-0000-0000-0000-000000000004"),
-			CompanyName:     "DesignCraft Studio",
-			CompanyLogo:     "/images/companies/designcraft.png",
-			Location:        "Austin, TX",
-			EmploymentType:  "Full-time",
-			SalaryRange:     "$140,000 - $165,000",
-			CurrentStatus:   models.StageOffer,
-			AppliedAt:       now.Add(-20 * 24 * time.Hour),
-			LastUpdate:      now.Add(-12 * time.Hour),
-			RecruiterID:     &recID,
-			RecruiterName:   "Marcus Thorne",
-			RecruiterEmail:  "marcus@designcraft.com",
-			RecruiterAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-			IsSaved:         true,
-			NotesCount:      5,
-		},
-		{
-			ID:             uuid.MustParse("10000000-0000-0000-0000-000000000004"),
-			JobID:          uuid.MustParse("20000000-0000-0000-0000-000000000004"),
-			JobTitle:       "Golang Microservices Engineer",
-			CompanyID:      uuid.MustParse("30000000-0000-0000-0000-000000000005"),
-			CompanyName:    "HyperDrive Labs",
-			CompanyLogo:    "/images/companies/hyperdrive.png",
-			Location:       "Seattle, WA",
-			EmploymentType: "Contract",
-			SalaryRange:    "$90 - $115 / hr",
-			CurrentStatus:  models.StageApplied,
-			AppliedAt:      now.Add(-3 * 24 * time.Hour),
-			LastUpdate:     now.Add(-3 * 24 * time.Hour),
-			IsSaved:        false,
-			NotesCount:     0,
-		},
-	}
-}
-
-func (r *ApplicationsRepository) getMockApplicationDetail(ctx context.Context, appID uuid.UUID) *models.ApplicationDetail {
-	apps := r.getMockApplications(uuid.Nil)
-	summary := apps[0]
-	if len(apps) > 0 {
-		summary = apps[0]
+	if r.db == nil {
+		return []models.CandidateInterview{}
 	}
 
-	return &models.ApplicationDetail{
-		Summary: summary,
-		JobDescription: `We are building the next generation AI-assisted career platform. You will lead key frontend modules utilizing Next.js, TypeScript, MUI v6, and Framer Motion with enterprise glassmorphic interfaces.
-
-Key Responsibilities:
-- Design & develop high-performance candidate application management features.
-- Build responsive, accessible, dark/light theme React components.
-- Collaborate with backend engineers on Golang/Gin microservices and REST API endpoints.`,
-		Requirements: []string{
-			"5+ years of professional Frontend Software Engineering experience",
-			"Expertise in Next.js, React, TypeScript, and MUI v6",
-			"Proven track record building glassmorphism UI & responsive dashboards",
-			"Strong understanding of RESTful architecture, React Query, and state management",
-		},
-		Skills:   []string{"Next.js", "TypeScript", "MUI v6", "React Query", "Golang", "PostgreSQL", "Framer Motion"},
-		Timeline: r.GetApplicationTimeline(ctx, appID),
-		SubmittedResume: &models.CandidateDocument{
-			ID:           uuid.New(),
-			CandidateID:  uuid.Nil,
-			Title:        "Staff_Software_Engineer_Resume_2026.pdf",
-			DocumentType: "Resume",
-			FileURL:      "https://storage.kirmya.com/resumes/staff-engineer-2026.pdf",
-			SizeBytes:    1048576,
-			FileType:     "application/pdf",
-			IsDefault:    true,
-			UploadedAt:   time.Now().Add(-30 * 24 * time.Hour),
-		},
-		SubmittedCoverLetter: &models.CandidateDocument{
-			ID:           uuid.New(),
-			CandidateID:  uuid.Nil,
-			Title:        "Kirmya_Cover_Letter.pdf",
-			DocumentType: "Cover Letter",
-			FileURL:      "https://storage.kirmya.com/docs/cover-letter.pdf",
-			SizeBytes:    450000,
-			FileType:     "application/pdf",
-			IsDefault:    false,
-			UploadedAt:   time.Now().Add(-12 * 24 * time.Hour),
-		},
-		Notes:      r.GetApplicationNotes(ctx, uuid.Nil, appID),
-		Interviews: r.GetApplicationInterviews(ctx, uuid.Nil, appID),
-		Offer: &models.JobOfferDTO{
-			ID:            uuid.New(),
-			ApplicationID: appID,
-			PositionTitle: "Staff Frontend Engineer",
-			Salary:        "$185,000",
-			Currency:      "USD",
-			Benefits:      "Health, 401k match (5%), stock options, unlimited PTO",
-			Status:        "Sent",
-			CreatedAt:     time.Now().Add(-1 * 24 * time.Hour),
-		},
+	query := `
+		SELECT 
+			i.id, i.application_id, COALESCE(j.title, 'Interview'),
+			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			i.title, i.status, i.scheduled_start, i.scheduled_end,
+			COALESCE(i.location_type, 'virtual'), COALESCE(i.meeting_link, ''),
+			COALESCE(i.notes, '')
+		FROM interviews i
+		LEFT JOIN jobs j ON i.job_id = j.id
+		LEFT JOIN companies c ON j.company_id = c.id
+		WHERE i.application_id = $1 AND i.candidate_id = $2
+		ORDER BY i.scheduled_start ASC
+	`
+	rows, err := r.db.Query(ctx, query, appID, candidateID)
+	if err != nil {
+		return []models.CandidateInterview{}
 	}
-}
+	defer rows.Close()
 
-func (r *ApplicationsRepository) getMockSavedJobs(candidateID uuid.UUID) []models.SavedJobDTO {
-	now := time.Now()
-	return []models.SavedJobDTO{
-		{
-			ID:             uuid.New(),
-			CandidateID:    candidateID,
-			JobID:          uuid.New(),
-			JobTitle:       "Principal Frontend Architect",
-			CompanyName:    "Stripe",
-			CompanyLogo:    "/images/companies/stripe.png",
-			Location:       "San Francisco, CA (Remote)",
-			SalaryRange:    "$220,000 - $270,000",
-			EmploymentType: "Full-time",
-			CollectionName: "Dream Jobs",
-			Notes:          "Highly recommended role by peer network. Apply before next Friday.",
-			SavedAt:        now.Add(-2 * 24 * time.Hour),
-		},
-		{
-			ID:             uuid.New(),
-			CandidateID:    candidateID,
-			JobID:          uuid.New(),
-			JobTitle:       "Senior Distributed Systems Engineer",
-			CompanyName:    "Datadog",
-			CompanyLogo:    "/images/companies/datadog.png",
-			Location:       "New York, NY",
-			SalaryRange:    "$180,000 - $220,000",
-			EmploymentType: "Full-time",
-			CollectionName: "High Salary Jobs",
-			Notes:          "Great tech stack: Golang, Rust, PostgreSQL, Redis.",
-			SavedAt:        now.Add(-5 * 24 * time.Hour),
-		},
+	var interviews []models.CandidateInterview
+	for rows.Next() {
+		var item models.CandidateInterview
+		if err := rows.Scan(
+			&item.ID, &item.ApplicationID, &item.JobTitle, &item.CompanyName,
+			&item.CompanyLogo, &item.Title, &item.Status, &item.ScheduledStart, &item.ScheduledEnd,
+			&item.LocationType, &item.MeetingLink, &item.Notes,
+		); err == nil {
+			interviews = append(interviews, item)
+		}
 	}
-}
-
-func (r *ApplicationsRepository) getMockJobAlerts(candidateID uuid.UUID) []models.JobAlertDTO {
-	return []models.JobAlertDTO{
-		{
-			ID:             uuid.New(),
-			CandidateID:    candidateID,
-			Title:          "Senior React & Next.js Roles",
-			Keywords:       "React Next.js TypeScript MUI",
-			JobTitles:      []string{"Senior Frontend Engineer", "Staff Web Engineer", "UI Architect"},
-			Skills:         []string{"React", "TypeScript", "Next.js", "MUI"},
-			Location:       "Remote",
-			Industry:       "Technology / SaaS",
-			SalaryMin:      150000,
-			SalaryMax:      220000,
-			EmploymentType: "Full-time",
-			Frequency:      "Daily",
-			ChannelEmail:   true,
-			ChannelPush:    true,
-			ChannelInApp:   true,
-			IsActive:       true,
-			CreatedAt:      time.Now().Add(-14 * 24 * time.Hour),
-			UpdatedAt:      time.Now().Add(-14 * 24 * time.Hour),
-		},
-	}
-}
-
-func (r *ApplicationsRepository) getMockInterviews(candidateID uuid.UUID) []models.CandidateInterview {
-	return []models.CandidateInterview{
-		{
-			ID:             uuid.New(),
-			ApplicationID:  uuid.MustParse("10000000-0000-0000-0000-000000000001"),
-			JobTitle:       "Staff Frontend Engineer",
-			CompanyName:    "Kirmya AI Technologies",
-			CompanyLogo:    "/images/companies/kirmya.png",
-			Title:          "Architecture & Technical Deep Dive",
-			Status:         "scheduled",
-			ScheduledStart: time.Now().Add(18 * time.Hour),
-			ScheduledEnd:   time.Now().Add(19 * time.Hour),
-			LocationType:   "virtual",
-			MeetingLink:    "https://meet.kirmya.com/int-kirmya-tech",
-			Notes:          "Be ready to present Next.js rendering strategies and MUI v6 customization.",
-			Interviewer:    "Alex Rivera (Principal Architect)",
-		},
-	}
-}
-
-func (r *ApplicationsRepository) getMockDocuments(candidateID uuid.UUID) []models.CandidateDocument {
-	return []models.CandidateDocument{
-		{
-			ID:           uuid.New(),
-			CandidateID:  candidateID,
-			Title:        "Staff_Software_Engineer_Resume_2026.pdf",
-			DocumentType: "Resume",
-			FileURL:      "https://storage.kirmya.com/resumes/staff-engineer-2026.pdf",
-			SizeBytes:    1048576,
-			FileType:     "application/pdf",
-			IsDefault:    true,
-			UploadedAt:   time.Now().Add(-30 * 24 * time.Hour),
-		},
-		{
-			ID:           uuid.New(),
-			CandidateID:  candidateID,
-			Title:        "AWS_Certified_Solutions_Architect.pdf",
-			DocumentType: "Certificate",
-			FileURL:      "https://storage.kirmya.com/certs/aws-architect.pdf",
-			SizeBytes:    750000,
-			FileType:     "application/pdf",
-			IsDefault:    false,
-			UploadedAt:   time.Now().Add(-60 * 24 * time.Hour),
-		},
-	}
+	return interviews
 }
