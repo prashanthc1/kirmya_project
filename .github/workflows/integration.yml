@@ -1,0 +1,213 @@
+name: Real integration required checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    name: PostgreSQL Redis HTTP integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-disposable-only
+          POSTGRES_DB: kirmya_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kirmya_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      redis:
+        image: redis:7.4.8
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_ci?sslmode=disable
+      COMPANY_TEST_DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_ci?sslmode=disable
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: '6379'
+      REDIS_ENABLED: 'true'
+      ALLOW_NO_DB: 'false'
+      APP_ENV: test
+      JWT_SECRET: disposable-ci-jwt-key-not-for-deployment-0123456789
+      SERVER_PORT: '8080'
+      OTEL_ENABLED: 'false'
+      ENABLE_TRACING: 'false'
+      TEST_API_URL: http://127.0.0.1:8080
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8080/api/v1
+      CORS_ALLOWED_ORIGINS: http://127.0.0.1:3000
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            package-lock.json
+      - run: npm install --global npm@11.13.0
+      - name: Build migration runner and API
+        run: |
+          mkdir -p artifacts
+          cd backend
+          go build -o bin/ci-migrate ./tools/ci-migrate
+          go build -o bin/kirmya-ci ./cmd/kirmya
+      - name: Verify SQL and authorization negative controls
+        run: node scripts/ci/negative-gates.mjs 2>&1 | tee artifacts/negative-controls.log
+      - name: Apply and verify real migrations
+        run: cd backend && ./bin/ci-migrate 2>&1 | tee ../artifacts/migrations.log
+      - name: Start real API and verify HTTP and dependency tests
+        run: |
+          cd backend
+          ./bin/kirmya-ci > ../artifacts/api.log 2>&1 &
+          echo $! > ../artifacts/api.pid
+          trap 'kill $(cat ../artifacts/api.pid) || true' EXIT
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8080/health > /dev/null; then break; fi
+            kill -0 $(cat ../artifacts/api.pid)
+            sleep 1
+          done
+          go test -json -tags=ciintegration ./test/ci -count=1 > ../artifacts/integration.json
+      - name: Company SQL ownership regression tests
+        run: cd backend && go test -json ./internal/company/service -count=1 > ../artifacts/company.json
+      - name: Reject missing tests and mandatory skips
+        if: always()
+        run: |
+          node scripts/ci/check-results.mjs go artifacts/integration.json
+          node scripts/ci/check-results.mjs go artifacts/company.json
+      - name: Collect service diagnostics
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker logs ${{ job.services.postgres.id }} > artifacts/postgres.log 2>&1
+          docker logs ${{ job.services.redis.id }} > artifacts/redis.log 2>&1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: integration-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
+  browser:
+    name: Built frontend real API Playwright
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-disposable-only
+          POSTGRES_DB: kirmya_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kirmya_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      redis:
+        image: redis:7.4.8
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_ci?sslmode=disable
+      COMPANY_TEST_DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_ci?sslmode=disable
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: '6379'
+      REDIS_ENABLED: 'true'
+      ALLOW_NO_DB: 'false'
+      APP_ENV: test
+      JWT_SECRET: disposable-ci-jwt-key-not-for-deployment-0123456789
+      SERVER_PORT: '8080'
+      OTEL_ENABLED: 'false'
+      ENABLE_TRACING: 'false'
+      TEST_API_URL: http://127.0.0.1:8080
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8080/api/v1
+      CORS_ALLOWED_ORIGINS: http://127.0.0.1:3000
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            package-lock.json
+      - run: npm install --global npm@11.13.0
+      - run: mkdir -p artifacts && npm ci && npm ci --prefix frontend
+      - run: npx --no-install playwright install --with-deps chromium firefox webkit
+      - run: npm --prefix frontend run build 2>&1 | tee artifacts/build.log
+      - name: Build and launch real API
+        run: |
+          cd backend
+          go build -o bin/ci-migrate ./tools/ci-migrate
+          go build -o bin/kirmya-ci ./cmd/kirmya
+          ./bin/ci-migrate 2>&1 | tee ../artifacts/migrations.log
+          ./bin/kirmya-ci > ../artifacts/api.log 2>&1 &
+          echo $! > ../artifacts/api.pid
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8080/health > /dev/null; then exit 0; fi
+            kill -0 $(cat ../artifacts/api.pid)
+            sleep 1
+          done
+          exit 1
+      - name: Execute root test/e2e specs against production build
+        run: npm run test:e2e 2>&1 | tee artifacts/playwright.log
+      - name: Reject skipped or missing browser tests
+        if: always()
+        run: node scripts/ci/check-results.mjs playwright artifacts/playwright.json
+      - name: Collect service diagnostics
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker logs ${{ job.services.postgres.id }} > artifacts/postgres.log 2>&1
+          docker logs ${{ job.services.redis.id }} > artifacts/redis.log 2>&1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: playwright-${{ github.sha }}
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: error
+          retention-days: 14
+  report-gates:
+    name: Mandatory report negative controls
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            package-lock.json
+      - run: npm install --global npm@11.13.0
+      - run: mkdir -p artifacts && node --test scripts/ci/check-results.test.mjs 2>&1 | tee artifacts/report-controls.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: report-gates-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error

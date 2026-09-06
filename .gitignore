@@ -281,3 +281,6 @@ temp/
 !scripts/
 
 backend/kirmya.exe
+
+# Disposable CI diagnostic output
+artifacts/

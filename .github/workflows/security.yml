@@ -1,48 +1,69 @@
-name: Security & Vulnerability Audit Pipeline
-
+name: Security required checks
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 2 * * 1' # Weekly security audit on Mondays at 2:00 AM UTC
-
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  security-scan:
-    name: Security Vulnerability & Secret Leak Audit
-    runs-on: ubuntu-latest
-
+  security:
+    name: Security ${{ matrix.scanner }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        scanner: [npm, govulncheck, trivy]
     steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js for npm audit
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
-
-      - name: Setup Go for vulnerability checking
-        uses: actions/setup-go@v5
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            package-lock.json
+      - run: npm install --global npm@11.13.0
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
-          go-version: '1.22'
-
-      - name: Frontend Dependency Vulnerability Audit (npm audit)
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - run: mkdir -p artifacts
+      - name: npm high and critical dependency gate
+        if: matrix.scanner == 'npm'
         run: |
-          cd frontend
-          npm audit --audit-level=high || echo "::warning::Frontend npm audit identified non-blocking dependencies to update."
-
-      - name: Backend Go Vulnerability Scan (govulncheck)
-        run: |
-          cd backend
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./... || echo "::warning::Backend govulncheck identified non-critical advisories."
-
-      - name: Trivy Container & Repository Vulnerability Scan
-        uses: aquasecurity/trivy-action@master
+          set +e
+          npm audit --audit-level=high --json > artifacts/npm-root.json
+          root_status=$?
+          npm audit --prefix frontend --audit-level=high --json > artifacts/npm-frontend.json
+          frontend_status=$?
+          test "$root_status" -eq 0 && test "$frontend_status" -eq 0
+      - name: Install pinned govulncheck
+        if: matrix.scanner == 'govulncheck'
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+      - name: Reachable Go vulnerabilities gate
+        if: matrix.scanner == 'govulncheck'
+        run: cd backend && govulncheck -json ./... > ../artifacts/govulncheck.json 2> ../artifacts/govulncheck.log
+      - name: Trivy high and critical vulnerabilities and secrets gate
+        if: matrix.scanner == 'trivy'
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'table'
-          exit-code: '0'
-          severity: 'CRITICAL,HIGH'
+          version: v0.69.3
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          format: json
+          output: artifacts/trivy.json
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false
+          skip-dirs: artifacts,node_modules,frontend/node_modules
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: security-${{ matrix.scanner }}-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
