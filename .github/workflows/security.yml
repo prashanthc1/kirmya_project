@@ -31,6 +31,9 @@ jobs:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
       - run: mkdir -p artifacts
+      - name: Verify npm rejects a vulnerable fixture
+        if: matrix.scanner == 'npm'
+        run: node scripts/ci/scanner-controls.mjs npm
       - name: npm high and critical dependency gate
         if: matrix.scanner == 'npm'
         run: |
@@ -43,6 +46,9 @@ jobs:
       - name: Install pinned govulncheck
         if: matrix.scanner == 'govulncheck'
         run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+      - name: Verify govulncheck rejects a vulnerable fixture
+        if: matrix.scanner == 'govulncheck'
+        run: node scripts/ci/scanner-controls.mjs govulncheck
       - name: Reachable Go vulnerabilities gate
         if: matrix.scanner == 'govulncheck'
         run: cd backend && govulncheck -json ./... > ../artifacts/govulncheck.json 2> ../artifacts/govulncheck.log
@@ -60,6 +66,9 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: false
           skip-dirs: artifacts,node_modules,frontend/node_modules
+      - name: Verify Trivy rejects a vulnerable fixture
+        if: always() && matrix.scanner == 'trivy'
+        run: node scripts/ci/scanner-controls.mjs trivy
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

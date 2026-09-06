@@ -133,10 +133,10 @@ func (s *complianceService) GenerateDataExportPackage(ctx context.Context, userI
 		"phone":              "+1-555-0199",
 		"created_at":         time.Now().Add(-180 * 24 * time.Hour).Format(time.RFC3339),
 		"password_hash":      "$2a$12$eImiTXuWVxfM37uY4JANjO8Q/v6FvG2h3j5k6l7m8n9o0p1q2r3s4", // Will be sanitized
-		"mfa_secret":         "JBSWY3DPEHPK3PXP",                                           // Will be sanitized
-		"totp_key":           "SECRET_TOTP_KEY",                                            // Will be sanitized
-		"api_key":            "sk_live_123456789abcdef",                                     // Will be sanitized
-		"internal_audit_key": "aud_key_998877",                                            // Will be sanitized
+		"mfa_secret":         "JBSWY3DPEHPK3PXP",                                             // Will be sanitized
+		"totp_key":           "SECRET_TOTP_KEY",                                              // Will be sanitized
+		"api_key":            "sensitive-test-api-key",                                       // Will be sanitized
+		"internal_audit_key": "aud_key_998877",                                               // Will be sanitized
 	}
 
 	// Strictly sanitize sensitive credentials
@@ -193,7 +193,7 @@ func (s *complianceService) GenerateDataExportPackage(ctx context.Context, userI
 			{"course_name": "Advanced Cloud Native Microservices", "progress_pct": 100},
 		},
 		Settings: map[string]interface{}{
-			"theme":              "dark",
+			"theme":               "dark",
 			"email_notifications": true,
 		},
 		AuditEvents: auditEvents,

@@ -7,7 +7,8 @@ test.describe('Job Search, Application & Bookmarking Flow', () => {
     await page.fill('input[id="search-location-input"]', 'Remote');
     await page.click('button[type="submit"]');
 
-    await expect(page.locator('.job-card')).toHaveCount(await page.locator('.job-card').count());
+    await expect(page.locator('.job-card').first()).toBeVisible();
+    await expect(page.locator('.job-card').first()).toContainText(/Go Backend/i);
   });
 
   test('Save and Apply for Job Opening', async ({ page }) => {

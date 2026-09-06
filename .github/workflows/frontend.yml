@@ -21,6 +21,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version-file: .node-version
@@ -30,6 +32,9 @@ jobs:
             package-lock.json
       - run: npm install --global npm@11.13.0
       - run: mkdir -p artifacts && npm ci --prefix frontend 2>&1 | tee artifacts/install.log
+      - name: Reproduce historical lint failures and verify corrections
+        if: matrix.check == 'lint'
+        run: node scripts/ci/lint-regression.cjs
       - name: Run explicit check
         shell: bash
         run: |
@@ -37,7 +42,7 @@ jobs:
           case '${{ matrix.check }}' in
             lint) npm --prefix frontend run lint -- --format json --output-file ../artifacts/eslint.json ;;
             typecheck) npm --prefix frontend run typecheck 2>&1 | tee artifacts/typecheck.log ;;
-            unit) npm --prefix frontend test -- --reporter=default --reporter=json --outputFile=../artifacts/vitest.json 2>&1 | tee artifacts/vitest.log ;;
+            unit) npm --prefix frontend test -- --reporter=default --reporter=../scripts/ci/vitest-progress.mjs --reporter=json --outputFile=../artifacts/vitest.json 2>&1 | tee artifacts/vitest.log ;;
             build) npm --prefix frontend run build 2>&1 | tee artifacts/build.log ;;
           esac
       - name: Reject missing, failed or skipped unit tests

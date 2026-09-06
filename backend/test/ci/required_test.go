@@ -3,7 +3,9 @@
 package ci
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"kirmya/internal/shared/cache"
@@ -69,5 +71,43 @@ func TestHTTP(t *testing.T) {
 				t.Fatalf("HTTP_GATE: %s got %d want %d", probe.path, response.StatusCode, probe.status)
 			}
 		})
+	}
+}
+
+// Registration must both return a real identity and persist it in PostgreSQL.
+func TestHTTPRegistrationPersists(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	pool, err := pgxpool.New(ctx, required(t, "DATABASE_URL"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+	email := fmt.Sprintf("ci-%d@example.invalid", time.Now().UnixNano())
+	payload, err := json.Marshal(map[string]interface{}{"firstName": "CI", "lastName": "Candidate", "email": email, "password": "Disposable-CI-password-123!", "acceptTerms": true, "acceptPrivacy": true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &http.Client{Timeout: 10 * time.Second}
+	response, err := client.Post(required(t, "TEST_API_URL")+"/api/v1/auth/register", "application/json", bytes.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusCreated {
+		t.Fatalf("registration got %d want 201", response.StatusCode)
+	}
+	var body struct {
+		ID string `json:"user_id"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+	var storedID string
+	if err := pool.QueryRow(ctx, "SELECT id::text FROM users WHERE email=$1", email).Scan(&storedID); err != nil {
+		t.Fatal(err)
+	}
+	if body.ID == "" || body.ID != storedID {
+		t.Fatalf("HTTP identity %q does not match persisted identity %q", body.ID, storedID)
 	}
 }
