@@ -320,6 +320,7 @@ export const trustSafetyApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) throw new Error('Failed to submit appeal');
       const data = await res.json();
       return data.data;
     } catch {
@@ -514,6 +515,7 @@ export const trustSafetyApi = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) throw new Error('Failed to create restriction');
       const data = await res.json();
       return data.data;
     } catch {
