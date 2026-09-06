@@ -1,3 +1,16 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> The August 28 baseline is historical. Source now includes password reset routes, verified-context mentorship identity, nil-guarded mentorship mounting, typed trust-safety mounting, admin billing authentication and SQL paths in formerly memory-only modules. Those improvements do not establish full production readiness. Remaining mock clients and the findings below require action.
+>
+> Relevant current findings: F01 (Application timeline omits candidate ownership); F02 (Privacy and consent operations return success without persistence); F07 (Several reachable feature clients still use mock authentication and localhost); F08 (Public homepage presents hardcoded social proof as real); F16 (Realtime delivery is process-local despite distributed-broker documentation); F18 (Production can enter unregistered nil-database fallback mode); F20 (Audit scores and operational claims exceed their evidence).
+>
+> Evidence and acceptance criteria: [current audit](audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # KIRMYA MASTER REPOSITORY AUDIT REPORT
 **Platform Functional Baseline, Architectural Integrity & 50-Prompt Recovery Plan**
 *Generated: August 28, 2026 | Antigravity Audit Program — Prompt 1/50*

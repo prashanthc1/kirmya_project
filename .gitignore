@@ -196,6 +196,7 @@ docker-cache/
 .classpath
 .settings/
 .history/
+**/.claude/settings.local.json
 *.swp
 *.swo
 *~

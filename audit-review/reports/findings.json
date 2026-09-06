@@ -1,0 +1,534 @@
+[
+  {
+    "id": "F01",
+    "p": "P1",
+    "title": "Application timeline omits candidate ownership",
+    "area": "Security / applications",
+    "refs": [
+      [
+        "backend/internal/applications/delivery/http/routes.go",
+        20
+      ],
+      [
+        "backend/internal/applications/delivery/http/applications_handler.go",
+        171
+      ],
+      [
+        "backend/internal/applications/service/applications_service.go",
+        60
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        419
+      ]
+    ],
+    "impact": "An authenticated user who knows another application UUID can request its stage history, notes and actor IDs. The handler passes candidateID, but the service drops it and SQL filters only application_id. The generic tenant middleware does not add ownership checks. This is a statically traced authorization defect; no production account was probed.",
+    "fix": "Require application ownership in the timeline query through a join to job_applications and candidate_id. Return 404 for other candidates. Keep recruiter access in an explicitly authorized path.",
+    "test": "Create two candidates and an application in PostgreSQL. Owner timeline succeeds; the second candidate receives 404 with no event data; unknown IDs behave consistently."
+  },
+  {
+    "id": "F02",
+    "p": "P1",
+    "title": "Privacy and consent operations return success without persistence",
+    "area": "Privacy / data integrity",
+    "refs": [
+      [
+        "backend/internal/legal/repository/legal_repo.go",
+        98
+      ],
+      [
+        "backend/internal/legal/repository/legal_repo.go",
+        111
+      ],
+      [
+        "backend/internal/legal/repository/legal_repo.go",
+        129
+      ],
+      [
+        "backend/internal/legal/repository/legal_repo.go",
+        159
+      ],
+      [
+        "backend/internal/legal/repository/legal_repo.go",
+        191
+      ],
+      [
+        "backend/internal/legal/delivery/http/routes.go",
+        22
+      ]
+    ],
+    "impact": "Acceptance, cookie consent, privacy updates, export creation and deletion requests include unconditional no-op methods. Privacy reads reconstruct defaults, while export reads report a completed synthetic export. These methods remain placeholders even with a database connection; this is not confined to the nil-database fallback. Users cannot rely on the displayed settings or request status.",
+    "fix": "Persist each preference and request, enforce preferences in consuming features, generate exports through a real worker and keep requests pending until completion. Replace fabricated histories with stored records. Until implemented, disclose feature unavailability instead of returning success.",
+    "test": "Update, read back, restart, and read again. Check user isolation, worker failures, signed export downloads, and cancellation. These are engineering findings, not a legal compliance certification."
+  },
+  {
+    "id": "F03",
+    "p": "P1",
+    "title": "Candidate document registration returns 201 without saving",
+    "area": "Applications / documents",
+    "refs": [
+      [
+        "backend/internal/applications/delivery/http/applications_handler.go",
+        355
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        683
+      ]
+    ],
+    "impact": "POST /documents/upload constructs a document with a new ID and hardcoded 1 MB/PDF metadata, then responds 201. It never calls a repository. GET /documents reads candidate_documents, so a newly registered document will not appear there.",
+    "fix": "Connect registration to an owned, verified storage object and persist its actual metadata. Use one canonical document service for profile uploads and applications.",
+    "test": "Register a document through HTTP, list it, reload the browser, restart the API and select it in an application. Invalid or foreign storage references must be rejected."
+  },
+  {
+    "id": "F04",
+    "p": "P1",
+    "title": "Application form drops contact edits and resume URL",
+    "area": "Applications / conversion",
+    "refs": [
+      [
+        "frontend/src/components/applications/ApplyJobModal.tsx",
+        145
+      ],
+      [
+        "frontend/src/components/applications/ApplyJobModal.tsx",
+        179
+      ],
+      [
+        "frontend/src/components/applications/ApplyJobModal.tsx",
+        280
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        96
+      ]
+    ],
+    "impact": "The form collects fullName, email, phone and customResumeUrl, but its submission sends none of them. Selecting a document sends resume_id, while the repository stores resume_url only from the absent payload field and does not resolve the selected document. The candidate-facing detail also does not populate SubmittedResume. Required screening flags are not enforced; blank answers become N/A.",
+    "fix": "Define the application snapshot contract. Persist intentional contact overrides or make profile-derived fields read-only. Resolve an owned resume ID server-side into an immutable attachment. Validate employer questions server-side and show missing fields before submission.",
+    "test": "Change contact details, choose a resume, submit, and inspect the recruiter view and reloaded application. Test a direct URL, a foreign document ID and an unanswered required question."
+  },
+  {
+    "id": "F05",
+    "p": "P1",
+    "title": "Saved jobs use the wrong response shape",
+    "area": "Jobs / API contracts",
+    "refs": [
+      [
+        "backend/internal/applications/models/applications.go",
+        200
+      ],
+      [
+        "frontend/src/features/jobs/api.ts",
+        47
+      ],
+      [
+        "frontend/src/app/saved-jobs/page.tsx",
+        88
+      ],
+      [
+        "frontend/src/components/jobs/JobCard.tsx",
+        75
+      ]
+    ],
+    "impact": "The server returns SavedJobDTO: id is the bookmark ID, job_id is the job ID, and job_title contains the title. jobsApi.getSavedJobs types these rows as JobSummary without mapping. JobCard uses job.id for links and unsave requests and job.title for its heading, causing wrong links/actions and missing titles.",
+    "fix": "Map the saved-job DTO explicitly to a job-card model, or use a dedicated SavedJobCard. Preserve bookmark IDs separately from job IDs.",
+    "test": "Use a fixture whose bookmark and job UUIDs differ. Assert the displayed title, destination URL and DELETE request use the job ID."
+  },
+  {
+    "id": "F06",
+    "p": "P1",
+    "title": "Production frontend CI supplies an incompatible API base URL",
+    "area": "Configuration / integration",
+    "refs": [
+      [
+        ".github/workflows/frontend.yml",
+        56
+      ],
+      [
+        "frontend/src/services/authService.ts",
+        3
+      ],
+      [
+        "frontend/src/features/jobs/api.ts",
+        5
+      ],
+      [
+        "backend/internal/router/router.go",
+        195
+      ]
+    ],
+    "impact": "The build workflow sets NEXT_PUBLIC_API_URL to https://api.kirmya.com, while clients append /auth/login or /jobs and the backend mounts /api/v1. The workflow-built client therefore targets unversioned endpoints unless an external rewrite compensates. No deployed rewrite was verified.",
+    "fix": "Use a validated base URL ending in /api/v1 consistently for builds and runtime configuration, or centralize version-prefix handling. Add a smoke test for the exact production artifact.",
+    "test": "Build with production configuration and inspect actual login, refresh, search and application request URLs. They must resolve to the mounted API routes."
+  },
+  {
+    "id": "F07",
+    "p": "P1",
+    "title": "Several reachable feature clients still use mock authentication and localhost",
+    "area": "Frontend / integration",
+    "refs": [
+      [
+        "frontend/src/features/organization/api.ts",
+        10
+      ],
+      [
+        "frontend/src/features/referral/api.ts",
+        10
+      ],
+      [
+        "frontend/src/features/verification/api.ts",
+        9
+      ],
+      [
+        "frontend/src/app/organization/page.tsx",
+        40
+      ],
+      [
+        "frontend/src/app/referrals/page.tsx",
+        37
+      ]
+    ],
+    "impact": "Organization, referrals and verification clients include a fixed UUID bearer value and a hardcoded localhost base. Additional advanced and legacy clients have similar markers. A UUID is not a valid signed JWT; this is broken integration, not proof of an authentication bypass. Some legacy clients may be unused and require import tracing before removal.",
+    "fix": "Route authenticated calls through authApiClient, remove body identity placeholders where the server owns identity, and prohibit literal localhost bases in production feature clients.",
+    "test": "Sign in as two separate test users and exercise organization/referral/verification flows. Check the bearer token and API destination; no mock identity may be sent."
+  },
+  {
+    "id": "F08",
+    "p": "P1",
+    "title": "Public homepage presents hardcoded social proof as real",
+    "area": "Trust / content",
+    "refs": [
+      [
+        "frontend/src/components/landing/StatisticsSection.tsx",
+        24
+      ],
+      [
+        "frontend/src/components/landing/MetricsSection.tsx",
+        11
+      ],
+      [
+        "frontend/src/components/landing/TestimonialsSection.tsx",
+        26
+      ],
+      [
+        "frontend/src/features/landing/api.ts",
+        4
+      ],
+      [
+        "frontend/src/app/page.tsx",
+        77
+      ]
+    ],
+    "impact": "StatisticsSection receives no stats and therefore displays fixed large counts. MetricsSection is wholly hardcoded. Testimonials fall back to invented-looking named success stories under REAL RECOVERY STORIES; the API client itself falls back to another story when its localhost request fails. The repository contains no evidence validating these claims.",
+    "fix": "Remove unverified counts and testimonials from production. Show dated, measured aggregates and consented case studies, or clearly labeled product examples. Handle unavailable landing content without manufacturing success evidence.",
+    "test": "Disconnect the landing API and verify no fictional employer, hire, member count, accuracy claim or testimonial appears as a real outcome."
+  },
+  {
+    "id": "F09",
+    "p": "P2",
+    "title": "Newsletter success does not capture a subscription",
+    "area": "Growth / retention",
+    "refs": [
+      [
+        "frontend/src/components/landing/Footer.tsx",
+        34
+      ],
+      [
+        "frontend/src/components/landing/Footer.tsx",
+        73
+      ]
+    ],
+    "impact": "Submitting the newsletter only changes React state and clears the email. No request or persistence occurs, so the site loses every lead despite saying Subscribed successfully.",
+    "fix": "Connect the form to a persistent subscription endpoint, record consent and source, confirm delivery, and provide unsubscribe handling. Show success only after acceptance.",
+    "test": "Submit, verify the stored subscription and confirmation delivery, reload, then unsubscribe. Network failure must preserve the email and show a retryable error."
+  },
+  {
+    "id": "F10",
+    "p": "P1",
+    "title": "Search discovery is weakened by metadata and job indexing gaps",
+    "area": "SEO / acquisition",
+    "refs": [
+      [
+        "frontend/src/app/layout.tsx",
+        32
+      ],
+      [
+        "frontend/src/app/jobs/[id]/page.tsx",
+        23
+      ],
+      [
+        "frontend/src/app/sitemap.ts",
+        6
+      ],
+      [
+        "frontend/src/app/robots.ts",
+        5
+      ]
+    ],
+    "impact": "The root sets the homepage as canonical and no per-route canonical override was found in app source. Job details are fetched in an effect, have no job-specific metadata or JobPosting markup, and errors render a normal page instead of an HTTP not-found response. The sitemap has only six static URLs, including sign-in/up, and omits individual jobs and companies. Client rendering alone does not mean Google cannot index the site, but these choices impair reliable discovery and sharing.",
+    "fix": "Render public job content and metadata on the server; use self-canonicals, valid JobPosting data for active individual vacancies, real 404/410 handling, and a sitemap sourced from public inventory. Apply noindex to account-only screens; robots is not access control.",
+    "test": "Inspect initial HTML, status codes, canonical and social tags; validate job markup and inspect sample URLs in Search Console after deployment."
+  },
+  {
+    "id": "F11",
+    "p": "P1",
+    "title": "Database-free CI is mistaken for full workflow validation",
+    "area": "QA / release evidence",
+    "refs": [
+      [
+        ".github/workflows/backend.yml",
+        40
+      ],
+      [
+        "backend/test/integration/db_integration_test.go",
+        12
+      ],
+      [
+        "backend/test/integration/cross_module_workflows_test.go",
+        42
+      ],
+      [
+        "frontend/vitest.config.ts",
+        14
+      ],
+      [
+        ".github/workflows/frontend.yml",
+        48
+      ]
+    ],
+    "impact": "Backend CI sets ALLOW_NO_DB=true. The live database test skips, and the named cross-module candidate workflow directly creates repositories with nil pools. It bypasses HTTP, SQL migrations and actual event generation. The frontend step named Unit & E2E runs Vitest; its configured include excludes root Playwright specs. Green checks do not establish full-stack persistence or browser journeys.",
+    "fix": "Add a required PostgreSQL/Redis job with migrations and real HTTP journeys. Run Playwright against the built frontend and real test API. Report skipped tests and preserve artifacts.",
+    "test": "Break an application SQL column or ownership predicate in a temporary test branch and confirm the required integration gate fails. Validate signup-to-apply and recruiter-stage-to-candidate-notification journeys."
+  },
+  {
+    "id": "F12",
+    "p": "P1",
+    "title": "Security workflow deliberately suppresses scan failures",
+    "area": "CI / security assurance",
+    "refs": [
+      [
+        ".github/workflows/security.yml",
+        30
+      ],
+      [
+        ".github/workflows/security.yml",
+        35
+      ],
+      [
+        ".github/workflows/security.yml",
+        41
+      ]
+    ],
+    "impact": "npm audit and govulncheck failures are converted into warnings; Trivy uses exit-code 0 even for HIGH/CRITICAL findings. Thus the successful security run on this commit is not evidence of a clean scan. Tool errors are also masked. The workflow uses a moving Trivy master reference.",
+    "fix": "Make scan failures fail the gate. Use explicit, reviewed exceptions with expiry where needed; pin scanner versions/actions and retain machine-readable output.",
+    "test": "A known vulnerable fixture or deliberate scanner failure must produce a failed check. Do not claim zero vulnerabilities until fresh results support it."
+  },
+  {
+    "id": "F13",
+    "p": "P1",
+    "title": "Application data access hides database errors",
+    "area": "Reliability / retention",
+    "refs": [
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        591
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        623
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        529
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        695
+      ],
+      [
+        "backend/internal/applications/delivery/http/routes.go",
+        48
+      ]
+    ],
+    "impact": "The registered saved-job and candidate-document reads return empty successful results on SQL failures. The application repository also has a CreateJobAlert method that returns success when INSERT fails; its handler is not mounted by applications/routes.go, so that alert-specific issue is a latent duplicate-path defect, not a verified live alert endpoint failure. Empty success responses conceal outages from users and monitoring.",
+    "fix": "Propagate repository errors, check row iteration errors, distinguish missing data from unavailable data, and return stable retryable API errors. Use honest error states in the client.",
+    "test": "Force insert/select failures in a disposable database; assert no success acknowledgment or empty-state substitution and verify that retry succeeds without duplication."
+  },
+  {
+    "id": "F14",
+    "p": "P2",
+    "title": "Application analytics present synthetic scores as personalized measurements",
+    "area": "AI / product trust",
+    "refs": [
+      [
+        "backend/internal/applications/service/applications_service.go",
+        137
+      ],
+      [
+        "backend/internal/applications/service/applications_service.go",
+        244
+      ]
+    ],
+    "impact": "AI insights use fixed match scores, a default 75% success rate, generic missing skills and an application-count formula unrelated to outcomes. TimeToResponseDays is always 3.5. These numbers are not measurements of the candidate or an evaluated prediction.",
+    "fix": "Calculate observable metrics from dated events, publish definitions and sample sizes, return insufficient-data states, and label deterministic advice separately from model inference.",
+    "test": "Zero-data users must not receive fabricated success probabilities. Known application histories should yield reproducible rates and response times."
+  },
+  {
+    "id": "F15",
+    "p": "P2",
+    "title": "Duplicate landmarks and unlabeled controls contradict accessibility claims",
+    "area": "Accessibility / UX",
+    "refs": [
+      [
+        "frontend/src/app/layout.tsx",
+        101
+      ],
+      [
+        "frontend/src/app/page.tsx",
+        72
+      ],
+      [
+        "frontend/src/components/landing/TestimonialsSection.tsx",
+        157
+      ],
+      [
+        "frontend/src/components/landing/Footer.tsx",
+        80
+      ]
+    ],
+    "impact": "The root main wraps a second main with the same main-content ID on the homepage; job details also repeat it. Carousel arrow buttons lack accessible labels. The newsletter email field uses a placeholder without a label, and the send icon button has no accessible name. These are concrete source issues; contrast and WCAG conformance were not visually certified.",
+    "fix": "Keep one main landmark and one skip target. Add persistent field labels and meaningful button names. Verify keyboard focus, zoom, reduced motion and mobile targets.",
+    "test": "Run an accessibility scanner and keyboard/screen-reader checks on homepage, jobs and application dialog at desktop and narrow widths."
+  },
+  {
+    "id": "F16",
+    "p": "P2",
+    "title": "Realtime delivery is process-local despite distributed-broker documentation",
+    "area": "Architecture / scaling",
+    "refs": [
+      [
+        "backend/cmd/kirmya/main.go",
+        407
+      ],
+      [
+        "backend/internal/messaging/pubsub/pubsub.go",
+        58
+      ],
+      [
+        "docs/messaging/messaging-platform-audit.md",
+        10
+      ],
+      [
+        "docs/notifications/notifications-audit.md",
+        10
+      ]
+    ],
+    "impact": "The running composition uses NewInMemoryPubSub for messaging and notifications. Separate API replicas do not share subscriptions, and a full subscriber buffer silently drops events. SQL persistence may retain messages, but live cross-replica notification delivery is not established. Docs alternately claim Redis and NATS.",
+    "fix": "Document current single-process behavior. Before horizontal scaling, wire a shared broker and implement reconnect/catch-up from durable records; use a durable queue where delivery guarantees are required.",
+    "test": "Connect users to different replicas and test message delivery, reconnect, subscriber overload and broker restart."
+  },
+  {
+    "id": "F17",
+    "p": "P2",
+    "title": "Job-specific apply alias validates the body before reading its path ID",
+    "area": "API / applications",
+    "refs": [
+      [
+        "backend/internal/applications/delivery/http/applications_handler.go",
+        29
+      ],
+      [
+        "backend/internal/applications/models/applications.go",
+        239
+      ],
+      [
+        "frontend/src/features/jobs/api.ts",
+        72
+      ]
+    ],
+    "impact": "POST /jobs/:id/apply binds CreateApplicationPayload with job_id marked required, then tries to fill job_id from the URL afterward. A normal empty object request fails binding before that fallback. If both IDs are supplied and disagree, the body currently wins.",
+    "fix": "Read and validate the path ID first for the alias, use an appropriate request DTO, and reject mismatched IDs. Keep the canonical /applications contract explicit.",
+    "test": "The alias accepts a valid path with a valid application body lacking job_id; invalid and mismatched IDs are rejected predictably."
+  },
+  {
+    "id": "F18",
+    "p": "P1",
+    "title": "Production can enter unregistered nil-database fallback mode",
+    "area": "Operations / data durability",
+    "refs": [
+      [
+        "backend/cmd/kirmya/main.go",
+        307
+      ],
+      [
+        "backend/cmd/kirmya/main.go",
+        327
+      ],
+      [
+        "backend/internal/shared/persistence/ephemeral.go",
+        78
+      ],
+      [
+        "backend/internal/applications/repository/applications_repository.go",
+        130
+      ]
+    ],
+    "impact": "If ALLOW_NO_DB=true and database connection fails, startup continues with nil pools. No production RegisterEphemeral call sites were found, so the registry audit can report every repository database-backed while fallback code handles requests. This risk requires that configuration and database failure; it is not a claim that the deployed site is running this way.",
+    "fix": "Reject ALLOW_NO_DB in production and fail readiness when the database is unavailable. Move test stores behind explicit test construction rather than production nil-pointer branches.",
+    "test": "Start in production mode with ALLOW_NO_DB=true and an unavailable database. The process must refuse to serve write traffic."
+  },
+  {
+    "id": "F19",
+    "p": "P1",
+    "title": "Frontend release check currently fails at linting",
+    "area": "Build / release",
+    "refs": [
+      [
+        ".github/workflows/frontend.yml",
+        45
+      ],
+      [
+        "frontend/src/app/jobs/recommendations/page.tsx",
+        365
+      ],
+      [
+        "frontend/src/components/recommendations/DiscoveryCard.tsx",
+        75
+      ],
+      [
+        "frontend/src/components/upload/FileUploadZone.tsx",
+        156
+      ]
+    ],
+    "impact": "GitHub run 33975663395 for the audited commit failed the lint step, skipping unit tests and production build. Local typechecking passes, which does not clear lint or establish a passing production build. See the verification section for local lint/test details. Local ESLint reproduced 3 errors (all no-restricted-syntax transition: all violations) and 141 warnings. The three errors are in jobs/recommendations/page.tsx:365, recommendations/DiscoveryCard.tsx:75 and upload/FileUploadZone.tsx:156.",
+    "fix": "Resolve the current lint failures and rerun the complete pipeline on the same release commit. Preserve failure output and avoid disabling the gate to produce a green badge.",
+    "test": "Required frontend lint, tests and production build all complete successfully on the chosen release SHA."
+  },
+  {
+    "id": "F20",
+    "p": "P1",
+    "title": "Audit scores and operational claims exceed their evidence",
+    "area": "Documentation / governance",
+    "refs": [
+      [
+        "docs/production_readiness_audit.md",
+        5
+      ],
+      [
+        "docs/qa/production-readiness-report.md",
+        12
+      ],
+      [
+        "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+        32
+      ],
+      [
+        "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+        24
+      ]
+    ],
+    "impact": "Reports claim 98–100 readiness, zero mock data, zero IDOR and complete E2E validation despite current counterexamples. The old master audit also lists defects that source now addresses. Automated link checking found 281 file:// links pointing at another local checkout. Benchmark and restore figures were not independently reproduced.",
+    "fix": "Replace global percentages with dated, commit-linked gates and evidence. Preserve historical reports with clearly scoped addenda, reconcile contradicted claims, and distinguish plans, source inspection, CI observations and measured production results.",
+    "test": "Each current PASS links to a command/result on the audited SHA; remaining claims are marked historical or unverified. Documentation links resolve portably."
+  }
+]

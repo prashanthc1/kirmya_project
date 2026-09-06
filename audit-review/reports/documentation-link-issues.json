@@ -1,0 +1,1407 @@
+[
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/01-product-charter.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/02-business-vision.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/03-product-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/08-features-documentation.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/09-business-rules.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/11-information-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/12-roles-permissions.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/13-notifications-strategy.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/14-search-strategy.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/15-ai-vision.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/03-product-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/01-system-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/09-business-rules.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/03-product-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/08-features-documentation.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/09-business-rules.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/13-notifications-strategy.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/14-search-strategy.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/15-ai-vision.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/08-features-documentation.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/02-modular-monolith-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/08-features-documentation.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/09-business-rules.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/11-information-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/03-module-boundaries.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/12-roles-permissions.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/04-backend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/09-business-rules.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/10-non-functional-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/05-frontend-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/01-frontend-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/05-frontend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/06-project-folder-structure.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/05-frontend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/05-frontend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/07-api-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/12-roles-permissions.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/08-database-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/09-authentication-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/09-authentication-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/09-authentication-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/10-authorization-rbac.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/11-search-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/12-notification-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/12-notification-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/13-messaging-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/14-file-storage-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/10-authorization-rbac.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/15-caching-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/16-event-driven-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/16-event-driven-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/17-background-jobs-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/16-event-driven-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/17-background-jobs-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/18-ai-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/19-observability-monitoring.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/20-deployment-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/19-observability-monitoring.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/20-deployment-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/20-deployment-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/21-disaster-recovery-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/19-observability-monitoring.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/09-authentication-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/10-authorization-rbac.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/20-deployment-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/20-deployment-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/09-authentication-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/22-security-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/10-authorization-rbac.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/23-third-party-integration-architecture.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/07-api-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/24-architecture-decision-records.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/24-architecture-decision-records.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/24-architecture-decision-records.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/24-architecture-decision-records.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/24-architecture-decision-records.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/24-architecture-decision-records.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/00-documentation-standards.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/01-system-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/03-module-boundaries.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/04-backend-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/02-modular-monolith-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/architecture/25-future-microservices-migration-strategy.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/architecture/08-database-architecture.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_INVENTORY.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_ERROR_CODES.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_DEVELOPER_GUIDE.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_CHANGE_POLICY.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_QUALITY_CHECKLIST.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/contract/api_contract_smoke_test.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_AUTH_EXPERIENCE.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/auth/",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/login/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/signup/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/verification/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/forgot-password/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/reset-password/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/shared/database/migrations.go#L40-L115",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/scripts/migrations/0085_create_mentorship_system.up.sql",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/repository/postgres_repository.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/cmd/kirmya/main.go#L580-L625",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_TOKENS.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_COMPONENT_STANDARDS.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/theme/",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/test/design-system.test.ts",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/shared/routes.ts",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/common/",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/integration/cross_module_workflows_test.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_HOME_EXPERIENCE.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/feed/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/dashboard/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/landing/",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_JOBS_EXPERIENCE.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/jobs/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/saved-jobs/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/jobs/",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_PRE_DATABASE_GATE_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/cmd/kirmya/main.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_PROFILE_EXPERIENCE.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/profile/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/profile/edit/page.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/profile/",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_RELIABILITY_INVENTORY.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/operations/KIRMYA_DISASTER_RECOVERY.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/reliability/reliability_performance_test.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_SECURITY_INVENTORY.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/security/KIRMYA_SECURITY_MODEL.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/security/KIRMYA_SECURITY_TEST_MATRIX.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/security/security_hardening_test.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/shared/navigation/index.ts",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/shell/AppHeader.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/shell/MobileDrawer.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/shell/MobileBottomNav.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/shell/AppSidebar.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/shell/AppContainer.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/design/KIRMYA_NAVIGATION_SYSTEM.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/shell/AppShell.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/shared/routes.ts",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/product/00-documentation-standards.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/01-product-charter.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/product/00-documentation-standards.md",
+    "target": "file:///path/to/file#L120-L135",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/product/02-business-vision.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/01-product-charter.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/product/04-roadmap.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/01-product-charter.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/product/04-roadmap.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/03-product-requirements.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/product/07-user-journeys.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/product/06-user-personas.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/models/community.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/repository/community_repo.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/service/community_service.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/delivery/http/community_handler.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/delivery/http/routes.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/delivery/http/swagger.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/community/service/community_service_test.go",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/community/types.ts",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/features/community/services/communityApi.ts",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/test/community.test.tsx",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/communities.md",
+    "kind": "nonportable-local-link"
+  },
+  {
+    "file": "docs/walkthrough.md",
+    "target": "file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/networking.md",
+    "kind": "nonportable-local-link"
+  }
+]

@@ -1,15 +1,28 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F07 (Several reachable feature clients still use mock authentication and localhost); F15 (Duplicate landmarks and unlabeled controls contradict accessibility claims); F19 (Frontend release check currently fails at linting).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya Frontend Architecture, MUI 6 Foundation, State Management & UX Infrastructure Audit (Prompt 12/50)
 
 **Date**: August 30, 2026  
 **Auditor**: Antigravity AI (Google DeepMind)  
 **Status**: 100% AUDITED & FOUNDATION STANDARDIZED  
 **Associated Artifacts**:
-* [`docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md)
-* [`docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md)
-* [`docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md)
-* [`docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md)
-* [`frontend/src/shared/routes.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/shared/routes.ts)
-* [`frontend/src/components/common/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/common/)
+* [`docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md`](../frontend/KIRMYA_FRONTEND_ARCHITECTURE.md)
+* [`docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md`](../frontend/KIRMYA_COMPONENT_GUIDELINES.md)
+* [`docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md`](../frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md)
+* [`docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md`](KIRMYA_FRONTEND_TECH_DEBT.md)
+* [`frontend/src/shared/routes.ts`](../../frontend/src/shared/routes.ts)
+* [`frontend/src/components/common/`](../../frontend/src/components/common)
 
 ---
 

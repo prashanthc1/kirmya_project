@@ -1,15 +1,28 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F04 (Application form drops contact edits and resume URL); F05 (Saved jobs use the wrong response shape); F10 (Search discovery is weakened by metadata and job indexing gaps); F17 (Job-specific apply alias validates the body before reading its path ID).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya Jobs Discovery & Search Experience Audit Report (Prompt 16/50)
 
 **Date**: August 30, 2026  
 **Auditor**: Antigravity AI (Google DeepMind)  
 **Status**: 100% AUDITED & JOBS EXPERIENCE TRANSFORMED  
 **Associated Artifacts**:
-* [`docs/design/KIRMYA_JOBS_EXPERIENCE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_JOBS_EXPERIENCE.md)
-* [`docs/design/KIRMYA_DESIGN_SYSTEM.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md)
-* [`frontend/src/app/jobs/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/jobs/page.tsx)
+* [`docs/design/KIRMYA_JOBS_EXPERIENCE.md`](../design/KIRMYA_JOBS_EXPERIENCE.md)
+* [`docs/design/KIRMYA_DESIGN_SYSTEM.md`](../design/KIRMYA_DESIGN_SYSTEM.md)
+* [`frontend/src/app/jobs/page.tsx`](../../frontend/src/app/jobs/page.tsx)
 * [`frontend/src/app/jobs/[id]/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/jobs/[id]/page.tsx)
-* [`frontend/src/app/saved-jobs/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/saved-jobs/page.tsx)
-* [`frontend/src/components/jobs/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/jobs/)
+* [`frontend/src/app/saved-jobs/page.tsx`](../../frontend/src/app/saved-jobs/page.tsx)
+* [`frontend/src/components/jobs/`](../../frontend/src/components/jobs)
 
 ---
 

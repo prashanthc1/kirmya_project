@@ -1,0 +1,192 @@
+[
+  {
+    "title": "Password reset routes",
+    "file": "backend/internal/auth/delivery/http/routes.go",
+    "source_markers": [
+      {
+        "line": 29,
+        "text": "authGroup.POST(\"/forgot-password\","
+      },
+      {
+        "line": 31,
+        "text": "authGroup.POST(\"/reset-password\","
+      }
+    ],
+    "classification": "source-inspected presence; historical fix, not test-verified",
+    "status": "unverified",
+    "acceptance": "Register/login, request recovery, consume once, expire/replay, rate-limit and session-revocation checks",
+    "acceptance_evidence": []
+  },
+  {
+    "title": "Mentorship caller identity",
+    "file": "backend/internal/mentorship/delivery/http/mentorship_handler.go",
+    "source_markers": [
+      {
+        "line": 35,
+        "text": "// It delegates to middleware.GetUserID because the middleware stores a"
+      },
+      {
+        "line": 39,
+        "text": "if uid, ok := sharedMiddleware.GetUserID(c); ok {"
+      }
+    ],
+    "classification": "source-inspected presence; historical fix, not test-verified",
+    "status": "unverified",
+    "acceptance": "Foreign user/header/query spoof attempts cannot replace the verified caller",
+    "acceptance_evidence": []
+  },
+  {
+    "title": "Billing role guards",
+    "file": "backend/internal/billing/delivery/http/routes.go",
+    "source_markers": [
+      {
+        "line": 24,
+        "text": "authed.Use(sharedMiddleware.AuthRequired())"
+      },
+      {
+        "line": 38,
+        "text": "adminBilling.Use(sharedMiddleware.RequireAdmin())"
+      }
+    ],
+    "classification": "source-inspected presence; historical fix, not test-verified",
+    "status": "unverified",
+    "acceptance": "Anonymous/ordinary/admin and cross-account billing plus webhook signature cases",
+    "acceptance_evidence": []
+  },
+  {
+    "title": "Trust-safety typed mounting",
+    "file": "backend/internal/router/router.go",
+    "source_markers": [
+      {
+        "line": 123,
+        "text": "TrustSafetyHandler          *trustHttp.TrustSafetyHandler"
+      },
+      {
+        "line": 124,
+        "text": "AdminTrustSafetyHandler     *trustHttp.AdminTrustSafetyHandler"
+      },
+      {
+        "line": 302,
+        "text": "if deps.TrustSafetyHandler != nil {"
+      },
+      {
+        "line": 303,
+        "text": "trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)"
+      },
+      {
+        "line": 305,
+        "text": "if deps.AdminTrustSafetyHandler != nil {"
+      },
+      {
+        "line": 306,
+        "text": "trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler, deps.AuthMiddleware)"
+      }
+    ],
+    "classification": "source-inspected presence; historical fix, not test-verified",
+    "status": "unverified",
+    "acceptance": "Required routes register and enforce role/ownership at HTTP boundaries",
+    "acceptance_evidence": []
+  },
+  {
+    "title": "SQL repository implementation exists",
+    "file": "backend/internal/applications/repository/applications_repository.go",
+    "source_markers": [
+      {
+        "line": 53,
+        "text": "err := tx.QueryRow(ctx, `SELECT id FROM job_applications WHERE idempotency_key = $1 AND candidate_id = $2`, payload.IdempotencyKey, candidateID).Scan(&existingID)"
+      },
+      {
+        "line": 63,
+        "text": "jobCheckQuery := `SELECT status, expires_at FROM jobs WHERE id = $1`"
+      },
+      {
+        "line": 79,
+        "text": "checkQuery := `SELECT EXISTS(SELECT 1 FROM job_applications WHERE job_id = $1 AND candidate_id = $2)`"
+      },
+      {
+        "line": 97,
+        "text": "INSERT INTO job_applications ("
+      },
+      {
+        "line": 113,
+        "text": "INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)"
+      },
+      {
+        "line": 201,
+        "text": "SELECT"
+      },
+      {
+        "line": 208,
+        "text": "EXISTS(SELECT 1 FROM saved_jobs sj WHERE sj.candidate_id = a.candidate_id AND sj.job_id = a.job_id) AS is_saved,"
+      },
+      {
+        "line": 271,
+        "text": "SELECT"
+      },
+      {
+        "line": 282,
+        "text": "EXISTS(SELECT 1 FROM saved_jobs sj WHERE sj.candidate_id = a.candidate_id AND sj.job_id = a.job_id) AS is_saved"
+      },
+      {
+        "line": 347,
+        "text": "if err := tx.QueryRow(ctx, `SELECT current_stage FROM job_applications WHERE id = $1 AND candidate_id = $2 FOR UPDATE`, appID, candidateID).Scan(&currentStage); err != nil {"
+      },
+      {
+        "line": 365,
+        "text": "INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)"
+      },
+      {
+        "line": 396,
+        "text": "if err := tx.QueryRow(ctx, `SELECT current_stage FROM job_applications WHERE id = $1 AND candidate_id = $2 FOR UPDATE`, appID, candidateID).Scan(&currentStage); err != nil {"
+      },
+      {
+        "line": 409,
+        "text": "INSERT INTO application_stage_history (id, application_id, from_stage, to_stage, moved_by, notes, moved_at)"
+      },
+      {
+        "line": 422,
+        "text": "SELECT id, to_stage, from_stage, COALESCE(notes, ''), moved_at, COALESCE(moved_by::text, 'System')"
+      },
+      {
+        "line": 464,
+        "text": "INSERT INTO saved_jobs (id, candidate_id, job_id, notes, saved_at)"
+      },
+      {
+        "line": 494,
+        "text": "query := `SELECT EXISTS(SELECT 1 FROM saved_jobs WHERE candidate_id = $1 AND job_id = $2)`"
+      },
+      {
+        "line": 513,
+        "text": "SELECT"
+      },
+      {
+        "line": 560,
+        "text": "SELECT id, candidate_id, title, COALESCE(keywords, ''), job_titles, skills,"
+      },
+      {
+        "line": 618,
+        "text": "INSERT INTO job_alerts ("
+      },
+      {
+        "line": 647,
+        "text": "SELECT"
+      },
+      {
+        "line": 689,
+        "text": "SELECT id, candidate_id, title, document_type, file_url, file_size_bytes, file_type, is_default, uploaded_at"
+      },
+      {
+        "line": 730,
+        "text": "SELECT id, application_id, candidate_id, note_text, created_at, updated_at"
+      },
+      {
+        "line": 757,
+        "text": "SELECT"
+      }
+    ],
+    "classification": "source-inspected presence; historical fix, not test-verified",
+    "status": "unverified",
+    "acceptance": "Real SQL writes/readback/rollback and restart survive with tenant isolation",
+    "acceptance_evidence": []
+  }
+]

@@ -1,3 +1,16 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F01 (Application timeline omits candidate ownership); F02 (Privacy and consent operations return success without persistence); F03 (Candidate document registration returns 201 without saving); F04 (Application form drops contact edits and resume URL); F05 (Saved jobs use the wrong response shape); F11 (Database-free CI is mistaken for full workflow validation); F19 (Frontend release check currently fails at linting); F20 (Audit scores and operational claims exceed their evidence).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya Full-Stack Integration, Cross-Module Workflows & Functional Gap Audit Report (Prompt 8/50)
 
 **Date**: August 30, 2026  
@@ -5,10 +18,10 @@
 **Status**: FULL-STACK CROSS-MODULE INTEGRATION VERIFIED  
 **Overall Completion**: **100% Verified Across All Workflows & Integration Gate**  
 **Associated Artifacts**:
-* [`docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md)
-* [`docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md)
-* [`docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md)
-* [`backend/test/integration/cross_module_workflows_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/integration/cross_module_workflows_test.go)
+* [`docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md`](KIRMYA_FULL_STACK_INTEGRATION_MAP.md)
+* [`docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md`](KIRMYA_AUTHORIZATION_MATRIX.md)
+* [`docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md`](KIRMYA_FEATURE_COMPLETENESS_MATRIX.md)
+* [`backend/test/integration/cross_module_workflows_test.go`](../../backend/test/integration/cross_module_workflows_test.go)
 
 ---
 

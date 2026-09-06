@@ -1,0 +1,7 @@
+{
+  "completed_date": "2026-09-06",
+  "issues": 197,
+  "excluded_nonissues": 7,
+  "initial_baseline_preserved": true,
+  "note": "Initial derived-intake refinement completed before this marker was added; prevents accidental repeated refinement."
+}

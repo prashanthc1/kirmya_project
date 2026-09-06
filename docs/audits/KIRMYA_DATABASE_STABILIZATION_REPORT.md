@@ -1,3 +1,16 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F02 (Privacy and consent operations return success without persistence); F03 (Candidate document registration returns 201 without saving); F11 (Database-free CI is mistaken for full workflow validation); F13 (Job alert writes and several reads hide database errors); F18 (Production can enter unregistered nil-database fallback mode).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya PostgreSQL Schema, Migration & Repository Baseline Stabilization Report (Prompt 4/50)
 
 **Date**: August 29, 2026  
@@ -14,9 +27,9 @@ Prompt 4 initiated the **Database & Repository Stabilization Phase** of the Kirm
 $$\text{Database Migrations (0001–0085)} \longrightarrow \text{PostgreSQL Schema} \longrightarrow \text{Go Domain Entities} \longrightarrow \text{Repositories} \longrightarrow \text{Services} \longrightarrow \text{HTTP Delivery}$$
 
 ### Key Technical Achievements in Prompt 4:
-1. **Migration Inventory & Version Tracking**: Audited all **85 PostgreSQL migration scripts** in `backend/scripts/migrations/`. Added transactional version tracking via `schema_migrations` in [`RunMigrations`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/shared/database/migrations.go#L40-L115), ensuring fast, idempotent schema deployments.
-2. **Created Mentorship Schema & PostgreSQL Repository**: Added [`0085_create_mentorship_system.up.sql`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/scripts/migrations/0085_create_mentorship_system.up.sql) creating 6 core tables (`mentor_profiles`, `mentorship_requests`, `mentorships`, `mentorship_goals`, `mentorship_sessions`, `mentorship_feedback`). Implemented [`PostgresMentorshipRepository`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/repository/postgres_repository.go) with 27 parameterized methods using `pgxpool.Pool`.
-3. **Eliminated Unattached `database/sql` Repositories**: Leveraged `github.com/jackc/pgx/v5/stdlib` in [`main.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/cmd/kirmya/main.go#L580-L625) (`stdlib.OpenDBFromPool(dbPool)`) to attach all 8 previously standalone/nil `*sql.DB` modules (`billing`, `legal`, `backup`, `data_operations`, `support`, `system_health`, `trust_safety`, `admin`) directly into the shared PostgreSQL connection pool.
+1. **Migration Inventory & Version Tracking**: Audited all **85 PostgreSQL migration scripts** in `backend/scripts/migrations/`. Added transactional version tracking via `schema_migrations` in [`RunMigrations`](../../backend/internal/shared/database/migrations.go#L40-L115), ensuring fast, idempotent schema deployments.
+2. **Created Mentorship Schema & PostgreSQL Repository**: Added [`0085_create_mentorship_system.up.sql`](../../backend/scripts/migrations/0085_create_mentorship_system.up.sql) creating 6 core tables (`mentor_profiles`, `mentorship_requests`, `mentorships`, `mentorship_goals`, `mentorship_sessions`, `mentorship_feedback`). Implemented [`PostgresMentorshipRepository`](../../backend/internal/mentorship/repository/postgres_repository.go) with 27 parameterized methods using `pgxpool.Pool`.
+3. **Eliminated Unattached `database/sql` Repositories**: Leveraged `github.com/jackc/pgx/v5/stdlib` in [`main.go`](../../backend/cmd/kirmya/main.go#L580-L625) (`stdlib.OpenDBFromPool(dbPool)`) to attach all 8 previously standalone/nil `*sql.DB` modules (`billing`, `legal`, `backup`, `data_operations`, `support`, `system_health`, `trust_safety`, `admin`) directly into the shared PostgreSQL connection pool.
 4. **Enforced Parameterized SQL & Safe Placeholder Binding**: Confirmed 100% parameterized query usage (`$1, $2, ...`) across all active repositories, eliminating SQL injection vectors.
 5. **Standardized Primary Keys & Timestamps**: Confirmed canonical UUID v4 primary keys and `TIMESTAMP WITH TIME ZONE` (`TIMESTAMPTZ`) across all domain models.
 

@@ -1,15 +1,28 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F20 (Audit scores and operational claims exceed their evidence).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya Complete API Contract, Swagger/OpenAPI & Developer Experience Standardization Report (Prompt 11/50)
 
 **Date**: August 30, 2026  
 **Auditor**: Antigravity AI (Google DeepMind)  
 **Status**: 100% AUDITED, STANDARDIZED & CONTRACT-ALIGNED  
 **Associated Artifacts**:
-* [`docs/api/KIRMYA_API_INVENTORY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_INVENTORY.md)
-* [`docs/api/KIRMYA_API_ERROR_CODES.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_ERROR_CODES.md)
-* [`docs/api/KIRMYA_API_DEVELOPER_GUIDE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_DEVELOPER_GUIDE.md)
-* [`docs/api/KIRMYA_API_CHANGE_POLICY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_CHANGE_POLICY.md)
-* [`docs/api/KIRMYA_API_QUALITY_CHECKLIST.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_QUALITY_CHECKLIST.md)
-* [`backend/test/contract/api_contract_smoke_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/contract/api_contract_smoke_test.go)
+* [`docs/api/KIRMYA_API_INVENTORY.md`](../api/KIRMYA_API_INVENTORY.md)
+* [`docs/api/KIRMYA_API_ERROR_CODES.md`](../api/KIRMYA_API_ERROR_CODES.md)
+* [`docs/api/KIRMYA_API_DEVELOPER_GUIDE.md`](../api/KIRMYA_API_DEVELOPER_GUIDE.md)
+* [`docs/api/KIRMYA_API_CHANGE_POLICY.md`](../api/KIRMYA_API_CHANGE_POLICY.md)
+* [`docs/api/KIRMYA_API_QUALITY_CHECKLIST.md`](../api/KIRMYA_API_QUALITY_CHECKLIST.md)
+* [`backend/test/contract/api_contract_smoke_test.go`](../../backend/test/contract/api_contract_smoke_test.go)
 
 ---
 

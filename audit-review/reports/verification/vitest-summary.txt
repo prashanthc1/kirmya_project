@@ -1,0 +1,5 @@
+Audited commit: 5f6790a95ae02d74666b668ab62e140d861424ec
+Scope: selected application, landing and jobs tests
+Result: INCOMPLETE
+
+The runner printed its startup banner but did not complete or produce test results during the available session. The process was stopped. This check is intentionally not reported as passed or failed.

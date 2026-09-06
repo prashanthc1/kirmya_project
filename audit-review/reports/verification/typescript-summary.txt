@@ -1,0 +1,6 @@
+Audited commit: 5f6790a95ae02d74666b668ab62e140d861424ec
+Command: tsc --noEmit --incremental false
+Result: PASS
+Diagnostics: none
+
+This result establishes TypeScript compilation only. It does not establish lint, tests, production build, runtime integration or browser behavior.

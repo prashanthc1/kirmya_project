@@ -1,0 +1,1581 @@
+{
+  "scope": [
+    "docs/admin/admin-platform-audit.md",
+    "docs/admin/admin-trust-safety-audit.md",
+    "docs/ai/ai-platform-audit.md",
+    "docs/ai-matching/ai-matching-audit.md",
+    "docs/analytics/analytics-audit.md",
+    "docs/analytics/analytics-platform-audit.md",
+    "docs/api/api-audit.md",
+    "docs/applications/application-ats-audit.md",
+    "docs/applications/application-platform-audit.md",
+    "docs/audits/KIRMYA_ADMIN_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_ADVANCED_BUSINESS_IMPLEMENTATION_REPORT.md",
+    "docs/audits/KIRMYA_ADVANCED_MODULE_INVENTORY.md",
+    "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+    "docs/audits/KIRMYA_APPLICATIONS_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_ARCHITECTURE_CONSOLIDATION_REPORT.md",
+    "docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md",
+    "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_COMMUNITIES_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_COMPANIES_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_CORE_REPOSITORY_IMPLEMENTATION_REPORT.md",
+    "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+    "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+    "docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md",
+    "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+    "docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md",
+    "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+    "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md",
+    "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+    "docs/audits/KIRMYA_INTERVIEWS_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_MESSAGING_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_NETWORKING_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_NOTIFICATIONS_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_PRE_DATABASE_GATE_REPORT.md",
+    "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_RELIABILITY_INVENTORY.md",
+    "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+    "docs/audits/KIRMYA_RESUMES_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_SEARCH_FRONTEND_AUDIT.md",
+    "docs/audits/KIRMYA_SECONDARY_REPOSITORY_IMPLEMENTATION_REPORT.md",
+    "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+    "docs/audits/KIRMYA_SECURITY_INVENTORY.md",
+    "docs/audits/KIRMYA_SETTINGS_FRONTEND_AUDIT.md",
+    "docs/communities/community-platform-audit.md",
+    "docs/companies/company-platform-audit.md",
+    "docs/data/data-architecture-audit.md",
+    "docs/data/data-audit.md",
+    "docs/database/database-audit.md",
+    "docs/deployment/cicd-audit.md",
+    "docs/devops/devops-audit.md",
+    "docs/disaster-recovery/dr-audit.md",
+    "docs/disaster-recovery/dr-test-report.md",
+    "docs/frontend/frontend-architecture-audit.md",
+    "docs/frontend/frontend-audit.md",
+    "docs/frontend/state-audit.md",
+    "docs/infrastructure/infrastructure-audit.md",
+    "docs/interviews/interview-platform-audit.md",
+    "docs/interviews/interview-system-audit.md",
+    "docs/jobs/job-discovery-audit.md",
+    "docs/jobs/job-system-audit.md",
+    "docs/jobs/jobs-platform-audit.md",
+    "docs/learning/learning-platform-audit.md",
+    "docs/messaging/messaging-platform-audit.md",
+    "docs/networking/discovery-audit.md",
+    "docs/networking/networking-audit.md",
+    "docs/notifications/notification-platform-audit.md",
+    "docs/notifications/notification-system-audit.md",
+    "docs/notifications/notifications-audit.md",
+    "docs/observability/observability-audit.md",
+    "docs/performance/performance-audit.md",
+    "docs/performance/PERFORMANCE_REPORT.md",
+    "docs/performance_benchmark_report.md",
+    "docs/production_readiness_audit.md",
+    "docs/profile/candidate-profile-audit.md",
+    "docs/profile/profile-audit.md",
+    "docs/profile/profile-resume-platform-audit.md",
+    "docs/qa/production-readiness-report.md",
+    "docs/qa/qa-audit.md",
+    "docs/recruiter/recruiter-platform-audit.md",
+    "docs/recruiters/recruiter-platform-audit.md",
+    "docs/search/search-platform-audit.md",
+    "docs/security/authentication-audit.md",
+    "docs/security/authorization-audit.md",
+    "docs/security/security-and-privacy-audit.md",
+    "docs/security/security-audit.md",
+    "docs/testing/qa-audit.md",
+    "docs/testing/testing-audit.md",
+    "docs/test_coverage_report.md",
+    "docs/trust-safety/trust-and-safety-audit.md",
+    "docs/trust-safety/trust-safety-audit.md",
+    "KIRMYA_MASTER_AUDIT_REPORT.md",
+    "SECURITY_PHASE1_COMPLETION.md",
+    "audit-review/reports/AUDIT_RECONCILIATION.md",
+    "audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md",
+    "audit-review/reports/LOCAL_IMPLEMENTATION_GUIDE.md",
+    "audit-review/reports/MODULE_INVENTORY.md",
+    "audit-review/reports/verification/README.md"
+  ],
+  "repairs": [
+    {
+      "file": "docs/admin/admin-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/admin/admin-trust-safety-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/ai/ai-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/ai-matching/ai-matching-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/analytics/analytics-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/analytics/analytics-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/api/api-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/applications/application-ats-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/applications/application-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_ADMIN_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_ADVANCED_BUSINESS_IMPLEMENTATION_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_ADVANCED_MODULE_INVENTORY.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 20,
+      "before": "[`docs/api/KIRMYA_API_INVENTORY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_INVENTORY.md)",
+      "after": "[`docs/api/KIRMYA_API_INVENTORY.md`](../api/KIRMYA_API_INVENTORY.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 21,
+      "before": "[`docs/api/KIRMYA_API_ERROR_CODES.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_ERROR_CODES.md)",
+      "after": "[`docs/api/KIRMYA_API_ERROR_CODES.md`](../api/KIRMYA_API_ERROR_CODES.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 22,
+      "before": "[`docs/api/KIRMYA_API_DEVELOPER_GUIDE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_DEVELOPER_GUIDE.md)",
+      "after": "[`docs/api/KIRMYA_API_DEVELOPER_GUIDE.md`](../api/KIRMYA_API_DEVELOPER_GUIDE.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 23,
+      "before": "[`docs/api/KIRMYA_API_CHANGE_POLICY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_CHANGE_POLICY.md)",
+      "after": "[`docs/api/KIRMYA_API_CHANGE_POLICY.md`](../api/KIRMYA_API_CHANGE_POLICY.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 24,
+      "before": "[`docs/api/KIRMYA_API_QUALITY_CHECKLIST.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/api/KIRMYA_API_QUALITY_CHECKLIST.md)",
+      "after": "[`docs/api/KIRMYA_API_QUALITY_CHECKLIST.md`](../api/KIRMYA_API_QUALITY_CHECKLIST.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md",
+      "line": 25,
+      "before": "[`backend/test/contract/api_contract_smoke_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/contract/api_contract_smoke_test.go)",
+      "after": "[`backend/test/contract/api_contract_smoke_test.go`](../../backend/test/contract/api_contract_smoke_test.go)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_APPLICATIONS_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_ARCHITECTURE_CONSOLIDATION_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 20,
+      "before": "[`docs/design/KIRMYA_AUTH_EXPERIENCE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_AUTH_EXPERIENCE.md)",
+      "after": "[`docs/design/KIRMYA_AUTH_EXPERIENCE.md`](../design/KIRMYA_AUTH_EXPERIENCE.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 21,
+      "before": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md)",
+      "after": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](../design/KIRMYA_DESIGN_SYSTEM.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 22,
+      "before": "[`frontend/src/components/auth/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/auth/)",
+      "after": "[`frontend/src/components/auth/`](../../frontend/src/components/auth)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 23,
+      "before": "[`frontend/src/app/login/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/login/page.tsx)",
+      "after": "[`frontend/src/app/login/page.tsx`](../../frontend/src/app/login/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 24,
+      "before": "[`frontend/src/app/signup/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/signup/page.tsx)",
+      "after": "[`frontend/src/app/signup/page.tsx`](../../frontend/src/app/signup/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 25,
+      "before": "[`frontend/src/app/verification/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/verification/page.tsx)",
+      "after": "[`frontend/src/app/verification/page.tsx`](../../frontend/src/app/verification/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 26,
+      "before": "[`frontend/src/app/forgot-password/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/forgot-password/page.tsx)",
+      "after": "[`frontend/src/app/forgot-password/page.tsx`](../../frontend/src/app/forgot-password/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md",
+      "line": 27,
+      "before": "[`frontend/src/app/reset-password/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/reset-password/page.tsx)",
+      "after": "[`frontend/src/app/reset-password/page.tsx`](../../frontend/src/app/reset-password/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_COMMUNITIES_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_COMPANIES_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_CORE_REPOSITORY_IMPLEMENTATION_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+      "line": 30,
+      "before": "[`RunMigrations`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/shared/database/migrations.go#L40-L115)",
+      "after": "[`RunMigrations`](../../backend/internal/shared/database/migrations.go#L40-L115)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+      "line": 31,
+      "before": "[`0085_create_mentorship_system.up.sql`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/scripts/migrations/0085_create_mentorship_system.up.sql)",
+      "after": "[`0085_create_mentorship_system.up.sql`](../../backend/scripts/migrations/0085_create_mentorship_system.up.sql)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+      "line": 31,
+      "before": "[`PostgresMentorshipRepository`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/internal/mentorship/repository/postgres_repository.go)",
+      "after": "[`PostgresMentorshipRepository`](../../backend/internal/mentorship/repository/postgres_repository.go)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md",
+      "line": 32,
+      "before": "[`main.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/cmd/kirmya/main.go#L580-L625)",
+      "after": "[`main.go`](../../backend/cmd/kirmya/main.go#L580-L625)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+      "line": 20,
+      "before": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md)",
+      "after": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](../design/KIRMYA_DESIGN_SYSTEM.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+      "line": 21,
+      "before": "[`docs/design/KIRMYA_DESIGN_TOKENS.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_TOKENS.md)",
+      "after": "[`docs/design/KIRMYA_DESIGN_TOKENS.md`](../design/KIRMYA_DESIGN_TOKENS.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+      "line": 22,
+      "before": "[`docs/design/KIRMYA_COMPONENT_STANDARDS.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_COMPONENT_STANDARDS.md)",
+      "after": "[`docs/design/KIRMYA_COMPONENT_STANDARDS.md`](../design/KIRMYA_COMPONENT_STANDARDS.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+      "line": 23,
+      "before": "[`frontend/src/theme/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/theme/)",
+      "after": "[`frontend/src/theme/`](../../frontend/src/theme)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md",
+      "line": 24,
+      "before": "[`frontend/src/test/design-system.test.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/test/design-system.test.ts)",
+      "after": "[`frontend/src/test/design-system.test.ts`](../../frontend/src/test/design-system.test.ts)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 20,
+      "before": "[`docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md)",
+      "after": "[`docs/frontend/KIRMYA_FRONTEND_ARCHITECTURE.md`](../frontend/KIRMYA_FRONTEND_ARCHITECTURE.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 21,
+      "before": "[`docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md)",
+      "after": "[`docs/frontend/KIRMYA_COMPONENT_GUIDELINES.md`](../frontend/KIRMYA_COMPONENT_GUIDELINES.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 22,
+      "before": "[`docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md)",
+      "after": "[`docs/frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md`](../frontend/KIRMYA_FRONTEND_QUALITY_CHECKLIST.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 23,
+      "before": "[`docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md)",
+      "after": "[`docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md`](KIRMYA_FRONTEND_TECH_DEBT.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 24,
+      "before": "[`frontend/src/shared/routes.ts`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/shared/routes.ts)",
+      "after": "[`frontend/src/shared/routes.ts`](../../frontend/src/shared/routes.ts)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md",
+      "line": 25,
+      "before": "[`frontend/src/components/common/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/common/)",
+      "after": "[`frontend/src/components/common/`](../../frontend/src/components/common)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+      "line": 21,
+      "before": "[`docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md)",
+      "after": "[`docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md`](KIRMYA_FULL_STACK_INTEGRATION_MAP.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+      "line": 22,
+      "before": "[`docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md)",
+      "after": "[`docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md`](KIRMYA_AUTHORIZATION_MATRIX.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+      "line": 23,
+      "before": "[`docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md)",
+      "after": "[`docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md`](KIRMYA_FEATURE_COMPLETENESS_MATRIX.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md",
+      "line": 24,
+      "before": "[`backend/test/integration/cross_module_workflows_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/integration/cross_module_workflows_test.go)",
+      "after": "[`backend/test/integration/cross_module_workflows_test.go`](../../backend/test/integration/cross_module_workflows_test.go)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 20,
+      "before": "[`docs/design/KIRMYA_HOME_EXPERIENCE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_HOME_EXPERIENCE.md)",
+      "after": "[`docs/design/KIRMYA_HOME_EXPERIENCE.md`](../design/KIRMYA_HOME_EXPERIENCE.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 21,
+      "before": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md)",
+      "after": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](../design/KIRMYA_DESIGN_SYSTEM.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 22,
+      "before": "[`frontend/src/app/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/page.tsx)",
+      "after": "[`frontend/src/app/page.tsx`](../../frontend/src/app/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 23,
+      "before": "[`frontend/src/app/feed/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/feed/page.tsx)",
+      "after": "[`frontend/src/app/feed/page.tsx`](../../frontend/src/app/feed/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 24,
+      "before": "[`frontend/src/app/dashboard/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/dashboard/page.tsx)",
+      "after": "[`frontend/src/app/dashboard/page.tsx`](../../frontend/src/app/dashboard/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_HOME_LANDING_AUDIT.md",
+      "line": 25,
+      "before": "[`frontend/src/components/landing/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/landing/)",
+      "after": "[`frontend/src/components/landing/`](../../frontend/src/components/landing)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_INTERVIEWS_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+      "line": 20,
+      "before": "[`docs/design/KIRMYA_JOBS_EXPERIENCE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_JOBS_EXPERIENCE.md)",
+      "after": "[`docs/design/KIRMYA_JOBS_EXPERIENCE.md`](../design/KIRMYA_JOBS_EXPERIENCE.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+      "line": 21,
+      "before": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md)",
+      "after": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](../design/KIRMYA_DESIGN_SYSTEM.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+      "line": 22,
+      "before": "[`frontend/src/app/jobs/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/jobs/page.tsx)",
+      "after": "[`frontend/src/app/jobs/page.tsx`](../../frontend/src/app/jobs/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+      "line": 24,
+      "before": "[`frontend/src/app/saved-jobs/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/saved-jobs/page.tsx)",
+      "after": "[`frontend/src/app/saved-jobs/page.tsx`](../../frontend/src/app/saved-jobs/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md",
+      "line": 25,
+      "before": "[`frontend/src/components/jobs/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/jobs/)",
+      "after": "[`frontend/src/components/jobs/`](../../frontend/src/components/jobs)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_MESSAGING_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_NETWORKING_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_NOTIFICATIONS_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PRE_DATABASE_GATE_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PRE_DATABASE_GATE_REPORT.md",
+      "line": 57,
+      "before": "[`backend/cmd/kirmya/main.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/cmd/kirmya/main.go)",
+      "after": "[`backend/cmd/kirmya/main.go`](../../backend/cmd/kirmya/main.go)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+      "line": 20,
+      "before": "[`docs/design/KIRMYA_PROFILE_EXPERIENCE.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_PROFILE_EXPERIENCE.md)",
+      "after": "[`docs/design/KIRMYA_PROFILE_EXPERIENCE.md`](../design/KIRMYA_PROFILE_EXPERIENCE.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+      "line": 21,
+      "before": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/design/KIRMYA_DESIGN_SYSTEM.md)",
+      "after": "[`docs/design/KIRMYA_DESIGN_SYSTEM.md`](../design/KIRMYA_DESIGN_SYSTEM.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+      "line": 22,
+      "before": "[`frontend/src/app/profile/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/profile/page.tsx)",
+      "after": "[`frontend/src/app/profile/page.tsx`](../../frontend/src/app/profile/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+      "line": 24,
+      "before": "[`frontend/src/app/profile/edit/page.tsx`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/app/profile/edit/page.tsx)",
+      "after": "[`frontend/src/app/profile/edit/page.tsx`](../../frontend/src/app/profile/edit/page.tsx)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md",
+      "line": 25,
+      "before": "[`frontend/src/components/profile/`](file:///c:/Users/PRASHANTH/Documents/real/my_project/frontend/src/components/profile/)",
+      "after": "[`frontend/src/components/profile/`](../../frontend/src/components/profile)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RELIABILITY_INVENTORY.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+      "line": 20,
+      "before": "[`docs/audits/KIRMYA_RELIABILITY_INVENTORY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_RELIABILITY_INVENTORY.md)",
+      "after": "[`docs/audits/KIRMYA_RELIABILITY_INVENTORY.md`](KIRMYA_RELIABILITY_INVENTORY.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+      "line": 21,
+      "before": "[`docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md)",
+      "after": "[`docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md`](../operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+      "line": 22,
+      "before": "[`docs/operations/KIRMYA_DISASTER_RECOVERY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/operations/KIRMYA_DISASTER_RECOVERY.md)",
+      "after": "[`docs/operations/KIRMYA_DISASTER_RECOVERY.md`](../operations/KIRMYA_DISASTER_RECOVERY.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md",
+      "line": 23,
+      "before": "[`backend/test/reliability/reliability_performance_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/reliability/reliability_performance_test.go)",
+      "after": "[`backend/test/reliability/reliability_performance_test.go`](../../backend/test/reliability/reliability_performance_test.go)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_RESUMES_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SEARCH_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECONDARY_REPOSITORY_IMPLEMENTATION_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+      "line": 20,
+      "before": "[`docs/audits/KIRMYA_SECURITY_INVENTORY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_SECURITY_INVENTORY.md)",
+      "after": "[`docs/audits/KIRMYA_SECURITY_INVENTORY.md`](KIRMYA_SECURITY_INVENTORY.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+      "line": 21,
+      "before": "[`docs/security/KIRMYA_SECURITY_MODEL.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/security/KIRMYA_SECURITY_MODEL.md)",
+      "after": "[`docs/security/KIRMYA_SECURITY_MODEL.md`](../security/KIRMYA_SECURITY_MODEL.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+      "line": 22,
+      "before": "[`docs/security/KIRMYA_SECURITY_TEST_MATRIX.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/security/KIRMYA_SECURITY_TEST_MATRIX.md)",
+      "after": "[`docs/security/KIRMYA_SECURITY_TEST_MATRIX.md`](../security/KIRMYA_SECURITY_TEST_MATRIX.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md",
+      "line": 23,
+      "before": "[`backend/test/security/security_hardening_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/security/security_hardening_test.go)",
+      "after": "[`backend/test/security/security_hardening_test.go`](../../backend/test/security/security_hardening_test.go)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SECURITY_INVENTORY.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/audits/KIRMYA_SETTINGS_FRONTEND_AUDIT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/communities/community-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/companies/company-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/data/data-architecture-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/data/data-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/database/database-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/deployment/cicd-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/devops/devops-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/disaster-recovery/dr-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/disaster-recovery/dr-test-report.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/frontend/frontend-architecture-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/frontend/frontend-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/frontend/state-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/infrastructure/infrastructure-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/interviews/interview-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/interviews/interview-system-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/jobs/job-discovery-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/jobs/job-system-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/jobs/jobs-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/learning/learning-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/messaging/messaging-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/networking/discovery-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/networking/networking-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/notifications/notification-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/notifications/notification-system-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/notifications/notifications-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/observability/observability-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/performance/performance-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/performance/PERFORMANCE_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/performance_benchmark_report.md",
+      "line": 10,
+      "before": "[current audit](../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/production_readiness_audit.md",
+      "line": 10,
+      "before": "[current audit](../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/profile/candidate-profile-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/profile/profile-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/profile/profile-resume-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/qa/production-readiness-report.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/qa/qa-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/recruiter/recruiter-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/recruiters/recruiter-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/search/search-platform-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/security/authentication-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/security/authorization-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/security/security-and-privacy-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/security/security-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/testing/qa-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/testing/testing-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/test_coverage_report.md",
+      "line": 10,
+      "before": "[current audit](../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/trust-safety/trust-and-safety-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "docs/trust-safety/trust-safety-audit.md",
+      "line": 10,
+      "before": "[current audit](../../../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "KIRMYA_MASTER_AUDIT_REPORT.md",
+      "line": 10,
+      "before": "[current audit](../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "SECURITY_PHASE1_COMPLETION.md",
+      "line": 10,
+      "before": "[current audit](../KIRMYA_AUDIT_REPORT_2026-09-05.md)",
+      "after": "[current audit](audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 9,
+      "before": "[Read](updated-audit-reports/docs/admin/admin-platform-audit.md)",
+      "after": "[Read](../../docs/admin/admin-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 10,
+      "before": "[Read](updated-audit-reports/docs/admin/admin-trust-safety-audit.md)",
+      "after": "[Read](../../docs/admin/admin-trust-safety-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 11,
+      "before": "[Read](updated-audit-reports/docs/ai/ai-platform-audit.md)",
+      "after": "[Read](../../docs/ai/ai-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 12,
+      "before": "[Read](updated-audit-reports/docs/ai-matching/ai-matching-audit.md)",
+      "after": "[Read](../../docs/ai-matching/ai-matching-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 13,
+      "before": "[Read](updated-audit-reports/docs/analytics/analytics-audit.md)",
+      "after": "[Read](../../docs/analytics/analytics-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 14,
+      "before": "[Read](updated-audit-reports/docs/analytics/analytics-platform-audit.md)",
+      "after": "[Read](../../docs/analytics/analytics-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 15,
+      "before": "[Read](updated-audit-reports/docs/api/api-audit.md)",
+      "after": "[Read](../../docs/api/api-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 16,
+      "before": "[Read](updated-audit-reports/docs/applications/application-ats-audit.md)",
+      "after": "[Read](../../docs/applications/application-ats-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 17,
+      "before": "[Read](updated-audit-reports/docs/applications/application-platform-audit.md)",
+      "after": "[Read](../../docs/applications/application-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 18,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_ADMIN_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_ADMIN_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 19,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_ADVANCED_BUSINESS_IMPLEMENTATION_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_ADVANCED_BUSINESS_IMPLEMENTATION_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 20,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_ADVANCED_MODULE_INVENTORY.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_ADVANCED_MODULE_INVENTORY.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 21,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_API_CONTRACT_AUDIT_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 22,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_APPLICATIONS_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_APPLICATIONS_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 23,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_ARCHITECTURE_CONSOLIDATION_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_ARCHITECTURE_CONSOLIDATION_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 24,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_AUTHORIZATION_MATRIX.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 25,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_AUTH_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 26,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_COMMUNITIES_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_COMMUNITIES_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 27,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_COMPANIES_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_COMPANIES_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 28,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_CORE_REPOSITORY_IMPLEMENTATION_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_CORE_REPOSITORY_IMPLEMENTATION_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 29,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_DATABASE_STABILIZATION_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 30,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_DESIGN_SYSTEM_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 31,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_FEATURE_COMPLETENESS_MATRIX.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 32,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_FRONTEND_ARCHITECTURE_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 33,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 34,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_FULL_STACK_INTEGRATION_AUDIT_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 35,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_FULL_STACK_INTEGRATION_MAP.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 36,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_HOME_LANDING_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_HOME_LANDING_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 37,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_INTERVIEWS_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_INTERVIEWS_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 38,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_JOBS_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 39,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_MESSAGING_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_MESSAGING_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 40,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_NETWORKING_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_NETWORKING_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 41,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_NOTIFICATIONS_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_NOTIFICATIONS_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 42,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_PRE_DATABASE_GATE_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_PRE_DATABASE_GATE_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 43,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_PROFILE_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 44,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_RELIABILITY_INVENTORY.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_RELIABILITY_INVENTORY.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 45,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_RELIABILITY_PERFORMANCE_AUDIT_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 46,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_RESUMES_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_RESUMES_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 47,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_SEARCH_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_SEARCH_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 48,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_SECONDARY_REPOSITORY_IMPLEMENTATION_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_SECONDARY_REPOSITORY_IMPLEMENTATION_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 49,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_SECURITY_HARDENING_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 50,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_SECURITY_INVENTORY.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_SECURITY_INVENTORY.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 51,
+      "before": "[Read](updated-audit-reports/docs/audits/KIRMYA_SETTINGS_FRONTEND_AUDIT.md)",
+      "after": "[Read](../../docs/audits/KIRMYA_SETTINGS_FRONTEND_AUDIT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 52,
+      "before": "[Read](updated-audit-reports/docs/communities/community-platform-audit.md)",
+      "after": "[Read](../../docs/communities/community-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 53,
+      "before": "[Read](updated-audit-reports/docs/companies/company-platform-audit.md)",
+      "after": "[Read](../../docs/companies/company-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 54,
+      "before": "[Read](updated-audit-reports/docs/data/data-architecture-audit.md)",
+      "after": "[Read](../../docs/data/data-architecture-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 55,
+      "before": "[Read](updated-audit-reports/docs/data/data-audit.md)",
+      "after": "[Read](../../docs/data/data-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 56,
+      "before": "[Read](updated-audit-reports/docs/database/database-audit.md)",
+      "after": "[Read](../../docs/database/database-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 57,
+      "before": "[Read](updated-audit-reports/docs/deployment/cicd-audit.md)",
+      "after": "[Read](../../docs/deployment/cicd-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 58,
+      "before": "[Read](updated-audit-reports/docs/devops/devops-audit.md)",
+      "after": "[Read](../../docs/devops/devops-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 59,
+      "before": "[Read](updated-audit-reports/docs/disaster-recovery/dr-audit.md)",
+      "after": "[Read](../../docs/disaster-recovery/dr-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 60,
+      "before": "[Read](updated-audit-reports/docs/disaster-recovery/dr-test-report.md)",
+      "after": "[Read](../../docs/disaster-recovery/dr-test-report.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 61,
+      "before": "[Read](updated-audit-reports/docs/frontend/frontend-architecture-audit.md)",
+      "after": "[Read](../../docs/frontend/frontend-architecture-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 62,
+      "before": "[Read](updated-audit-reports/docs/frontend/frontend-audit.md)",
+      "after": "[Read](../../docs/frontend/frontend-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 63,
+      "before": "[Read](updated-audit-reports/docs/frontend/state-audit.md)",
+      "after": "[Read](../../docs/frontend/state-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 64,
+      "before": "[Read](updated-audit-reports/docs/infrastructure/infrastructure-audit.md)",
+      "after": "[Read](../../docs/infrastructure/infrastructure-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 65,
+      "before": "[Read](updated-audit-reports/docs/interviews/interview-platform-audit.md)",
+      "after": "[Read](../../docs/interviews/interview-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 66,
+      "before": "[Read](updated-audit-reports/docs/interviews/interview-system-audit.md)",
+      "after": "[Read](../../docs/interviews/interview-system-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 67,
+      "before": "[Read](updated-audit-reports/docs/jobs/job-discovery-audit.md)",
+      "after": "[Read](../../docs/jobs/job-discovery-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 68,
+      "before": "[Read](updated-audit-reports/docs/jobs/job-system-audit.md)",
+      "after": "[Read](../../docs/jobs/job-system-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 69,
+      "before": "[Read](updated-audit-reports/docs/jobs/jobs-platform-audit.md)",
+      "after": "[Read](../../docs/jobs/jobs-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 70,
+      "before": "[Read](updated-audit-reports/docs/learning/learning-platform-audit.md)",
+      "after": "[Read](../../docs/learning/learning-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 71,
+      "before": "[Read](updated-audit-reports/docs/messaging/messaging-platform-audit.md)",
+      "after": "[Read](../../docs/messaging/messaging-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 72,
+      "before": "[Read](updated-audit-reports/docs/networking/discovery-audit.md)",
+      "after": "[Read](../../docs/networking/discovery-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 73,
+      "before": "[Read](updated-audit-reports/docs/networking/networking-audit.md)",
+      "after": "[Read](../../docs/networking/networking-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 74,
+      "before": "[Read](updated-audit-reports/docs/notifications/notification-platform-audit.md)",
+      "after": "[Read](../../docs/notifications/notification-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 75,
+      "before": "[Read](updated-audit-reports/docs/notifications/notification-system-audit.md)",
+      "after": "[Read](../../docs/notifications/notification-system-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 76,
+      "before": "[Read](updated-audit-reports/docs/notifications/notifications-audit.md)",
+      "after": "[Read](../../docs/notifications/notifications-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 77,
+      "before": "[Read](updated-audit-reports/docs/observability/observability-audit.md)",
+      "after": "[Read](../../docs/observability/observability-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 78,
+      "before": "[Read](updated-audit-reports/docs/performance/performance-audit.md)",
+      "after": "[Read](../../docs/performance/performance-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 79,
+      "before": "[Read](updated-audit-reports/docs/performance/PERFORMANCE_REPORT.md)",
+      "after": "[Read](../../docs/performance/PERFORMANCE_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 80,
+      "before": "[Read](updated-audit-reports/docs/performance_benchmark_report.md)",
+      "after": "[Read](../../docs/performance_benchmark_report.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 81,
+      "before": "[Read](updated-audit-reports/docs/production_readiness_audit.md)",
+      "after": "[Read](../../docs/production_readiness_audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 82,
+      "before": "[Read](updated-audit-reports/docs/profile/candidate-profile-audit.md)",
+      "after": "[Read](../../docs/profile/candidate-profile-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 83,
+      "before": "[Read](updated-audit-reports/docs/profile/profile-audit.md)",
+      "after": "[Read](../../docs/profile/profile-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 84,
+      "before": "[Read](updated-audit-reports/docs/profile/profile-resume-platform-audit.md)",
+      "after": "[Read](../../docs/profile/profile-resume-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 85,
+      "before": "[Read](updated-audit-reports/docs/qa/production-readiness-report.md)",
+      "after": "[Read](../../docs/qa/production-readiness-report.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 86,
+      "before": "[Read](updated-audit-reports/docs/qa/qa-audit.md)",
+      "after": "[Read](../../docs/qa/qa-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 87,
+      "before": "[Read](updated-audit-reports/docs/recruiter/recruiter-platform-audit.md)",
+      "after": "[Read](../../docs/recruiter/recruiter-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 88,
+      "before": "[Read](updated-audit-reports/docs/recruiters/recruiter-platform-audit.md)",
+      "after": "[Read](../../docs/recruiters/recruiter-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 89,
+      "before": "[Read](updated-audit-reports/docs/search/search-platform-audit.md)",
+      "after": "[Read](../../docs/search/search-platform-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 90,
+      "before": "[Read](updated-audit-reports/docs/security/authentication-audit.md)",
+      "after": "[Read](../../docs/security/authentication-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 91,
+      "before": "[Read](updated-audit-reports/docs/security/authorization-audit.md)",
+      "after": "[Read](../../docs/security/authorization-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 92,
+      "before": "[Read](updated-audit-reports/docs/security/security-and-privacy-audit.md)",
+      "after": "[Read](../../docs/security/security-and-privacy-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 93,
+      "before": "[Read](updated-audit-reports/docs/security/security-audit.md)",
+      "after": "[Read](../../docs/security/security-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 94,
+      "before": "[Read](updated-audit-reports/docs/testing/qa-audit.md)",
+      "after": "[Read](../../docs/testing/qa-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 95,
+      "before": "[Read](updated-audit-reports/docs/testing/testing-audit.md)",
+      "after": "[Read](../../docs/testing/testing-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 96,
+      "before": "[Read](updated-audit-reports/docs/test_coverage_report.md)",
+      "after": "[Read](../../docs/test_coverage_report.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 97,
+      "before": "[Read](updated-audit-reports/docs/trust-safety/trust-and-safety-audit.md)",
+      "after": "[Read](../../docs/trust-safety/trust-and-safety-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 98,
+      "before": "[Read](updated-audit-reports/docs/trust-safety/trust-safety-audit.md)",
+      "after": "[Read](../../docs/trust-safety/trust-safety-audit.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 99,
+      "before": "[Read](updated-audit-reports/KIRMYA_MASTER_AUDIT_REPORT.md)",
+      "after": "[Read](../../KIRMYA_MASTER_AUDIT_REPORT.md)"
+    },
+    {
+      "file": "audit-review/reports/AUDIT_RECONCILIATION.md",
+      "line": 100,
+      "before": "[Read](updated-audit-reports/SECURITY_PHASE1_COMPLETION.md)",
+      "after": "[Read](../../SECURITY_PHASE1_COMPLETION.md)"
+    },
+    {
+      "file": "audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md",
+      "line": 421,
+      "before": "[updated-audit-reports](updated-audit-reports/)",
+      "after": "[updated-audit-reports — unavailable reference](../../docs/project-baseline-2026-09-06/MISSING_REFERENCES.md#m001)"
+    },
+    {
+      "file": "audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md",
+      "line": 433,
+      "before": "[verification](verification/)",
+      "after": "[verification](verification)"
+    }
+  ],
+  "missing_references": [
+    {
+      "id": "M001",
+      "source": "audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md",
+      "line_before_repair": 421,
+      "original_target": "updated-audit-reports/",
+      "label": "updated-audit-reports",
+      "status": "unavailable in this checkout",
+      "classification": "missing historical evidence",
+      "owner": "Technical lead",
+      "closure": "Recover the original artifact and verify its SHA/scope or replace the claim with new dated evidence; do not create a fabricated result."
+    }
+  ],
+  "external_links": "Historical immutable GitHub links retained; external reachability not tested."
+}

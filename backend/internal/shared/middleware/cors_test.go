@@ -79,7 +79,10 @@ func TestCORS_PreflightIsAnsweredWithoutReachingHandlers(t *testing.T) {
 		}
 	}
 	allowHeaders := strings.ToLower(rec.Header().Get("Access-Control-Allow-Headers"))
-	for _, want := range []string{"authorization", "content-type", "x-tenant-id"} {
+	// x-request-id is the correlation header every browser client stamps on its
+	// requests; leaving it out of the allowlist failed the preflight and blocked
+	// sign-in entirely, so it is asserted here rather than only in the var block.
+	for _, want := range []string{"authorization", "content-type", "x-tenant-id", "x-request-id"} {
 		if !strings.Contains(allowHeaders, want) {
 			t.Errorf("expected %s in Access-Control-Allow-Headers, got %q", want, allowHeaders)
 		}

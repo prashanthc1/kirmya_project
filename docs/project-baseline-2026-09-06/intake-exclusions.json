@@ -1,0 +1,86 @@
+[
+  {
+    "id": "H052",
+    "text": "*Date**: August 30, 2026",
+    "sources": [
+      {
+        "file": "docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md",
+        "line": 16,
+        "section": "Kirmya Frontend Technical Debt Matrix (Prompt 12/50)"
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  },
+  {
+    "id": "H053",
+    "text": "*Auditor**: Antigravity AI (Google DeepMind)",
+    "sources": [
+      {
+        "file": "docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md",
+        "line": 17,
+        "section": "Kirmya Frontend Technical Debt Matrix (Prompt 12/50)"
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  },
+  {
+    "id": "H054",
+    "text": "*Status**: ACTIVE TECHNICAL DEBT REGISTER",
+    "sources": [
+      {
+        "file": "docs/audits/KIRMYA_FRONTEND_TECH_DEBT.md",
+        "line": 18,
+        "section": "Kirmya Frontend Technical Debt Matrix (Prompt 12/50)"
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  },
+  {
+    "id": "H105",
+    "text": "| **Transactions (SQL)** | 🟢 Reliable | Explicit `tx.Begin(ctx)` with deferred `tx.Rollback(ctx)` and atomic `tx.Commit(ctx)` across all mutating domains. | 🟢 Operational |",
+    "sources": [
+      {
+        "file": "docs/audits/KIRMYA_RELIABILITY_INVENTORY.md",
+        "line": 29,
+        "section": ""
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  },
+  {
+    "id": "H158",
+    "text": "*This is not an authentication bypass.** The affected routes still require a valid token and an",
+    "sources": [
+      {
+        "file": "SECURITY_PHASE1_COMPLETION.md",
+        "line": 157,
+        "section": "4. Residual risks"
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  },
+  {
+    "id": "H161",
+    "text": "*Why it was not fixed here.** Prompts 1–6 scoped identity work to mentorship. Closing the rest is",
+    "sources": [
+      {
+        "file": "SECURITY_PHASE1_COMPLETION.md",
+        "line": 173,
+        "section": "4. Residual risks"
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  },
+  {
+    "id": "H162",
+    "text": "*What guards it in the meantime.** `test/security/phase1_boundaries_test.go` pins the exact file",
+    "sources": [
+      {
+        "file": "SECURITY_PHASE1_COMPLETION.md",
+        "line": 180,
+        "section": "4. Residual risks"
+      }
+    ],
+    "reason": "Metadata, explanatory prose or an operational claim; retained in report-claims.json, not an actionable issue."
+  }
+]

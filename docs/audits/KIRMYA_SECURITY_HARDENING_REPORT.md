@@ -1,13 +1,26 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F01 (Application timeline omits candidate ownership); F02 (Privacy and consent operations return success without persistence); F12 (Security workflow deliberately suppresses scan failures).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya Security & Data-Protection Hardening Report (Prompt 9/50)
 
 **Date**: August 30, 2026  
 **Auditor**: Antigravity AI (Google DeepMind)  
 **Status**: 100% AUDITED, HARDENED & VERIFIED  
 **Associated Artifacts**:
-* [`docs/audits/KIRMYA_SECURITY_INVENTORY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_SECURITY_INVENTORY.md)
-* [`docs/security/KIRMYA_SECURITY_MODEL.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/security/KIRMYA_SECURITY_MODEL.md)
-* [`docs/security/KIRMYA_SECURITY_TEST_MATRIX.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/security/KIRMYA_SECURITY_TEST_MATRIX.md)
-* [`backend/test/security/security_hardening_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/security/security_hardening_test.go)
+* [`docs/audits/KIRMYA_SECURITY_INVENTORY.md`](KIRMYA_SECURITY_INVENTORY.md)
+* [`docs/security/KIRMYA_SECURITY_MODEL.md`](../security/KIRMYA_SECURITY_MODEL.md)
+* [`docs/security/KIRMYA_SECURITY_TEST_MATRIX.md`](../security/KIRMYA_SECURITY_TEST_MATRIX.md)
+* [`backend/test/security/security_hardening_test.go`](../../backend/test/security/security_hardening_test.go)
 
 ---
 

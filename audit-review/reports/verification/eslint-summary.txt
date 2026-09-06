@@ -1,0 +1,11 @@
+Audited commit: 5f6790a95ae02d74666b668ab62e140d861424ec
+Command scope: frontend ESLint across the project
+Result: FAIL
+Totals: 3 errors, 141 warnings
+
+Errors:
+- frontend/src/app/jobs/recommendations/page.tsx:365 — no-restricted-syntax; transition: all is prohibited
+- frontend/src/components/recommendations/DiscoveryCard.tsx:75 — no-restricted-syntax; transition: all is prohibited
+- frontend/src/components/upload/FileUploadZone.tsx:156 — no-restricted-syntax; transition: all is prohibited
+
+This summary records the observed totals and release-blocking errors. The warnings were not promoted to independent audit findings.

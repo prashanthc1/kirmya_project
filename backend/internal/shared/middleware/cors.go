@@ -23,12 +23,17 @@ var corsAllowedHeaders = []string{
 	HeaderPlatform,
 	HeaderAppVersion,
 	"X-Trace-ID",
+	// The browser clients stamp their own correlation id on every request, and
+	// the logging and telemetry middleware read it back off X-Request-ID, so a
+	// preflight that omits it blocks every credentialed call the SPA makes.
+	"X-Request-ID",
 }
 
 // corsExposedHeaders are the response headers the browser hands to JavaScript.
 // Everything else stays hidden from fetch/XHR on a cross-origin response.
 var corsExposedHeaders = []string{
 	"X-Trace-ID",
+	"X-Request-ID",
 	"X-Response-Time-Ms",
 	"Content-Length",
 }

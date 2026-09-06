@@ -1,13 +1,26 @@
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
+> **Current review addendum — 2026-09-05**
+>
+> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+>
+> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+>
+> Relevant current findings: F13 (Job alert writes and several reads hide database errors); F16 (Realtime delivery is process-local despite distributed-broker documentation); F20 (Audit scores and operational claims exceed their evidence).
+>
+> Evidence and acceptance criteria: [current audit](../../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+
+---
+
 # Kirmya Reliability, Performance, Observability & Operational Readiness Report (Prompt 10/50)
 
 **Date**: August 30, 2026  
 **Auditor**: Antigravity AI (Google DeepMind)  
 **Status**: 100% AUDITED, VERIFIED & PRODUCTION READY  
 **Associated Artifacts**:
-* [`docs/audits/KIRMYA_RELIABILITY_INVENTORY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/audits/KIRMYA_RELIABILITY_INVENTORY.md)
-* [`docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md)
-* [`docs/operations/KIRMYA_DISASTER_RECOVERY.md`](file:///c:/Users/PRASHANTH/Documents/real/my_project/docs/operations/KIRMYA_DISASTER_RECOVERY.md)
-* [`backend/test/reliability/reliability_performance_test.go`](file:///c:/Users/PRASHANTH/Documents/real/my_project/backend/test/reliability/reliability_performance_test.go)
+* [`docs/audits/KIRMYA_RELIABILITY_INVENTORY.md`](KIRMYA_RELIABILITY_INVENTORY.md)
+* [`docs/operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md`](../operations/KIRMYA_DATABASE_BACKUP_RECOVERY.md)
+* [`docs/operations/KIRMYA_DISASTER_RECOVERY.md`](../operations/KIRMYA_DISASTER_RECOVERY.md)
+* [`backend/test/reliability/reliability_performance_test.go`](../../backend/test/reliability/reliability_performance_test.go)
 
 ---
 
