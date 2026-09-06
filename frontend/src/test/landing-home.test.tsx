@@ -86,7 +86,7 @@ describe('Landing Page & Home Experience (Prompt 15/50)', () => {
 
   it('renders FeedPage with personalized feed shell and recommended jobs', () => {
     renderWithProviders(<FeedPage />);
-    expect(screen.getByText(/Recommended Jobs For You/i)).toBeDefined();
+    expect(screen.getByText(/Job Matches/i)).toBeDefined();
     expect(screen.getByText(/AI Career Assistant/i)).toBeDefined();
     expect(screen.getByText(/Peer Communities/i)).toBeDefined();
     expect(screen.getByText(/Welcome back, Alex/i)).toBeDefined();
