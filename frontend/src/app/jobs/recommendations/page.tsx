@@ -41,6 +41,7 @@ import { AuthenticatedLayout } from '../../../components/shell';
 import { recommendationApi } from '../../../features/recommendation/services/recommendationApi';
 import { JobRecommendation, UserJobPreferences } from '../../../features/recommendation/types';
 import { tokens } from '../../../theme/tokens';
+import { surfaceTransition } from '../../../theme/motion';
 import { EmptyState, ErrorState } from '../../../components/common';
 import { ROUTES } from '../../../shared/routes';
 
@@ -362,7 +363,7 @@ export default function JobRecommendationsPage() {
                           ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.6) 100%)'
                           : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
                         backdropFilter: 'blur(16px)',
-                        transition: 'all 200ms ease',
+                        transition: surfaceTransition(0.2),
                         '&:hover': {
                           transform: 'translateY(-2px)',
                           borderColor: alpha(scoreColor, 0.3),

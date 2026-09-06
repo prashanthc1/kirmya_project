@@ -32,6 +32,7 @@ import PublicIcon from '@mui/icons-material/Public';
 
 import { FeedItem } from '../../features/recommendation/types';
 import { tokens } from '../../theme/tokens';
+import { surfaceTransition } from '../../theme/motion';
 import { ROUTES } from '../../shared/routes';
 
 interface DiscoveryCardProps {
@@ -72,7 +73,7 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
           : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        transition: 'all 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: surfaceTransition(0.2),
         '&:hover': {
           transform: 'translateY(-2px)',
           boxShadow: isDark

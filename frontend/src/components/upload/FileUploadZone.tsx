@@ -20,6 +20,7 @@ import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import { FileCategory, FileRecord, FileVisibility } from '../../features/media/types';
 import { useFileUpload } from '../../hooks/useFileUpload';
+import { surfaceTransition } from '../../theme/motion';
 
 export interface FileUploadZoneProps {
   category?: FileCategory;
@@ -153,7 +154,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
               ? alpha(theme.palette.primary.main, 0.08)
               : alpha(theme.palette.background.paper, 0.6),
             backdropFilter: 'blur(12px)',
-            transition: 'all 0.25s ease',
+            transition: surfaceTransition(0.25),
             opacity: disabled ? 0.6 : 1,
             '&:hover': {
               borderColor: disabled ? undefined : theme.palette.primary.main,
