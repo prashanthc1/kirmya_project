@@ -133,11 +133,20 @@ test('candidate application receipt survives reload against real storage and API
   // response status keeps an empty board from passing quietly — a 401 here would
   // mean the page loaded unauthenticated rather than that nothing persisted.
   const showsTheApplication = async (navigate: () => Promise<unknown>) => {
+    // Wait for an authenticated listing, not merely the first one. On reload the
+    // app requests the board before it has restored the session, takes a 401,
+    // refreshes and retries — so the first response is a 401 that says nothing
+    // about persistence. Requiring a 200 still fails, by timing out, if the page
+    // never manages an authenticated read at all.
     const listed = page.waitForResponse(
-      (r) => new URL(r.url()).pathname === '/api/v1/applications' && r.request().method() === 'GET'
+      (r) =>
+        new URL(r.url()).pathname === '/api/v1/applications' &&
+        r.request().method() === 'GET' &&
+        r.status() === 200,
+      { timeout: 20_000 }
     );
     await navigate();
-    expect((await listed).status()).toBe(200);
+    await listed;
     await expect(page.getByText(title).first()).toBeVisible({ timeout: 15_000 });
   };
   await showsTheApplication(() => page.goto('/applications'));

@@ -104,6 +104,10 @@ const (
 	// made to receive no matter how many sources ask.
 	maxResetsPerUser  = 3
 	resetThrottleSpan = time.Hour
+
+	// How long after its own rotation a refresh token is still recognised as a
+	// concurrent request from the same client rather than a replayed one.
+	refreshRotationGrace = 10 * time.Second
 )
 
 // isProductionEnv reports whether this process is running in production, which
@@ -436,6 +440,17 @@ func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgen
 	sess, err := s.repo.GetSessionByRefreshToken(ctx, tokenStr)
 	if err != nil {
 		return "", "", errors.New("invalid or expired session")
+	}
+
+	// One page load can issue two refreshes with the same cookie: the first
+	// rotates and revokes it, and the second then presents a revoked token
+	// through no fault of the user. Treating that as theft revoked every session
+	// the account had, so reloading a page could sign the user out. Inside the
+	// grace window the request is still refused — nothing is issued twice, and
+	// the caller retries with the cookie the first refresh set — but without the
+	// containment step. A token replayed after the window is reuse as before.
+	if sess.RevokedAt != nil && time.Since(*sess.RevokedAt) <= refreshRotationGrace {
+		return "", "", errors.New("session was just rotated. Please retry")
 	}
 
 	// Reuse detection: a revoked session token was presented, so it is in
