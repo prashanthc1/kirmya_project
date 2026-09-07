@@ -4,32 +4,32 @@ Source of truth: [issue-register.json](issue-register.json). F01–F20 prioritie
 
 | ID | Priority | Status | Owner | Workstream / steps | Work |
 |---|---|---|---|---|---|
-| F01 | P1 | open | Backend security lead | Identity and access / 3 | Application timeline omits candidate ownership |
+| F01 | P1 | verified | Backend security lead | Identity and access / 3 | Application timeline omits candidate ownership. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F02 | P1 | open | Backend privacy lead | Privacy and data lifecycle / 7 | Privacy and consent operations return success without persistence |
 | F03 | P1 | open | Hiring domain lead | Hiring workflow / 6 | Candidate document registration returns 201 without saving |
 | F04 | P1 | open | Hiring domain lead | Hiring workflow / 6 | Application form drops contact edits and resume URL |
-| F05 | P1 | open | Frontend integration lead | API contracts / 5 | Saved jobs use the wrong response shape |
-| F06 | P1 | open | Frontend integration lead | API contracts / 5 | Production frontend CI supplies an incompatible API base URL |
-| F07 | P1 | open | Frontend integration lead | API contracts / 5 | Several reachable feature clients still use mock authentication and localhost |
+| F05 | P1 | verified | Frontend integration lead | API contracts / 5 | Saved jobs use the wrong response shape. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
+| F06 | P1 | verified | Frontend integration lead | API contracts / 5 | Production frontend CI supplies an incompatible API base URL. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
+| F07 | P1 | verified | Frontend integration lead | API contracts / 5 | Several reachable feature clients still use mock authentication and localhost. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F08 | P1 | open | Frontend and communications lead | Public experience and communications / 8 | Public homepage presents hardcoded social proof as real |
 | F09 | P2 | open | Frontend and communications lead | Public experience and communications / 8 | Newsletter success does not capture a subscription |
 | F10 | P1 | open | Frontend and communications lead | Public experience and communications / 8 | Search discovery is weakened by metadata and job indexing gaps |
 | F11 | P1 | verified | Platform and QA lead | Release gates / 2 | Database-free CI is mistaken for full workflow validation |
 | F12 | P1 | verified | Platform and QA lead | Release gates / 2 | Security workflow deliberately suppresses scan failures |
-| F13 | P1 | open | Backend data lead | Persistence and migrations / 4 | Application data access hides database errors |
+| F13 | P1 | verified | Backend data lead | Persistence and migrations / 4 | Application data access hides database errors. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F14 | P2 | open | Frontend and communications lead | Public experience and communications / 8, 10C | Application analytics present synthetic scores as personalized measurements |
 | F15 | P2 | open | Frontend and communications lead | Public experience and communications / 8 | Duplicate landmarks and unlabeled controls contradict accessibility claims |
 | F16 | P2 | open | Frontend and communications lead | Public experience and communications / 8, 9 | Realtime delivery is process-local despite distributed-broker documentation |
-| F17 | P2 | open | Frontend integration lead | API contracts / 5 | Job-specific apply alias validates the body before reading its path ID |
-| F18 | P1 | open | Backend data lead | Persistence and migrations / 4 | Production can enter unregistered nil-database fallback mode |
+| F17 | P2 | verified | Frontend integration lead | API contracts / 5 | Job-specific apply alias validates the body before reading its path ID. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
+| F18 | P1 | verified | Backend data lead | Persistence and migrations / 4 | Production can enter unregistered nil-database fallback mode. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F19 | P1 | in progress | Platform and QA lead | Release gates / 2 | Frontend release checks require one complete green SHA |
 | F20 | P1 | open | Technical lead | Evidence governance / 1, 12 | Audit scores and operational claims exceed their evidence |
-| R01 | P1 | unverified | Backend security lead | Identity and access / 3 | Identity resolution across remaining modules |
-| R02 | P2 | unverified | Backend security lead | Identity and access / 3 | Access-token session revocation after password reset |
+| R01 | P1 | verified | Backend security lead | Identity and access / 3 | Identity resolution across remaining modules. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
+| R02 | P2 | open | Backend security lead | Identity and access / 3 | Access-token session revocation after password reset. Assessed in batch 2 and deliberately not attempted: closing it changes the authentication architecture. See [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | R03 | P2 | unverified | Domain engineering lead | Full-platform domain acceptance / 10 | Distributed rate limiting |
 | R04 | P3 | unverified | Domain engineering lead | Full-platform domain acceptance / 10 | Unused MustGetUserID panic helper |
-| R05 | P3 | unverified | Domain engineering lead | Full-platform domain acceptance / 10 | Required handler registration completeness |
-| R06 | P1 | unverified | Backend data lead | Persistence and migrations / 4 | Migration concurrency and missing assets |
+| R05 | P3 | open | Domain engineering lead | Full-platform domain acceptance / 10 | Required handler registration completeness. Assessed in batch 2 and not implemented; nil-handler substitution in analytics routes is the worked example. See [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
+| R06 | P1 | verified | Backend data lead | Persistence and migrations / 4 | Migration concurrency and missing assets. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | R07 | untriaged | unverified | Domain engineering lead | Full-platform domain acceptance / 10 | Mock AI providers and advertised capabilities |
 | R08 | untriaged | unverified | Platform and QA lead | Release evidence and operations / 2, 9 | Refresh cookie deployment compatibility |
 | H001 | untriaged | unverified | Backend security lead | Identity and access / 3 | Add Redis-backed token blacklist for instant enterprise session revocation. |

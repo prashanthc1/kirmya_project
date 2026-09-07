@@ -1,4 +1,8 @@
-import axios from 'axios';
+// The shared authenticated client: it attaches the signed-in user's access
+// token and handles refresh. This module previously created its own axios
+// instance pointed at http://localhost:8080 with a fixed bearer, so in a
+// production build it called the developer's machine as a synthetic user.
+import { authApiClient as client } from '../../services/authService';
 import {
   Country,
   Currency,
@@ -6,14 +10,7 @@ import {
   Region,
 } from './types';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
 
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 export const marketplaceApi = {
   searchJobs: async (region?: string, country?: string, arrangement?: string): Promise<{ data: InternationalJobItem[]; count: number }> => {

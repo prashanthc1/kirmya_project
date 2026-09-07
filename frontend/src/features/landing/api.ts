@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { LandingContentResponse } from './types';
+import { API_BASE_URL } from '../../shared/api_base';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 export const landingApi = {
   getLandingContent: async (): Promise<LandingContentResponse> => {

@@ -52,6 +52,8 @@ Each implementation change must include its acceptance evidence, affected audit 
 
 ## Step 3 — Close identity, authorization and session gaps
 
+**Delivery batch completed 7 September 2026:** recorded in [batch 2 delivery evidence](BATCH2_DELIVERY_EVIDENCE_2026-09-07.md). Every caller now resolves from the verified identity; the Phase 1 identity scan reports 0 residual sites, down from 32 files. The analytics route groups, which carried no authentication at all, are closed, and recruiter and company analytics verify organization membership instead of trusting a query parameter. Items 5 and 6 are **not** complete: access-token revocation (R02) and the handler-registration completeness check (R05) remain open with reasons recorded in that document.
+
 **Owner:** backend/security engineer. **Dependencies:** steps 1–2. **Finding:** F01 plus Phase 1 residuals.
 
 1. Carry candidate ownership through the timeline service and SQL query. Foreign and unknown applications return a consistent not-found response.
@@ -65,6 +67,8 @@ Each implementation change must include its acceptance evidence, affected audit 
 
 ## Step 4 — Make persistence and migrations reliable
 
+**Delivery batch completed 7 September 2026:** recorded in [batch 2 delivery evidence](BATCH2_DELIVERY_EVIDENCE_2026-09-07.md). Production refuses `ALLOW_NO_DB` and a nil pool, the applications repository propagates query, scan and iteration errors instead of reporting them as empty data, and migrations fail on missing assets and serialise on an advisory lock with concurrency verified in CI. Item 5 is partly covered: restart durability and uniqueness are exercised, slow-query inspection is not.
+
 **Owner:** backend/platform engineer. **Dependencies:** step 2. **Findings:** F13, F18.
 
 1. Reject production `ALLOW_NO_DB=true`; refuse write traffic when required persistence is unavailable. Verify startup and runtime readiness separately.
@@ -76,6 +80,8 @@ Each implementation change must include its acceptance evidence, affected audit 
 **Exit:** writes persist, failed writes do not report success, upgrades are reproducible, and API restarts do not erase business data.
 
 ## Step 5 — Standardize API clients and contracts
+
+**Delivery batch completed 7 September 2026:** recorded in [batch 2 delivery evidence](BATCH2_DELIVERY_EVIDENCE_2026-09-07.md). One documented API base convention, thirteen feature clients moved onto the shared authenticated client, the synthetic bearer removed, saved-job bookmark and job identifiers mapped explicitly, and the apply alias reading its path before validating the body. Item 6, cache invalidation and cross-tab logout, is **not** covered by this batch.
 
 **Owner:** frontend and backend engineers. **Dependencies:** steps 2–3. **Findings:** F05, F06, F07, F17.
 
@@ -197,23 +203,23 @@ The [report review index](AUDIT_REPORT_REVIEW_INDEX_2026-09-06.md) lists all 92 
 
 | Finding | Priority | Work | Plan steps |
 |---|---|---|---|
-| F01 | P1 | Application timeline omits candidate ownership | 3, 6 |
+| F01 | P1 (batch 2) | Application timeline omits candidate ownership | 3, 6 |
 | F02 | P1 | Privacy and consent operations return success without persistence | 7 |
 | F03 | P1 | Candidate document registration returns 201 without saving | 6 |
 | F04 | P1 | Application form drops contact edits and resume URL | 6 |
-| F05 | P1 | Saved jobs use the wrong response shape | 5, 6 |
-| F06 | P1 | Production frontend CI supplies an incompatible API base URL | 5 |
-| F07 | P1 | Several reachable feature clients still use mock authentication and localhost | 5, 10 |
+| F05 | P1 (batch 2) | Saved jobs use the wrong response shape | 5, 6 |
+| F06 | P1 (batch 2) | Production frontend CI supplies an incompatible API base URL | 5 |
+| F07 | P1 (batch 2) | Several reachable feature clients still use mock authentication and localhost | 5, 10 |
 | F08 | P1 | Public homepage presents hardcoded social proof as real | 8 |
 | F09 | P2 | Newsletter success does not capture a subscription | 8 |
 | F10 | P1 | Search discovery is weakened by metadata and job indexing gaps | 8 |
 | F11 | P1 | Database-free CI is mistaken for full workflow validation | 2, 12 |
 | F12 | P1 | Security workflow deliberately suppresses scan failures | 2, 12 |
-| F13 | P1 | Application data access hides database errors | 4, 6 |
+| F13 | P1 (batch 2) | Application data access hides database errors | 4, 6 |
 | F14 | P2 | Application analytics present synthetic scores as personalized measurements | 8, 10C |
 | F15 | P2 | Duplicate landmarks and unlabeled controls contradict accessibility claims | 8 |
 | F16 | P2 | Realtime delivery is process-local despite distributed-broker documentation | 8, 9 |
-| F17 | P2 | Job-specific apply alias validates the body before reading its path ID | 5, 6 |
-| F18 | P1 | Production can enter unregistered nil-database fallback mode | 4 |
+| F17 | P2 (batch 2) | Job-specific apply alias validates the body before reading its path ID | 5, 6 |
+| F18 | P1 (batch 2) | Production can enter unregistered nil-database fallback mode | 4 |
 | F19 | P1 | Frontend release check currently fails at linting | 2 |
 | F20 | P1 | Audit scores and operational claims exceed their evidence | 1, 12 |

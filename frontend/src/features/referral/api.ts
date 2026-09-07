@@ -1,4 +1,8 @@
-import axios from 'axios';
+// The shared authenticated client: it attaches the signed-in user's access
+// token and handles refresh. This module previously created its own axios
+// instance pointed at http://localhost:8080 with a fixed bearer, so in a
+// production build it called the developer's machine as a synthetic user.
+import { authApiClient as client } from '../../services/authService';
 import {
   CreateReferralRequestPayload,
   OfferReferralPayload,
@@ -7,15 +11,8 @@ import {
   UpdateReferralStatusPayload,
 } from './types';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
 const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
 
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 client.interceptors.request.use((config: any) => {
   config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;

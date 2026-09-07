@@ -1,15 +1,8 @@
-import axios from 'axios';
+// Shared authenticated client rather than a module-local axios instance on a
+// hardcoded localhost base, which a production build could never reach.
+import { authApiClient as client } from '../../../services/authService';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
 
-const client = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  // Ensure cookies (like refresh_token) are sent and received on cross-origin requests
-  withCredentials: true,
-});
 
 export const authApi = {
   register: async (email: string, password: string) => {
