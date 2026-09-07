@@ -365,16 +365,32 @@ func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgen
 		return "", "", errors.New("invalid or expired session")
 	}
 
-	// Reuse detection: if revoked session token is presented
+	// Reuse detection: a revoked session token was presented, so it is in
+	// someone else's hands. The request is refused either way; what changes on a
+	// revocation failure is what we may claim happened.
 	if sess.RevokedAt != nil {
-		_ = s.repo.RevokeAllUserSessions(ctx, sess.UserID)
+		revokeErr := s.repo.RevokeAllUserSessions(ctx, sess.UserID)
+		action := "REFRESH_TOKEN_REUSE_DETECTED_ALL_SESSIONS_REVOKED"
+		if revokeErr != nil {
+			// Loudly, and as its own audit action: the account is under attack
+			// and its other sessions are still live. Discarding this error left
+			// no record that the containment step had failed.
+			slog.Error("Refresh token reuse detected but revoking the user's sessions failed",
+				slog.String("user_id", sess.UserID.String()),
+				slog.String("error", revokeErr.Error()))
+			action = "REFRESH_TOKEN_REUSE_DETECTED_REVOCATION_FAILED"
+		}
 		_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{
 			ID:        uuid.New(),
 			UserID:    sess.UserID,
-			Action:    "REFRESH_TOKEN_REUSE_DETECTED_ALL_SESSIONS_REVOKED",
+			Action:    action,
 			IPAddress: ipAddress,
 			CreatedAt: time.Now().UTC(),
 		})
+		if revokeErr != nil {
+			// The previous message asserted the revocation as fact.
+			return "", "", errors.New("security alert: session token reuse detected. Please sign in again")
+		}
 		return "", "", errors.New("security alert: session token reuse detected. All user sessions revoked")
 	}
 
@@ -662,18 +678,27 @@ func (s *AuthService) ResetPassword(ctx context.Context, req *dto.ResetPasswordR
 		return errors.New("could not complete password reset. Please request a new link")
 	}
 
-	if err := s.repo.UpdateUserPasswordHash(ctx, pr.UserID, string(hashBytes)); err != nil {
-		return err
-	}
-
-	// Revoke every session so a password reset ends any access an attacker
-	// already had. Refresh tokens are session-backed and die here; an access
-	// token already issued is a stateless JWT and stays valid for the remainder
-	// of its 15-minute lifetime, since nothing on the request path consults the
-	// session table. Closing that window means checking revocation on every
+	// The new password and the revocation of every existing session are written
+	// together. Revoking was previously a separate call whose error was
+	// discarded, so a failure there still reported a successful reset: the user
+	// was told they were safe while an attacker's session stayed live. A failure
+	// now rolls back both halves and is reported.
+	//
+	// Refresh tokens are session-backed and die here. An access token already
+	// issued is a stateless JWT and stays valid for the remainder of its
+	// 15-minute lifetime, since nothing on the request path consults the session
+	// table. Closing that window means checking revocation on every
 	// authenticated request, which is a change to the authentication
-	// architecture rather than to this flow.
-	_ = s.repo.RevokeAllUserSessions(ctx, pr.UserID)
+	// architecture rather than to this flow, and is tracked as R02.
+	if err := s.repo.UpdatePasswordAndRevokeSessions(ctx, pr.UserID, string(hashBytes)); err != nil {
+		slog.Error("Password reset could not be completed atomically",
+			slog.String("user_id", pr.UserID.String()),
+			slog.String("error", err.Error()))
+		// The reset token was already consumed, so the caller needs a new link
+		// rather than a retry of this one. Neither the password nor the sessions
+		// changed.
+		return errors.New("could not complete password reset. Please request a new link")
+	}
 
 	_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{
 		ID:        uuid.New(),

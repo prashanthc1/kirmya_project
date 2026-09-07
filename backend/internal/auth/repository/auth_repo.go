@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -337,6 +338,57 @@ func (r *AuthRepository) RevokeAllUserSessions(ctx context.Context, userID uuid.
 	for _, s := range r.memSessions {
 		if s.UserID == userID {
 			s.RevokedAt = &now
+		}
+	}
+	return nil
+}
+
+// UpdatePasswordAndRevokeSessions writes the new password hash and revokes every
+// session for the user in one transaction.
+//
+// A password reset makes two promises: the old password stops working, and
+// anyone already signed in is signed out. Performing them as two independent
+// statements let the second fail on its own, which is how the reset flow came to
+// report success while leaving an attacker's session live. Either both land or
+// neither does, so a partial reset cannot be reported as a complete one.
+func (r *AuthRepository) UpdatePasswordAndRevokeSessions(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	now := time.Now()
+
+	if r.db != nil {
+		tx, err := r.db.Begin(ctx)
+		if err != nil {
+			return fmt.Errorf("begin password reset transaction: %w", err)
+		}
+		defer tx.Rollback(ctx)
+
+		if _, err := tx.Exec(ctx,
+			`UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+			passwordHash, userID); err != nil {
+			return fmt.Errorf("update password hash: %w", err)
+		}
+		if _, err := tx.Exec(ctx,
+			`UPDATE sessions SET revoked_at = $1 WHERE user_id = $2`,
+			now, userID); err != nil {
+			return fmt.Errorf("revoke sessions: %w", err)
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return fmt.Errorf("commit password reset: %w", err)
+		}
+	}
+
+	// The in-memory store used by unit tests applies both under one lock, so it
+	// cannot land one half either.
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, u := range r.memUsers {
+		if u.ID == userID {
+			u.PasswordHash = passwordHash
+			u.UpdatedAt = now
+		}
+	}
+	for _, sess := range r.memSessions {
+		if sess.UserID == userID {
+			sess.RevokedAt = &now
 		}
 	}
 	return nil

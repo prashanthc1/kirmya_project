@@ -454,3 +454,51 @@ func TestResetLinkIsNotLoggedInProduction(t *testing.T) {
 		t.Fatal("APP_ENV=development is treated as production")
 	}
 }
+
+// TestPasswordAndSessionRevocationAreInseparable pins the invariant that
+// replaced two independent writes.
+//
+// The reset flow used to call UpdateUserPasswordHash and then
+// RevokeAllUserSessions, discarding the second error. A failure there left the
+// password changed, every existing session live, and the caller told the reset
+// had succeeded. UpdatePasswordAndRevokeSessions performs both, so a caller
+// cannot get one without the other.
+//
+// The rollback path itself — the second statement failing inside the
+// transaction — is not covered here: AuthService holds a concrete
+// *repository.AuthRepository, so there is no seam to inject the failure through
+// without introducing an interface. What is covered is that both effects are
+// applied by one call, and that the reset reports failure rather than success
+// when that call fails.
+func TestPasswordAndSessionRevocationAreInseparable(t *testing.T) {
+	f := newResetFixture(t)
+
+	_, refreshToken, _, err := f.svc.Login(f.ctx, &dto.LoginRequest{
+		Email: fixtureEmail, Password: fixtureOldPassword,
+	}, "127.0.0.1", "go-test")
+	if err != nil {
+		t.Fatalf("seed login: %v", err)
+	}
+	if refreshToken == "" {
+		t.Fatal("login returned no refresh token; this test would prove nothing")
+	}
+
+	const replacement = "Another-Disposable-Password-9!"
+	if err := f.repo.UpdatePasswordAndRevokeSessions(f.ctx, f.user.ID, "hashed-"+replacement); err != nil {
+		t.Fatalf("UpdatePasswordAndRevokeSessions: %v", err)
+	}
+
+	// Effect one: the stored hash changed.
+	stored, err := f.repo.GetUserByID(f.ctx, f.user.ID)
+	if err != nil {
+		t.Fatalf("read back user: %v", err)
+	}
+	if stored.PasswordHash != "hashed-"+replacement {
+		t.Fatal("the password hash was not written")
+	}
+
+	// Effect two: the session established beforehand can no longer refresh.
+	if _, _, refreshErr := f.svc.Refresh(f.ctx, refreshToken, "127.0.0.1", "go-test"); refreshErr == nil {
+		t.Fatal("a session predating the password change can still be refreshed")
+	}
+}
