@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import NextLink from 'next/link';
 import { Box, Container, Typography, Button, Stack } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { apiUrl } from '../shared/api_base';
 
 import BrandMark from '../components/brand/BrandMark';
 
@@ -31,7 +32,7 @@ export default function GlobalRouteError({
       timestamp: new Date().toISOString(),
     };
 
-    const telemetryUrl = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/telemetry/client-errors`;
+    const telemetryUrl = apiUrl('/telemetry/client-errors');
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
       navigator.sendBeacon(telemetryUrl, JSON.stringify(payload));
     }

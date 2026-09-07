@@ -35,7 +35,7 @@ func (h *FileHandler) getUserIdentity(c *gin.Context) (uuid.UUID, string) {
 		}
 	}
 	if uid == uuid.Nil {
-		if val, exists := c.Get("user_id"); exists {
+		if val, exists := c.Get("userID"); exists {
 			switch id := val.(type) {
 			case uuid.UUID:
 				uid = id

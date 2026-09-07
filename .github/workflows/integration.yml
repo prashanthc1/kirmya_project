@@ -71,6 +71,20 @@ jobs:
           go build -o bin/kirmya-ci ./cmd/kirmya
       - name: Verify SQL and authorization negative controls
         run: node scripts/ci/negative-gates.mjs 2>&1 | tee artifacts/negative-controls.log
+      - name: Verify migration failure and concurrency behaviour
+        # A dedicated disposable database: these checks drop and rebuild the
+        # public schema, so they must never run against the one the rest of the
+        # job uses. Two concurrent runners must both succeed with each migration
+        # recorded exactly once, and a missing migrations directory must fail
+        # rather than report a successful no-op.
+        env:
+          PGPASSWORD: ci-disposable-only
+          MIGRATION_TEST_DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_migrationtest?sslmode=disable
+        run: |
+          psql -h 127.0.0.1 -U postgres -c "DROP DATABASE IF EXISTS kirmya_migrationtest"
+          psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE kirmya_migrationtest"
+          cd backend
+          go test -json ./internal/shared/database/... -count=1 > ../artifacts/migrations-behaviour.json
       - name: Apply and verify real migrations
         run: cd backend && ./bin/ci-migrate 2>&1 | tee ../artifacts/migrations.log
       - name: Start real API and verify HTTP and dependency tests
@@ -92,6 +106,7 @@ jobs:
         run: |
           node scripts/ci/check-results.mjs go artifacts/integration.json
           node scripts/ci/check-results.mjs go artifacts/company.json
+          node scripts/ci/check-results.mjs go artifacts/migrations-behaviour.json
       - name: Collect service diagnostics
         if: always()
         run: |

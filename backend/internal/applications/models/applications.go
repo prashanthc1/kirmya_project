@@ -245,6 +245,36 @@ type CreateApplicationPayload struct {
 	IdempotencyKey string              `json:"idempotency_key,omitempty"`
 }
 
+// CreateApplicationOptionalPayload carries the same fields as
+// CreateApplicationPayload without the required job_id. It is used by
+// POST /jobs/:id/apply, where the URL already names the job, so that a body
+// carrying only a cover letter and answers is accepted there while
+// POST /applications continues to require the identifier in its body.
+type CreateApplicationOptionalPayload struct {
+	JobID          uuid.UUID           `json:"job_id"`
+	ResumeID       *uuid.UUID          `json:"resume_id,omitempty"`
+	ResumeURL      string              `json:"resume_url,omitempty"`
+	CoverLetter    string              `json:"cover_letter,omitempty"`
+	Answers        []ApplicationAnswer `json:"answers,omitempty"`
+	Source         string              `json:"source,omitempty"`
+	IdempotencyKey string              `json:"idempotency_key,omitempty"`
+}
+
+// ToCreateApplicationPayload converts the relaxed form into the canonical one.
+// Every field is carried across: dropping one here would silently discard a
+// candidate's cover letter or screening answers.
+func (p CreateApplicationOptionalPayload) ToCreateApplicationPayload() CreateApplicationPayload {
+	return CreateApplicationPayload{
+		JobID:          p.JobID,
+		ResumeID:       p.ResumeID,
+		ResumeURL:      p.ResumeURL,
+		CoverLetter:    p.CoverLetter,
+		Answers:        p.Answers,
+		Source:         p.Source,
+		IdempotencyKey: p.IdempotencyKey,
+	}
+}
+
 type CreateJobAlertPayload struct {
 	Title          string   `json:"title"`
 	Keywords       string   `json:"keywords"`

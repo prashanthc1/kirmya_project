@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type AdminComplianceHandler struct {
@@ -140,7 +142,11 @@ func (h *AdminComplianceHandler) CreateLegalHold(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid legal hold payload", "details": err.Error()})
 		return
 	}
-	payload.CreatedBy = h.getAdminUserID(c)
+	adminID, ok := h.getAdminUserID(c)
+	if !ok {
+		return
+	}
+	payload.CreatedBy = adminID
 
 	hold, err := h.svc.CreateLegalHold(c.Request.Context(), payload)
 	if err != nil {
@@ -190,7 +196,11 @@ func (h *AdminComplianceHandler) CreateAccessReview(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid access review payload", "details": err.Error()})
 		return
 	}
-	payload.ReviewerID = h.getAdminUserID(c)
+	adminID, ok := h.getAdminUserID(c)
+	if !ok {
+		return
+	}
+	payload.ReviewerID = adminID
 
 	review, err := h.svc.CreateAccessReview(c.Request.Context(), payload)
 	if err != nil {
@@ -294,7 +304,11 @@ func (h *AdminComplianceHandler) CreatePrivacyIncident(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid incident payload", "details": err.Error()})
 		return
 	}
-	payload.ReportedBy = h.getAdminUserID(c)
+	adminID, ok := h.getAdminUserID(c)
+	if !ok {
+		return
+	}
+	payload.ReportedBy = adminID
 
 	inc, err := h.svc.CreatePrivacyIncident(c.Request.Context(), payload)
 	if err != nil {
@@ -322,7 +336,11 @@ func (h *AdminComplianceHandler) CreatePolicyVersion(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid policy version payload", "details": err.Error()})
 		return
 	}
-	payload.CreatedBy = h.getAdminUserID(c)
+	adminID, ok := h.getAdminUserID(c)
+	if !ok {
+		return
+	}
+	payload.CreatedBy = adminID
 
 	pv, err := h.svc.CreatePolicyVersion(c.Request.Context(), payload)
 	if err != nil {
@@ -333,11 +351,15 @@ func (h *AdminComplianceHandler) CreatePolicyVersion(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Privacy policy version created", "data": pv})
 }
 
-func (h *AdminComplianceHandler) getAdminUserID(c *gin.Context) uuid.UUID {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		return uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+// getAdminUserID returns the verified caller. It reports failure rather than
+// substituting an identity: the previous fallback handed every
+// unauthenticated caller the same synthetic UUID, so their reads and
+// writes all landed on one shared account.
+func (h *AdminComplianceHandler) getAdminUserID(c *gin.Context) (uuid.UUID, bool) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return uuid.Nil, false
 	}
-	return userID
+	return userID, true
 }

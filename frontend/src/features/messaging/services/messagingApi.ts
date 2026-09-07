@@ -1,4 +1,5 @@
 import { authApiClient, getAccessToken } from '../../../services/authService';
+import { apiUrl } from '../../../shared/api_base';
 import {
   MessageAttachment,
   MessageReaction,
@@ -146,7 +147,11 @@ export const messagingApi = {
       if (onStatusChange) onStatusChange(retryCount === 0 ? 'connecting' : 'reconnecting');
 
       const token = getAccessToken() || '';
-      const baseWs = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/v1/messages/ws';
+      // Derived from the one API base so a deployment does not have to keep a
+      // second host in sync; NEXT_PUBLIC_WS_URL still overrides it.
+      const baseWs =
+        process.env.NEXT_PUBLIC_WS_URL ||
+        apiUrl('/messages/ws').replace(/^http/, 'ws');
       const wsUrl = token ? `${baseWs}?token=${encodeURIComponent(token)}` : baseWs;
 
       try {

@@ -243,10 +243,14 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 			&recID, &app.IsSaved, &app.ResumeURL,
 		)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("scan application summary row: %w", err)
 		}
 		app.RecruiterID = recID
 		apps = append(apps, app)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate candidate applications: %w", err)
 	}
 
 	return apps, nil
@@ -310,12 +314,19 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 	detail.Requirements = []string{}
 	detail.Skills = []string{}
 
-	// Load timeline
-	detail.Timeline = r.GetApplicationTimeline(ctx, appID)
-	// Load notes
-	detail.Notes = r.GetApplicationNotes(ctx, candidateID, appID)
-	// Load interviews
-	detail.Interviews = r.GetApplicationInterviews(ctx, candidateID, appID)
+	// A failure loading any related collection is a failure of the whole read.
+	// These previously degraded to empty slices, so a detail page could render
+	// "no timeline, no notes, no interviews" for an application that had all
+	// three.
+	if detail.Timeline, err = r.GetApplicationTimeline(ctx, candidateID, appID); err != nil {
+		return nil, err
+	}
+	if detail.Notes, err = r.GetApplicationNotes(ctx, candidateID, appID); err != nil {
+		return nil, err
+	}
+	if detail.Interviews, err = r.GetApplicationInterviews(ctx, candidateID, appID); err != nil {
+		return nil, err
+	}
 
 	return &detail, nil
 }
@@ -416,32 +427,75 @@ func (r *ApplicationsRepository) ArchiveApplication(ctx context.Context, candida
 	return tx.Commit(ctx)
 }
 
-func (r *ApplicationsRepository) GetApplicationTimeline(ctx context.Context, appID uuid.UUID) []models.ApplicationTimelineItem {
-	if r.db != nil {
-		query := `
-			SELECT id, to_stage, from_stage, COALESCE(notes, ''), moved_at, COALESCE(moved_by::text, 'System')
-			FROM application_stage_history
-			WHERE application_id = $1
-			ORDER BY moved_at ASC
-		`
-		rows, err := r.db.Query(ctx, query, appID)
-		if err == nil {
-			defer rows.Close()
-			var items []models.ApplicationTimelineItem
-			for rows.Next() {
-				var item models.ApplicationTimelineItem
-				var fromStage, movedBy string
-				if err := rows.Scan(&item.ID, &item.Status, &fromStage, &item.Description, &item.Date, &movedBy); err == nil {
-					item.Title = fmt.Sprintf("Stage changed to %s", item.Status)
-					item.MovedBy = movedBy
-					items = append(items, item)
-				}
-			}
-			return items
+// ErrApplicationNotFound is returned for an application that does not exist and
+// for one owned by a different candidate. The two cases are deliberately
+// indistinguishable: telling a caller that an application exists but is not
+// theirs confirms the existence of another candidate's record.
+var ErrApplicationNotFound = errors.New("application not found")
+
+// GetApplicationTimeline returns the stage history of one application owned by
+// candidateID.
+//
+// The candidate is part of the query rather than a check performed afterwards.
+// This previously selected on application_id alone, so any authenticated caller
+// who knew or guessed an application UUID could read another candidate's hiring
+// progress. It also returned an empty slice when the query failed, which is why
+// a database outage looked to the UI exactly like an application with no
+// history.
+func (r *ApplicationsRepository) GetApplicationTimeline(ctx context.Context, candidateID, appID uuid.UUID) ([]models.ApplicationTimelineItem, error) {
+	if r.db == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		a, ok := r.memApps[appID.String()]
+		if !ok || r.memCand[appID.String()] != candidateID {
+			return nil, ErrApplicationNotFound
 		}
+		return append([]models.ApplicationTimelineItem{}, a.Timeline...), nil
 	}
 
-	return []models.ApplicationTimelineItem{}
+	// Ownership is established first and separately so that a foreign or
+	// unknown application is a not-found rather than an empty timeline.
+	var exists bool
+	err := r.db.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM job_applications WHERE id = $1 AND candidate_id = $2)`,
+		appID, candidateID).Scan(&exists)
+	if err != nil {
+		return nil, fmt.Errorf("verify application ownership: %w", err)
+	}
+	if !exists {
+		return nil, ErrApplicationNotFound
+	}
+
+	query := `
+		SELECT h.id, h.to_stage, h.from_stage, COALESCE(h.notes, ''), h.moved_at, COALESCE(h.moved_by::text, 'System')
+		FROM application_stage_history h
+		JOIN job_applications a ON a.id = h.application_id
+		WHERE h.application_id = $1 AND a.candidate_id = $2
+		ORDER BY h.moved_at ASC
+	`
+	rows, err := r.db.Query(ctx, query, appID, candidateID)
+	if err != nil {
+		return nil, fmt.Errorf("query application timeline: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]models.ApplicationTimelineItem, 0)
+	for rows.Next() {
+		var item models.ApplicationTimelineItem
+		var fromStage, movedBy string
+		if err := rows.Scan(&item.ID, &item.Status, &fromStage, &item.Description, &item.Date, &movedBy); err != nil {
+			return nil, fmt.Errorf("scan application timeline row: %w", err)
+		}
+		item.Title = fmt.Sprintf("Stage changed to %s", item.Status)
+		item.MovedBy = movedBy
+		items = append(items, item)
+	}
+	// A driver-level failure part way through iteration surfaces only here.
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate application timeline: %w", err)
+	}
+
+	return items, nil
 }
 
 func (r *ApplicationsRepository) SaveJob(ctx context.Context, candidateID, jobID uuid.UUID, notes string) error {
@@ -528,7 +582,7 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return []models.SavedJobDTO{}, nil
+		return nil, fmt.Errorf("query saved jobs: %w", err)
 	}
 	defer rows.Close()
 
@@ -543,9 +597,13 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 			&item.IsActive,
 		)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("scan saved job row: %w", err)
 		}
 		list = append(list, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate saved jobs: %w", err)
 	}
 
 	return list, nil
@@ -566,7 +624,7 @@ func (r *ApplicationsRepository) GetJobAlerts(ctx context.Context, candidateID u
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return []models.JobAlertDTO{}, nil
+		return nil, fmt.Errorf("query job alerts: %w", err)
 	}
 	defer rows.Close()
 
@@ -580,9 +638,13 @@ func (r *ApplicationsRepository) GetJobAlerts(ctx context.Context, candidateID u
 			&alert.IsActive, &alert.CreatedAt, &alert.UpdatedAt,
 		)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("scan job alert row: %w", err)
 		}
 		alerts = append(alerts, alert)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate job alerts: %w", err)
 	}
 
 	return alerts, nil
@@ -659,7 +721,7 @@ func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, can
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return []models.CandidateInterview{}, nil
+		return nil, fmt.Errorf("query candidate interviews: %w", err)
 	}
 	defer rows.Close()
 
@@ -672,7 +734,7 @@ func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, can
 			&item.LocationType, &item.MeetingLink, &item.Notes,
 		)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("scan candidate interview row: %w", err)
 		}
 		list = append(list, item)
 	}
@@ -693,7 +755,7 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
 	if err != nil {
-		return []models.CandidateDocument{}, nil
+		return nil, fmt.Errorf("query candidate documents: %w", err)
 	}
 	defer rows.Close()
 
@@ -705,9 +767,13 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 			&doc.FileURL, &doc.SizeBytes, &doc.FileType, &doc.IsDefault, &doc.UploadedAt,
 		)
 		if err != nil {
-			continue
+			return nil, fmt.Errorf("scan candidate document row: %w", err)
 		}
 		docs = append(docs, doc)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate candidate documents: %w", err)
 	}
 
 	return docs, nil
@@ -721,9 +787,12 @@ func (r *ApplicationsRepository) DeleteDocument(ctx context.Context, candidateID
 	return err
 }
 
-func (r *ApplicationsRepository) GetApplicationNotes(ctx context.Context, candidateID, appID uuid.UUID) []models.ApplicationNote {
+// GetApplicationNotes returns the candidate's private notes on one application.
+// Notes are scoped by candidate in the query, so a foreign application yields
+// no rows rather than another candidate's notes.
+func (r *ApplicationsRepository) GetApplicationNotes(ctx context.Context, candidateID, appID uuid.UUID) ([]models.ApplicationNote, error) {
 	if r.db == nil {
-		return []models.ApplicationNote{}
+		return []models.ApplicationNote{}, nil
 	}
 
 	query := `
@@ -734,23 +803,29 @@ func (r *ApplicationsRepository) GetApplicationNotes(ctx context.Context, candid
 	`
 	rows, err := r.db.Query(ctx, query, appID, candidateID)
 	if err != nil {
-		return []models.ApplicationNote{}
+		return nil, fmt.Errorf("query application notes: %w", err)
 	}
 	defer rows.Close()
 
-	var notes []models.ApplicationNote
+	notes := make([]models.ApplicationNote, 0)
 	for rows.Next() {
 		var n models.ApplicationNote
-		if err := rows.Scan(&n.ID, &n.ApplicationID, &n.CandidateID, &n.NoteText, &n.CreatedAt, &n.UpdatedAt); err == nil {
-			notes = append(notes, n)
+		if err := rows.Scan(&n.ID, &n.ApplicationID, &n.CandidateID, &n.NoteText, &n.CreatedAt, &n.UpdatedAt); err != nil {
+			return nil, fmt.Errorf("scan application note row: %w", err)
 		}
+		notes = append(notes, n)
 	}
-	return notes
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate application notes: %w", err)
+	}
+	return notes, nil
 }
 
-func (r *ApplicationsRepository) GetApplicationInterviews(ctx context.Context, candidateID, appID uuid.UUID) []models.CandidateInterview {
+// GetApplicationInterviews returns interviews for one application, scoped to the
+// owning candidate.
+func (r *ApplicationsRepository) GetApplicationInterviews(ctx context.Context, candidateID, appID uuid.UUID) ([]models.CandidateInterview, error) {
 	if r.db == nil {
-		return []models.CandidateInterview{}
+		return []models.CandidateInterview{}, nil
 	}
 
 	query := `
@@ -768,20 +843,24 @@ func (r *ApplicationsRepository) GetApplicationInterviews(ctx context.Context, c
 	`
 	rows, err := r.db.Query(ctx, query, appID, candidateID)
 	if err != nil {
-		return []models.CandidateInterview{}
+		return nil, fmt.Errorf("query application interviews: %w", err)
 	}
 	defer rows.Close()
 
-	var interviews []models.CandidateInterview
+	interviews := make([]models.CandidateInterview, 0)
 	for rows.Next() {
 		var item models.CandidateInterview
 		if err := rows.Scan(
 			&item.ID, &item.ApplicationID, &item.JobTitle, &item.CompanyName,
 			&item.CompanyLogo, &item.Title, &item.Status, &item.ScheduledStart, &item.ScheduledEnd,
 			&item.LocationType, &item.MeetingLink, &item.Notes,
-		); err == nil {
-			interviews = append(interviews, item)
+		); err != nil {
+			return nil, fmt.Errorf("scan application interview row: %w", err)
 		}
+		interviews = append(interviews, item)
 	}
-	return interviews
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate application interviews: %w", err)
+	}
+	return interviews, nil
 }

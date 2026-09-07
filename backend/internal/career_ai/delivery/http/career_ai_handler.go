@@ -7,7 +7,8 @@ import (
 	"kirmya/internal/career_ai/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type CareerAIHandler struct {
@@ -26,10 +27,10 @@ func (h *CareerAIHandler) GenerateCareerAdvice(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	rec, err := h.svc.GenerateCareerAdvice(c.Request.Context(), userID, req)
@@ -52,10 +53,10 @@ func (h *CareerAIHandler) AnalyzeResume(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	rec, err := h.svc.AnalyzeResume(c.Request.Context(), userID, req)
@@ -78,10 +79,10 @@ func (h *CareerAIHandler) IdentifySkillGaps(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	rec, err := h.svc.IdentifySkillGaps(c.Request.Context(), userID, req)
@@ -104,10 +105,10 @@ func (h *CareerAIHandler) GenerateJobGuidance(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	rec, err := h.svc.GenerateJobGuidance(c.Request.Context(), userID, req)
@@ -130,10 +131,10 @@ func (h *CareerAIHandler) GenerateInterviewPrep(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	rec, err := h.svc.GenerateInterviewPrep(c.Request.Context(), userID, req)
@@ -150,10 +151,10 @@ func (h *CareerAIHandler) GenerateInterviewPrep(c *gin.Context) {
 
 // GetUserRecommendations handles GET /career-ai/recommendations
 func (h *CareerAIHandler) GetUserRecommendations(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	recs, err := h.svc.GetUserRecommendations(c.Request.Context(), userID)
@@ -170,10 +171,10 @@ func (h *CareerAIHandler) GetUserRecommendations(c *gin.Context) {
 
 // GetUserUsage handles GET /career-ai/usage
 func (h *CareerAIHandler) GetUserUsage(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	logs, err := h.svc.GetUserUsage(c.Request.Context(), userID)

@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type LearningHandler struct {
@@ -80,10 +82,10 @@ func (h *LearningHandler) Enroll(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	progress, err := h.svc.EnrollUser(c.Request.Context(), userID, body.CourseID, body.LearningPathID)
@@ -106,10 +108,10 @@ func (h *LearningHandler) UpdateProgress(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	progress, err := h.svc.UpdateProgress(c.Request.Context(), userID, req)
@@ -126,10 +128,10 @@ func (h *LearningHandler) UpdateProgress(c *gin.Context) {
 
 // GetUserProgress handles GET /learning/progress
 func (h *LearningHandler) GetUserProgress(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	progressList, err := h.svc.GetUserProgress(c.Request.Context(), userID)
@@ -146,10 +148,10 @@ func (h *LearningHandler) GetUserProgress(c *gin.Context) {
 
 // GetCertificates handles GET /learning/certificates
 func (h *LearningHandler) GetCertificates(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	certs, err := h.svc.GetUserCertificates(c.Request.Context(), userID)
@@ -172,10 +174,10 @@ func (h *LearningHandler) SubmitSkillAssessment(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	assessment, err := h.svc.SubmitSkillAssessment(c.Request.Context(), userID, req)

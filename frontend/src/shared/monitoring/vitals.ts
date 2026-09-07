@@ -1,3 +1,4 @@
+import { apiUrl } from '../api_base';
 export interface MetricPayload {
   id: string;
   name: string;
@@ -17,7 +18,7 @@ export function reportWebVitals(metric: MetricPayload) {
     timestamp: new Date().toISOString(),
   });
 
-  const url = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/telemetry/vitals` : '/api/v1/telemetry/vitals';
+  const url = apiUrl('/telemetry/vitals');
 
   if (navigator.sendBeacon) {
     navigator.sendBeacon(url, body);

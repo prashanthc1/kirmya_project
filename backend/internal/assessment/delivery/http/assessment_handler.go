@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type AssessmentHandler struct {
@@ -68,10 +70,10 @@ func (h *AssessmentHandler) SubmitAssessment(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 	userName := c.GetString("user_name")
 	if userName == "" {
@@ -92,10 +94,10 @@ func (h *AssessmentHandler) SubmitAssessment(c *gin.Context) {
 
 // GetUserResults handles GET /assessments/results
 func (h *AssessmentHandler) GetUserResults(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	results, err := h.svc.GetUserResults(c.Request.Context(), userID)
@@ -112,10 +114,10 @@ func (h *AssessmentHandler) GetUserResults(c *gin.Context) {
 
 // GetUserBadges handles GET /assessments/badges
 func (h *AssessmentHandler) GetUserBadges(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	badges, err := h.svc.GetUserBadges(c.Request.Context(), userID)

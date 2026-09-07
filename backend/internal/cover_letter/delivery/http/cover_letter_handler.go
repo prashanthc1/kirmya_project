@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	"kirmya/internal/cover_letter/models"
 	"kirmya/internal/cover_letter/service"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type CoverLetterHandler struct {
@@ -18,27 +20,25 @@ func NewCoverLetterHandler(s *service.CoverLetterService) *CoverLetterHandler {
 	return &CoverLetterHandler{service: s}
 }
 
-func (h *CoverLetterHandler) getUserID(c *gin.Context) uuid.UUID {
-	val, exists := c.Get("user_id")
-	if !exists {
-		val, exists = c.Get("userID")
+// getUserID returns the verified caller.
+//
+// This previously fell back to a fixed demo UUID whenever the context
+// carried no identity, so every unauthenticated request read and wrote
+// one shared account's data. It now refuses the request instead.
+func (h *CoverLetterHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return uuid.Nil, false
 	}
-	if !exists {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001")
-	}
-	if uid, ok := val.(uuid.UUID); ok {
-		return uid
-	}
-	if uidStr, ok := val.(string); ok {
-		if parsed, err := uuid.Parse(uidStr); err == nil {
-			return parsed
-		}
-	}
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	return userID, true
 }
 
 func (h *CoverLetterHandler) ListCoverLetters(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	list, err := h.service.ListCoverLetters(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -68,7 +68,10 @@ func (h *CoverLetterHandler) GetCoverLetter(c *gin.Context) {
 }
 
 func (h *CoverLetterHandler) CreateCoverLetter(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req struct {
 		Name         string `json:"name"`
 		TemplateName string `json:"templateName"`
@@ -138,7 +141,10 @@ func (h *CoverLetterHandler) DuplicateCoverLetter(c *gin.Context) {
 }
 
 func (h *CoverLetterHandler) GenerateCoverLetter(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.GenerateCoverLetterRequest
 	_ = c.ShouldBindJSON(&req)
 	cl, err := h.service.GenerateCoverLetter(c.Request.Context(), userID, req)
@@ -218,7 +224,10 @@ func (h *CoverLetterHandler) DownloadCoverLetter(c *gin.Context) {
 }
 
 func (h *CoverLetterHandler) ShareCoverLetter(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
@@ -241,7 +250,10 @@ func (h *CoverLetterHandler) ShareCoverLetter(c *gin.Context) {
 }
 
 func (h *CoverLetterHandler) DeleteShare(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { apiUrl } from '../api_base';
 
 export function setupAPIMonitoring() {
   axios.interceptors.request.use((config) => {
@@ -33,7 +34,7 @@ export function setupAPIMonitoring() {
         timestamp: new Date().toISOString(),
       };
 
-      const telemetryUrl = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/telemetry/client-errors`;
+      const telemetryUrl = apiUrl('/telemetry/client-errors');
       if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
         navigator.sendBeacon(telemetryUrl, JSON.stringify(payload));
       }

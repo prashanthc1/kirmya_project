@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type InterviewHandler struct {
@@ -26,11 +28,10 @@ func (h *InterviewHandler) ScheduleInterview(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	organizerID, err := uuid.Parse(userIDStr)
-	if err != nil || organizerID == uuid.Nil {
-		// Fallback for demonstration / dev mode
-		organizerID = uuid.New()
+	organizerID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	interview, err := h.svc.ScheduleInterview(c.Request.Context(), organizerID, req)
@@ -183,10 +184,10 @@ func (h *InterviewHandler) SubmitFeedback(c *gin.Context) {
 		return
 	}
 
-	interviewerIDStr := c.GetString("user_id")
-	interviewerID, err := uuid.Parse(interviewerIDStr)
-	if err != nil || interviewerID == uuid.Nil {
-		interviewerID = uuid.New()
+	interviewerID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 	interviewerName := c.GetString("user_name")
 	if interviewerName == "" {
@@ -234,10 +235,10 @@ func (h *InterviewHandler) SetAvailability(c *gin.Context) {
 		return
 	}
 
-	candidateIDStr := c.GetString("user_id")
-	candidateID, err := uuid.Parse(candidateIDStr)
-	if err != nil || candidateID == uuid.Nil {
-		candidateID = uuid.New()
+	candidateID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	avail, err := h.svc.SetCandidateAvailability(c.Request.Context(), candidateID, req)
@@ -275,10 +276,10 @@ func (h *InterviewHandler) GetCandidateAvailability(c *gin.Context) {
 
 // GetReminders handles GET /interviews/reminders
 func (h *InterviewHandler) GetReminders(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	reminders, err := h.svc.GetRemindersForUser(c.Request.Context(), userID)

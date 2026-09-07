@@ -7,7 +7,8 @@ import (
 	"kirmya/internal/mobile/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type MobileHandler struct {
@@ -26,10 +27,10 @@ func (h *MobileHandler) RegisterDevice(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	dev, err := h.svc.RegisterDevice(c.Request.Context(), userID, payload)
@@ -52,10 +53,10 @@ func (h *MobileHandler) CreatePresignedUpload(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	sess, err := h.svc.CreatePresignedUpload(c.Request.Context(), userID, payload)

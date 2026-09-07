@@ -40,9 +40,39 @@ func FindMigrationsDir() (string, error) {
 func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 	migrationsDir, err := FindMigrationsDir()
 	if err != nil {
-		slog.Warn("Skipping database migrations: migrations directory not found", slog.String("error", err.Error()))
-		return nil
+		// A missing migrations directory used to be a warning and a nil return,
+		// so a deployment whose assets never shipped reported a successful
+		// migration step and then served an empty schema. There is no safe way
+		// to distinguish "no migrations to run" from "the migrations are gone",
+		// so this fails.
+		return fmt.Errorf("migrations directory not found: %w", err)
 	}
+
+	// Serialise migration across processes. Two API replicas starting together
+	// otherwise read the same "not yet applied" list and both execute the same
+	// DDL; the tracking insert is idempotent but the DDL is not, so the loser
+	// fails on an object that already exists. The lock is session-scoped and is
+	// released explicitly below.
+	//
+	// The identifier is an arbitrary constant unique to this application's
+	// migration runner.
+	const migrationLockID int64 = 8125246170349372116
+	lockConn, err := pool.Acquire(ctx)
+	if err != nil {
+		return fmt.Errorf("acquire connection for migration lock: %w", err)
+	}
+	defer lockConn.Release()
+
+	if _, err := lockConn.Exec(ctx, "SELECT pg_advisory_lock($1)", migrationLockID); err != nil {
+		return fmt.Errorf("acquire migration advisory lock: %w", err)
+	}
+	defer func() {
+		// Best effort: releasing the session lock matters for a long-lived
+		// pooled connection, but the lock is dropped with the session anyway.
+		if _, unlockErr := lockConn.Exec(context.Background(), "SELECT pg_advisory_unlock($1)", migrationLockID); unlockErr != nil {
+			slog.Warn("Failed to release migration advisory lock", slog.String("error", unlockErr.Error()))
+		}
+	}()
 
 	// 1. Ensure schema_migrations table exists
 	createTrackingSQL := `
@@ -65,10 +95,18 @@ func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 	applied := make(map[string]bool)
 	for rows.Next() {
 		var v string
-		if err := rows.Scan(&v); err == nil {
-			applied[v] = true
+		// A dropped row here is not cosmetic: an applied migration that fails to
+		// scan is treated as unapplied and re-executed against a schema that
+		// already has it.
+		if err := rows.Scan(&v); err != nil {
+			return fmt.Errorf("scan applied migration version: %w", err)
 		}
+		applied[v] = true
 	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate applied migrations: %w", err)
+	}
+	rows.Close()
 
 	// 3. Collect and sort all .up.sql files
 	entries, err := os.ReadDir(migrationsDir)

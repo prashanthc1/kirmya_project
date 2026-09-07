@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { apiUrl } from '../shared/api_base';
 
 /**
  * Root-level Global Error Boundary for Next.js App Router.
@@ -25,7 +26,7 @@ export default function GlobalError({
       timestamp: new Date().toISOString(),
     };
 
-    const telemetryUrl = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/telemetry/client-errors`;
+    const telemetryUrl = apiUrl('/telemetry/client-errors');
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
       navigator.sendBeacon(telemetryUrl, JSON.stringify(payload));
     }

@@ -113,23 +113,41 @@ func (s *AnalyticsService) GetUserAnalytics(ctx context.Context, userID uuid.UUI
 }
 
 // GetRecruiterAnalytics retrieves recruiter workspace metrics for authorized organization.
+// GetRecruiterAnalytics returns hiring analytics for one organization. The
+// caller must belong to it: requestingUserID was previously accepted and then
+// ignored, which left the organization identifier in the query string as the
+// only thing selecting whose data was returned.
 func (s *AnalyticsService) GetRecruiterAnalytics(ctx context.Context, orgID uuid.UUID, requestingUserID uuid.UUID) (*models.RecruiterHiringAnalytics, error) {
-	if orgID == uuid.Nil {
+	if orgID == uuid.Nil || requestingUserID == uuid.Nil {
 		return nil, ErrUnauthorizedOrgAccess
 	}
 	if s.repo == nil {
-		return &models.RecruiterHiringAnalytics{}, nil
+		return nil, ErrUnauthorizedOrgAccess
+	}
+	member, err := s.repo.IsOrganizationMember(ctx, orgID, requestingUserID)
+	if err != nil {
+		return nil, err
+	}
+	if !member {
+		return nil, ErrUnauthorizedOrgAccess
 	}
 	return s.repo.GetRecruiterAnalytics(ctx, orgID)
 }
 
 // GetCompanyAnalytics retrieves company overview metrics.
-func (s *AnalyticsService) GetCompanyAnalytics(ctx context.Context, companyID uuid.UUID) (*models.CompanyOverviewAnalytics, error) {
-	if companyID == uuid.Nil {
+func (s *AnalyticsService) GetCompanyAnalytics(ctx context.Context, companyID uuid.UUID, requestingUserID uuid.UUID) (*models.CompanyOverviewAnalytics, error) {
+	if companyID == uuid.Nil || requestingUserID == uuid.Nil {
 		return nil, ErrUnauthorizedOrgAccess
 	}
 	if s.repo == nil {
-		return &models.CompanyOverviewAnalytics{}, nil
+		return nil, ErrUnauthorizedOrgAccess
+	}
+	member, err := s.repo.IsOrganizationMember(ctx, companyID, requestingUserID)
+	if err != nil {
+		return nil, err
+	}
+	if !member {
+		return nil, ErrUnauthorizedOrgAccess
 	}
 	analytics, err := s.repo.GetCompanyAnalytics(ctx, companyID)
 	if err != nil {

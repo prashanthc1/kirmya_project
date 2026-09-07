@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	"kirmya/internal/interview_prep/models"
 	"kirmya/internal/interview_prep/service"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type InterviewPrepHandler struct {
@@ -18,29 +20,27 @@ func NewInterviewPrepHandler(s *service.InterviewPrepService) *InterviewPrepHand
 	return &InterviewPrepHandler{service: s}
 }
 
-func (h *InterviewPrepHandler) getUserID(c *gin.Context) uuid.UUID {
-	val, exists := c.Get("user_id")
-	if !exists {
-		val, exists = c.Get("userID")
+// getUserID returns the verified caller.
+//
+// This previously fell back to a fixed demo UUID whenever the context
+// carried no identity, so every unauthenticated request read and wrote
+// one shared account's data. It now refuses the request instead.
+func (h *InterviewPrepHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return uuid.Nil, false
 	}
-	if !exists {
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001")
-	}
-	if uid, ok := val.(uuid.UUID); ok {
-		return uid
-	}
-	if uidStr, ok := val.(string); ok {
-		if parsed, err := uuid.Parse(uidStr); err == nil {
-			return parsed
-		}
-	}
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	return userID, true
 }
 
 // ----------------- Preparations -----------------
 
 func (h *InterviewPrepHandler) CreatePreparation(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.CreatePreparationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -72,7 +72,10 @@ func (h *InterviewPrepHandler) GetPreparation(c *gin.Context) {
 }
 
 func (h *InterviewPrepHandler) ListPreparations(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	preps, err := h.service.ListPreparations(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -88,7 +91,10 @@ func (h *InterviewPrepHandler) UpdatePreparation(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid preparation ID"})
 		return
 	}
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 
 	var req models.UpdatePreparationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -122,7 +128,10 @@ func (h *InterviewPrepHandler) DeletePreparation(c *gin.Context) {
 // ----------------- Questions & AI Generation -----------------
 
 func (h *InterviewPrepHandler) GenerateQuestions(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.GenerateQuestionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -138,7 +147,10 @@ func (h *InterviewPrepHandler) GenerateQuestions(c *gin.Context) {
 }
 
 func (h *InterviewPrepHandler) SaveQuestion(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.SaveQuestionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -154,7 +166,10 @@ func (h *InterviewPrepHandler) SaveQuestion(c *gin.Context) {
 }
 
 func (h *InterviewPrepHandler) ListQuestions(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var prepIDPtr *uuid.UUID
 	prepIDStr := c.Query("preparation_id")
 	if prepIDStr != "" {
@@ -211,7 +226,10 @@ func (h *InterviewPrepHandler) DeleteQuestion(c *gin.Context) {
 // ----------------- Mock Sessions & Answers -----------------
 
 func (h *InterviewPrepHandler) StartMockSession(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.StartMockSessionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -243,7 +261,10 @@ func (h *InterviewPrepHandler) GetMockSession(c *gin.Context) {
 }
 
 func (h *InterviewPrepHandler) ListMockSessions(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	sessions, err := h.service.ListMockSessions(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -359,7 +380,10 @@ func (h *InterviewPrepHandler) DeleteTask(c *gin.Context) {
 // ----------------- Notes & Readiness & Coach -----------------
 
 func (h *InterviewPrepHandler) SaveNote(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.SaveInterviewNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -391,7 +415,10 @@ func (h *InterviewPrepHandler) GetNote(c *gin.Context) {
 }
 
 func (h *InterviewPrepHandler) GetReadinessScore(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	score, err := h.service.GetReadinessScore(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -401,7 +428,10 @@ func (h *InterviewPrepHandler) GetReadinessScore(c *gin.Context) {
 }
 
 func (h *InterviewPrepHandler) AICoachChat(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.AICoachChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

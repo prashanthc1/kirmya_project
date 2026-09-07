@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { apiUrl } from '../api_base';
 
 interface Props {
   children: ReactNode;
@@ -31,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
       timestamp: new Date().toISOString(),
     };
 
-    const telemetryUrl = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/telemetry/client-errors`;
+    const telemetryUrl = apiUrl('/telemetry/client-errors');
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
       navigator.sendBeacon(telemetryUrl, JSON.stringify(payload));
     }

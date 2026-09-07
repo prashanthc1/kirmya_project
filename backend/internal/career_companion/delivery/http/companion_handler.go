@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type CompanionHandler struct {
@@ -23,10 +25,10 @@ func (h *CompanionHandler) CreateConversation(c *gin.Context) {
 	var payload domain.CreateConversationPayload
 	_ = c.ShouldBindJSON(&payload)
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	conv, err := h.svc.CreateConversation(c.Request.Context(), userID, payload)
@@ -56,10 +58,10 @@ func (h *CompanionHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	msg, err := h.svc.SendMessage(c.Request.Context(), userID, convID, payload)
@@ -75,10 +77,10 @@ func (h *CompanionHandler) SendMessage(c *gin.Context) {
 
 // GetUserConversations handles GET /career-companion/conversations
 func (h *CompanionHandler) GetUserConversations(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	convs, err := h.svc.GetUserConversations(c.Request.Context(), userID)
@@ -101,10 +103,10 @@ func (h *CompanionHandler) GenerateRoadmap(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	plan, err := h.svc.GenerateRoadmap(c.Request.Context(), userID, payload)
@@ -121,10 +123,10 @@ func (h *CompanionHandler) GenerateRoadmap(c *gin.Context) {
 
 // GetLatestCareerPlan handles GET /career-companion/roadmap
 func (h *CompanionHandler) GetLatestCareerPlan(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	plan, err := h.svc.GetLatestCareerPlan(c.Request.Context(), userID)
@@ -138,10 +140,10 @@ func (h *CompanionHandler) GetLatestCareerPlan(c *gin.Context) {
 
 // GetUserContext handles GET /career-companion/context
 func (h *CompanionHandler) GetUserContext(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	uctx, err := h.svc.GetUserContext(c.Request.Context(), userID)

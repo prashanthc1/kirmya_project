@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type RecruiterAIHandler struct {
@@ -27,7 +29,10 @@ func (h *RecruiterAIHandler) RankCandidates(c *gin.Context) {
 	}
 
 	orgID := h.getTenantOrgID(c)
-	recruiterID := h.getUserID(c)
+	recruiterID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 
 	sess, scores, err := h.svc.RankCandidates(c.Request.Context(), orgID, recruiterID, payload)
 	if err != nil {
@@ -51,7 +56,10 @@ func (h *RecruiterAIHandler) GenerateInterviewQuestions(c *gin.Context) {
 	}
 
 	orgID := h.getTenantOrgID(c)
-	recruiterID := h.getUserID(c)
+	recruiterID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 
 	content, err := h.svc.GenerateInterviewQuestions(c.Request.Context(), orgID, recruiterID, payload)
 	if err != nil {
@@ -74,7 +82,10 @@ func (h *RecruiterAIHandler) OptimizeJobDescription(c *gin.Context) {
 	}
 
 	orgID := h.getTenantOrgID(c)
-	recruiterID := h.getUserID(c)
+	recruiterID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 
 	content, err := h.svc.OptimizeJobDescription(c.Request.Context(), orgID, recruiterID, payload)
 	if err != nil {
@@ -97,7 +108,10 @@ func (h *RecruiterAIHandler) DraftOutreachEmail(c *gin.Context) {
 	}
 
 	orgID := h.getTenantOrgID(c)
-	recruiterID := h.getUserID(c)
+	recruiterID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 
 	content, err := h.svc.DraftOutreachEmail(c.Request.Context(), orgID, recruiterID, payload)
 	if err != nil {
@@ -136,11 +150,13 @@ func (h *RecruiterAIHandler) getTenantOrgID(c *gin.Context) uuid.UUID {
 	return orgID
 }
 
-func (h *RecruiterAIHandler) getUserID(c *gin.Context) uuid.UUID {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		return uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+// getUserID returns the verified caller, reporting failure instead of
+// substituting a shared synthetic identity.
+func (h *RecruiterAIHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return uuid.Nil, false
 	}
-	return userID
+	return userID, true
 }
