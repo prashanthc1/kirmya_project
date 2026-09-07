@@ -201,7 +201,7 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 		SELECT 
 			a.id, a.job_id, COALESCE(j.title, 'Job Position'),
 			COALESCE(j.company_id, '00000000-0000-0000-0000-000000000001'::uuid),
-			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(c.name, 'Company'), COALESCE(cp.logo_url, '/images/companies/default.png'),
 			COALESCE(j.location, 'Remote'), COALESCE(j.employment_type, 'Full-time'),
 			COALESCE(j.salary_range, ''), a.current_stage,
 			a.applied_at, a.updated_at, a.recruiter_id,
@@ -210,6 +210,7 @@ func (r *ApplicationsRepository) GetCandidateApplications(ctx context.Context, c
 		FROM job_applications a
 		LEFT JOIN jobs j ON a.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
+		LEFT JOIN company_profiles cp ON cp.company_id = c.id
 		WHERE a.candidate_id = $1
 	`
 	args := []interface{}{candidateID}
@@ -275,7 +276,7 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 		SELECT 
 			a.id, a.job_id, COALESCE(j.title, 'Job Position'),
 			COALESCE(j.company_id, '00000000-0000-0000-0000-000000000001'::uuid),
-			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(c.name, 'Company'), COALESCE(cp.logo_url, '/images/companies/default.png'),
 			COALESCE(j.location, 'Remote'), COALESCE(j.employment_type, 'Full-time'),
 			COALESCE(j.salary_range, ''), a.current_stage,
 			a.applied_at, a.updated_at, a.recruiter_id,
@@ -287,6 +288,7 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 		FROM job_applications a
 		LEFT JOIN jobs j ON a.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
+		LEFT JOIN company_profiles cp ON cp.company_id = c.id
 		WHERE a.id = $1 AND a.candidate_id = $2
 	`
 
@@ -567,7 +569,7 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 		SELECT 
 			sj.id, sj.candidate_id, sj.job_id,
 			COALESCE(j.title, 'Job Title'),
-			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(c.name, 'Company'), COALESCE(cp.logo_url, '/images/companies/default.png'),
 			COALESCE(j.location, 'Remote'), COALESCE(j.salary_range, ''),
 			COALESCE(j.employment_type, 'Full-time'), sj.collection_id,
 			COALESCE(sjc.name, 'General Saved'), COALESCE(sj.notes, ''), sj.saved_at,
@@ -575,6 +577,7 @@ func (r *ApplicationsRepository) GetSavedJobs(ctx context.Context, candidateID u
 		FROM saved_jobs sj
 		LEFT JOIN jobs j ON sj.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
+		LEFT JOIN company_profiles cp ON cp.company_id = c.id
 		LEFT JOIN saved_job_collections sjc ON sj.collection_id = sjc.id
 		WHERE sj.candidate_id = $1
 		ORDER BY sj.saved_at DESC
@@ -709,13 +712,14 @@ func (r *ApplicationsRepository) GetCandidateInterviews(ctx context.Context, can
 		SELECT 
 			i.id, COALESCE(i.job_id, '00000000-0000-0000-0000-000000000001'::uuid),
 			COALESCE(j.title, 'Interview'), COALESCE(c.name, 'Company'),
-			COALESCE(c.logo_url, '/images/companies/default.png'), i.title,
+			COALESCE(cp.logo_url, '/images/companies/default.png'), i.title,
 			i.status, i.scheduled_start, i.scheduled_end,
 			COALESCE(i.location_type, 'virtual'), COALESCE(i.meeting_link, ''),
 			COALESCE(i.notes, '')
 		FROM interviews i
 		LEFT JOIN jobs j ON i.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
+		LEFT JOIN company_profiles cp ON cp.company_id = c.id
 		WHERE i.candidate_id = $1
 		ORDER BY i.scheduled_start ASC
 	`
@@ -831,13 +835,14 @@ func (r *ApplicationsRepository) GetApplicationInterviews(ctx context.Context, c
 	query := `
 		SELECT 
 			i.id, i.application_id, COALESCE(j.title, 'Interview'),
-			COALESCE(c.name, 'Company'), COALESCE(c.logo_url, '/images/companies/default.png'),
+			COALESCE(c.name, 'Company'), COALESCE(cp.logo_url, '/images/companies/default.png'),
 			i.title, i.status, i.scheduled_start, i.scheduled_end,
 			COALESCE(i.location_type, 'virtual'), COALESCE(i.meeting_link, ''),
 			COALESCE(i.notes, '')
 		FROM interviews i
 		LEFT JOIN jobs j ON i.job_id = j.id
 		LEFT JOIN companies c ON j.company_id = c.id
+		LEFT JOIN company_profiles cp ON cp.company_id = c.id
 		WHERE i.application_id = $1 AND i.candidate_id = $2
 		ORDER BY i.scheduled_start ASC
 	`
