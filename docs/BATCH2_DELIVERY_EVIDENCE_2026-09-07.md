@@ -193,6 +193,58 @@ every request to the API host must sit under a single `/api/v1` and none may
 contain a doubled prefix, and no served script may embed the synthetic bearer
 UUID.
 
+### A defect the error propagation uncovered
+
+The saved-jobs acceptance check failed in CI with a 500, which was correct.
+
+Five queries in `applications_repository.go` selected
+`COALESCE(c.logo_url, …)` with `c` aliased to `companies`. That table has only
+`id`, `name`, `handle` and `created_at`; `logo_url` is on `company_profiles`.
+Every one of those queries had always failed at the database — the saved-jobs
+list, the application list, the application detail, and both interview lists.
+
+Nobody saw it because the same file returned an empty slice and a nil error on
+any query failure, so five broken reads rendered as "you have nothing here".
+Propagating the errors turned a silent wrong answer into a visible one, and the
+CI check into a real check. Each query now joins `company_profiles` with a LEFT
+join, so a company without a profile row still returns its posting with the
+default logo.
+
+This is the clearest evidence that F13 was worth closing: the fix for hidden
+errors immediately surfaced a defect that had been shipping.
+
+## CI results
+
+Run on `ad526b3`, all four required workflows green:
+
+| Workflow | Result |
+|---|---|
+| Real integration required checks | success |
+| Frontend required checks | success |
+| Backend Production CI/CD Pipeline | success |
+| Security required checks | success |
+
+Fail-closed gate counts, which reject any failure and any skip:
+
+| Report | pass / fail / skip |
+|---|---|
+| `integration.json` (includes the batch 2 boundary cases) | 25 / 0 / 0 |
+| `company.json` | 154 / 0 / 0 |
+| `migrations-behaviour.json` | 4 / 0 / 0 |
+
+The migration report confirms the concurrency case ran rather than skipping: the
+dedicated `kirmya_migrationtest` database is created for it, so both concurrent
+migrators executed and every version was recorded exactly once.
+
+Two CI failures were caused by this batch and fixed:
+
+1. Six tests returned 429 instead of 401, 201 or 403. The `/auth` group limits a
+   client IP to 5 requests per minute, and the new checks register and sign in
+   disposable accounts from one loopback address. The integration job was given
+   the allowance the browser job already had; both limiters still run, and
+   production defaults are unchanged.
+2. The saved-jobs 500 described above.
+
 ## Open items from this batch
 
 - **R02, access-token revocation after password reset.** `ResetPassword` revokes
