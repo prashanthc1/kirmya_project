@@ -28,7 +28,7 @@ that is recorded as "no" rather than softened.
 | # | Claim under test | Result | Evidence |
 |---|---|---|---|
 | 1 | Every `/admin/*` route requires an admin role | **Confirmed** | 241 routes × 4 non-admin roles, all 403; all 241 return 401 anonymously; all 3 admin roles reach all 241 |
-| 2 | Zero places trust client-supplied user IDs for authorization | **Not confirmed** | 79 sites in 31 modules still resolve identity from an unset context key — see §4.1 |
+| 2 | Zero places trust client-supplied user IDs for authorization | **Confirmed 7 Sep 2026** | Was: 79 sites in 31 modules resolving identity from an unset context key. Closed by delivery batch 2; the regression scan now reports 0 sites across 0 files — see §4.1 |
 | 3 | Billing is fully protected | **Confirmed** | Per-account routes 401 anonymously; `/admin/billing/*` 403 to non-admins; webhook signature-verified |
 | 4 | Password reset works and is rate limited | **Confirmed** | Full happy path end-to-end against a live database; both limiters observed firing |
 | 5 | The system starts cleanly | **Confirmed** | Boots against PostgreSQL, applies 394 tables, serves on :8080, shuts down gracefully, zero panics |
@@ -144,51 +144,68 @@ Observed against the running server and the database:
 
 ## 4. Residual risks
 
-### 4.1 — Identity resolution outside the modules Phase 1 touched · **HIGH**
+### 4.1 — Identity resolution outside the modules Phase 1 touched · **CLOSED 7 September 2026**
 
-**79 call sites across 31 modules** read the caller's identity from the gin context key `user_id`.
-Nothing sets that key: the authentication middleware publishes `userID`, holding a `uuid.UUID`.
-Every one of those reads therefore yields an empty value, and the handler falls through to a
-hardcoded or randomly generated UUID.
+Closed by [delivery batch 2](docs/BATCH2_DELIVERY_EVIDENCE_2026-09-07.md), commit `e84f1e3`. The
+regression scan in `test/security/phase1_boundaries_test.go` now reports **0 sites across 0 files**,
+and `knownBrokenIdentityFiles` is empty. The test remains, so a module that reintroduces the pattern
+fails by name.
 
-Largest concentrations: `endorsement` (7), `career_ai` (7), `event` (6), `career_companion` (6),
-`analytics` (6), `verification` (5), `learning` (5), `referral` (4), `interview` (4).
+**What it was.** Call sites across the codebase read the caller's identity from the gin context key
+`user_id`. Nothing sets that key: the authentication middleware publishes `userID`, holding a
+`uuid.UUID`. Every read therefore yielded an empty value and the handler fell through to a
+hardcoded or randomly generated UUID. The batch-2 sweep counted 68 such reads in 21 modules against
+this document's historical figure of 79 in 31; the two counts were taken with different patterns and
+at different times, and the scan's own before-figure was 32 files.
 
-**This is not an authentication bypass.** The affected routes still require a valid token and an
-anonymous caller is refused before the handler runs. The consequence is that authenticated callers
-are served, or write, data attributed to one synthetic identity rather than to themselves — a
-cross-tenant data-integrity failure, not an open door. Two shapes are worse than the rest:
+Consequences, as recorded here and confirmed during the fix:
 
-- `analytics` has no authentication on 5 of its 6 route groups *and* a fallback identity, so every
-  caller is served one synthetic user's metrics.
-- `interview` and `verification` fall back to `uuid.New()`, so they **write** rows attributed to a
-  freshly invented user on every request — and since the persistence migration those rows survive
-  restarts.
+- 29 sites fell back to a fixed UUID, so callers of those routes shared one account's data. Five
+  frontend clients sent that same UUID as a bearer token, which is where the value came from.
+- 43 sites fell back to `uuid.New()`, so `interview`, `verification` and others wrote rows
+  attributed to a freshly invented user on every request.
+- `cover_letter`, `interview_prep` and `job_alerts` had the same defect with a second synthetic
+  UUID, `…0001`, which this document had not recorded.
 
-A third shape is client-supplied rather than merely broken: `GET /endorsements/skills?user_id=<id>`
-takes the subject straight from the query string, falling back to the unset context key. The route
-is authenticated, and endorsements are profile-visible data rather than private, so this reads as
-low severity — but it is the literal pattern the task asked me to confirm was absent, and it is not.
+**The analytics finding was worse than described here.** This document said `analytics` had no
+authentication on 5 of its 6 route groups. The batch-2 check found *no authentication middleware at
+all* on `/analytics`, `/recruiter/analytics`, `/company/analytics`, `/communities/:id/analytics` and
+`/internal/analytics/events`; only `/admin/analytics` was guarded. An anonymous caller could read
+personal analytics and write a stored preference through `PUT /analytics/consent`. Authentication is
+now required on all of them, and recruiter and company analytics additionally verify organization
+membership against `company_members`, which had no check of any kind.
 
-**Why it was not fixed here.** Prompts 1–6 scoped identity work to mentorship. Closing the rest is
-~79 mechanical edits across 31 modules, and `analytics` additionally needs authentication added
-before its identity fix can work at all (swapping in the correct resolver without adding auth would
-turn every analytics endpoint into a 401). That is a distinct change with its own regression
-surface, not a verification step, and it is already planned as Workstreams 2–3 of the module-health
-plan.
+**The client-supplied subject** in `GET /endorsements/skills?user_id=<id>` is resolved rather than
+removed: the caller is always the verified identity, an explicit `?user_id=` names the public
+profile being read, its absence means the caller's own, and an unparseable subject is a 400 rather
+than a random UUID returning an empty list.
 
-**What guards it in the meantime.** `test/security/phase1_boundaries_test.go` pins the exact file
-list. A module that regresses fails the test by name; a module that is fixed fails it as a stale
-entry to remove. The count cannot grow quietly.
+Verified by anonymous, owner, foreign-user and foreign-organization cases in
+`backend/test/ci/batch2_boundaries_test.go`, which run against the real API and real PostgreSQL in
+the required integration job.
 
-### 4.2 — Access tokens survive a password reset · **MEDIUM**
+### 4.2 — Access tokens survive a password reset · **MEDIUM, still open**
 
 Resetting a password revokes every session row, which kills refresh tokens. Access tokens are
 stateless JWTs and nothing on the request path consults the session table, so one issued before the
 reset keeps working until it expires. The exposure is bounded at the 15-minute access-token
 lifetime rather than being open-ended. Closing it means checking revocation on every authenticated
 request — a change to the authentication architecture, not to the reset flow — so it is documented
-at the call site rather than half-implemented.
+at the call site rather than half-implemented. It remains open and needs a product decision on the
+latency and Redis dependency it would add.
+
+**A related defect found alongside it was fixed on 7 September 2026** (`62c8347`, `98c5c78`). The
+reset flow discarded the error from `RevokeAllUserSessions`, so a revocation failure still reported
+a successful reset — the user was told they were safe while an attacker's session stayed live. The
+password change and the revocation are now one transaction, so both land or neither does, and a
+failure is reported. Refresh-token reuse detection had the same swallow and told the caller "All
+user sessions revoked" regardless of the outcome; it now inspects the result, logs a failure, and
+records `REFRESH_TOKEN_REUSE_DETECTED_REVOCATION_FAILED` rather than the entry claiming success.
+
+Both halves are covered: a service-level test that the reset refuses to report success, checked as a
+negative control against the unfixed code, and a real-database test that the transaction rolls back
+when the revocation fails, using a trigger on `sessions` so the failure lands after the password
+update has already succeeded.
 
 ### 4.3 — Rate limiting is per-process and in-memory · **MEDIUM**
 

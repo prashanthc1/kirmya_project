@@ -255,17 +255,97 @@ Two CI failures were caused by this batch and fixed:
   `frontend/src`. If anonymous visitor telemetry is ever needed, it belongs on
   the existing `/telemetry/*` endpoints rather than here.
 
+
+## Follow-up: session revocation, 7 September 2026
+
+Delivered after the batch above, on the same day, in commits `62c8347` and
+`98c5c78`.
+
+### The defect
+
+Two call sites discarded the result of `RevokeAllUserSessions` with `_ =`.
+
+**Password reset.** The flow changed the password, attempted to revoke every
+session, discarded the outcome and reported success. A revocation failure
+therefore told the user their reset had worked while an attacker's session
+stayed live — a fail-open on the exact property a reset exists to deliver.
+
+**Refresh-token reuse detection.** Presenting a revoked refresh token triggers a
+revocation of every session for that user, and the caller was told
+`"All user sessions revoked"` regardless of whether it succeeded. The request was
+refused either way, but the message asserted containment that may not have
+happened, and nothing recorded that the containment step had failed.
+
+### The fix
+
+Checking the error alone would have left a worse state: the password would
+already be changed, sessions still live, and no way to undo it. So the two writes
+became one transaction, `AuthRepository.UpdatePasswordAndRevokeSessions`. Both
+land or neither does. On failure the reset is logged and returns an error telling
+the caller to request a new link, which is accurate — the reset token was already
+consumed, and neither the password nor the sessions changed.
+
+For reuse detection the revocation result is now inspected. On failure it is
+logged at error level, the audit entry becomes
+`REFRESH_TOKEN_REUSE_DETECTED_REVOCATION_FAILED` instead of the one claiming
+success, and the caller receives a message that does not assert sessions were
+revoked.
+
+### Interface extraction
+
+`AuthService` held a concrete `*repository.AuthRepository`, so there was no way
+to make the combined write fail, and the branch that refuses to report a
+successful reset went unverified. The first commit said so rather than implying
+coverage that did not exist.
+
+`authRepository` is now declared in the service package, at the consumer, with
+the nineteen methods `AuthService` actually calls.
+`*repository.AuthRepository` satisfies it, asserted at compile time with
+`var _ authRepository = (*repository.AuthRepository)(nil)`, so no call site
+changed and `NewAuthService` kept its signature.
+
+### Coverage, and how it was checked
+
+Two tests, because there were two untested halves.
+
+`TestResetReportsFailureWhenSessionsCannotBeRevoked` covers the caller. Its stub
+embeds the real repository and overrides only the combined write, so the reset
+runs its full course — token lookup, eligibility check, single-use consumption —
+and only that one write fails. It asserts the caller sees an error, that the
+message sends the user to a new link rather than back to a spent one, and that
+the old password still works.
+
+That test was checked as a negative control rather than assumed to work: with the
+failure branch disabled it fails with "a reset whose session revocation failed
+reported success", and passes with it restored.
+
+`TestPasswordResetRollsBackWhenRevocationFails` covers the transaction, which
+only a real database can show. It runs in the integration job, seeds a real
+session so the revoking `UPDATE` has a row to touch, installs a trigger on
+`sessions` that raises, and asserts the call fails, the password hash is
+unchanged and the original password still signs in. A trigger rather than a
+cancelled context, deliberately: a cancelled context could abort before the first
+statement and prove nothing, whereas the trigger can only fire after the password
+update has already succeeded — which is the state the rollback has to undo.
+Cleanup runs on its own context so a timed-out test still drops it; a leftover
+trigger would break every later session revocation.
+
+### CI
+
+All four required workflows green on `98c5c78`. The integration report went from
+25 to **26 / 0 / 0**, confirming the rollback test ran against real PostgreSQL
+rather than skipping.
+
 ## Open items from this batch
 
-- **R02, access-token revocation after password reset.** `ResetPassword` revokes
-  every session, but an already-issued access token is a stateless JWT and stays
-  valid for the remainder of its 15-minute lifetime, because nothing on the
-  request path consults revocation. Closing it means checking revocation on every
-  authenticated request — a change to the authentication architecture, and a
-  product decision about the latency and Redis dependency it adds. Not attempted
-  here. A smaller related defect was found and is also open: the reset flow
-  discards the error from `RevokeAllUserSessions`, so a failed revocation still
-  reports a successful reset.
+- **R02, access-token revocation after password reset — partly closed.** The
+  session-revocation half is fixed and is written up under "Follow-up: session
+  revocation" below. What remains open is the original R02: an already-issued
+  access token is a stateless JWT and stays valid for the remainder of its
+  15-minute lifetime, because nothing on the request path consults revocation.
+  Closing that means checking revocation on every authenticated request — a
+  change to the authentication architecture, and a product decision about the
+  latency and Redis dependency it adds. Not attempted.
 - **R05, required handler registration completeness.** Not implemented. The
   analytics module shows why it matters — `RegisterAnalyticsRoutes` substitutes
   no-op handlers when the handler is nil, so a missing dependency registers
