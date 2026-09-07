@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { getTheme } from '../theme';
 
@@ -199,7 +199,7 @@ describe('Job Applications & Candidate Pipeline Experience (Prompt 23/50)', () =
       expect(screen.getByRole('button', { name: /Withdraw/i })).toBeDefined();
     });
 
-    it('opens withdrawal dialog and triggers onWithdraw callback', () => {
+    it('opens withdrawal dialog and triggers onWithdraw callback', async () => {
       const mockWithdraw = vi.fn();
       renderWithTheme(<ApplicationDetails application={mockAppDetail} onWithdraw={mockWithdraw} />);
 
@@ -212,6 +212,7 @@ describe('Job Applications & Candidate Pipeline Experience (Prompt 23/50)', () =
       fireEvent.click(confirmBtn);
 
       expect(mockWithdraw).toHaveBeenCalledTimes(1);
+      await waitForElementToBeRemoved(() => document.querySelector('.MuiDialog-root'));
     });
   });
 

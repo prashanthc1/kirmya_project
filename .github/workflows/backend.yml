@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   backend-ci:
     name: Go Backend Quality, Vet & Docker Build

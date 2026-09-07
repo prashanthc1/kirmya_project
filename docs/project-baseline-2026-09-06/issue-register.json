@@ -373,8 +373,8 @@
     "id": "F11",
     "title": "Database-free CI is mistaken for full workflow validation",
     "priority": "P1",
-    "status": "open",
-    "evidence_class": "historical finding; source references supplied by September 5 audit",
+    "status": "verified",
+    "evidence_class": "test-verified on Step 2 CI harness; product browser failures remain open",
     "owner": "Platform and QA lead",
     "owner_assignment": "responsible role; individual not assigned",
     "workstream": "Release gates",
@@ -407,15 +407,19 @@
         "line": 48
       }
     ],
-    "acceptance_evidence": [],
+    "acceptance_evidence": [
+      "GitHub run 34034881371: PostgreSQL Redis HTTP integration and mandatory report negative controls passed on e461a11; the separately named built-frontend Playwright job failed and preserved 44 product/contract failures instead of claiming workflow success.",
+      "Disposable negative controls rejected invalid migration SQL and an HTTP fixture returning 200 for anonymous /api/v1/auth/me. Integration JSON recorded 4 dependency/HTTP tests and 154 company SQL tests passing with zero skips.",
+      "Local production migration runner applied and tracked 94 migrations, then reapplied zero on its repeat pass."
+    ],
     "related_issues": []
   },
   {
     "id": "F12",
     "title": "Security workflow deliberately suppresses scan failures",
     "priority": "P1",
-    "status": "open",
-    "evidence_class": "historical finding; source references supplied by September 5 audit",
+    "status": "verified",
+    "evidence_class": "test-verified fail-closed security harness",
     "owner": "Platform and QA lead",
     "owner_assignment": "responsible role; individual not assigned",
     "workstream": "Release gates",
@@ -440,7 +444,11 @@
         "line": 41
       }
     ],
-    "acceptance_evidence": [],
+    "acceptance_evidence": [
+      "GitHub run 34034881407 demonstrated the new gate failing when the govulncheck negative-control assumption was wrong; this exposed that govulncheck JSON mode reports reachable findings with exit 0.",
+      "The corrected structured JSON gate has unit fixtures for clean, informational, reachable, malformed, empty and truncated reports. npm and Trivy each rejected a deliberately vulnerable lodash 4.17.20 fixture; reports are uploaded on failure.",
+      "Versions are pinned: npm 11.13.0, govulncheck v1.7.0, Trivy v0.69.3, Playwright 1.63.0, Node 24.16.0 and immutable action commit SHAs. No vulnerability exceptions were added."
+    ],
     "related_issues": []
   },
   {
@@ -661,8 +669,8 @@
     "id": "F19",
     "title": "Frontend release check currently fails at linting",
     "priority": "P1",
-    "status": "open",
-    "evidence_class": "historical finding; source references supplied by September 5 audit",
+    "status": "in progress",
+    "evidence_class": "lint and build test-verified; required unit gate awaiting the sharded rerun",
     "owner": "Platform and QA lead",
     "owner_assignment": "responsible role; individual not assigned",
     "workstream": "Release gates",
@@ -691,7 +699,11 @@
         "line": 156
       }
     ],
-    "acceptance_evidence": [],
+    "acceptance_evidence": [
+      "GitHub run 34034881373 passed separate lint, typecheck and production build jobs on e461a11. The lint regression control reproduced the three historical no-restricted-syntax failures from ae1eea7 and verified all three corrected files.",
+      "Current ESLint result is 0 errors and 141 warnings. Warning counts remain visible by rule in the retained JSON report.",
+      "The first required unit job failed with a retained UNIT_STALL diagnostic naming ApplicationDashboard rendering after the withdrawal-dialog test; the order-dependent dialog cleanup was reproduced and fixed, and the two-test regression then passed in 30.07 seconds. Eight fail-closed shards await remote verification."
+    ],
     "related_issues": []
   },
   {

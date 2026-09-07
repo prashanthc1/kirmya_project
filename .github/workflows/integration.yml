@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
+
 jobs:
   integration:
     name: PostgreSQL Redis HTTP integration
@@ -204,7 +208,7 @@ jobs:
             frontend/package-lock.json
             package-lock.json
       - run: npm install --global npm@11.13.0
-      - run: mkdir -p artifacts && node --test scripts/ci/check-results.test.mjs 2>&1 | tee artifacts/report-controls.log
+      - run: mkdir -p artifacts && node --test scripts/ci/*.test.mjs 2>&1 | tee artifacts/report-controls.log
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

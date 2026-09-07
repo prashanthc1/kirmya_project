@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
+
 jobs:
   security:
     name: Security ${{ matrix.scanner }}
@@ -51,7 +55,9 @@ jobs:
         run: node scripts/ci/scanner-controls.mjs govulncheck
       - name: Reachable Go vulnerabilities gate
         if: matrix.scanner == 'govulncheck'
-        run: cd backend && govulncheck -json ./... > ../artifacts/govulncheck.json 2> ../artifacts/govulncheck.log
+        run: |
+          (cd backend && govulncheck -json ./... > ../artifacts/govulncheck.json 2> ../artifacts/govulncheck.log)
+          node scripts/ci/check-govulncheck.mjs artifacts/govulncheck.json
       - name: Trivy high and critical vulnerabilities and secrets gate
         if: matrix.scanner == 'trivy'
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8

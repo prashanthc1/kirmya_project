@@ -37,6 +37,8 @@ Each implementation change must include its acceptance evidence, affected audit 
 
 ## Step 2 — Make failures visible in development and CI
 
+**Delivery batch completed 7 September 2026:** the fail-closed harness is implemented and its initial runs are recorded in [Step 2 delivery evidence](STEP2_DELIVERY_EVIDENCE_2026-09-06.md). The harness applied and tracked all 94 migrations twice, verified PostgreSQL and Redis, exercised real HTTP persistence and authorization, reproduced the three historical lint failures, ran the built frontend against the real API, and rejected deliberately broken SQL, authorization, scanner and report fixtures. Browser and unit product checks exposed real failures and remain release blockers; completing this step does not make the release green.
+
 **Owner:** platform engineer with QA. **Dependencies:** step 1. **Findings:** F11, F12, F19.
 
 1. Reproduce and fix the three reported lint errors without disabling the rule. Triage remaining warnings by effect.

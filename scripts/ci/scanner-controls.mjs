@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { checkGovulncheck } from './check-govulncheck.mjs';
 
 const scanner = process.argv[2];
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kirmya-scanner-control-'));
@@ -27,8 +28,14 @@ try {
  } else { throw new Error('Unknown scanner'); }
  fs.writeFileSync(path.join(reportDir, `negative-${scanner}.json`),result.stdout || '');
  fs.writeFileSync(path.join(reportDir, `negative-${scanner}.log`),result.stderr || '');
- if (result.error || result.status !== 1 || !result.stdout.includes(marker)) throw new Error(`${scanner}: expected vulnerability exit 1 and diagnostic evidence, got ${result.status}`);
+ if (scanner === 'govulncheck') {
+  if (result.error || result.status !== 0) throw new Error('govulncheck fixture scan failed before analysis');
+  let rejected = false;
+  try { checkGovulncheck(result.stdout); } catch (error) { if (!error.message.includes('GOVULNCHECK_GATE')) throw error; rejected = true; }
+  if (!rejected) throw new Error('Go gate accepted a reachable vulnerable fixture');
+  console.log('govulncheck: JSON vulnerability gate rejected deliberately vulnerable fixture');
+ } else if (result.error || result.status !== 1 || !result.stdout.includes(marker)) throw new Error(`${scanner}: expected vulnerability exit 1 and diagnostic evidence, got ${result.status}`);
  // Parsing also rejects infrastructure output accidentally containing the marker.
  if (scanner !== 'govulncheck') JSON.parse(result.stdout);
- console.log(`${scanner}: deliberately vulnerable fixture rejected with exit 1`);
+ if (scanner !== 'govulncheck') console.log(`${scanner}: deliberately vulnerable fixture rejected with exit 1`);
 } finally { fs.rmSync(dir, {recursive:true, force:true}); }
