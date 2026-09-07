@@ -43,6 +43,17 @@ type Config struct {
 	RateLimitRequestsPerMinute float64
 	RateLimitBurst             float64
 
+	// AuthRateLimitRequestsPerMinute and AuthRateLimitBurst size the tighter
+	// bucket that sits on the /auth group alone. It stays deliberately far
+	// below the API-wide budget: credential endpoints are what gets sprayed.
+	// It is configurable for the same reason the API-wide one is — a browser
+	// test suite driving every project from one loopback address shares a
+	// single bucket and cannot fit inside the production allowance — and it
+	// defaults to that production allowance, so leaving both unset changes
+	// nothing.
+	AuthRateLimitRequestsPerMinute float64
+	AuthRateLimitBurst             float64
+
 	// MetricsUsername and MetricsPassword optionally put the Prometheus
 	// endpoint behind basic auth. Unset, it answers internal callers only.
 	MetricsUsername string
@@ -135,6 +146,9 @@ func LoadConfig() (*Config, error) {
 		// that without the user seeing a 429.
 		RateLimitRequestsPerMinute: getEnvAsFloat("RATE_LIMIT_REQUESTS", 600),
 		RateLimitBurst:             getEnvAsFloat("RATE_LIMIT_BURST", 120),
+
+		AuthRateLimitRequestsPerMinute: getEnvAsFloat("AUTH_RATE_LIMIT_REQUESTS", 5),
+		AuthRateLimitBurst:             getEnvAsFloat("AUTH_RATE_LIMIT_BURST", 5),
 
 		MetricsUsername: getEnv("METRICS_USERNAME", ""),
 		MetricsPassword: getEnv("METRICS_PASSWORD", ""),

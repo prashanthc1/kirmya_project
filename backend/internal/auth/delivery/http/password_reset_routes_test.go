@@ -44,8 +44,10 @@ func resetRouter(t *testing.T) *gin.Engine {
 	}
 
 	engine := gin.New()
+	// Zero for both takes the production /auth allowance, which is what these
+	// rate limit assertions are written against.
 	RegisterRoutes(engine.Group("/api/v1"), NewAuthHandler(svc),
-		authMiddlewarePkg.NewAuthMiddleware(svc))
+		authMiddlewarePkg.NewAuthMiddleware(svc), 0, 0)
 	return engine
 }
 

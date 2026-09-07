@@ -151,6 +151,14 @@ jobs:
       # covered by backend/internal/shared/middleware/rate_limit_test.go.
       RATE_LIMIT_REQUESTS: '60000'
       RATE_LIMIT_BURST: '12000'
+      # The /auth group carries a second, much tighter bucket: 5/min, burst 5.
+      # The app refreshes on every 401, so each anonymous visit to a protected
+      # page spends one token, and four browser projects visiting them share
+      # this single loopback bucket. Production defaults stay untouched; only
+      # this job raises them. The reset endpoints' own limiters are not
+      # configurable and are unaffected.
+      AUTH_RATE_LIMIT_REQUESTS: '60000'
+      AUTH_RATE_LIMIT_BURST: '12000'
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5

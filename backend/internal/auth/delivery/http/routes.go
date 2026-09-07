@@ -6,9 +6,29 @@ import (
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *AuthHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+// defaultGroupRequestsPerMinute and defaultGroupBurst are the production
+// allowance for the whole /auth group. Callers pass zero to take them.
+const (
+	defaultGroupRequestsPerMinute = 5.0
+	defaultGroupBurst             = 5.0
+)
+
+// RegisterRoutes mounts the credential endpoints. groupRequestsPerMinute and
+// groupBurst size the group's per-IP bucket; zero for either takes the
+// production default above. They exist so a browser test suite, which drives
+// every project from one loopback address and therefore shares a single
+// bucket, can be given room without the limiter being removed. The reset
+// endpoints' own limiters below are not configurable: nothing legitimate
+// needs to exceed them.
+func RegisterRoutes(api *gin.RouterGroup, handler *AuthHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware, groupRequestsPerMinute, groupBurst float64) {
+	if groupRequestsPerMinute <= 0 {
+		groupRequestsPerMinute = defaultGroupRequestsPerMinute
+	}
+	if groupBurst <= 0 {
+		groupBurst = defaultGroupBurst
+	}
 	authGroup := api.Group("/auth")
-	authGroup.Use(sharedMiddleware.RateLimiter(5.0/60.0, 5.0))
+	authGroup.Use(sharedMiddleware.RateLimiter(groupRequestsPerMinute/60.0, groupBurst))
 	{
 		authGroup.POST("/register", handler.Register)
 		authGroup.POST("/login", handler.Login)
