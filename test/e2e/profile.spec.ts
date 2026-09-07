@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { settled } from './helpers';
 
 // GET /api/v1/profile/me is registered under AuthRequired
 // (backend/internal/profile/delivery/http/routes.go). The page has no route
@@ -17,7 +18,7 @@ test.describe('User Profile Flow', () => {
 
     expect((await profile).status()).toBe(401);
 
-    await expect(page.getByRole('heading', { name: 'Unable to load profile' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Unable to load profile' }));
     await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
   });
 

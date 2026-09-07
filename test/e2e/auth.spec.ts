@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
+import { settled } from './helpers';
 
 // Every assertion below is anchored to markup that exists in
 // frontend/src/components/auth and frontend/src/app/{signin,register,forgot-password,reset-password}.
 // Client-side validation only: no account is created, so the CI database stays
 // empty and these stay deterministic across reruns.
 //
-// Pages are identified by their <h1>, never by the AuthHeader subtitle. The
-// subtitle is a plain <p> that Chromium briefly sees twice while the page
-// hydrates, which trips Playwright's strict mode; the heading is unambiguous
-// and the validation assertions below are what actually exercise behaviour.
+// Each page is identified by its <h1> through settled(), which also waits out
+// the hydration double-mount described in helpers.ts before anything is
+// clicked or filled.
 
 test.describe('Authentication & User Identity Flow', () => {
   test('Sign in page renders and rejects a malformed email', async ({ page }) => {
     await page.goto('/signin');
 
-    await expect(page.getByRole('heading', { name: 'Sign In to Kirmya' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Sign In to Kirmya' }));
 
     // Empty submit surfaces the required-field messages from signInSchema.
     await page.locator('button[type="submit"]').click();
@@ -29,7 +29,7 @@ test.describe('Authentication & User Identity Flow', () => {
   test('Registration form enforces its schema before calling the API', async ({ page }) => {
     await page.goto('/register');
 
-    await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Create your account' }));
 
     await page.locator('button[type="submit"]').click();
     await expect(page.getByText('First name is required')).toBeVisible();
@@ -51,7 +51,7 @@ test.describe('Authentication & User Identity Flow', () => {
   test('Forgot password rejects a malformed address before sending', async ({ page }) => {
     await page.goto('/forgot-password');
 
-    await expect(page.getByRole('heading', { name: 'Forgot Password' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Forgot Password' }));
 
     await page.getByRole('textbox', { name: 'Email Address' }).fill('not-an-address');
     await page.getByRole('button', { name: 'Send Reset Link' }).click();
@@ -63,10 +63,10 @@ test.describe('Authentication & User Identity Flow', () => {
     // No token in the query string: the page must say so rather than render a form
     // that would post an empty token.
     await page.goto('/reset-password');
-    await expect(page.getByRole('heading', { name: 'Reset link is incomplete' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Reset link is incomplete' }));
 
     await page.goto('/reset-password?token=ci-placeholder-token');
-    await expect(page.getByRole('heading', { name: 'Reset Password' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Reset Password' }));
 
     await page.getByLabel('New Password (min 12 characters)').fill('short');
     await page.getByLabel('Confirm New Password').fill('short');

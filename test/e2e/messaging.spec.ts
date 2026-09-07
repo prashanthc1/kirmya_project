@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { settled } from './helpers';
 
 // /messaging is a redirect stub (frontend/src/app/messaging/page.tsx) onto
 // /messages. The conversation endpoints sit behind AuthRequired
@@ -10,7 +11,7 @@ test.describe('Messaging Shell & Anonymous Access', () => {
   test('Legacy /messaging path redirects to /messages', async ({ page }) => {
     await page.goto('/messaging');
     await expect(page).toHaveURL(/\/messages$/);
-    await expect(page.getByRole('heading', { name: 'Messages' })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Messages' }));
   });
 
   test('Anonymous conversation load is refused by the real API', async ({ page }) => {
@@ -28,6 +29,6 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     // Nothing loaded, so the list stays empty. Asserted on the list pane rather
     // than the reading pane: the reading pane is display:none on mobile widths
     // while no conversation is selected.
-    await expect(page.getByText('No conversations yet')).toBeVisible();
+    await settled(page.getByText('No conversations yet'));
   });
 });

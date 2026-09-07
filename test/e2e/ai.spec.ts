@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { settled } from './helpers';
 
 // The assistant lives at /career-assistant (frontend/src/app/career-assistant),
 // not the /career-ai route the previous version of this spec invented. The page
@@ -9,9 +10,7 @@ test.describe('AI Career Assistant Studio', () => {
   test('Studio renders its tools and keeps inputs editable', async ({ page }) => {
     await page.goto('/career-assistant');
 
-    await expect(
-      page.getByRole('heading', { name: 'AI-Ready Career Assistant Studio' })
-    ).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'AI-Ready Career Assistant Studio' }));
 
     for (const label of [
       'Career Trajectory',
@@ -24,7 +23,7 @@ test.describe('AI Career Assistant Studio', () => {
     }
 
     const currentRole = page.getByLabel('Current Role');
-    await expect(currentRole).toBeVisible();
+    await settled(currentRole);
     await currentRole.fill('Backend Engineer');
     await expect(currentRole).toHaveValue('Backend Engineer');
 
@@ -33,9 +32,7 @@ test.describe('AI Career Assistant Studio', () => {
 
   test('Switching tabs swaps the input and its action', async ({ page }) => {
     await page.goto('/career-assistant');
-    await expect(
-      page.getByRole('heading', { name: 'AI-Ready Career Assistant Studio' })
-    ).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'AI-Ready Career Assistant Studio' }));
 
     await page.getByRole('tab', { name: 'Resume Critique' }).click();
     await expect(page.getByLabel('Paste Resume Text for AI Critique')).toBeVisible();

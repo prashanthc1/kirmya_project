@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { settled } from './helpers';
 
 // /jobs is a public route backed by the public GET /api/v1/jobs endpoint
 // (backend/internal/jobs/delivery/http/routes.go registers it with no auth
@@ -15,7 +16,7 @@ test.describe('Job Search & Discovery Flow', () => {
     );
     await page.goto('/jobs');
 
-    await expect(page.getByRole('heading', { name: 'Explore Opportunities', level: 1 })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Explore Opportunities', level: 1 }));
     expect((await listing).status()).toBe(200);
 
     // The migrated-but-unseeded CI database has no postings; an error state here
@@ -26,7 +27,7 @@ test.describe('Job Search & Discovery Flow', () => {
 
   test('Search filters push their criteria into the URL', async ({ page }) => {
     await page.goto('/jobs');
-    await expect(page.getByRole('heading', { name: 'Explore Opportunities', level: 1 })).toBeVisible();
+    await settled(page.getByRole('heading', { name: 'Explore Opportunities', level: 1 }));
 
     await page.getByLabel('Search jobs by title or keyword').fill('backend engineer');
     await page.getByLabel('Filter by location').fill('Remote');
