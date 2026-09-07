@@ -439,3 +439,47 @@ var (
 	_ swagger.ErrorResponse
 )
 
+// swaggerLegalAcceptDocument documents POST /api/v1/legal/documents/{slug}/accept
+//
+// @Summary      Accept a legal document version
+// @Description  Records the caller's acceptance of a published document version
+// @Tags         Legal & Compliance
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        slug     path      string                    true  "Document slug"
+// @Param        request  body      models.AcceptDocumentRequest  true  "Accepted version"
+// @Success      201      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse
+// @Failure      401      {object}  swagger.ErrorResponse
+// @Router       /api/v1/legal/documents/{slug}/accept [post]
+func swaggerLegalAcceptDocument() {}
+
+// swaggerPrivacyCancelExport documents POST /api/v1/privacy/export/{id}/cancel
+//
+// @Summary      Cancel a data export job
+// @Description  Cancels the caller's own export job while it is still pending
+// @Tags         Legal & Compliance
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Export job ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      409  {object}  swagger.ErrorResponse
+// @Router       /api/v1/privacy/export/{id}/cancel [post]
+func swaggerPrivacyCancelExport() {}
+
+// swaggerPrivacyDownloadExport documents GET /api/v1/privacy/export/{id}/download
+//
+// @Summary      Download a completed data export
+// @Description  Streams the caller's own export payload until it expires
+// @Tags         Legal & Compliance
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "Export job ID"
+// @Success      200  {string}  string  "Export payload"
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Router       /api/v1/privacy/export/{id}/download [get]
+func swaggerPrivacyDownloadExport() {}

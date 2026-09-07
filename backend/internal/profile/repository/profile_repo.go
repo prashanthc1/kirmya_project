@@ -88,11 +88,23 @@ func (r *ProfileRepository) GetByUsername(ctx context.Context, username string) 
 		return nil, nil
 	}
 	var userID uuid.UUID
-	err := r.db.QueryRow(ctx, "SELECT user_id FROM user_profiles WHERE username = $1", username).Scan(&userID)
+	err := r.db.QueryRow(ctx, `SELECT up.user_id FROM user_profiles up LEFT JOIN privacy_preferences pp ON pp.user_id=up.user_id WHERE up.username=$1 AND NOT up.is_private AND lower(COALESCE(pp.profile_visibility,'public'))='public'`, username).Scan(&userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
+		return nil, err
+	}
+	return r.GetByUserID(ctx, userID)
+}
+
+func (r *ProfileRepository) GetPublicByUserID(ctx context.Context, userID uuid.UUID) (*models.UserProfile, error) {
+	if r.db == nil {
+		return nil, nil
+	}
+	var visible bool
+	err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM user_profiles up LEFT JOIN privacy_preferences pp ON pp.user_id=up.user_id WHERE up.user_id=$1 AND NOT up.is_private AND lower(COALESCE(pp.profile_visibility,'public'))='public')`, userID).Scan(&visible)
+	if err != nil || !visible {
 		return nil, err
 	}
 	return r.GetByUserID(ctx, userID)

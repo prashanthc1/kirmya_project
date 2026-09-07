@@ -63,7 +63,7 @@ func (e *PostgreSQLCandidateSearchEngine) SearchCandidates(ctx context.Context, 
 	if e.db != nil {
 		offset := (page - 1) * limit
 		querySQL := `
-			SELECT p.id, u.id,
+			SELECT u.id, u.id,
 			       COALESCE(u.first_name || ' ' || u.last_name, u.email) as name,
 			       COALESCE(p.headline, 'Professional') as headline,
 			       COALESCE(p.current_position, '') as current_position,
@@ -73,9 +73,12 @@ func (e *PostgreSQLCandidateSearchEngine) SearchCandidates(ctx context.Context, 
 			       COALESCE(p.open_to_work, true) as open_to_work
 			FROM users u
 			LEFT JOIN user_profiles p ON u.id = p.user_id
+			LEFT JOIN privacy_preferences pp ON pp.user_id = u.id
 			WHERE u.status = 'active'
 			  AND (p.is_restricted IS NULL OR p.is_restricted = false)
 			  AND (p.is_private IS NULL OR p.is_private = false)
+			  AND COALESCE(pp.discover_in_search,true)=true
+			  AND COALESCE(pp.recruiter_discoverable,true)=true
 			  AND (
 			      $1 = ''
 			      OR lower(u.first_name || ' ' || u.last_name) LIKE '%' || lower($1) || '%'
@@ -91,33 +94,37 @@ func (e *PostgreSQLCandidateSearchEngine) SearchCandidates(ctx context.Context, 
 			var candidates []domain.CandidateSearchResultItem
 			for rows.Next() {
 				var c domain.CandidateSearchResultItem
+				// A scan error used to drop the row silently, which reads as a
+				// candidate who does not match rather than as a failure. Privacy
+				// filtering decides who is visible here, so a row that cannot be
+				// read has to surface instead of disappearing.
 				if err := rows.Scan(
 					&c.ID, &c.UserID, &c.Name, &c.Headline, &c.CurrentPosition,
 					&c.Location, &c.ProfileCompletion, &c.Availability, &c.OpenToWork,
-				); err == nil {
-					c.Skills = []string{"Golang", "PostgreSQL", "React"}
-					c.AIMatch = domain.AIMatchBreakdown{
-						OverallScore:           92,
-						MatchingSkills:         []string{"Golang", "PostgreSQL"},
-						ExperienceAlignment:    "High alignment",
-						LocationCompatibility: "Match",
-						SummaryNote:            "Strong potential candidate",
-					}
-					candidates = append(candidates, c)
+				); err != nil {
+					return nil, err
 				}
+				c.Skills = []string{"Golang", "PostgreSQL", "React"}
+				c.AIMatch = domain.AIMatchBreakdown{
+					OverallScore:          92,
+					MatchingSkills:        []string{"Golang", "PostgreSQL"},
+					ExperienceAlignment:   "High alignment",
+					LocationCompatibility: "Match",
+					SummaryNote:           "Strong potential candidate",
+				}
+				candidates = append(candidates, c)
 			}
-			if len(candidates) > 0 {
-				return &domain.CandidateSearchResponse{
-					Query:        q.Query,
-					TotalResults: len(candidates),
-					Page:         page,
-					Limit:        limit,
-					EngineUsed:   e.EngineName(),
-					Candidates:   candidates,
-					Facets:       facets,
-				}, nil
-			}
+			return &domain.CandidateSearchResponse{
+				Query:        q.Query,
+				TotalResults: len(candidates),
+				Page:         page,
+				Limit:        limit,
+				EngineUsed:   e.EngineName(),
+				Candidates:   candidates,
+				Facets:       facets,
+			}, rows.Err()
 		}
+		return nil, err
 	}
 
 	// Mock candidates fallback for testing and development
@@ -134,13 +141,13 @@ func (e *PostgreSQLCandidateSearchEngine) SearchCandidates(ctx context.Context, 
 			Skills:            []string{"Golang", "React", "TypeScript", "PostgreSQL", "Docker", "Kubernetes", "gRPC"},
 			ProfileCompletion: 98,
 			AIMatch: domain.AIMatchBreakdown{
-				OverallScore:           96,
-				MatchingSkills:         []string{"Golang", "PostgreSQL", "Docker", "REST API"},
-				MissingSkills:          []string{"Kafka"},
-				ExperienceAlignment:    "High alignment (8+ years senior leadership)",
+				OverallScore:          96,
+				MatchingSkills:        []string{"Golang", "PostgreSQL", "Docker", "REST API"},
+				MissingSkills:         []string{"Kafka"},
+				ExperienceAlignment:   "High alignment (8+ years senior leadership)",
 				LocationCompatibility: "100% Match (Based in Dubai)",
-				SalaryAlignment:        "Within Target Budget Range",
-				SummaryNote:            "Top 1% match for Senior Cloud & Go Microservices positions.",
+				SalaryAlignment:       "Within Target Budget Range",
+				SummaryNote:           "Top 1% match for Senior Cloud & Go Microservices positions.",
 			},
 			Availability:    "Immediate (Layoff Support)",
 			OpenToWork:      true,
@@ -164,13 +171,13 @@ func (e *PostgreSQLCandidateSearchEngine) SearchCandidates(ctx context.Context, 
 			Skills:            []string{"Facilities Management", "HVAC", "SLA Auditing", "Vendor Management", "Budgeting"},
 			ProfileCompletion: 94,
 			AIMatch: domain.AIMatchBreakdown{
-				OverallScore:           94,
-				MatchingSkills:         []string{"Facilities Management", "SLA Auditing", "Vendor Management"},
-				MissingSkills:          []string{"LEED AP"},
-				ExperienceAlignment:    "Direct match (12 years director level)",
+				OverallScore:          94,
+				MatchingSkills:        []string{"Facilities Management", "SLA Auditing", "Vendor Management"},
+				MissingSkills:         []string{"LEED AP"},
+				ExperienceAlignment:   "Direct match (12 years director level)",
 				LocationCompatibility: "UAE Native (Relocation Available)",
-				SalaryAlignment:        "Aligned",
-				SummaryNote:            "Strong operational track record managing enterprise real estate assets.",
+				SalaryAlignment:       "Aligned",
+				SummaryNote:           "Strong operational track record managing enterprise real estate assets.",
 			},
 			Availability:    "2 Weeks Notice",
 			OpenToWork:      true,
@@ -194,13 +201,13 @@ func (e *PostgreSQLCandidateSearchEngine) SearchCandidates(ctx context.Context, 
 			Skills:            []string{"Python", "PyTorch", "Transformers", "LLMs", "Golang", "Vector DBs"},
 			ProfileCompletion: 92,
 			AIMatch: domain.AIMatchBreakdown{
-				OverallScore:           91,
-				MatchingSkills:         []string{"Python", "PyTorch", "LLMs", "Vector DBs"},
-				MissingSkills:          []string{"C++"},
-				ExperienceAlignment:    "6 years deep learning experience",
+				OverallScore:          91,
+				MatchingSkills:        []string{"Python", "PyTorch", "LLMs", "Vector DBs"},
+				MissingSkills:         []string{"C++"},
+				ExperienceAlignment:   "6 years deep learning experience",
 				LocationCompatibility: "Hybrid Dubai",
-				SalaryAlignment:        "Negotiable",
-				SummaryNote:            "Exemplary background in LLM fine-tuning and retrieval-augmented generation.",
+				SalaryAlignment:       "Negotiable",
+				SummaryNote:           "Exemplary background in LLM fine-tuning and retrieval-augmented generation.",
 			},
 			Availability:    "1 Month Notice",
 			OpenToWork:      true,

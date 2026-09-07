@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -694,7 +694,12 @@ func (r *AnalyticsRepository) UpdateUserConsent(ctx context.Context, consent *mo
 				personalization_enabled = EXCLUDED.personalization_enabled,
 				updated_at = NOW()
 		`
-		_, _ = r.pool.Exec(ctx, query, consent.UserID, consent.EssentialTelemetryEnabled, consent.OptionalAnalyticsEnabled, consent.PersonalizationEnabled)
+		if _, err := r.pool.Exec(ctx, query, consent.UserID, consent.EssentialTelemetryEnabled, consent.OptionalAnalyticsEnabled, consent.PersonalizationEnabled); err != nil {
+			return nil, err
+		}
+		if _, err := r.pool.Exec(ctx, `INSERT INTO privacy_preferences(user_id,analytics_consent,search_personalization) VALUES($1,$2,$3) ON CONFLICT(user_id) DO UPDATE SET analytics_consent=EXCLUDED.analytics_consent,search_personalization=EXCLUDED.search_personalization,updated_at=NOW()`, consent.UserID, consent.OptionalAnalyticsEnabled, consent.PersonalizationEnabled); err != nil {
+			return nil, err
+		}
 	}
 
 	return consent, nil

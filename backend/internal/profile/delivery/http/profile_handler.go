@@ -144,8 +144,8 @@ func (h *ProfileHandler) GetPublicProfile(c *gin.Context) {
 	}
 
 	if uid, err := uuid.Parse(param); err == nil {
-		p, err := h.service.GetOrCreateProfile(c.Request.Context(), uid)
-		if err != nil {
+		p, err := h.service.GetPublicProfileByUserID(c.Request.Context(), uid)
+		if err != nil || p == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
 			return
 		}
@@ -921,4 +921,3 @@ func (h *ProfileHandler) GetAnalytics(c *gin.Context) {
 
 // File helper type for multipart header
 var _ = (*multipart.FileHeader)(nil)
-

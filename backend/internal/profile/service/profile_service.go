@@ -115,6 +115,10 @@ func (s *ProfileService) GetProfileByUsername(ctx context.Context, username stri
 	return p, nil
 }
 
+func (s *ProfileService) GetPublicProfileByUserID(ctx context.Context, userID uuid.UUID) (*models.UserProfile, error) {
+	return s.repo.GetPublicByUserID(ctx, userID)
+}
+
 func (s *ProfileService) CalculateAndUpdateCompletion(ctx context.Context, profileID uuid.UUID, userID uuid.UUID) (int, error) {
 	p, err := s.GetOrCreateProfile(ctx, userID)
 	if err != nil {
@@ -1006,4 +1010,3 @@ func (s *ProfileService) GetAnalytics(ctx context.Context, userID uuid.UUID) (*m
 		ConnectionRequests: 0,
 	}, nil
 }
-

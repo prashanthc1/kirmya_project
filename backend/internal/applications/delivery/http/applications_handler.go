@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -87,7 +86,7 @@ func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
 			c.JSON(http.StatusConflict, gin.H{"error": "You have already applied to this job"})
 			return
 		}
-		if strings.Contains(err.Error(), "no longer accepting") || strings.Contains(err.Error(), "expired") || strings.Contains(err.Error(), "not found") {
+		if strings.Contains(err.Error(), "no longer accepting") || strings.Contains(err.Error(), "expired") || strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "required screening") || strings.Contains(err.Error(), "resume attachment") || strings.Contains(err.Error(), "external resume") {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -405,29 +404,48 @@ func (h *ApplicationsHandler) UploadDocument(c *gin.Context) {
 	if !ok {
 		return
 	}
-	var payload struct {
-		Title        string `json:"title"`
-		DocumentType string `json:"document_type"`
-		FileURL      string `json:"file_url"`
-		IsDefault    bool   `json:"is_default"`
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20)
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "multipart PDF field 'file' is required"})
+		return
 	}
-	if err := c.ShouldBindJSON(&payload); err != nil {
+	defer file.Close()
+	content, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read document"})
+		return
+	}
+	isDefault := strings.EqualFold(c.PostForm("is_default"), "true")
+	doc, err := h.svc.UploadDocument(c.Request.Context(), candID, c.PostForm("title"), c.PostForm("document_type"), header.Filename, header.Header.Get("Content-Type"), isDefault, content)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	doc := models.CandidateDocument{
-		ID:           uuid.New(),
-		CandidateID:  candID,
-		Title:        payload.Title,
-		DocumentType: payload.DocumentType,
-		FileURL:      payload.FileURL,
-		SizeBytes:    1048576,
-		FileType:     "application/pdf",
-		IsDefault:    payload.IsDefault,
-		UploadedAt:   time.Now(),
-	}
 	c.JSON(http.StatusCreated, doc)
+}
+
+func (h *ApplicationsHandler) DownloadDocument(c *gin.Context) {
+	candID, ok := h.getCandidateID(c)
+	if !ok {
+		return
+	}
+	docID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid document ID"})
+		return
+	}
+	doc, content, err := h.svc.DownloadDocument(c.Request.Context(), candID, docID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Document not found"})
+		return
+	}
+	name := strings.ReplaceAll(doc.OriginalName, "\"", "")
+	if name == "" {
+		name = "document.pdf"
+	}
+	c.Header("Content-Disposition", "attachment; filename=\""+name+"\"")
+	c.Data(http.StatusOK, "application/pdf", content)
 }
 
 // DELETE /api/v1/documents/:id

@@ -1,13 +1,22 @@
 package http
 
 import (
-	"net/http"
+	"errors"
 	"kirmya/internal/ai/models"
 	"kirmya/internal/ai/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+func writeAIError(c *gin.Context, err error) {
+	if errors.Is(err, service.ErrAIConsentRequired) {
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+}
 
 type AIHandler struct {
 	service *service.AIService
@@ -72,7 +81,7 @@ func (h *AIHandler) AnalyzeResume(c *gin.Context) {
 
 	result, err := h.service.AnalyzeResume(c.Request.Context(), userID, payload.ResumeText)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeAIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -93,7 +102,7 @@ func (h *AIHandler) AnalyzeSkillGap(c *gin.Context) {
 
 	result, err := h.service.AnalyzeSkillGap(c.Request.Context(), userID, payload.UserSkills, payload.TargetRole)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeAIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -114,7 +123,7 @@ func (h *AIHandler) MatchJob(c *gin.Context) {
 
 	result, err := h.service.MatchJob(c.Request.Context(), userID, payload.ResumeText, payload.JobDescription)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeAIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -135,7 +144,7 @@ func (h *AIHandler) PrepareInterview(c *gin.Context) {
 
 	result, err := h.service.PrepareInterview(c.Request.Context(), userID, payload.TargetRole, payload.ExperienceLevel)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeAIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -156,7 +165,7 @@ func (h *AIHandler) SuggestCareer(c *gin.Context) {
 
 	result, err := h.service.SuggestCareer(c.Request.Context(), userID, payload.Interests, payload.Skills)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeAIError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, result)

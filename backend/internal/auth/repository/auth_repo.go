@@ -14,6 +14,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// ErrUserNotFound reports a lookup that found nothing, as opposed to a lookup
+// that failed. Registration has to tell those apart: treating a failed lookup as
+// "no such user" made a database timeout surface to the caller as a rejected
+// registration rather than a server fault.
+var ErrUserNotFound = errors.New("user not found")
+
 // ErrPasswordResetAlreadyUsed is returned when a reset token is redeemed a
 // second time, including when two requests race on the same link.
 var ErrPasswordResetAlreadyUsed = errors.New("this password reset link has already been used")
@@ -103,7 +109,7 @@ func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 		)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				return nil, errors.New("user not found")
+				return nil, ErrUserNotFound
 			}
 			return nil, err
 		}
@@ -117,7 +123,7 @@ func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 		uCopy := *u
 		return &uCopy, nil
 	}
-	return nil, errors.New("user not found")
+	return nil, ErrUserNotFound
 }
 
 func (r *AuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
@@ -132,7 +138,7 @@ func (r *AuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models
 		)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				return nil, errors.New("user not found")
+				return nil, ErrUserNotFound
 			}
 			return nil, err
 		}
@@ -148,7 +154,7 @@ func (r *AuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models
 			return &uCopy, nil
 		}
 	}
-	return nil, errors.New("user not found")
+	return nil, ErrUserNotFound
 }
 
 func (r *AuthRepository) UpdateUser(ctx context.Context, u *models.User) error {
@@ -168,7 +174,7 @@ func (r *AuthRepository) UpdateUser(ctx context.Context, u *models.User) error {
 			return err
 		}
 		if ct.RowsAffected() == 0 {
-			return errors.New("user not found")
+			return ErrUserNotFound
 		}
 		return nil
 	}
@@ -179,7 +185,7 @@ func (r *AuthRepository) UpdateUser(ctx context.Context, u *models.User) error {
 		r.memUsers[u.Email] = u
 		return nil
 	}
-	return errors.New("user not found")
+	return ErrUserNotFound
 }
 
 func (r *AuthRepository) UpdateUserEmailVerified(ctx context.Context, id uuid.UUID) error {

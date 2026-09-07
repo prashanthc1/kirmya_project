@@ -790,3 +790,18 @@ var (
 	_ models.CandidateEvaluationPayload
 	_ swagger.ErrorResponse
 )
+
+// swaggerCancelInterview documents PUT /api/v1/recruiter/interviews/{id}/cancel.
+//
+// @Summary      Cancel a scheduled interview
+// @Description  Cancels an interview the calling recruiter organised. The candidate sees the cancellation on their application.
+// @Tags         Applications
+// @Produce      json
+// @Param        id  path  string  true  "Interview id"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse  "Interview not found or not organised by the caller"
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/interviews/{id}/cancel [put]
+func swaggerCancelInterview() {}

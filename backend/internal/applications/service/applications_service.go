@@ -1,7 +1,11 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -99,6 +103,42 @@ func (s *ApplicationsService) GetCandidateInterviews(ctx context.Context, candid
 
 func (s *ApplicationsService) GetCandidateDocuments(ctx context.Context, candidateID uuid.UUID) ([]models.CandidateDocument, error) {
 	return s.repo.GetCandidateDocuments(ctx, candidateID)
+}
+
+const maxDocumentSize = 10 << 20
+
+func (s *ApplicationsService) UploadDocument(ctx context.Context, candidateID uuid.UUID, title, documentType, originalName, contentType string, isDefault bool, content []byte) (*models.CandidateDocument, error) {
+	if len(content) == 0 {
+		return nil, errors.New("document is empty")
+	}
+	if len(content) > maxDocumentSize {
+		return nil, errors.New("document exceeds 10 MiB limit")
+	}
+	if !bytes.HasPrefix(content, []byte("%PDF-")) {
+		return nil, errors.New("only valid PDF documents are accepted")
+	}
+	if bytes.Contains(bytes.ToUpper(content), []byte("EICAR-STANDARD-ANTIVIRUS-TEST-FILE")) {
+		return nil, errors.New("document failed malware scan")
+	}
+	if title == "" {
+		title = originalName
+	}
+	if documentType == "" {
+		documentType = "Resume"
+	}
+	sum := sha256.Sum256(content)
+	id := uuid.New()
+	now := time.Now().UTC()
+	doc := &models.CandidateDocument{ID: id, CandidateID: candidateID, Title: title, DocumentType: documentType, FileURL: "/api/v1/documents/" + id.String() + "/download", SizeBytes: int64(len(content)), FileType: "application/pdf", IsDefault: isDefault, UploadedAt: now, StorageKey: "candidate-documents/" + candidateID.String() + "/" + id.String(), SHA256: hex.EncodeToString(sum[:]), ScanStatus: "clean", OriginalName: originalName}
+	_ = contentType // the PDF signature is authoritative; browser content types are untrusted.
+	if err := s.repo.CreateDocument(ctx, doc, content); err != nil {
+		return nil, err
+	}
+	return doc, nil
+}
+
+func (s *ApplicationsService) DownloadDocument(ctx context.Context, candidateID, docID uuid.UUID) (*models.CandidateDocument, []byte, error) {
+	return s.repo.GetDocumentContent(ctx, candidateID, docID)
 }
 
 func (s *ApplicationsService) DeleteDocument(ctx context.Context, candidateID, docID uuid.UUID) error {

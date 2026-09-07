@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"kirmya/internal/recruiter/models"
 	"strings"
 	"time"
@@ -19,6 +20,167 @@ type RecruiterRepository struct {
 
 func NewRecruiterRepository(db *pgxpool.Pool) *RecruiterRepository {
 	return &RecruiterRepository{db: db}
+}
+
+func (r *RecruiterRepository) GetOwnedApplications(ctx context.Context, recruiterID uuid.UUID, jobID, stage string) ([]models.JobApplicationDTO, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter applications require PostgreSQL")
+	}
+	rows, err := r.db.Query(ctx, `SELECT a.id,a.job_id,j.title,a.candidate_id,COALESCE(a.contact_name,u.first_name||' '||u.last_name),COALESCE(a.contact_email,u.email),COALESCE(p.job_title,''),COALESCE(p.location,''),a.current_stage,COALESCE(a.recruiter_id,$1),COALESCE(a.rating,0),COALESCE(a.cover_letter,''),COALESCE(a.resume_url,''),a.applied_at,a.updated_at FROM job_applications a JOIN jobs j ON j.id=a.job_id JOIN users u ON u.id=a.candidate_id LEFT JOIN profiles p ON p.user_id=u.id WHERE j.recruiter_id=$1 AND ($2='' OR j.id::text=$2) AND ($3='' OR a.current_stage=$3) ORDER BY a.applied_at DESC`, recruiterID, jobID, stage)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := make([]models.JobApplicationDTO, 0)
+	for rows.Next() {
+		var v models.JobApplicationDTO
+		if err := rows.Scan(&v.ID, &v.JobID, &v.JobTitle, &v.CandidateID, &v.CandidateName, &v.CandidateEmail, &v.CandidateHeadline, &v.CandidateLocation, &v.CurrentStage, &v.RecruiterID, &v.Rating, &v.CoverLetter, &v.ResumeURL, &v.AppliedAt, &v.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, v)
+	}
+	return items, rows.Err()
+}
+
+func (r *RecruiterRepository) GetOwnedApplication(ctx context.Context, recruiterID, appID uuid.UUID) (*models.JobApplicationDTO, error) {
+	items, err := r.GetOwnedApplications(ctx, recruiterID, "", "")
+	if err != nil {
+		return nil, err
+	}
+	for i := range items {
+		if items[i].ID == appID {
+			return &items[i], nil
+		}
+	}
+	return nil, pgx.ErrNoRows
+}
+
+func (r *RecruiterRepository) UpdateOwnedApplicationStage(ctx context.Context, recruiterID, appID uuid.UUID, toStage, notes string) error {
+	if r.db == nil {
+		return nil
+	}
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	var from string
+	err = tx.QueryRow(ctx, `SELECT a.current_stage FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE a.id=$1 AND j.recruiter_id=$2 FOR UPDATE`, appID, recruiterID).Scan(&from)
+	if err != nil {
+		return err
+	}
+	allowed := map[string]map[string]bool{"Applied": {"Viewed": true, "Shortlisted": true, "Interview": true, "Rejected": true}, "Viewed": {"Shortlisted": true, "Interview": true, "Rejected": true}, "Shortlisted": {"Interview": true, "Offer": true, "Rejected": true}, "Interview": {"Offer": true, "Rejected": true, "Shortlisted": true}, "Offer": {"Accepted": true, "Rejected": true}}
+	if !allowed[from][toStage] {
+		return fmt.Errorf("invalid application stage transition from %q to %q", from, toStage)
+	}
+	if _, err = tx.Exec(ctx, `UPDATE job_applications SET current_stage=$2,recruiter_id=$3,updated_at=NOW() WHERE id=$1`, appID, toStage, recruiterID); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `INSERT INTO application_stage_history(id,application_id,from_stage,to_stage,moved_by,notes,moved_at) VALUES($1,$2,$3,$4,$5,$6,NOW())`, uuid.New(), appID, from, toStage, recruiterID, notes); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+func (r *RecruiterRepository) ScheduleOwnedInterview(ctx context.Context, recruiterID, jobID, candidateID uuid.UUID, start time.Time, duration int, kind, meetingLink, instructions, notes string) (*models.InterviewItem, error) {
+	if r.db == nil {
+		return nil, errors.New("interview scheduling requires PostgreSQL")
+	}
+	if duration <= 0 {
+		duration = 30
+	}
+	end := start.Add(time.Duration(duration) * time.Minute)
+	if !end.After(start) {
+		return nil, errors.New("invalid interview duration")
+	}
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+	_, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext($1)),pg_advisory_xact_lock(hashtext($2))`, recruiterID.String(), candidateID.String())
+	if err != nil {
+		return nil, err
+	}
+	var appID uuid.UUID
+	var currentStage string
+	err = tx.QueryRow(ctx, `SELECT a.id,a.current_stage FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE a.job_id=$1 AND a.candidate_id=$2 AND j.recruiter_id=$3`, jobID, candidateID, recruiterID).Scan(&appID, &currentStage)
+	if err != nil {
+		return nil, errors.New("candidate has no application for an owned job")
+	}
+	var conflict bool
+	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM interviews WHERE status<>'cancelled' AND (organizer_id=$1 OR candidate_id=$2) AND scheduled_start<$4 AND scheduled_end>$3)`, recruiterID, candidateID, start, end).Scan(&conflict)
+	if err != nil {
+		return nil, err
+	}
+	if conflict {
+		return nil, errors.New("interview booking conflicts with an existing slot")
+	}
+	id := uuid.New()
+	_, err = tx.Exec(ctx, `INSERT INTO interviews(id,application_id,candidate_id,job_id,organizer_id,title,status,scheduled_start,scheduled_end,location_type,meeting_link,notes,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,'scheduled',$7,$8,$9,$10,$11,NOW(),NOW())`, id, appID, candidateID, jobID, recruiterID, kind+" interview", start, end, strings.ToLower(kind), meetingLink, notes+"\n"+instructions)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = tx.Exec(ctx, `UPDATE job_applications SET current_stage='Interview',recruiter_id=$2,updated_at=NOW() WHERE id=$1`, appID, recruiterID); err != nil {
+		return nil, err
+	}
+	if currentStage != "Interview" {
+		if _, err = tx.Exec(ctx, `INSERT INTO application_stage_history(id,application_id,from_stage,to_stage,moved_by,notes,moved_at) VALUES($1,$2,$3,'Interview',$4,'Interview scheduled',NOW())`, uuid.New(), appID, currentStage, recruiterID); err != nil {
+			return nil, err
+		}
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return &models.InterviewItem{ID: id, JobID: jobID, CandidateID: candidateID, Type: kind, ScheduledAt: start, DurationMinutes: duration, MeetingLink: meetingLink, Instructions: instructions, Notes: notes, Status: "Scheduled", CreatedAt: time.Now().UTC()}, nil
+}
+
+func (r *RecruiterRepository) CancelOwnedInterview(ctx context.Context, recruiterID, interviewID uuid.UUID) error {
+	if r.db == nil {
+		return nil
+	}
+	tag, err := r.db.Exec(ctx, `UPDATE interviews SET status='cancelled',updated_at=NOW() WHERE id=$1 AND organizer_id=$2 AND status IN ('scheduled','rescheduled')`, interviewID, recruiterID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return errors.New("interview not found or cannot be cancelled")
+	}
+	return nil
+}
+
+func (r *RecruiterRepository) GetOwnedInterviews(ctx context.Context, recruiterID uuid.UUID) ([]models.InterviewItem, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter interviews require PostgreSQL")
+	}
+	rows, err := r.db.Query(ctx, `
+		SELECT i.id, i.job_id, i.candidate_id,
+		       COALESCE(NULLIF(TRIM(COALESCE(a.contact_name, '')), ''), TRIM(u.first_name || ' ' || u.last_name)),
+		       COALESCE(p.avatar_url, ''), i.location_type, i.scheduled_start,
+		       GREATEST(1, ROUND(EXTRACT(EPOCH FROM (i.scheduled_end-i.scheduled_start))/60)::int),
+		       COALESCE(i.meeting_link, ''), '', COALESCE(i.notes, ''), i.status, i.created_at
+		FROM interviews i
+		JOIN jobs j ON j.id=i.job_id AND j.recruiter_id=$1
+		JOIN users u ON u.id=i.candidate_id
+		LEFT JOIN job_applications a ON a.id=i.application_id
+		LEFT JOIN user_profiles p ON p.user_id=i.candidate_id
+		WHERE i.organizer_id=$1
+		ORDER BY i.scheduled_start`, recruiterID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := make([]models.InterviewItem, 0)
+	for rows.Next() {
+		var item models.InterviewItem
+		if err := rows.Scan(&item.ID, &item.JobID, &item.CandidateID, &item.CandidateName,
+			&item.CandidateAvatar, &item.Type, &item.ScheduledAt, &item.DurationMinutes,
+			&item.MeetingLink, &item.Instructions, &item.Notes, &item.Status, &item.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
 }
 
 // GetOrCreateProfile loads or creates a recruiter profile for a user.
@@ -40,8 +202,11 @@ func (r *RecruiterRepository) GetOrCreateProfile(ctx context.Context, userID uui
 	}
 
 	var p models.RecruiterOrgProfile
-	query := `SELECT id, user_id, org_id, company_name, job_title, department, recruiter_role, professional_info, contact_phone, contact_email, verification_status, created_at 
-	          FROM recruiter_organization_profiles 
+	// The optional columns are filled in later by profile edits, so they are
+	// NULL on a freshly created profile and scanning them straight into strings
+	// fails. That path stayed hidden while the insert itself was failing.
+	query := `SELECT id, user_id, org_id, COALESCE(company_name,''), COALESCE(job_title,''), COALESCE(department,''), COALESCE(recruiter_role,''), COALESCE(professional_info,''), COALESCE(contact_phone,''), COALESCE(contact_email,''), COALESCE(verification_status,''), created_at
+	          FROM recruiter_organization_profiles
 	          WHERE user_id = $1`
 	err := r.db.QueryRow(ctx, query, userID).Scan(
 		&p.ID, &p.UserID, &p.OrgID, &p.CompanyName, &p.JobTitle, &p.Department,
@@ -63,11 +228,47 @@ func (r *RecruiterRepository) GetOrCreateProfile(ctx context.Context, userID uui
 				CreatedAt:          time.Now(),
 				UpdatedAt:          time.Now(),
 			}
-			insertQ := `INSERT INTO recruiter_organization_profiles 
-				(id, user_id, org_id, company_name, job_title, department, recruiter_role, verification_status, created_at, updated_at) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
-			_, err = r.db.Exec(ctx, insertQ, p.ID, p.UserID, p.OrgID, p.CompanyName, p.JobTitle, p.Department, p.RecruiterRole, p.VerificationStatus, p.CreatedAt, p.UpdatedAt)
+			// recruiter_organization_profiles.org_id references organizations, so
+			// the organization has to exist before the profile does. Inserting
+			// only the profile made the first action of every new recruiter fail
+			// with a foreign key violation, which is why a fresh recruiter could
+			// not publish a job at all. Both rows are written in one transaction
+			// so a failure cannot leave an organization without its profile.
+			if p.CompanyName == "" {
+				p.CompanyName = "Recruiting organization"
+			}
+			tx, err := r.db.Begin(ctx)
 			if err != nil {
+				return nil, err
+			}
+			defer tx.Rollback(ctx)
+			if _, err = tx.Exec(ctx, `INSERT INTO organizations (id, name, org_type, tenant_domain, status, created_at, updated_at) VALUES ($1, $2, 'recruiting', $3, 'active', NOW(), NOW())`, p.OrgID, p.CompanyName, p.OrgID.String()+".tenant.invalid"); err != nil {
+				return nil, err
+			}
+			// recruiter_jobs, recruiter_activity, saved_candidates and the search
+			// history all key off recruiter_profiles(id), while this profile is
+			// the row the service passes around as the recruiter identity. The
+			// two must therefore share one id, or publishing a job fails on the
+			// recruiter_jobs foreign key. recruiter_profiles.user_id is unique,
+			// so an id created elsewhere wins and this profile adopts it.
+			var existingRecruiterID uuid.UUID
+			switch err = tx.QueryRow(ctx, `SELECT id FROM recruiter_profiles WHERE user_id=$1`, userID).Scan(&existingRecruiterID); {
+			case err == nil:
+				p.ID = existingRecruiterID
+			case errors.Is(err, pgx.ErrNoRows):
+				if _, err = tx.Exec(ctx, `INSERT INTO recruiter_profiles (id, user_id, company_name, verified, created_at) VALUES ($1, $2, $3, true, NOW())`, p.ID, userID, p.CompanyName); err != nil {
+					return nil, err
+				}
+			default:
+				return nil, err
+			}
+			insertQ := `INSERT INTO recruiter_organization_profiles
+				(id, user_id, org_id, company_name, job_title, department, recruiter_role, verification_status, created_at, updated_at)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+			if _, err = tx.Exec(ctx, insertQ, p.ID, p.UserID, p.OrgID, p.CompanyName, p.JobTitle, p.Department, p.RecruiterRole, p.VerificationStatus, p.CreatedAt, p.UpdatedAt); err != nil {
+				return nil, err
+			}
+			if err = tx.Commit(ctx); err != nil {
 				return nil, err
 			}
 			return &p, nil
@@ -95,12 +296,30 @@ func (r *RecruiterRepository) UpdateOrgProfile(ctx context.Context, profile *mod
 }
 
 // CreateJob inserts a recruiter job into both the canonical jobs table and recruiter_jobs table.
-func (r *RecruiterRepository) CreateJob(ctx context.Context, job *models.RecruiterJob) error {
+func (r *RecruiterRepository) CreateJob(ctx context.Context, ownerUserID uuid.UUID, job *models.RecruiterJob) error {
 	if r.db == nil {
 		return nil
 	}
 
-	skillsJSON, _ := json.Marshal(job.RequiredSkills)
+	// A nil slice marshals to the JSON scalar null, and the job listings expand
+	// skills as an array: one job published without skills made the whole public
+	// board fail with "cannot extract elements from a scalar". Store an empty
+	// array instead.
+	skillsJSON := []byte("[]")
+	if len(job.RequiredSkills) > 0 {
+		skillsJSON, _ = json.Marshal(job.RequiredSkills)
+	}
+	screening := make([]map[string]interface{}, 0, len(job.Questions))
+	for _, question := range job.Questions {
+		id := question.ID
+		if id == uuid.Nil {
+			id = uuid.New()
+		}
+		screening = append(screening, map[string]interface{}{
+			"id": id.String(), "text": question.QuestionText, "required": question.IsRequired,
+		})
+	}
+	screeningJSON, _ := json.Marshal(screening)
 	canonStatus := strings.ToLower(job.Status)
 	if canonStatus == "published" {
 		canonStatus = "active"
@@ -113,24 +332,32 @@ func (r *RecruiterRepository) CreateJob(ctx context.Context, job *models.Recruit
 		workMode = "remote"
 	}
 
-	// Insert into canonical jobs table
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
 	canonQuery := `
 		INSERT INTO jobs (
 			id, recruiter_id, title, description, responsibilities, requirements, qualifications, benefits,
 			department, location, work_mode, employment_type, experience_level,
-			salary_range, skills, status, created_at, updated_at
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $17)
+			salary_range, skills, screening_questions, status, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $18)
 		ON CONFLICT (id) DO UPDATE SET
 			title = EXCLUDED.title,
 			description = EXCLUDED.description,
+			screening_questions = EXCLUDED.screening_questions,
 			status = EXCLUDED.status,
 			updated_at = EXCLUDED.updated_at
 	`
-	_, _ = r.db.Exec(ctx, canonQuery,
-		job.ID, job.RecruiterID, job.Title, job.Description, job.Responsibilities, job.Qualifications, job.Qualifications, job.Benefits,
+	if _, err = tx.Exec(ctx, canonQuery,
+		job.ID, ownerUserID, job.Title, job.Description, job.Responsibilities, job.Qualifications, job.Qualifications, job.Benefits,
 		job.Department, job.Location, workMode, job.EmploymentType, job.ExperienceLevel,
-		job.SalaryRange, skillsJSON, canonStatus, job.CreatedAt,
-	)
+		job.SalaryRange, skillsJSON, screeningJSON, canonStatus, job.CreatedAt,
+	); err != nil {
+		return err
+	}
 
 	// Also insert into recruiter_jobs
 	query := `INSERT INTO recruiter_jobs (id, recruiter_id, title, description, department, location, salary_range, status, created_at)
@@ -139,8 +366,10 @@ func (r *RecruiterRepository) CreateJob(ctx context.Context, job *models.Recruit
 	              title = EXCLUDED.title,
 	              description = EXCLUDED.description,
 	              status = EXCLUDED.status`
-	_, err := r.db.Exec(ctx, query, job.ID, job.RecruiterID, job.Title, job.Description, job.Department, job.Location, job.SalaryRange, job.Status, job.CreatedAt)
-	return err
+	if _, err = tx.Exec(ctx, query, job.ID, job.RecruiterID, job.Title, job.Description, job.Department, job.Location, job.SalaryRange, job.Status, job.CreatedAt); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 // GetJobByID retrieves job details.

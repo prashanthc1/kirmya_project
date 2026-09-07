@@ -57,6 +57,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandl
 		// Interviews & Feedback
 		recruiterGroup.GET("/interviews", handler.GetInterviews)
 		recruiterGroup.POST("/interviews", handler.ScheduleInterview)
+		recruiterGroup.PUT("/interviews/:id/cancel", handler.CancelInterview)
 		recruiterGroup.POST("/interviews/:id/feedback", handler.SubmitInterviewFeedback)
 
 		// Offers & AI Evaluation

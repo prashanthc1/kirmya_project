@@ -97,7 +97,7 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 			OR lower(COALESCE(j.department, '')) LIKE %[1]s
 			OR lower(COALESCE(c.name, '')) LIKE %[1]s
 			OR EXISTS (
-			    SELECT 1 FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb)) sk
+			    SELECT 1 FROM jsonb_array_elements_text(CASE WHEN jsonb_typeof(j.skills) = 'array' THEN j.skills ELSE '[]'::jsonb END) sk
 			    WHERE lower(sk) LIKE %[1]s
 			))`, p))
 	}
@@ -154,7 +154,7 @@ func (r *JobRepository) SearchJobs(ctx context.Context, q models.JobSearchQuery)
 			COALESCE(j.salary_currency, ''),
 			-- Unrolled to a text[] in SQL so pgx scans straight into []string,
 			-- rather than decoding jsonb on the Go side.
-			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb))), '{}'),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(CASE WHEN jsonb_typeof(j.skills) = 'array' THEN j.skills ELSE '[]'::jsonb END)), '{}'),
 			j.is_featured,
 			j.published_at, j.created_at`+from+`
 		WHERE `+clause+`
@@ -226,7 +226,7 @@ func (r *JobRepository) GetJobByID(ctx context.Context, id string) (*models.JobD
 			COALESCE(j.department, ''),
 			COALESCE(j.salary_range, ''), j.salary_min, j.salary_max,
 			COALESCE(j.salary_currency, ''),
-			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb))), '{}'),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(CASE WHEN jsonb_typeof(j.skills) = 'array' THEN j.skills ELSE '[]'::jsonb END)), '{}'),
 			j.is_featured,
 			j.published_at, j.created_at,
 			COALESCE(j.description, ''),

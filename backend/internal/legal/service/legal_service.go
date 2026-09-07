@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 	"time"
@@ -26,6 +27,10 @@ type LegalService interface {
 	GetPrivacyRequestByID(ctx context.Context, id uuid.UUID) (*models.PrivacyRequest, error)
 	RequestDataExport(ctx context.Context, userID uuid.UUID) (*models.DataExportJob, error)
 	GetDataExportJob(ctx context.Context, userID uuid.UUID) (*models.DataExportJob, error)
+	GetDataExportJobByID(ctx context.Context, userID, jobID uuid.UUID) (*models.DataExportJob, error)
+	CancelDataExport(ctx context.Context, userID, jobID uuid.UUID) error
+	DownloadDataExport(ctx context.Context, userID, jobID uuid.UUID) ([]byte, string, error)
+	ProcessPrivacyJobs(ctx context.Context) error
 	RequestAccountDeletion(ctx context.Context, userID uuid.UUID, reason string) (*models.DataDeletionRequest, error)
 	CancelAccountDeletion(ctx context.Context, userID uuid.UUID) error
 	CanProcessWithAI(ctx context.Context, userID uuid.UUID, feature string) (bool, error)
@@ -200,6 +205,47 @@ func (s *legalService) GetDataExportJob(ctx context.Context, userID uuid.UUID) (
 	return s.repo.GetDataExportJob(ctx, userID)
 }
 
+func (s *legalService) GetDataExportJobByID(ctx context.Context, userID, jobID uuid.UUID) (*models.DataExportJob, error) {
+	return s.repo.GetDataExportJobByID(ctx, userID, jobID)
+}
+func (s *legalService) CancelDataExport(ctx context.Context, userID, jobID uuid.UUID) error {
+	return s.repo.CancelDataExportJob(ctx, userID, jobID)
+}
+func (s *legalService) DownloadDataExport(ctx context.Context, userID, jobID uuid.UUID) ([]byte, string, error) {
+	return s.repo.GetDataExportPayload(ctx, userID, jobID)
+}
+func (s *legalService) ProcessPrivacyJobs(ctx context.Context) error {
+	for {
+		job, err := s.repo.ClaimDataExportJob(ctx)
+		if errors.Is(err, sql.ErrNoRows) {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		payload, buildErr := s.repo.BuildDataExport(ctx, job.UserID)
+		if buildErr != nil {
+			if failErr := s.repo.FailDataExportJob(ctx, job.ID, buildErr); failErr != nil {
+				return failErr
+			}
+			continue
+		}
+		if err = s.repo.CompleteDataExportJob(ctx, job.ID, payload); err != nil {
+			return err
+		}
+	}
+	for {
+		processed, err := s.repo.ProcessNextDeletion(ctx)
+		if err != nil {
+			return err
+		}
+		if !processed {
+			break
+		}
+	}
+	return nil
+}
+
 func (s *legalService) RequestAccountDeletion(ctx context.Context, userID uuid.UUID, reason string) (*models.DataDeletionRequest, error) {
 	hasHold, err := s.repo.CheckActiveLegalHold(ctx, "user", userID)
 	if err != nil {
@@ -228,7 +274,11 @@ func (s *legalService) CancelAccountDeletion(ctx context.Context, userID uuid.UU
 }
 
 func (s *legalService) CanProcessWithAI(ctx context.Context, userID uuid.UUID, feature string) (bool, error) {
-	return true, nil
+	prefs, err := s.repo.GetPrivacyPreferences(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	return prefs.AIDataUsage, nil
 }
 
 func (s *legalService) RedactPersonalData(ctx context.Context, text string) string {

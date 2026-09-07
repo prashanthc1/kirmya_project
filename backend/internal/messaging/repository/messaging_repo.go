@@ -682,6 +682,30 @@ func (r *MessagingRepository) IsBlocked(ctx context.Context, u1 uuid.UUID, u2 uu
 	return exists, err
 }
 
+func (r *MessagingRepository) CanInitiateConversation(ctx context.Context, senderID, recipientID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		return true, nil
+	}
+	var permission, role string
+	var recruiterContactable bool
+	err := r.db.QueryRow(ctx, `SELECT COALESCE(p.messaging_permission,'Anyone'),COALESCE(p.recruiter_contactable,true),COALESCE(sender.role_id,'user') FROM users u LEFT JOIN privacy_preferences p ON p.user_id=u.id CROSS JOIN users sender WHERE u.id=$2 AND sender.id=$1`, senderID, recipientID).Scan(&permission, &recruiterContactable, &role)
+	if err != nil {
+		return false, err
+	}
+	switch permission {
+	case "Anyone":
+		return true, nil
+	case "None":
+		return false, nil
+	case "Recruiters":
+		return recruiterContactable && (role == "recruiter" || role == "admin"), nil
+	case "Connections":
+		return r.IsConnected(ctx, senderID, recipientID)
+	default:
+		return false, nil
+	}
+}
+
 func (r *MessagingRepository) IsConnected(ctx context.Context, u1 uuid.UUID, u2 uuid.UUID) (bool, error) {
 	if r.db == nil {
 		return true, nil

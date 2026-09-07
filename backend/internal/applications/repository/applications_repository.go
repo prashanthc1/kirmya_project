@@ -60,8 +60,9 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		// 2. Check if job exists, is active/published, and unexpired
 		var jobStatus string
 		var expiresAt *time.Time
-		jobCheckQuery := `SELECT status, expires_at FROM jobs WHERE id = $1`
-		if err := tx.QueryRow(ctx, jobCheckQuery, payload.JobID).Scan(&jobStatus, &expiresAt); err != nil {
+		var screeningRaw []byte
+		jobCheckQuery := `SELECT status, expires_at, COALESCE(screening_questions,'[]'::jsonb) FROM jobs WHERE id = $1 FOR SHARE`
+		if err := tx.QueryRow(ctx, jobCheckQuery, payload.JobID).Scan(&jobStatus, &expiresAt, &screeningRaw); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return nil, errors.New("job posting not found")
 			}
@@ -72,6 +73,50 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		}
 		if expiresAt != nil && expiresAt.Before(now) {
 			return nil, errors.New("job posting has expired")
+		}
+		var screening []struct {
+			ID       string `json:"id"`
+			Text     string `json:"text"`
+			Required bool   `json:"required"`
+		}
+		if err := json.Unmarshal(screeningRaw, &screening); err != nil {
+			return nil, fmt.Errorf("invalid job screening configuration: %w", err)
+		}
+		answerByID := make(map[string]string, len(payload.Answers))
+		for _, answer := range payload.Answers {
+			answerByID[answer.QuestionID] = answer.Answer
+		}
+		for _, question := range screening {
+			if question.Required && answerByID[question.ID] == "" {
+				return nil, fmt.Errorf("required screening answer missing: %s", question.ID)
+			}
+		}
+
+		var resumeTitle, resumeHash string
+		if payload.ResumeID != nil {
+			err := tx.QueryRow(ctx, `SELECT title,COALESCE(sha256,'') FROM candidate_documents WHERE id=$1 AND candidate_id=$2 AND deleted_at IS NULL AND scan_status='clean' AND content IS NOT NULL`, *payload.ResumeID, candidateID).Scan(&resumeTitle, &resumeHash)
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, errors.New("resume attachment is missing, foreign, deleted, or not scan-clean")
+			}
+			if err != nil {
+				return nil, err
+			}
+			payload.ResumeURL = "/api/v1/documents/" + payload.ResumeID.String() + "/download"
+		}
+		if payload.ResumeID == nil && payload.ResumeURL != "" {
+			return nil, errors.New("external resume URLs are not accepted; upload an owned document")
+		}
+		if payload.ContactEmail == "" || payload.ContactName == "" {
+			var first, last, email string
+			if err := tx.QueryRow(ctx, `SELECT first_name,last_name,email FROM users WHERE id=$1`, candidateID).Scan(&first, &last, &email); err != nil {
+				return nil, err
+			}
+			if payload.ContactName == "" {
+				payload.ContactName = first + " " + last
+			}
+			if payload.ContactEmail == "" {
+				payload.ContactEmail = email
+			}
 		}
 
 		// 3. Check if candidate already applied
@@ -96,13 +141,15 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		insertQuery := `
 			INSERT INTO job_applications (
 				id, job_id, candidate_id, current_stage, rating, applied_at, updated_at,
-				resume_id, resume_url, cover_letter, answers, source, idempotency_key
+				resume_id, resume_url, cover_letter, answers, source, idempotency_key,
+				contact_name,contact_email,contact_phone,resume_title,resume_sha256
 			)
-			VALUES ($1, $2, $3, 'Applied', 5, $4, $4, $5, $6, $7, $8, $9, $10)
+			VALUES ($1, $2, $3, 'Applied', 5, $4, $4, $5, $6, $7, $8, $9, $10,$11,$12,$13,$14,$15)
 		`
 		if _, err := tx.Exec(ctx, insertQuery,
 			appID, payload.JobID, candidateID, now,
 			payload.ResumeID, payload.ResumeURL, payload.CoverLetter, answersJSON, source, payload.IdempotencyKey,
+			payload.ContactName, payload.ContactEmail, payload.ContactPhone, resumeTitle, resumeHash,
 		); err != nil {
 			return nil, err
 		}
@@ -269,8 +316,9 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 
 	var detail models.ApplicationDetail
 	var recID *uuid.UUID
+	var resumeID *uuid.UUID
 	var answersRaw []byte
-	var coverLetter, resumeURL string
+	var coverLetter, resumeURL, resumeTitle, resumeHash string
 
 	query := `
 		SELECT 
@@ -284,6 +332,8 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 			COALESCE(a.cover_letter, ''),
 			COALESCE(a.resume_url, ''),
 			COALESCE(a.answers, '[]'::jsonb),
+			a.resume_id,COALESCE(a.resume_title,''),COALESCE(a.resume_sha256,''),
+			COALESCE(a.contact_name,''),COALESCE(a.contact_email,''),COALESCE(a.contact_phone,''),
 			EXISTS(SELECT 1 FROM saved_jobs sj WHERE sj.candidate_id = a.candidate_id AND sj.job_id = a.job_id) AS is_saved
 		FROM job_applications a
 		LEFT JOIN jobs j ON a.job_id = j.id
@@ -298,7 +348,8 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 		&detail.Summary.Location, &detail.Summary.EmploymentType, &detail.Summary.SalaryRange,
 		&detail.Summary.CurrentStatus, &detail.Summary.AppliedAt, &detail.Summary.LastUpdate,
 		&recID, &detail.JobDescription,
-		&coverLetter, &resumeURL, &answersRaw, &detail.Summary.IsSaved,
+		&coverLetter, &resumeURL, &answersRaw, &resumeID, &resumeTitle, &resumeHash,
+		&detail.ContactName, &detail.ContactEmail, &detail.ContactPhone, &detail.Summary.IsSaved,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -310,6 +361,9 @@ func (r *ApplicationsRepository) GetApplicationByID(ctx context.Context, candida
 	detail.Summary.RecruiterID = recID
 	detail.Summary.ResumeURL = resumeURL
 	detail.CoverLetterText = coverLetter
+	if resumeID != nil {
+		detail.SubmittedResume = &models.CandidateDocument{ID: *resumeID, CandidateID: candidateID, Title: resumeTitle, DocumentType: "Resume", FileURL: resumeURL, SHA256: resumeHash, ScanStatus: "clean"}
+	}
 	if len(answersRaw) > 0 {
 		_ = json.Unmarshal(answersRaw, &detail.Answers)
 	}
@@ -752,9 +806,10 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 	}
 
 	query := `
-		SELECT id, candidate_id, title, document_type, file_url, file_size_bytes, file_type, is_default, uploaded_at
+		SELECT id, candidate_id, title, document_type, file_url, file_size_bytes, file_type, is_default, uploaded_at,
+		       COALESCE(storage_key,''), COALESCE(sha256,''), COALESCE(scan_status,'clean'), COALESCE(original_filename,'')
 		FROM candidate_documents
-		WHERE candidate_id = $1
+		WHERE candidate_id = $1 AND deleted_at IS NULL
 		ORDER BY uploaded_at DESC
 	`
 	rows, err := r.db.Query(ctx, query, candidateID)
@@ -769,6 +824,7 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 		err := rows.Scan(
 			&doc.ID, &doc.CandidateID, &doc.Title, &doc.DocumentType,
 			&doc.FileURL, &doc.SizeBytes, &doc.FileType, &doc.IsDefault, &doc.UploadedAt,
+			&doc.StorageKey, &doc.SHA256, &doc.ScanStatus, &doc.OriginalName,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan candidate document row: %w", err)
@@ -783,12 +839,52 @@ func (r *ApplicationsRepository) GetCandidateDocuments(ctx context.Context, cand
 	return docs, nil
 }
 
+func (r *ApplicationsRepository) CreateDocument(ctx context.Context, doc *models.CandidateDocument, content []byte) error {
+	if r.db == nil {
+		return errors.New("document storage requires PostgreSQL")
+	}
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	if doc.IsDefault {
+		if _, err = tx.Exec(ctx, `UPDATE candidate_documents SET is_default=false,updated_at=NOW() WHERE candidate_id=$1 AND document_type=$2 AND deleted_at IS NULL`, doc.CandidateID, doc.DocumentType); err != nil {
+			return err
+		}
+	}
+	_, err = tx.Exec(ctx, `INSERT INTO candidate_documents(id,candidate_id,title,document_type,file_url,file_size_bytes,file_type,is_default,uploaded_at,updated_at,storage_key,content,sha256,scan_status,original_filename) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11,$12,$13,$14)`, doc.ID, doc.CandidateID, doc.Title, doc.DocumentType, doc.FileURL, doc.SizeBytes, doc.FileType, doc.IsDefault, doc.UploadedAt, doc.StorageKey, content, doc.SHA256, doc.ScanStatus, doc.OriginalName)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+func (r *ApplicationsRepository) GetDocumentContent(ctx context.Context, candidateID, docID uuid.UUID) (*models.CandidateDocument, []byte, error) {
+	if r.db == nil {
+		return nil, nil, errors.New("document storage requires PostgreSQL")
+	}
+	var d models.CandidateDocument
+	var content []byte
+	err := r.db.QueryRow(ctx, `SELECT id,candidate_id,title,document_type,file_url,file_size_bytes,file_type,is_default,uploaded_at,COALESCE(storage_key,''),COALESCE(content,''::bytea),COALESCE(sha256,''),COALESCE(scan_status,'clean'),COALESCE(original_filename,'') FROM candidate_documents WHERE id=$1 AND candidate_id=$2 AND deleted_at IS NULL`, docID, candidateID).Scan(&d.ID, &d.CandidateID, &d.Title, &d.DocumentType, &d.FileURL, &d.SizeBytes, &d.FileType, &d.IsDefault, &d.UploadedAt, &d.StorageKey, &content, &d.SHA256, &d.ScanStatus, &d.OriginalName)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &d, content, nil
+}
+
 func (r *ApplicationsRepository) DeleteDocument(ctx context.Context, candidateID, docID uuid.UUID) error {
 	if r.db == nil {
 		return nil
 	}
-	_, err := r.db.Exec(ctx, `DELETE FROM candidate_documents WHERE id = $1 AND candidate_id = $2`, docID, candidateID)
-	return err
+	res, err := r.db.Exec(ctx, `UPDATE candidate_documents SET content=NULL,deleted_at=NOW(),updated_at=NOW() WHERE id=$1 AND candidate_id=$2 AND deleted_at IS NULL`, docID, candidateID)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return errors.New("document not found")
+	}
+	return nil
 }
 
 // GetApplicationNotes returns the candidate's private notes on one application.

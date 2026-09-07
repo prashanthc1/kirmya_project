@@ -112,6 +112,16 @@ jobs:
             sleep 1
           done
           go test -json -tags=ciintegration ./test/ci -count=1 > ../artifacts/integration.json
+          kill $(cat ../artifacts/api.pid)
+          wait $(cat ../artifacts/api.pid) || true
+          ./bin/kirmya-ci >> ../artifacts/api.log 2>&1 &
+          echo $! > ../artifacts/api.pid
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8080/health > /dev/null; then break; fi
+            kill -0 $(cat ../artifacts/api.pid)
+            sleep 1
+          done
+          POST_RESTART=1 go test -json -tags=ciintegration ./test/ci -run '^TestBatch3RestartReadback$' -count=1 > ../artifacts/restart-readback.json
       - name: Company SQL ownership regression tests
         run: cd backend && go test -json ./internal/company/service -count=1 > ../artifacts/company.json
       - name: Reject missing tests and mandatory skips
@@ -120,6 +130,7 @@ jobs:
           node scripts/ci/check-results.mjs go artifacts/integration.json
           node scripts/ci/check-results.mjs go artifacts/company.json
           node scripts/ci/check-results.mjs go artifacts/migrations-behaviour.json
+          node scripts/ci/check-results.mjs go artifacts/restart-readback.json
       - name: Collect service diagnostics
         if: always()
         run: |

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -110,7 +111,7 @@ func (s *RecruiterService) CreateJob(ctx context.Context, userID uuid.UUID, payl
 		UpdatedAt:        time.Now(),
 	}
 
-	err = s.repo.CreateJob(ctx, job)
+	err = s.repo.CreateJob(ctx, userID, job)
 	if err != nil {
 		return nil, err
 	}
@@ -153,55 +154,12 @@ func (s *RecruiterService) GetJobs(ctx context.Context, userID uuid.UUID) ([]mod
 		return nil, err
 	}
 
-	jobs, err := s.repo.GetJobs(ctx, p.ID)
-	if err == nil && len(jobs) > 0 {
-		return jobs, nil
-	}
-
-	return []models.RecruiterJob{
-		{
-			ID:               uuid.MustParse("11111111-1111-1111-1111-111111111111"),
-			OrgID:            p.OrgID,
-			RecruiterID:      p.ID,
-			Title:            "Senior Go Backend Architect",
-			Department:       "Engineering & Technology",
-			EmploymentType:   "Full-time",
-			WorkplaceType:    "Remote",
-			Location:         "Dubai / Remote",
-			SalaryRange:      "$120,000 - $160,000",
-			Currency:         "USD",
-			ExperienceLevel:  "Senior",
-			RequiredSkills:   []string{"Golang", "PostgreSQL", "Microservices", "Docker"},
-			PreferredSkills:  []string{"Kafka", "Kubernetes", "Redis"},
-			Status:           "Active",
-			ApplicantsCount:  18,
-			ViewsCount:       240,
-			OpeningsCount:    2,
-			Deadline:         "2026-09-30",
-			CreatedAt:        time.Now().Add(-48 * time.Hour),
-		},
-		{
-			ID:               uuid.MustParse("22222222-2222-2222-2222-222222222222"),
-			OrgID:            p.OrgID,
-			RecruiterID:      p.ID,
-			Title:            "Lead Frontend Engineer (React/MUI)",
-			Department:       "Product Design",
-			EmploymentType:   "Full-time",
-			WorkplaceType:    "Hybrid",
-			Location:         "Abu Dhabi, UAE",
-			SalaryRange:      "$100,000 - $130,000",
-			Currency:         "USD",
-			ExperienceLevel:  "Lead",
-			RequiredSkills:   []string{"React", "TypeScript", "MUI v6", "Next.js"},
-			PreferredSkills:  []string{"GraphQL", "Framer Motion"},
-			Status:           "Active",
-			ApplicantsCount:  14,
-			ViewsCount:       185,
-			OpeningsCount:    1,
-			Deadline:         "2026-10-15",
-			CreatedAt:        time.Now().Add(-72 * time.Hour),
-		},
-	}, nil
+	// The recruiter's own postings, and nothing else. This used to fall back to
+	// two hard-coded jobs whenever the query failed or returned nothing, so a
+	// recruiter with no postings was shown roles that do not exist and a failed
+	// query was reported as a successful list. An empty list is the honest
+	// answer for a recruiter who has not published yet.
+	return s.repo.GetJobs(ctx, p.ID)
 }
 
 func (s *RecruiterService) GetPipeline(ctx context.Context, jobID uuid.UUID) ([]models.CandidatePipeline, error) {
@@ -252,12 +210,7 @@ func (s *RecruiterService) GetPipeline(ctx context.Context, jobID uuid.UUID) ([]
 }
 
 func (s *RecruiterService) UpdatePipelineStage(ctx context.Context, userID, pipelineID uuid.UUID, payload *models.UpdateStagePayload) error {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
-	err := s.repo.UpdatePipelineStage(ctx, pipelineID, payload.Stage, payload.Notes, payload.InterviewScheduledAt)
-	if err == nil {
-		_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, pipelineID, p.CompanyName, fmt.Sprintf("Stage Changed to %s", payload.Stage))
-	}
-	return err
+	return s.repo.UpdateOwnedApplicationStage(ctx, userID, pipelineID, payload.Stage, payload.Notes)
 }
 
 func (s *RecruiterService) GetDashboardOverview(ctx context.Context, userID uuid.UUID) (*models.RecruiterDashboardOverview, error) {
@@ -357,29 +310,24 @@ func (s *RecruiterService) SaveCandidate(ctx context.Context, candidateID, userI
 }
 
 func (s *RecruiterService) GetInterviews(ctx context.Context, userID uuid.UUID) ([]models.InterviewItem, error) {
-	now := time.Now()
-	return []models.InterviewItem{
-		{
-			ID:              uuid.New(),
-			JobID:           uuid.MustParse("11111111-1111-1111-1111-111111111111"),
-			CandidateID:     uuid.MustParse("c1111111-1111-1111-1111-111111111111"),
-			CandidateName:   "Sarah Chen",
-			CandidateAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-			Type:            "Video",
-			ScheduledAt:     now.Add(24 * time.Hour),
-			DurationMinutes: 45,
-			MeetingLink:     "https://meet.google.com/abc-defg-hij",
-			Instructions:    "Review system architecture diagram prior to call.",
-			Notes:           "Technical Systems Architecture Deep Dive",
-			Status:          "Scheduled",
-			CreatedAt:       now.Add(-2 * time.Hour),
-		},
-	}, nil
+	return s.repo.GetOwnedInterviews(ctx, userID)
 }
 
 func (s *RecruiterService) ScheduleInterview(ctx context.Context, userID uuid.UUID, payload *models.ScheduleInterviewPayload) (*models.InterviewItem, error) {
-	jobID, _ := uuid.Parse(payload.JobID)
-	candID, _ := uuid.Parse(payload.CandidateID)
+	jobID, err := uuid.Parse(payload.JobID)
+	if err != nil {
+		return nil, errors.New("invalid job_id")
+	}
+	candID, err := uuid.Parse(payload.CandidateID)
+	if err != nil {
+		return nil, errors.New("invalid candidate_id")
+	}
+	start, err := time.Parse(time.RFC3339, payload.ScheduledAt)
+	if err != nil {
+		return nil, errors.New("scheduled_at must include an RFC3339 timezone")
+	}
+	return s.repo.ScheduleOwnedInterview(ctx, userID, jobID, candID, start, payload.DurationMinutes, payload.Type, payload.MeetingLink, payload.Instructions, payload.Notes)
+	/* Legacy placeholder response retained below for migration reference.
 
 	item := &models.InterviewItem{
 		ID:              uuid.New(),
@@ -399,7 +347,11 @@ func (s *RecruiterService) ScheduleInterview(ctx context.Context, userID uuid.UU
 	p, _ := s.GetOrCreateProfile(ctx, userID, "")
 	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candID, p.CompanyName, "Interview Scheduled")
 
-	return item, nil
+	return item, nil */
+}
+
+func (s *RecruiterService) CancelInterview(ctx context.Context, userID, interviewID uuid.UUID) error {
+	return s.repo.CancelOwnedInterview(ctx, userID, interviewID)
 }
 
 func (s *RecruiterService) GetAnalytics(ctx context.Context, userID uuid.UUID) (*models.RecruiterAnalytics, error) {
@@ -408,6 +360,8 @@ func (s *RecruiterService) GetAnalytics(ctx context.Context, userID uuid.UUID) (
 }
 
 func (s *RecruiterService) GetApplications(ctx context.Context, userID uuid.UUID, jobIdStr, stageFilter string) ([]models.JobApplicationDTO, error) {
+	return s.repo.GetOwnedApplications(ctx, userID, jobIdStr, stageFilter)
+	/* Legacy placeholder response retained below for migration reference.
 	now := time.Now()
 	return []models.JobApplicationDTO{
 		{
@@ -470,7 +424,11 @@ func (s *RecruiterService) GetApplications(ctx context.Context, userID uuid.UUID
 			AppliedAt:         now.Add(-96 * time.Hour),
 			UpdatedAt:         now,
 		},
-	}, nil
+	}, nil */
+}
+
+func (s *RecruiterService) GetOwnedApplicationDetail(ctx context.Context, userID, appID uuid.UUID) (*models.JobApplicationDTO, error) {
+	return s.repo.GetOwnedApplication(ctx, userID, appID)
 }
 
 func (s *RecruiterService) GetApplicationDetail(ctx context.Context, appID uuid.UUID) (*models.JobApplicationDTO, error) {

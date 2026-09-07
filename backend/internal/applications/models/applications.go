@@ -168,6 +168,9 @@ type ApplicationDetail struct {
 	SubmittedCoverLetter *CandidateDocument        `json:"submitted_cover_letter,omitempty"`
 	CoverLetterText      string                    `json:"cover_letter_text,omitempty"`
 	Answers              []ApplicationAnswer       `json:"answers,omitempty"`
+	ContactName          string                    `json:"contact_name,omitempty"`
+	ContactEmail         string                    `json:"contact_email,omitempty"`
+	ContactPhone         string                    `json:"contact_phone,omitempty"`
 	Notes                []ApplicationNote         `json:"notes"`
 	Interviews           []CandidateInterview      `json:"interviews"`
 	Offer                *JobOfferDTO              `json:"offer,omitempty"`
@@ -243,6 +246,9 @@ type CreateApplicationPayload struct {
 	Answers        []ApplicationAnswer `json:"answers,omitempty"`
 	Source         string              `json:"source,omitempty"`
 	IdempotencyKey string              `json:"idempotency_key,omitempty"`
+	ContactName    string              `json:"contact_name,omitempty"`
+	ContactEmail   string              `json:"contact_email,omitempty"`
+	ContactPhone   string              `json:"contact_phone,omitempty"`
 }
 
 // CreateApplicationOptionalPayload carries the same fields as
@@ -258,6 +264,9 @@ type CreateApplicationOptionalPayload struct {
 	Answers        []ApplicationAnswer `json:"answers,omitempty"`
 	Source         string              `json:"source,omitempty"`
 	IdempotencyKey string              `json:"idempotency_key,omitempty"`
+	ContactName    string              `json:"contact_name,omitempty"`
+	ContactEmail   string              `json:"contact_email,omitempty"`
+	ContactPhone   string              `json:"contact_phone,omitempty"`
 }
 
 // ToCreateApplicationPayload converts the relaxed form into the canonical one.
@@ -272,6 +281,9 @@ func (p CreateApplicationOptionalPayload) ToCreateApplicationPayload() CreateApp
 		Answers:        p.Answers,
 		Source:         p.Source,
 		IdempotencyKey: p.IdempotencyKey,
+		ContactName:    p.ContactName,
+		ContactEmail:   p.ContactEmail,
+		ContactPhone:   p.ContactPhone,
 	}
 }
 
@@ -317,6 +329,10 @@ type CandidateDocument struct {
 	FileType     string    `json:"file_type"`
 	IsDefault    bool      `json:"is_default"`
 	UploadedAt   time.Time `json:"uploaded_at"`
+	StorageKey   string    `json:"-"`
+	SHA256       string    `json:"sha256"`
+	ScanStatus   string    `json:"scan_status"`
+	OriginalName string    `json:"original_filename"`
 }
 
 type ApplicationStatsDTO struct {

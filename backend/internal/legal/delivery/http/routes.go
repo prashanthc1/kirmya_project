@@ -12,6 +12,9 @@ func RegisterLegalRoutes(router *gin.RouterGroup, handler *LegalHandler) {
 		legal.GET("/documents/:slug", handler.GetDocument)
 		legal.GET("/documents/:slug/versions", handler.GetDocumentVersions)
 	}
+	legalAuth := router.Group("/legal")
+	legalAuth.Use(sharedMiddleware.AuthRequired())
+	legalAuth.POST("/documents/:slug/accept", handler.AcceptDocument)
 
 	cookies := router.Group("/cookies")
 	{
@@ -31,6 +34,8 @@ func RegisterLegalRoutes(router *gin.RouterGroup, handler *LegalHandler) {
 		privacy.GET("/export", handler.GetDataExportJob)
 		privacy.POST("/export", handler.RequestDataExport)
 		privacy.GET("/export/:id", handler.GetDataExportJob)
+		privacy.POST("/export/:id/cancel", handler.CancelDataExport)
+		privacy.GET("/export/:id/download", handler.DownloadDataExport)
 		privacy.GET("/requests", handler.GetUserPrivacyRequests)
 		privacy.POST("/requests", handler.CreatePrivacyRequest)
 		privacy.GET("/requests/:id", handler.GetPrivacyRequestByID)

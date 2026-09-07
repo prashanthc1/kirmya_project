@@ -159,7 +159,7 @@ func (r *RecommendationRepository) GetActiveJobCandidates(ctx context.Context, u
 			COALESCE(j.location, 'Remote'), COALESCE(j.work_mode, 'Remote'), COALESCE(j.employment_type, 'Full-time'),
 			COALESCE(j.salary_min, 0)::int, COALESCE(j.salary_max, 0)::int, COALESCE(j.salary_currency, 'AED'),
 			COALESCE(j.department, 'Engineering'),
-			COALESCE(ARRAY(SELECT jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb))), '{}'),
+			COALESCE(ARRAY(SELECT jsonb_array_elements_text(CASE WHEN jsonb_typeof(j.skills) = 'array' THEN j.skills ELSE '[]'::jsonb END)), '{}'),
 			j.is_featured, COALESCE(j.published_at, j.created_at)
 		FROM jobs j
 		LEFT JOIN companies c ON c.id = j.company_id AND c.status = 'active'

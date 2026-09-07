@@ -2081,21 +2081,6 @@ definitions:
           $ref: '#/definitions/models.ResumeSection'
         type: array
     type: object
-  http.UploadDocumentBody:
-    properties:
-      document_type:
-        example: resume
-        type: string
-      file_url:
-        example: https://files.kirmya.com/candidates/cv.pdf
-        type: string
-      is_default:
-        example: true
-        type: boolean
-      title:
-        example: Senior Backend Engineer CV
-        type: string
-    type: object
   http.VerificationStateResponse:
     properties:
       status:
@@ -2403,6 +2388,14 @@ definitions:
     - action
     - application_ids
     type: object
+  models.AcceptDocumentRequest:
+    properties:
+      version:
+        example: 1.0.0
+        type: string
+    required:
+    - version
+    type: object
   models.AccountDeletionRequest:
     properties:
       confirm_password:
@@ -2652,6 +2645,12 @@ definitions:
         items:
           $ref: '#/definitions/models.ApplicationAnswer'
         type: array
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
       cover_letter_text:
         type: string
       interviews:
@@ -3211,6 +3210,12 @@ definitions:
         type: string
       is_default:
         type: boolean
+      original_filename:
+        type: string
+      scan_status:
+        type: string
+      sha256:
+        type: string
       size_bytes:
         type: integer
       title:
@@ -4613,6 +4618,12 @@ definitions:
         items:
           $ref: '#/definitions/models.ApplicationAnswer'
         type: array
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
       cover_letter:
         type: string
       idempotency_key:
@@ -22224,18 +22235,64 @@ paths:
       summary: Delete a document
       tags:
       - Profiles
+  /api/v1/documents/{id}/download:
+    get:
+      description: Streams the stored bytes of a document. Only the candidate who
+        owns it can download it.
+      parameters:
+      - description: Document id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: Document bytes
+          schema:
+            type: string
+        "400":
+          description: Invalid document ID
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Document not found or not owned by the caller
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download a document
+      tags:
+      - Profiles
   /api/v1/documents/upload:
     post:
       consumes:
-      - application/json
-      description: Records a document against the candidate's profile by reference.
+      - multipart/form-data
+      description: Accepts the PDF bytes themselves, verifies the signature, size
+        and scan policy, and stores the document under the candidate's ownership.
       parameters:
-      - description: Document to register
-        in: body
-        name: request
+      - description: PDF document, 10 MiB maximum
+        in: formData
+        name: file
         required: true
-        schema:
-          $ref: '#/definitions/http.UploadDocumentBody'
+        type: file
+      - description: Display title
+        in: formData
+        name: title
+        type: string
+      - description: Document type, for example Resume
+        in: formData
+        name: document_type
+        type: string
+      - description: Make this the default attachment
+        in: formData
+        name: is_default
+        type: boolean
       produces:
       - application/json
       responses:
@@ -22257,7 +22314,7 @@ paths:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Register an uploaded document
+      summary: Upload a document
       tags:
       - Profiles
   /api/v1/education:
@@ -26609,6 +26666,43 @@ paths:
       summary: Get legal document
       tags:
       - Legal & Compliance
+  /api/v1/legal/documents/{slug}/accept:
+    post:
+      consumes:
+      - application/json
+      description: Records the caller's acceptance of a published document version
+      parameters:
+      - description: Document slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Accepted version
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AcceptDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Accept a legal document version
+      tags:
+      - Legal & Compliance
   /api/v1/legal/documents/{slug}/versions:
     get:
       description: Returns version history and changelog for a legal policy
@@ -30219,6 +30313,68 @@ paths:
       summary: Get data export download status
       tags:
       - Privacy
+  /api/v1/privacy/export/{id}/cancel:
+    post:
+      description: Cancels the caller's own export job while it is still pending
+      parameters:
+      - description: Export job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel a data export job
+      tags:
+      - Legal & Compliance
+  /api/v1/privacy/export/{id}/download:
+    get:
+      description: Streams the caller's own export payload until it expires
+      parameters:
+      - description: Export job ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Export payload
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download a completed data export
+      tags:
+      - Legal & Compliance
   /api/v1/privacy/requests:
     get:
       description: Returns list of data subject requests submitted by the user
@@ -33009,6 +33165,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Schedule interview
+      tags:
+      - Applications
+  /api/v1/recruiter/interviews/{id}/cancel:
+    put:
+      description: Cancels an interview the calling recruiter organised. The candidate
+        sees the cancellation on their application.
+      parameters:
+      - description: Interview id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Interview not found or not organised by the caller
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel a scheduled interview
       tags:
       - Applications
   /api/v1/recruiter/interviews/{id}/feedback:

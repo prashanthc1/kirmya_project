@@ -5,9 +5,9 @@ Source of truth: [issue-register.json](issue-register.json). F01–F20 prioritie
 | ID | Priority | Status | Owner | Workstream / steps | Work |
 |---|---|---|---|---|---|
 | F01 | P1 | verified | Backend security lead | Identity and access / 3 | Application timeline omits candidate ownership. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
-| F02 | P1 | open | Backend privacy lead | Privacy and data lifecycle / 7 | Privacy and consent operations return success without persistence |
-| F03 | P1 | open | Hiring domain lead | Hiring workflow / 6 | Candidate document registration returns 201 without saving |
-| F04 | P1 | open | Hiring domain lead | Hiring workflow / 6 | Application form drops contact edits and resume URL |
+| F02 | P1 | verified | Backend privacy lead | Privacy and data lifecycle / 7 | Privacy and consent operations are durable and enforced. [batch 3 evidence, 7 Sep 2026](../BATCH3_DELIVERY_EVIDENCE_2026-09-07.md) |
+| F03 | P1 | verified | Hiring domain lead | Hiring workflow / 6 | Owned PDF upload, registration, read, download and deletion persist actual bytes and metadata. Job publication and the public board were repaired in the same batch. [batch 3 evidence, 7 Sep 2026](../BATCH3_DELIVERY_EVIDENCE_2026-09-07.md) |
+| F04 | P1 | verified | Hiring domain lead | Hiring workflow / 6 | Application snapshots retain contact edits, owned resume, cover letter and required answers. [batch 3 evidence, 7 Sep 2026](../BATCH3_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F05 | P1 | verified | Frontend integration lead | API contracts / 5 | Saved jobs use the wrong response shape. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F06 | P1 | verified | Frontend integration lead | API contracts / 5 | Production frontend CI supplies an incompatible API base URL. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |
 | F07 | P1 | verified | Frontend integration lead | API contracts / 5 | Several reachable feature clients still use mock authentication and localhost. [batch 2 evidence, 7 Sep 2026](../BATCH2_DELIVERY_EVIDENCE_2026-09-07.md) |

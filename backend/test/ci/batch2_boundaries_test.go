@@ -21,6 +21,10 @@ import (
 // in steps 3 and 4, exercised over real HTTP against the real database rather
 // than asserted from source.
 
+// ciPassword is shared so a test that has to sign in again after an API
+// restart uses the same credential registerAndLogin issued.
+const ciPassword = "Disposable-CI-password-123!"
+
 type ciUser struct {
 	id    string
 	email string
@@ -37,7 +41,7 @@ func httpClient() *http.Client {
 func registerAndLogin(t *testing.T, base string) ciUser {
 	t.Helper()
 	email := fmt.Sprintf("ci-b2-%s@example.invalid", uuid.NewString())
-	const password = "Disposable-CI-password-123!"
+	const password = ciPassword
 
 	body, err := json.Marshal(map[string]any{
 		"firstName": "CI", "lastName": "Batch2", "email": email, "password": password,

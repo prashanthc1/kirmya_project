@@ -20857,9 +20857,9 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Records a document against the candidate's profile by reference.",
+                "description": "Accepts the PDF bytes themselves, verifies the signature, size and scan policy, and stores the document under the candidate's ownership.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -20867,16 +20867,32 @@ const docTemplate = `{
                 "tags": [
                     "Profiles"
                 ],
-                "summary": "Register an uploaded document",
+                "summary": "Upload a document",
                 "parameters": [
                     {
-                        "description": "Document to register",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/http.UploadDocumentBody"
-                        }
+                        "type": "file",
+                        "description": "PDF document, 10 MiB maximum",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Display title",
+                        "name": "title",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Document type, for example Resume",
+                        "name": "document_type",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Make this the default attachment",
+                        "name": "is_default",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -20952,6 +20968,58 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/documents/{id}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Streams the stored bytes of a document. Only the candidate who owns it can download it.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Download a document",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Document id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document bytes",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid document ID",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found or not owned by the caller",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -27619,6 +27687,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/legal/documents/{slug}/accept": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Records the caller's acceptance of a published document version",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Accept a legal document version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Document slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Accepted version",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AcceptDocumentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/legal/documents/{slug}/versions": {
             "get": {
                 "description": "Returns version history and changelog for a legal policy",
@@ -33283,6 +33409,104 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/privacy/export/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancels the caller's own export job while it is still pending",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Cancel a data export job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Export job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/privacy/export/{id}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Streams the caller's own export payload until it expires",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Legal \u0026 Compliance"
+                ],
+                "summary": "Download a completed data export",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Export job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Export payload",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/privacy/requests": {
             "get": {
                 "security": [
@@ -37569,6 +37793,58 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/recruiter/interviews/{id}/cancel": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cancels an interview the calling recruiter organised. The candidate sees the cancellation on their application.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Cancel a scheduled interview",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Interview id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Interview not found or not organised by the caller",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -46942,27 +47218,6 @@ const docTemplate = `{
                 }
             }
         },
-        "http.UploadDocumentBody": {
-            "type": "object",
-            "properties": {
-                "document_type": {
-                    "type": "string",
-                    "example": "resume"
-                },
-                "file_url": {
-                    "type": "string",
-                    "example": "https://files.kirmya.com/candidates/cv.pdf"
-                },
-                "is_default": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Senior Backend Engineer CV"
-                }
-            }
-        },
         "http.VerificationStateResponse": {
             "type": "object",
             "properties": {
@@ -47415,6 +47670,18 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AcceptDocumentRequest": {
+            "type": "object",
+            "required": [
+                "version"
+            ],
+            "properties": {
+                "version": {
+                    "type": "string",
+                    "example": "1.0.0"
+                }
+            }
+        },
         "models.AccountDeletionRequest": {
             "type": "object",
             "properties": {
@@ -47788,6 +48055,15 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.ApplicationAnswer"
                     }
+                },
+                "contact_email": {
+                    "type": "string"
+                },
+                "contact_name": {
+                    "type": "string"
+                },
+                "contact_phone": {
+                    "type": "string"
                 },
                 "cover_letter_text": {
                     "type": "string"
@@ -48603,6 +48879,15 @@ const docTemplate = `{
                 },
                 "is_default": {
                     "type": "boolean"
+                },
+                "original_filename": {
+                    "type": "string"
+                },
+                "scan_status": {
+                    "type": "string"
+                },
+                "sha256": {
+                    "type": "string"
                 },
                 "size_bytes": {
                     "type": "integer"
@@ -50687,6 +50972,15 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.ApplicationAnswer"
                     }
+                },
+                "contact_email": {
+                    "type": "string"
+                },
+                "contact_name": {
+                    "type": "string"
+                },
+                "contact_phone": {
+                    "type": "string"
                 },
                 "cover_letter": {
                     "type": "string"

@@ -134,9 +134,12 @@ func (a *PostgreSQLSearchAdapter) executeDatabaseSearch(ctx context.Context, qLo
 			       json_build_object('location', p.location, 'industry', p.industry, 'headline', p.headline) as metadata
 			FROM users u
 			LEFT JOIN user_profiles p ON u.id = p.user_id
+			LEFT JOIN privacy_preferences pp ON pp.user_id = u.id
 			WHERE u.status = 'active'
 			  AND (p.is_restricted IS NULL OR p.is_restricted = false)
 			  AND (p.is_private IS NULL OR p.is_private = false)
+			  AND COALESCE(pp.discover_in_search,true)=true
+			  AND lower(COALESCE(pp.profile_visibility,'public'))<>'private'
 			  AND (
 			      $1 = ''
 			      OR lower(u.first_name || ' ' || u.last_name) LIKE $3
@@ -563,4 +566,3 @@ func (a *OpenSearchAdapter) ExecuteSearch(ctx context.Context, query, category s
 
 	return results, counts, nil
 }
-

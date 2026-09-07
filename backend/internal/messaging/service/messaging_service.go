@@ -76,6 +76,13 @@ func (s *MessagingService) GetOrCreateConversation(ctx context.Context, u1 uuid.
 	if u1 == u2 {
 		return nil, fmt.Errorf("cannot initiate a conversation with yourself")
 	}
+	allowed, err := s.repo.CanInitiateConversation(ctx, u1, u2)
+	if err != nil {
+		return nil, err
+	}
+	if !allowed {
+		return nil, fmt.Errorf("recipient privacy preferences do not allow this conversation")
+	}
 
 	// Check blocking status
 	blocked, err := s.repo.IsBlocked(ctx, u1, u2)

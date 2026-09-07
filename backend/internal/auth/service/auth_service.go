@@ -140,19 +140,34 @@ func generateSecureToken(byteLen int) (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
+// RegistrationRejectedError marks the registration failures the caller can fix —
+// invalid details or an address already in use. Everything else is a server
+// fault, and the delivery layer answers accordingly instead of reporting every
+// failure as a bad request.
+type RegistrationRejectedError struct{ Err error }
+
+func (e *RegistrationRejectedError) Error() string { return e.Err.Error() }
+func (e *RegistrationRejectedError) Unwrap() error { return e.Err }
+
 // Register checks duplicate email, hashes password with bcrypt cost 12, creates user & verification token.
 func (s *AuthService) Register(ctx context.Context, req *dto.RegisterRequest, ipAddress string) (*models.User, string, error) {
 	req.NormalizeFields()
 	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
 
 	if err := validators.ValidateRegisterInput(req); err != nil {
-		return nil, "", err
+		return nil, "", &RegistrationRejectedError{Err: err}
 	}
 
-	// Check existing email
-	existing, _ := s.repo.GetUserByEmail(ctx, req.Email)
+	// Check existing email. A failed lookup is not an absent user: discarding
+	// this error let a database timeout continue as though the address were free
+	// and then surface to the caller as a rejected registration rather than a
+	// server fault.
+	existing, lookupErr := s.repo.GetUserByEmail(ctx, req.Email)
+	if lookupErr != nil && !errors.Is(lookupErr, repository.ErrUserNotFound) {
+		return nil, "", fmt.Errorf("could not check whether the email is already registered: %w", lookupErr)
+	}
 	if existing != nil {
-		return nil, "", errors.New("an account with this email already exists")
+		return nil, "", &RegistrationRejectedError{Err: errors.New("an account with this email already exists")}
 	}
 
 	// Bcrypt hash with cost 12
@@ -328,16 +343,33 @@ func (s *AuthService) RegisterSimple(ctx context.Context, email string, password
 	return user, err
 }
 
+// LoginRejectedError marks the sign-in failures that are about the caller's
+// credentials or account state. Anything else — a lookup that failed, a session
+// that could not be stored — is a server fault, and the delivery layer answers
+// accordingly instead of telling a caller with correct credentials that they
+// had them wrong.
+type LoginRejectedError struct{ Err error }
+
+func (e *LoginRejectedError) Error() string { return e.Err.Error() }
+func (e *LoginRejectedError) Unwrap() error { return e.Err }
+
 // Login validates credentials, status, creates session & tokens.
 func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddress, userAgent string) (string, string, *models.User, error) {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 	u, err := s.repo.GetUserByEmail(ctx, email)
-	if err != nil {
-		return "", "", nil, errors.New("invalid email or password")
+	// Only an absent user is a credential failure. A lookup that failed — a
+	// timeout, a dropped connection — was also answered "invalid email or
+	// password", which told a caller with correct credentials that they had
+	// them wrong and left no trace of the real fault.
+	if err != nil && !errors.Is(err, repository.ErrUserNotFound) {
+		return "", "", nil, fmt.Errorf("could not look up the account: %w", err)
+	}
+	if err != nil || u == nil {
+		return "", "", nil, &LoginRejectedError{Err: errors.New("invalid email or password")}
 	}
 
 	if u.Status == "locked" || u.Status == "suspended" || u.Status == "disabled" {
-		return "", "", nil, errors.New("account is locked or suspended. Please contact support")
+		return "", "", nil, &LoginRejectedError{Err: errors.New("account is locked or suspended. Please contact support")}
 	}
 
 	// Password comparison
@@ -349,7 +381,7 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddres
 			IPAddress: ipAddress,
 			CreatedAt: time.Now().UTC(),
 		})
-		return "", "", nil, errors.New("invalid email or password")
+		return "", "", nil, &LoginRejectedError{Err: errors.New("invalid email or password")}
 	}
 
 	// Expiry calculation based on RememberMe
@@ -380,8 +412,11 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddres
 		CreatedAt:    time.Now().UTC(),
 	}
 
+	// A session that cannot be stored is a server fault. Returning it bare made
+	// the delivery layer answer 401, so a database timeout here was reported as
+	// a wrong password.
 	if err := s.repo.CreateSession(ctx, sess); err != nil {
-		return "", "", nil, err
+		return "", "", nil, fmt.Errorf("could not store the session: %w", err)
 	}
 
 	// Audit Log

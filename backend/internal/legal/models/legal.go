@@ -52,20 +52,20 @@ type LegalAcceptance struct {
 
 // CookieItem represents a registered browser cookie.
 type CookieItem struct {
-	ID          uuid.UUID `json:"id" db:"id"`
-	CookieName  string    `json:"cookie_name" db:"cookie_name"`
-	Provider    string    `json:"provider" db:"provider"`
-	Category    string    `json:"category" db:"category"` // necessary, preferences, analytics, functional, marketing, third_party
-	Purpose     string    `json:"purpose" db:"purpose"`
-	Domain      string    `json:"domain,omitempty" db:"domain"`
-	Path        string    `json:"path" db:"path"`
-	Duration    string    `json:"duration" db:"duration"`
-	IsSecure    bool      `json:"is_secure" db:"is_secure"`
-	IsHTTPOnly  bool      `json:"is_httponly" db:"is_httponly"`
-	SameSite    string    `json:"samesite" db:"samesite"`
-	IsRequired  bool      `json:"is_required" db:"is_required"`
-	IsActive    bool      `json:"is_active" db:"is_active"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	CookieName string    `json:"cookie_name" db:"cookie_name"`
+	Provider   string    `json:"provider" db:"provider"`
+	Category   string    `json:"category" db:"category"` // necessary, preferences, analytics, functional, marketing, third_party
+	Purpose    string    `json:"purpose" db:"purpose"`
+	Domain     string    `json:"domain,omitempty" db:"domain"`
+	Path       string    `json:"path" db:"path"`
+	Duration   string    `json:"duration" db:"duration"`
+	IsSecure   bool      `json:"is_secure" db:"is_secure"`
+	IsHTTPOnly bool      `json:"is_httponly" db:"is_httponly"`
+	SameSite   string    `json:"samesite" db:"samesite"`
+	IsRequired bool      `json:"is_required" db:"is_required"`
+	IsActive   bool      `json:"is_active" db:"is_active"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
 }
 
 // CookieConsent represents visitor or user consent preferences.
@@ -141,6 +141,9 @@ type DataExportJob struct {
 	FileSizeBytes    int64      `json:"file_size_bytes" db:"file_size_bytes"`
 	CreatedAt        time.Time  `json:"created_at" db:"created_at"`
 	CompletedAt      *time.Time `json:"completed_at,omitempty" db:"completed_at"`
+	AttemptCount     int        `json:"attempt_count" db:"attempt_count"`
+	MaxAttempts      int        `json:"max_attempts" db:"max_attempts"`
+	LastError        string     `json:"last_error,omitempty" db:"last_error"`
 }
 
 // DataDeletionRequest represents account deletion request.
@@ -154,6 +157,9 @@ type DataDeletionRequest struct {
 	CompletedAt          *time.Time `json:"completed_at,omitempty" db:"completed_at"`
 	Reason               string     `json:"reason,omitempty" db:"reason"`
 	CreatedAt            time.Time  `json:"created_at" db:"created_at"`
+	AttemptCount         int        `json:"attempt_count" db:"attempt_count"`
+	MaxAttempts          int        `json:"max_attempts" db:"max_attempts"`
+	LastError            string     `json:"last_error,omitempty" db:"last_error"`
 }
 
 // RetentionPolicy represents retention duration settings per category.
@@ -210,14 +216,14 @@ type DataProcessingRecord struct {
 
 // PrivacyDashboardSummary represents high-level metrics for admin privacy console.
 type PrivacyDashboardSummary struct {
-	TotalRequests          int64            `json:"total_requests"`
-	PendingRequests        int64            `json:"pending_requests"`
-	CompletedRequests      int64            `json:"completed_requests"`
-	ActiveExportJobs       int64            `json:"active_export_jobs"`
-	AccountDeletionJobs    int64            `json:"account_deletion_jobs"`
-	ActiveLegalHolds       int64            `json:"active_legal_holds"`
-	ThirdPartySubProcessors int64           `json:"third_party_sub_processors"`
-	ConsentCountByDoc      map[string]int64 `json:"consent_count_by_doc"`
+	TotalRequests           int64            `json:"total_requests"`
+	PendingRequests         int64            `json:"pending_requests"`
+	CompletedRequests       int64            `json:"completed_requests"`
+	ActiveExportJobs        int64            `json:"active_export_jobs"`
+	AccountDeletionJobs     int64            `json:"account_deletion_jobs"`
+	ActiveLegalHolds        int64            `json:"active_legal_holds"`
+	ThirdPartySubProcessors int64            `json:"third_party_sub_processors"`
+	ConsentCountByDoc       map[string]int64 `json:"consent_count_by_doc"`
 }
 
 // ConsentHistoryItem represents historical consent entries.
@@ -270,4 +276,7 @@ type AdminExportPayload struct {
 	UserID string `json:"user_id" binding:"required"`
 }
 
-
+// AcceptDocumentRequest is the body of POST /api/v1/legal/documents/{slug}/accept.
+type AcceptDocumentRequest struct {
+	Version string `json:"version" binding:"required" example:"1.0.0"`
+}

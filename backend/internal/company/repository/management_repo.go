@@ -539,7 +539,7 @@ func (r *ManagementRepository) SearchCompanies(ctx context.Context, q models.Com
 				SELECT 1 FROM jobs j
 				WHERE j.company_id = c.id AND j.status = 'active'
 				  AND EXISTS (
-				      SELECT 1 FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb)) sk
+				      SELECT 1 FROM jsonb_array_elements_text(CASE WHEN jsonb_typeof(j.skills) = 'array' THEN j.skills ELSE '[]'::jsonb END) sk
 				      WHERE lower(sk) = ANY(`+arg(cleaned)+`)
 				  ))`)
 		}
@@ -710,7 +710,7 @@ func (r *ManagementRepository) Discovery(ctx context.Context, viewerID uuid.UUID
 			WHERE j.company_id = c.id AND j.status = 'active'
 			  AND EXISTS (
 			      SELECT 1
-			      FROM jsonb_array_elements_text(COALESCE(j.skills, '[]'::jsonb)) sk
+			      FROM jsonb_array_elements_text(CASE WHEN jsonb_typeof(j.skills) = 'array' THEN j.skills ELSE '[]'::jsonb END) sk
 			      JOIN user_skills us ON lower(us.name) = lower(sk)
 			      JOIN user_profiles up ON up.id = us.profile_id
 			      WHERE up.user_id = $1))`,

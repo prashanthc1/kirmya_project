@@ -96,6 +96,8 @@ Each implementation change must include its acceptance evidence, affected audit 
 
 ## Step 6 — Finish the candidate-to-recruiter hiring journey
 
+**Delivery batch completed 7 September 2026:** recorded in [batch 3 delivery evidence](BATCH3_DELIVERY_EVIDENCE_2026-09-07.md). The canonical flow now stores verified PDF bytes and metadata under candidate ownership, snapshots edited contact fields and the selected attachment, validates required answers and open jobs, rejects foreign documents, and makes retries idempotent. Recruiter reads and transitions are scoped to owned jobs; real interview scheduling uses timezone-aware instants, conflict locks and candidate-visible cancellation, and concurrent overlapping bookings are exercised. Publication itself was broken and is fixed: a new recruiter's first action failed on the organization and recruiter-profile foreign keys, a job published without skills made the whole public board return 500, and the recruiter's own listing answered with two jobs that do not exist. The suite had been seeding every job with direct SQL, which is why those defects survived; a test now publishes through the API. The production-build Playwright journey and the real PostgreSQL/Redis integration suite are required CI checks for the delivery SHA.
+
 **Owner:** hiring-domain engineer with frontend/QA. **Dependencies:** steps 3–5. **Findings:** F03, F04 and related F01/F05/F13/F17.
 
 1. Implement one canonical owned-document flow: upload, verify object/type/size, register actual metadata, list, download and delete. Apply the upload scanning policy before processing untrusted documents.
@@ -108,6 +110,8 @@ Each implementation change must include its acceptance evidence, affected audit 
 **Exit:** job publication → discovery → account/profile → document → application → recruiter review → interview/stage response → candidate update passes in browser and HTTP tests.
 
 ## Step 7 — Complete privacy controls and data lifecycle
+
+**Delivery batch completed 7 September 2026:** recorded in [batch 3 delivery evidence](BATCH3_DELIVERY_EVIDENCE_2026-09-07.md). Legal-version acceptance, cookie consent, consent history, preferences and privacy requests now read and write PostgreSQL records. Recruiter/person search, conversation initiation, AI consent decisions and optional analytics consume those preferences. Export and deletion workers claim durable jobs, record attempts and failures, resume after restart, support authorized cancellation, enforce legal holds, expire owner-only downloads and remove candidate document bytes during deletion. A deletion that failed for any reason other than a legal hold used to lose both its recorded error and its consumed attempt with the rolled-back transaction, so the worker retried the same broken deletion indefinitely; the failure is now recorded outside that transaction and is covered by a test that fails against the unfixed code. Document scanning remains a PDF-signature and test-signature check rather than an antivirus integration. This is implementation verification, not legal certification.
 
 **Owner:** backend engineer with product/privacy owner. **Dependencies:** steps 3–4. **Finding:** F02.
 
@@ -204,9 +208,9 @@ The [report review index](AUDIT_REPORT_REVIEW_INDEX_2026-09-06.md) lists all 92 
 | Finding | Priority | Work | Plan steps |
 |---|---|---|---|
 | F01 | P1 (batch 2) | Application timeline omits candidate ownership | 3, 6 |
-| F02 | P1 | Privacy and consent operations return success without persistence | 7 |
-| F03 | P1 | Candidate document registration returns 201 without saving | 6 |
-| F04 | P1 | Application form drops contact edits and resume URL | 6 |
+| F02 | P1 (batch 3) | Privacy and consent operations return success without persistence | 7 |
+| F03 | P1 (batch 3) | Candidate document registration returns 201 without saving | 6 |
+| F04 | P1 (batch 3) | Application form drops contact edits and resume URL | 6 |
 | F05 | P1 (batch 2) | Saved jobs use the wrong response shape | 5, 6 |
 | F06 | P1 (batch 2) | Production frontend CI supplies an incompatible API base URL | 5 |
 | F07 | P1 (batch 2) | Several reachable feature clients still use mock authentication and localhost | 5, 10 |

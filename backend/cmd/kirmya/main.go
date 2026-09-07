@@ -652,6 +652,18 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	legalService := legalSvc.NewLegalService(legalRepository)
 	legalHandler := legalHttp.NewLegalHandler(legalService)
 	adminLegalHandler := legalHttp.NewAdminLegalHandler(legalService)
+	go func() {
+		// Durable jobs are claimed with row locks, so restarts and multiple API
+		// replicas safely resume pending work without processing one job twice.
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		for {
+			if err := legalService.ProcessPrivacyJobs(context.Background()); err != nil {
+				slog.Error("privacy worker pass failed", slog.String("error", err.Error()))
+			}
+			<-ticker.C
+		}
+	}()
 
 	backupRepository := backupRepo.NewBackupRepository(sqlDB)
 	backupService := backupSvc.NewBackupService(backupRepository)

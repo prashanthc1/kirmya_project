@@ -315,6 +315,24 @@ func (h *RecruiterHandler) ScheduleInterview(c *gin.Context) {
 	c.JSON(http.StatusCreated, interview)
 }
 
+func (h *RecruiterHandler) CancelInterview(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid interview ID"})
+		return
+	}
+	if err = h.service.CancelInterview(c.Request.Context(), userID, id); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "cancelled"})
+}
+
 func (h *RecruiterHandler) GetAnalytics(c *gin.Context) {
 	userID, err := h.getUserID(c)
 	if err != nil {
@@ -344,6 +362,11 @@ func (h *RecruiterHandler) GetApplications(c *gin.Context) {
 }
 
 func (h *RecruiterHandler) GetApplicationDetail(c *gin.Context) {
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
 	appIDStr := c.Param("id")
 	appID, err := uuid.Parse(appIDStr)
 	if err != nil {
@@ -351,7 +374,7 @@ func (h *RecruiterHandler) GetApplicationDetail(c *gin.Context) {
 		return
 	}
 
-	detail, err := h.service.GetApplicationDetail(c.Request.Context(), appID)
+	detail, err := h.service.GetOwnedApplicationDetail(c.Request.Context(), userID, appID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

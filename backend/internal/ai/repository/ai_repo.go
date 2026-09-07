@@ -15,6 +15,16 @@ type AIRepository struct {
 	db *pgxpool.Pool
 }
 
+// CanUseAI is the final, persisted consent check before user data is sent to an AI provider.
+func (r *AIRepository) CanUseAI(ctx context.Context, userID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		return true, nil
+	}
+	var allowed bool
+	err := r.db.QueryRow(ctx, `SELECT COALESCE((SELECT ai_data_usage FROM privacy_preferences WHERE user_id=$1), TRUE)`, userID).Scan(&allowed)
+	return allowed, err
+}
+
 func NewAIRepository(db *pgxpool.Pool) *AIRepository {
 	return &AIRepository{db: db}
 }

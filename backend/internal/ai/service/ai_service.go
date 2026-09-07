@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"kirmya/internal/ai/models"
 	"kirmya/internal/ai/provider"
 	"kirmya/internal/ai/repository"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/google/uuid"
 )
+
+var ErrAIConsentRequired = errors.New("AI data usage is disabled in privacy preferences")
 
 type AIService struct {
 	repo     *repository.AIRepository
@@ -39,6 +42,9 @@ func (s *AIService) UpdatePreferences(ctx context.Context, userID uuid.UUID, p s
 }
 
 func (s *AIService) AnalyzeResume(ctx context.Context, userID uuid.UUID, resumeText string) (map[string]interface{}, error) {
+	if err := s.requireConsent(ctx, userID); err != nil {
+		return nil, err
+	}
 	raw, promptT, compT, err := s.provider.AnalyzeResume(ctx, resumeText)
 	if err != nil {
 		return nil, err
@@ -47,6 +53,9 @@ func (s *AIService) AnalyzeResume(ctx context.Context, userID uuid.UUID, resumeT
 }
 
 func (s *AIService) AnalyzeSkillGap(ctx context.Context, userID uuid.UUID, skills []string, role string) (map[string]interface{}, error) {
+	if err := s.requireConsent(ctx, userID); err != nil {
+		return nil, err
+	}
 	inputBytes, _ := json.Marshal(map[string]interface{}{"skills": skills, "role": role})
 	raw, promptT, compT, err := s.provider.AnalyzeSkillGap(ctx, skills, role)
 	if err != nil {
@@ -56,6 +65,9 @@ func (s *AIService) AnalyzeSkillGap(ctx context.Context, userID uuid.UUID, skill
 }
 
 func (s *AIService) MatchJob(ctx context.Context, userID uuid.UUID, resumeText string, jd string) (map[string]interface{}, error) {
+	if err := s.requireConsent(ctx, userID); err != nil {
+		return nil, err
+	}
 	inputBytes, _ := json.Marshal(map[string]interface{}{"resume": resumeText, "jd": jd})
 	raw, promptT, compT, err := s.provider.MatchJob(ctx, resumeText, jd)
 	if err != nil {
@@ -65,6 +77,9 @@ func (s *AIService) MatchJob(ctx context.Context, userID uuid.UUID, resumeText s
 }
 
 func (s *AIService) PrepareInterview(ctx context.Context, userID uuid.UUID, role string, exp string) (map[string]interface{}, error) {
+	if err := s.requireConsent(ctx, userID); err != nil {
+		return nil, err
+	}
 	inputBytes, _ := json.Marshal(map[string]interface{}{"role": role, "experience": exp})
 	raw, promptT, compT, err := s.provider.PrepareInterview(ctx, role, exp)
 	if err != nil {
@@ -74,12 +89,26 @@ func (s *AIService) PrepareInterview(ctx context.Context, userID uuid.UUID, role
 }
 
 func (s *AIService) SuggestCareer(ctx context.Context, userID uuid.UUID, interests []string, skills []string) (map[string]interface{}, error) {
+	if err := s.requireConsent(ctx, userID); err != nil {
+		return nil, err
+	}
 	inputBytes, _ := json.Marshal(map[string]interface{}{"interests": interests, "skills": skills})
 	raw, promptT, compT, err := s.provider.SuggestCareer(ctx, interests, skills)
 	if err != nil {
 		return nil, err
 	}
 	return s.saveLogsAndParse(ctx, userID, "career_suggestions", string(inputBytes), raw, promptT, compT)
+}
+
+func (s *AIService) requireConsent(ctx context.Context, userID uuid.UUID) error {
+	allowed, err := s.repo.CanUseAI(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return ErrAIConsentRequired
+	}
+	return nil
 }
 
 // Helpers

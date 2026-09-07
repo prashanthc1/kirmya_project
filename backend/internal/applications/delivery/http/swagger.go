@@ -300,12 +300,15 @@ func swaggerGetCandidateDocuments() {}
 
 // swaggerUploadDocument documents POST /api/v1/documents/upload.
 //
-// @Summary      Register an uploaded document
-// @Description  Records a document against the candidate's profile by reference.
+// @Summary      Upload a document
+// @Description  Accepts the PDF bytes themselves, verifies the signature, size and scan policy, and stores the document under the candidate's ownership.
 // @Tags         Profiles
-// @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
-// @Param        request  body      UploadDocumentBody  true  "Document to register"
+// @Param        file           formData  file    true   "PDF document, 10 MiB maximum"
+// @Param        title          formData  string  false  "Display title"
+// @Param        document_type  formData  string  false  "Document type, for example Resume"
+// @Param        is_default     formData  bool    false  "Make this the default attachment"
 // @Success      201      {object}  models.CandidateDocument
 // @Failure      400      {object}  swagger.ErrorResponse  "Payload failed validation"
 // @Failure      401      {object}  swagger.ErrorResponse
@@ -313,6 +316,21 @@ func swaggerGetCandidateDocuments() {}
 // @Security     BearerAuth
 // @Router       /api/v1/documents/upload [post]
 func swaggerUploadDocument() {}
+
+// swaggerDownloadDocument documents GET /api/v1/documents/{id}/download.
+//
+// @Summary      Download a document
+// @Description  Streams the stored bytes of a document. Only the candidate who owns it can download it.
+// @Tags         Profiles
+// @Produce      octet-stream
+// @Param        id   path      string                 true  "Document id"
+// @Success      200  {string}  string                 "Document bytes"
+// @Failure      400  {object}  swagger.ErrorResponse  "Invalid document ID"
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse  "Document not found or not owned by the caller"
+// @Security     BearerAuth
+// @Router       /api/v1/documents/{id}/download [get]
+func swaggerDownloadDocument() {}
 
 // swaggerDeleteDocument documents DELETE /api/v1/documents/{id}.
 //
@@ -336,14 +354,6 @@ func swaggerDeleteDocument() {}
 // SaveJobBody is the body of POST /api/v1/jobs/{id}/save.
 type SaveJobBody struct {
 	Notes string `json:"notes" example:"Ask about the remote policy"`
-}
-
-// UploadDocumentBody is the body of POST /api/v1/documents/upload.
-type UploadDocumentBody struct {
-	Title        string `json:"title" example:"Senior Backend Engineer CV"`
-	DocumentType string `json:"document_type" example:"resume"`
-	FileURL      string `json:"file_url" example:"https://files.kirmya.com/candidates/cv.pdf"`
-	IsDefault    bool   `json:"is_default" example:"true"`
 }
 
 // ApplicationAnalyticsResponse is the reply to GET /api/v1/applications/analytics.

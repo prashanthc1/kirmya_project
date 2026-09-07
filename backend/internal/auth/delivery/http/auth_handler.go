@@ -1,6 +1,8 @@
 package http
 
 import (
+	"errors"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -30,7 +32,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	ipAddress := c.ClientIP()
 	u, verifyToken, err := h.service.Register(c.Request.Context(), &payload, ipAddress)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// Only a caller-fixable rejection is a bad request. Reporting a database
+		// timeout or any other server fault as 400 told the caller its details
+		// were wrong and hid a real outage behind a validation message.
+		var rejected *service.RegistrationRejectedError
+		if errors.As(err, &rejected) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		slog.Error("registration failed", slog.String("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration could not be completed"})
 		return
 	}
 
@@ -77,7 +88,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		// Only a credential or account-state rejection is a 401. A lookup that
+		// failed or a session that could not be stored is a server fault, and
+		// answering 401 told a caller with correct credentials otherwise.
+		var rejected *service.LoginRejectedError
+		if errors.As(err, &rejected) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		slog.Error("login failed", slog.String("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Sign-in could not be completed"})
 		return
 	}
 

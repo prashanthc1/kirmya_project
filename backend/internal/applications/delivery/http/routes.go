@@ -50,6 +50,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ApplicationsHandler) {
 	{
 		docGroup.GET("", handler.GetCandidateDocuments)
 		docGroup.POST("/upload", handler.UploadDocument)
+		docGroup.GET("/:id/download", handler.DownloadDocument)
 		docGroup.DELETE("/:id", handler.DeleteDocument)
 	}
 }

@@ -1,6 +1,8 @@
 package http
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +53,25 @@ func (h *LegalHandler) GetDocumentVersions(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "data": versions})
+}
+
+func (h *LegalHandler) AcceptDocument(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+	var body struct {
+		Version string `json:"version" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.legalService.AcceptDocument(c.Request.Context(), userID, c.Param("slug"), body.Version, c.ClientIP(), c.Request.UserAgent()); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"status": "accepted", "document": c.Param("slug"), "version": body.Version})
 }
 
 // GetCookies returns the platform cookie registry.
@@ -186,7 +207,7 @@ func (h *LegalHandler) CreatePrivacyRequest(c *gin.Context) {
 
 // GetPrivacyRequestByID fetches a specific user SAR request.
 func (h *LegalHandler) GetPrivacyRequestByID(c *gin.Context) {
-	_, ok := getUserID(c)
+	userID, ok := getUserID(c)
 	if !ok {
 		return
 	}
@@ -198,7 +219,7 @@ func (h *LegalHandler) GetPrivacyRequestByID(c *gin.Context) {
 	}
 
 	req, err := h.legalService.GetPrivacyRequestByID(c.Request.Context(), id)
-	if err != nil {
+	if err != nil || req.UserID != userID {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Privacy request not found"})
 		return
 	}
@@ -229,13 +250,65 @@ func (h *LegalHandler) GetDataExportJob(c *gin.Context) {
 		return
 	}
 
-	job, err := h.legalService.GetDataExportJob(c.Request.Context(), userID)
+	var job *models.DataExportJob
+	var err error
+	if raw := c.Param("id"); raw != "" {
+		jobID, parseErr := uuid.Parse(raw)
+		if parseErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid export job ID"})
+			return
+		}
+		job, err = h.legalService.GetDataExportJobByID(c.Request.Context(), userID, jobID)
+	} else {
+		job, err = h.legalService.GetDataExportJob(c.Request.Context(), userID)
+	}
+	// An export id that belongs to someone else, or does not exist, is a
+	// not-found for this caller rather than a server fault.
+	if errors.Is(err, sql.ErrNoRows) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Export job not found"})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, job)
+}
+
+func (h *LegalHandler) CancelDataExport(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+	jobID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid export job ID"})
+		return
+	}
+	if err = h.legalService.CancelDataExport(c.Request.Context(), userID, jobID); err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "cancelled"})
+}
+func (h *LegalHandler) DownloadDataExport(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+	jobID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid export job ID"})
+		return
+	}
+	payload, name, err := h.legalService.DownloadDataExport(c.Request.Context(), userID, jobID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Export is unavailable, unauthorized, incomplete, or expired"})
+		return
+	}
+	c.Header("Content-Disposition", "attachment; filename=\""+name+"\"")
+	c.Data(http.StatusOK, "application/json", payload)
 }
 
 // RequestAccountDeletion initiates account deletion request.

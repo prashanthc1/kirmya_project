@@ -312,6 +312,7 @@ GET /api/v1/cover-letters/:id/download
 GET /api/v1/cover-letters/:id/versions
 GET /api/v1/cover-letters/templates
 GET /api/v1/documents
+GET /api/v1/documents/:id/download
 GET /api/v1/employer/analytics
 GET /api/v1/employer/company
 GET /api/v1/employer/dashboard
@@ -448,6 +449,7 @@ GET /api/v1/privacy/consents
 GET /api/v1/privacy/cookies
 GET /api/v1/privacy/export
 GET /api/v1/privacy/export/:id
+GET /api/v1/privacy/export/:id/download
 GET /api/v1/privacy/requests
 GET /api/v1/privacy/requests/:id
 GET /api/v1/privacy/retention
@@ -730,6 +732,7 @@ POST /api/v1/landing/admin/testimonials
 POST /api/v1/learning/assessment
 POST /api/v1/learning/enroll
 POST /api/v1/learning/progress
+POST /api/v1/legal/documents/:slug/accept
 POST /api/v1/mentorship/feedback
 POST /api/v1/mentorship/goals
 POST /api/v1/mentorship/mentors/profile
@@ -786,6 +789,7 @@ POST /api/v1/privacy/consents
 POST /api/v1/privacy/delete-account
 POST /api/v1/privacy/delete-account/cancel
 POST /api/v1/privacy/export
+POST /api/v1/privacy/export/:id/cancel
 POST /api/v1/privacy/requests
 POST /api/v1/profile/:username/report
 POST /api/v1/profile/me/achievements
@@ -953,6 +957,7 @@ PUT /api/v1/profiles/me/career-preferences
 PUT /api/v1/profiles/me/preferences
 PUT /api/v1/recommendations/preferences
 PUT /api/v1/recruiter/applications/:id/stage
+PUT /api/v1/recruiter/interviews/:id/cancel
 PUT /api/v1/recruiter/offers/:id
 PUT /api/v1/recruiter/pipeline/:id
 PUT /api/v1/referrals/:id/status
