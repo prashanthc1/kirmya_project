@@ -51,7 +51,7 @@ Every gate below was executed locally against disposable containers on the servi
 | Frontend typecheck | PASS | Next route generation and `tsc --noEmit` |
 | Frontend unit tests | PASS | **57 files, 539 tests**, no skipped-test substitution |
 | Production frontend build | PASS | Next production build with the CI API base, **353 static pages** |
-| Built frontend and real API browser journey | CI REQUIRED — see below | Playwright drives the production build against the real API in four browser projects |
+| Built frontend and real API browser journey | PASS (CI) | Playwright drives the production build against the real API in four browser projects |
 
 The browser suite was run locally against the production build and the real API
 several times. It found four genuine defects, all fixed and listed above: the
@@ -65,8 +65,39 @@ requests failed on the deadline rather than on their own logic. Two specs were
 also corrected for reasons unrelated to load: the board spec waited on a URL
 prefix that also matched the authenticated siblings the page requests, and it
 asserted an empty board, which stopped being true once this batch's journey began
-publishing a real posting. **The browser gate is therefore recorded as the CI
-job's result on the delivery commit, not as a local pass.**
+publishing a real posting. **The browser gate is the CI job's result, recorded below.**
+
+## CI results
+
+The required checks were run three times, each push fixing what the previous run
+exposed. All four workflows are green on `6b87eb1`.
+
+| Commit | Backend | Frontend | Security | Integration |
+|---|---|---|---|---|
+| `674a0b8` | pass | pass | pass | **fail** — Playwright 63/64, WebKit journey |
+| `51c5a8e` | pass | pass | pass | **fail** — Playwright 63/64, Firefox journey |
+| `6b87eb1` | pass | pass | pass | **pass** |
+
+On `6b87eb1` the integration workflow reports **154, 4 and 1 Go tests passed with
+0 failed and 0 skipped** across its three gates, and the browser job reports
+**64 passed, 0 unexpected, 0 skipped, 0 flaky** across chromium, firefox, webkit
+and mobile-chromium against the production build and the real API.
+
+Two further defects were found by those CI runs and fixed:
+
+- WebKit held no session across a page load, because the refresh cookie is issued
+  `Secure` while the suite serves the app over plain HTTP. Chromium and Firefox
+  make a localhost exception; WebKit does not. The flag is now relaxed only under
+  `APP_ENV=test`; development and production keep it.
+- **A page reload could revoke every session the account had.** One load issues
+  two refreshes with the same cookie; the first rotates and revokes it, and the
+  second then looked exactly like a stolen token, so reuse detection signed the
+  user out everywhere. Whether it happened depended on how the browser scheduled
+  the two requests, which is why it presented as one browser failing per run. A
+  token presented within ten seconds of its own rotation is now treated as that
+  race — refused, but without the containment step — and a replay after the
+  window is reuse detection as before. This belongs to step 5's item 6, which
+  batch 2 recorded as not covered; the reload gate is what surfaced it.
 
 ## Negative controls exercised
 
