@@ -33,11 +33,9 @@ type UpdatePrefRequest struct {
 }
 
 func getUserID(c *gin.Context) (uuid.UUID, bool) {
+	// Only the key the auth middleware actually sets is consulted; no
+	// middleware in this codebase sets "user_id", so that branch was dead.
 	val, exists := c.Get("userID")
-	if !exists {
-		// Also check user_id if set by alternative middleware
-		val, exists = c.Get("user_id")
-	}
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
 		return uuid.Nil, false

@@ -1,14 +1,18 @@
 package http
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/google/uuid"
 
 	"kirmya/internal/applications/models"
+	"kirmya/internal/applications/repository"
 	"kirmya/internal/applications/service"
 )
 
@@ -26,16 +30,50 @@ func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
 	if !ok {
 		return
 	}
-	var payload models.CreateApplicationPayload
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
-		return
+	// The path identifier is resolved before the body is validated. On
+	// POST /jobs/:id/apply the job is named by the URL, so binding a body that
+	// requires job_id rejected every correct request to that alias: the caller
+	// was told "Invalid request payload" for a request whose job was never
+	// ambiguous. Binding is therefore done without the required-field
+	// constraint, and the identifier is required afterwards from whichever
+	// source supplied it.
+	var pathJobID uuid.UUID
+	if jobIDStr := c.Param("id"); jobIDStr != "" {
+		parsed, err := uuid.Parse(jobIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
+			return
+		}
+		pathJobID = parsed
 	}
 
-	if jobIDStr := c.Param("id"); jobIDStr != "" && payload.JobID == uuid.Nil {
-		if jID, err := uuid.Parse(jobIDStr); err == nil {
-			payload.JobID = jID
+	var payload models.CreateApplicationPayload
+	// An absent body is legitimate on the aliased route, where the path already
+	// carries the job. It is not legitimate on POST /applications, which the
+	// job_id check below still rejects.
+	if err := c.ShouldBindBodyWith(&payload, binding.JSON); err != nil && !errors.Is(err, io.EOF) {
+		if pathJobID == uuid.Nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+			return
 		}
+		// The path names the job, so re-read the optional fields without the
+		// binding constraint that only the body-only route needs.
+		var optional models.CreateApplicationOptionalPayload
+		if err := c.ShouldBindBodyWith(&optional, binding.JSON); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+			return
+		}
+		payload = optional.ToCreateApplicationPayload()
+	}
+
+	// A path identifier and a conflicting body identifier are a caller error
+	// rather than something to silently resolve in one direction.
+	if pathJobID != uuid.Nil {
+		if payload.JobID != uuid.Nil && payload.JobID != pathJobID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "job_id in the body does not match the job in the URL"})
+			return
+		}
+		payload.JobID = pathJobID
 	}
 
 	if payload.JobID == uuid.Nil {
@@ -60,10 +98,10 @@ func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
 }
 
 func (h *ApplicationsHandler) getCandidateID(c *gin.Context) (uuid.UUID, bool) {
+	// Only the key the auth middleware actually sets is consulted; the
+	// former "user_id" fallback was dead and matched the identity-defect
+	// scan.
 	val, exists := c.Get("userID")
-	if !exists {
-		val, exists = c.Get("user_id")
-	}
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
 		return uuid.Nil, false
@@ -182,7 +220,15 @@ func (h *ApplicationsHandler) GetApplicationTimeline(c *gin.Context) {
 
 	timeline, err := h.svc.GetApplicationTimeline(c.Request.Context(), candID, appID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// A foreign or unknown application is the same 404 either way, so the
+		// response never confirms that someone else's application exists.
+		if errors.Is(err, repository.ErrApplicationNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Application not found"})
+			return
+		}
+		// Anything else is a real failure and must not be reported as an empty
+		// timeline.
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not load application timeline"})
 		return
 	}
 	c.JSON(http.StatusOK, timeline)

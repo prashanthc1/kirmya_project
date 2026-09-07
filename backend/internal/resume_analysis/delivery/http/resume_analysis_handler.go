@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type ResumeAnalysisHandler struct {
@@ -26,10 +28,10 @@ func (h *ResumeAnalysisHandler) AnalyzeResume(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	analysis, err := h.svc.AnalyzeResume(c.Request.Context(), userID, req)
@@ -64,10 +66,10 @@ func (h *ResumeAnalysisHandler) GetAnalysisByID(c *gin.Context) {
 
 // GetUserAnalysisHistory handles GET /resume-analysis/history
 func (h *ResumeAnalysisHandler) GetUserAnalysisHistory(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	history, err := h.svc.GetUserAnalysisHistory(c.Request.Context(), userID)

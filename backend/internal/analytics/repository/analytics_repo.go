@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
 	"errors"
@@ -179,6 +180,30 @@ func (r *AnalyticsRepository) GetUserAnalytics(ctx context.Context, userID uuid.
 }
 
 // GetRecruiterAnalytics fetches recruiter hiring funnel metrics for an organization.
+// IsOrganizationMember reports whether userID belongs to the company whose
+// analytics are being requested.
+//
+// Recruiter and company analytics are organization-scoped, but the organization
+// was previously taken from a query parameter and never checked against the
+// caller, so any authenticated caller could read any organization's hiring
+// funnel by changing the identifier in the URL.
+//
+// A missing pool is not treated as "allowed": with no way to establish
+// membership the only safe answer is no.
+func (r *AnalyticsRepository) IsOrganizationMember(ctx context.Context, orgID, userID uuid.UUID) (bool, error) {
+	if r.pool == nil {
+		return false, nil
+	}
+	var member bool
+	err := r.pool.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM company_members WHERE company_id = $1 AND user_id = $2)`,
+		orgID, userID).Scan(&member)
+	if err != nil {
+		return false, fmt.Errorf("check organization membership: %w", err)
+	}
+	return member, nil
+}
+
 func (r *AnalyticsRepository) GetRecruiterAnalytics(ctx context.Context, orgID uuid.UUID) (*models.RecruiterHiringAnalytics, error) {
 	analytics := &models.RecruiterHiringAnalytics{
 		AvgTimeToReviewHours: 18.5,

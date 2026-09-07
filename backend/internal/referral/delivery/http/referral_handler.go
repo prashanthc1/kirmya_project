@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type ReferralHandler struct {
@@ -26,10 +28,10 @@ func (h *ReferralHandler) CreateRequest(c *gin.Context) {
 		return
 	}
 
-	candidateIDStr := c.GetString("user_id")
-	candidateID, err := uuid.Parse(candidateIDStr)
-	if err != nil || candidateID == uuid.Nil {
-		candidateID = uuid.New()
+	candidateID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	req, err := h.svc.CreateRequest(c.Request.Context(), candidateID, payload)
@@ -66,10 +68,10 @@ func (h *ReferralHandler) OfferReferral(c *gin.Context) {
 		return
 	}
 
-	referrerIDStr := c.GetString("user_id")
-	referrerID, err := uuid.Parse(referrerIDStr)
-	if err != nil || referrerID == uuid.Nil {
-		referrerID = uuid.New()
+	referrerID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	ref, err := h.svc.OfferReferral(c.Request.Context(), referrerID, payload)
@@ -86,10 +88,10 @@ func (h *ReferralHandler) OfferReferral(c *gin.Context) {
 
 // GetUserReferrals handles GET /referrals/my-referrals
 func (h *ReferralHandler) GetUserReferrals(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	referrals, err := h.svc.GetUserReferrals(c.Request.Context(), userID)
@@ -119,10 +121,10 @@ func (h *ReferralHandler) UpdateReferralStatus(c *gin.Context) {
 		return
 	}
 
-	actorIDStr := c.GetString("user_id")
-	actorID, err := uuid.Parse(actorIDStr)
-	if err != nil || actorID == uuid.Nil {
-		actorID = uuid.New()
+	actorID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	ref, err := h.svc.UpdateReferralStatus(c.Request.Context(), actorID, refID, payload)

@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type VerificationHandler struct {
@@ -26,10 +28,10 @@ func (h *VerificationHandler) CreateRequest(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	req, err := h.svc.CreateRequest(c.Request.Context(), userID, payload)
@@ -46,10 +48,10 @@ func (h *VerificationHandler) CreateRequest(c *gin.Context) {
 
 // GetUserRequests handles GET /verifications/requests
 func (h *VerificationHandler) GetUserRequests(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	requests, err := h.svc.GetUserRequests(c.Request.Context(), userID)
@@ -66,10 +68,10 @@ func (h *VerificationHandler) GetUserRequests(c *gin.Context) {
 
 // GetStatus handles GET /verifications/status
 func (h *VerificationHandler) GetStatus(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	status, err := h.svc.GetStatus(c.Request.Context(), userID)
@@ -89,10 +91,10 @@ func (h *VerificationHandler) UpdatePrivacy(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	status, err := h.svc.UpdatePrivacy(c.Request.Context(), userID, payload)
@@ -108,7 +110,7 @@ func (h *VerificationHandler) UpdatePrivacy(c *gin.Context) {
 }
 
 type AddDocumentPayload struct {
-	RequestID   string `json:"request_id" binding:"required"`
+	RequestID    string `json:"request_id" binding:"required"`
 	DocumentType string `json:"document_type" binding:"required"`
 	FileName     string `json:"file_name" binding:"required"`
 	FileURL      string `json:"file_url" binding:"required"`
@@ -123,10 +125,10 @@ func (h *VerificationHandler) AddDocument(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	reqID, err := uuid.Parse(payload.RequestID)

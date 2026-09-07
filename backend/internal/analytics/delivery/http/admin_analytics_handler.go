@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"kirmya/internal/analytics/models"
 	"kirmya/internal/analytics/service"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type AdminAnalyticsHandler struct {
@@ -34,7 +35,14 @@ func (h *AdminAnalyticsHandler) RequestExport(c *gin.Context) {
 	}
 	_ = c.ShouldBindJSON(&body)
 
-	adminID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	// The acting administrator is recorded against exports and reports, so
+	// it has to be the real one. This route is behind RequireAdmin, which
+	// has already established the identity.
+	adminID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
 	exportJob, err := h.svc.RequestExport(c.Request.Context(), adminID, body.Format)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -134,7 +142,14 @@ func (h *AdminAnalyticsHandler) CreateScheduledReport(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid scheduled report payload", "details": err.Error()})
 		return
 	}
-	adminID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	// The acting administrator is recorded against exports and reports, so
+	// it has to be the real one. This route is behind RequireAdmin, which
+	// has already established the identity.
+	adminID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
 	created, err := h.svc.CreateScheduledReport(c.Request.Context(), adminID, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -227,7 +242,14 @@ func (h *AdminAnalyticsHandler) GenerateCustomReport(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid custom report payload", "details": err.Error()})
 		return
 	}
-	adminID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	// The acting administrator is recorded against exports and reports, so
+	// it has to be the real one. This route is behind RequireAdmin, which
+	// has already established the identity.
+	adminID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
 	job, err := h.svc.CreateCustomReport(c.Request.Context(), adminID, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

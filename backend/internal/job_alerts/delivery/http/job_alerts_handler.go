@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"kirmya/internal/job_alerts/models"
 	"kirmya/internal/job_alerts/service"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type JobAlertsHandler struct {
@@ -17,25 +19,25 @@ func NewJobAlertsHandler(svc *service.JobAlertsService) *JobAlertsHandler {
 	return &JobAlertsHandler{svc: svc}
 }
 
-func (h *JobAlertsHandler) getUserID(c *gin.Context) uuid.UUID {
-	val, exists := c.Get("user_id")
-	if !exists {
-		// Fallback for demo/development user ID
-		return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+// getUserID returns the verified caller.
+//
+// This previously fell back to a fixed demo UUID whenever the context
+// carried no identity, so every unauthenticated request read and wrote
+// one shared account's data. It now refuses the request instead.
+func (h *JobAlertsHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return uuid.Nil, false
 	}
-	if uid, ok := val.(uuid.UUID); ok {
-		return uid
-	}
-	if uidStr, ok := val.(string); ok {
-		if parsed, err := uuid.Parse(uidStr); err == nil {
-			return parsed
-		}
-	}
-	return uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	return userID, true
 }
 
 func (h *JobAlertsHandler) GetJobAlerts(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	alerts, err := h.svc.GetJobAlerts(c.Request.Context(), candidateID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -45,7 +47,10 @@ func (h *JobAlertsHandler) GetJobAlerts(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) CreateJobAlert(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var alert models.JobAlert
 	if err := c.ShouldBindJSON(&alert); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -60,7 +65,10 @@ func (h *JobAlertsHandler) CreateJobAlert(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) UpdateJobAlert(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	alertID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -83,7 +91,10 @@ func (h *JobAlertsHandler) UpdateJobAlert(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) DeleteJobAlert(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	alertID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -98,7 +109,10 @@ func (h *JobAlertsHandler) DeleteJobAlert(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) PauseJobAlert(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	alertID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -113,7 +127,10 @@ func (h *JobAlertsHandler) PauseJobAlert(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) ResumeJobAlert(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	alertID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -128,7 +145,10 @@ func (h *JobAlertsHandler) ResumeJobAlert(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) GetAlertHistory(c *gin.Context) {
-	candidateID := h.getUserID(c)
+	candidateID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	history, err := h.svc.GetAlertHistory(c.Request.Context(), candidateID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -138,7 +158,10 @@ func (h *JobAlertsHandler) GetAlertHistory(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) GetJobRecommendations(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	recs, err := h.svc.GetJobRecommendations(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -148,7 +171,10 @@ func (h *JobAlertsHandler) GetJobRecommendations(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) GetJobRecommendationByID(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	recID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -164,7 +190,10 @@ func (h *JobAlertsHandler) GetJobRecommendationByID(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) SubmitRecommendationFeedback(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var req models.RecommendationFeedbackRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -178,7 +207,10 @@ func (h *JobAlertsHandler) SubmitRecommendationFeedback(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) GetSavedSearches(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	searches, err := h.svc.GetSavedSearches(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -188,7 +220,10 @@ func (h *JobAlertsHandler) GetSavedSearches(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) CreateSavedSearch(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	var search models.SavedSearch
 	if err := c.ShouldBindJSON(&search); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -203,7 +238,10 @@ func (h *JobAlertsHandler) CreateSavedSearch(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) UpdateSavedSearch(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	searchID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -225,7 +263,10 @@ func (h *JobAlertsHandler) UpdateSavedSearch(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) DeleteSavedSearch(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	idStr := c.Param("id")
 	searchID, err := uuid.Parse(idStr)
 	if err != nil {
@@ -240,7 +281,10 @@ func (h *JobAlertsHandler) DeleteSavedSearch(c *gin.Context) {
 }
 
 func (h *JobAlertsHandler) GetCareerInsights(c *gin.Context) {
-	userID := h.getUserID(c)
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
 	insights, err := h.svc.GetCareerInsights(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

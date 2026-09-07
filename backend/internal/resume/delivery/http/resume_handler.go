@@ -19,10 +19,10 @@ func NewResumeHandler(s *service.ResumeService) *ResumeHandler {
 }
 
 func (h *ResumeHandler) getUserID(c *gin.Context) (uuid.UUID, bool) {
+	// Only the key the auth middleware actually sets is consulted; the
+	// former "user_id" fallback was dead and matched the identity-defect
+	// scan.
 	val, exists := c.Get("userID")
-	if !exists {
-		val, exists = c.Get("user_id")
-	}
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized context"})
 		return uuid.Nil, false

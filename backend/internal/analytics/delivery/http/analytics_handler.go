@@ -1,12 +1,15 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"kirmya/internal/analytics/models"
 	"kirmya/internal/analytics/service"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type AnalyticsHandler struct {
@@ -39,14 +42,10 @@ func (h *AnalyticsHandler) IngestEvent(c *gin.Context) {
 
 // GetUserAnalytics handles GET /api/v1/analytics/profile
 func (h *AnalyticsHandler) GetUserAnalytics(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	if userIDStr == "" {
-		userIDStr = "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d" // Default dev fallback
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		userID = uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	analytics, err := h.svc.GetUserAnalytics(c.Request.Context(), userID)
@@ -60,20 +59,33 @@ func (h *AnalyticsHandler) GetUserAnalytics(c *gin.Context) {
 
 // GetRecruiterAnalytics handles GET /api/v1/recruiter/analytics
 func (h *AnalyticsHandler) GetRecruiterAnalytics(c *gin.Context) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
+	// The organization must be named explicitly. Defaulting to a fixed
+	// identifier meant an omitted parameter silently returned one particular
+	// organization's hiring data to whoever asked.
 	orgIDStr := c.Query("organization_id")
 	if orgIDStr == "" {
-		orgIDStr = "e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c" // Default dev fallback
+		c.JSON(http.StatusBadRequest, gin.H{"error": "organization_id is required"})
+		return
 	}
-
 	orgID, err := uuid.Parse(orgIDStr)
-	if err != nil {
-		orgID = uuid.MustParse("e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c")
+	if err != nil || orgID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid organization_id"})
+		return
 	}
 
-	userID := uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
 	analytics, err := h.svc.GetRecruiterAnalytics(c.Request.Context(), orgID, userID)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		if errors.Is(err, service.ErrUnauthorizedOrgAccess) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You do not have access to this organization"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not load recruiter analytics"})
 		return
 	}
 
@@ -82,19 +94,30 @@ func (h *AnalyticsHandler) GetRecruiterAnalytics(c *gin.Context) {
 
 // GetCompanyAnalytics handles GET /api/v1/company/analytics
 func (h *AnalyticsHandler) GetCompanyAnalytics(c *gin.Context) {
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
+	}
+
 	companyIDStr := c.Query("company_id")
 	if companyIDStr == "" {
-		companyIDStr = "e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c"
+		c.JSON(http.StatusBadRequest, gin.H{"error": "company_id is required"})
+		return
 	}
-
 	companyID, err := uuid.Parse(companyIDStr)
-	if err != nil {
-		companyID = uuid.MustParse("e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c")
+	if err != nil || companyID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company_id"})
+		return
 	}
 
-	analytics, err := h.svc.GetCompanyAnalytics(c.Request.Context(), companyID)
+	analytics, err := h.svc.GetCompanyAnalytics(c.Request.Context(), companyID, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.Is(err, service.ErrUnauthorizedOrgAccess) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You do not have access to this company"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not load company analytics"})
 		return
 	}
 
@@ -103,14 +126,10 @@ func (h *AnalyticsHandler) GetCompanyAnalytics(c *gin.Context) {
 
 // GetUserConsent handles GET /api/v1/analytics/consent
 func (h *AnalyticsHandler) GetUserConsent(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	if userIDStr == "" {
-		userIDStr = "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		userID = uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	consent, err := h.svc.GetUserConsent(c.Request.Context(), userID)
@@ -124,14 +143,10 @@ func (h *AnalyticsHandler) GetUserConsent(c *gin.Context) {
 
 // UpdateUserConsent handles PUT /api/v1/analytics/consent
 func (h *AnalyticsHandler) UpdateUserConsent(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	if userIDStr == "" {
-		userIDStr = "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"
-	}
-
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		userID = uuid.MustParse("9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d")
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	var req models.UserConsentPreferences
@@ -151,13 +166,12 @@ func (h *AnalyticsHandler) UpdateUserConsent(c *gin.Context) {
 
 // GetPersonalFunnel handles GET /api/v1/analytics/funnel
 func (h *AnalyticsHandler) GetPersonalFunnel(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	var userIDPtr *uuid.UUID
-	if userIDStr != "" {
-		if uid, err := uuid.Parse(userIDStr); err == nil {
-			userIDPtr = &uid
-		}
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
+	userIDPtr := &userID
 
 	funnel, err := h.svc.GetUserActivationFunnel(c.Request.Context(), userIDPtr)
 	if err != nil {
@@ -170,13 +184,12 @@ func (h *AnalyticsHandler) GetPersonalFunnel(c *gin.Context) {
 
 // GetPersonalMentorshipAnalytics handles GET /api/v1/analytics/mentorship
 func (h *AnalyticsHandler) GetPersonalMentorshipAnalytics(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	var userIDPtr *uuid.UUID
-	if userIDStr != "" {
-		if uid, err := uuid.Parse(userIDStr); err == nil {
-			userIDPtr = &uid
-		}
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
+	userIDPtr := &userID
 
 	data, err := h.svc.GetMentorshipAnalytics(c.Request.Context(), userIDPtr)
 	if err != nil {
@@ -189,13 +202,12 @@ func (h *AnalyticsHandler) GetPersonalMentorshipAnalytics(c *gin.Context) {
 
 // GetPersonalLearningAnalytics handles GET /api/v1/analytics/learning
 func (h *AnalyticsHandler) GetPersonalLearningAnalytics(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	var userIDPtr *uuid.UUID
-	if userIDStr != "" {
-		if uid, err := uuid.Parse(userIDStr); err == nil {
-			userIDPtr = &uid
-		}
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
+	userIDPtr := &userID
 
 	data, err := h.svc.GetLearningAnalytics(c.Request.Context(), userIDPtr)
 	if err != nil {

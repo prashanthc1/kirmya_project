@@ -57,8 +57,12 @@ func (s *ApplicationsService) ArchiveApplication(ctx context.Context, candidateI
 	return s.repo.ArchiveApplication(ctx, candidateID, appID)
 }
 
+// GetApplicationTimeline returns the stage history of an application the given
+// candidate owns. The candidate is passed through to the repository, which
+// resolves ownership in SQL; a foreign or unknown application is reported as
+// not found rather than as an empty timeline.
 func (s *ApplicationsService) GetApplicationTimeline(ctx context.Context, candidateID, appID uuid.UUID) ([]models.ApplicationTimelineItem, error) {
-	return s.repo.GetApplicationTimeline(ctx, appID), nil
+	return s.repo.GetApplicationTimeline(ctx, candidateID, appID)
 }
 
 func (s *ApplicationsService) SaveJob(ctx context.Context, candidateID, jobID uuid.UUID, notes string) error {
@@ -102,9 +106,12 @@ func (s *ApplicationsService) DeleteDocument(ctx context.Context, candidateID, d
 }
 
 func (s *ApplicationsService) GetApplicationStats(ctx context.Context, candidateID uuid.UUID) (*models.ApplicationStatsDTO, error) {
+	// A read failure is reported as a failure. Returning a zeroed DTO here made
+	// a database outage indistinguishable from a candidate with no applications,
+	// so the dashboard confidently showed "0 applications" during an incident.
 	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
 	if err != nil {
-		return &models.ApplicationStatsDTO{}, nil
+		return nil, err
 	}
 
 	stats := &models.ApplicationStatsDTO{
@@ -135,7 +142,10 @@ func (s *ApplicationsService) GetApplicationStats(ctx context.Context, candidate
 }
 
 func (s *ApplicationsService) GetAIInsights(ctx context.Context, candidateID uuid.UUID) (*models.AIApplicationInsightsDTO, error) {
-	apps, _ := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
+	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
+	if err != nil {
+		return nil, err
+	}
 
 	matchScore := 85
 	if len(apps) > 0 {
@@ -168,7 +178,7 @@ func (s *ApplicationsService) GetAIInsights(ctx context.Context, candidateID uui
 func (s *ApplicationsService) GetCareerAnalytics(ctx context.Context, candidateID uuid.UUID) (*models.CareerAnalyticsDTO, error) {
 	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
 	if err != nil {
-		return &models.CareerAnalyticsDTO{}, nil
+		return nil, err
 	}
 
 	funnelMap := map[string]int{

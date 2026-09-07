@@ -378,10 +378,10 @@ func (h *SearchHandler) GetRecommendations(c *gin.Context) {
 
 // Helpers
 func (h *SearchHandler) getUserID(c *gin.Context) (uuid.UUID, error) {
+	// Only the key the auth middleware actually sets is consulted; the
+	// former "user_id" fallback was dead and matched the identity-defect
+	// scan.
 	val, exists := c.Get("userID")
-	if !exists {
-		val, exists = c.Get("user_id")
-	}
 	if !exists {
 		return uuid.Nil, errors.New("unauthorized context")
 	}

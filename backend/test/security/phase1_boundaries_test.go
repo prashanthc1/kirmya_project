@@ -282,40 +282,11 @@ var brokenIdentityPattern = regexp.MustCompile(`GetString\("user_id"\)|GetString
 // knownBrokenIdentityFiles is the state of the codebase at the end of Phase 1.
 // Removing a file from this list as it is fixed is the intended edit; adding
 // one is a regression that this test exists to refuse.
-var knownBrokenIdentityFiles = []string{
-	"ai_job_match/delivery/http/matching_handler.go",
-	"analytics/delivery/http/analytics_handler.go",
-	"applications/delivery/http/applications_handler.go",
-	"assessment/delivery/http/assessment_handler.go",
-	"career_ai/delivery/http/career_ai_handler.go",
-	"career_companion/delivery/http/companion_handler.go",
-	"compliance/delivery/http/admin_compliance_handler.go",
-	"compliance/delivery/http/compliance_handler.go",
-	"cover_letter/delivery/http/cover_letter_handler.go",
-	"endorsement/delivery/http/endorsement_handler.go",
-	"enterprise_hiring/delivery/http/enterprise_handler.go",
-	"event/delivery/http/event_handler.go",
-	"freelance/delivery/http/freelance_handler.go",
-	"interview/delivery/http/interview_handler.go",
-	"interview_prep/delivery/http/interview_prep_handler.go",
-	"job_alerts/delivery/http/job_alerts_handler.go",
-	"learning/delivery/http/learning_handler.go",
-	"media/delivery/http/file_handler.go",
-	"mobile/delivery/http/mobile_handler.go",
-	"native_mobile/delivery/http/native_mobile_handler.go",
-	"organization/delivery/http/organization_handler.go",
-	"recommendation/delivery/http/recommendation_handler.go",
-	"recommendation_engine/delivery/http/recommendation_handler.go",
-	"recruiter/delivery/http/recruiter_handler.go",
-	"recruiter_ai/delivery/http/recruiter_ai_handler.go",
-	"referral/delivery/http/referral_handler.go",
-	"resume/delivery/http/resume_handler.go",
-	"resume_analysis/delivery/http/resume_analysis_handler.go",
-	"search/delivery/http/search_handler.go",
-	"trust_safety/delivery/http/trust_handler.go",
-	"verification/delivery/http/verification_handler.go",
-	"workforce_intelligence/delivery/http/intelligence_handler.go",
-}
+// knownBrokenIdentityFiles is now empty: batch 2 routed every handler through
+// middleware.GetUserID and removed the synthetic-identity fallbacks. The list
+// and the test are kept so that a module reintroducing a read of a context key
+// nothing sets fails here.
+var knownBrokenIdentityFiles = []string{}
 
 // backendRoot locates the module root from this test's directory.
 func backendRoot(t *testing.T) string {

@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
 type EventHandler struct {
@@ -26,10 +28,10 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	event, err := h.svc.CreateEvent(c.Request.Context(), userID, payload)
@@ -47,10 +49,10 @@ func (h *EventHandler) CreateEvent(c *gin.Context) {
 // GetEvents handles GET /events
 func (h *EventHandler) GetEvents(c *gin.Context) {
 	category := c.Query("category")
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	events, err := h.svc.GetEvents(c.Request.Context(), userID, category)
@@ -74,10 +76,10 @@ func (h *EventHandler) GetEventByID(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	event, err := h.svc.GetEventByID(c.Request.Context(), userID, eventID)
@@ -101,10 +103,10 @@ func (h *EventHandler) RegisterAttendee(c *gin.Context) {
 	var payload domain.RegisterEventPayload
 	_ = c.ShouldBindJSON(&payload)
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	att, err := h.svc.RegisterAttendee(c.Request.Context(), userID, eventID, payload)
@@ -114,8 +116,8 @@ func (h *EventHandler) RegisterAttendee(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":   "RSVP registered successfully for event",
-		"attendee":  att,
+		"message":  "RSVP registered successfully for event",
+		"attendee": att,
 	})
 }
 
@@ -128,10 +130,10 @@ func (h *EventHandler) CancelRegistration(c *gin.Context) {
 		return
 	}
 
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	if err := h.svc.CancelRegistration(c.Request.Context(), userID, eventID); err != nil {
@@ -144,10 +146,10 @@ func (h *EventHandler) CancelRegistration(c *gin.Context) {
 
 // GetUserRegistrations handles GET /events/my-events
 func (h *EventHandler) GetUserRegistrations(c *gin.Context) {
-	userIDStr := c.GetString("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil || userID == uuid.Nil {
-		userID = uuid.New()
+	userID, ok := sharedMiddleware.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+		return
 	}
 
 	events, err := h.svc.GetUserRegistrations(c.Request.Context(), userID)

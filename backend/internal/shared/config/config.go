@@ -64,6 +64,12 @@ type Config struct {
 	// an explicit decision; see internal/shared/persistence.
 	AllowEphemeralRepos bool
 
+	// AllowNoDB permits the process to start when the database is unreachable,
+	// which drops every repository into its in-memory branch: writes report
+	// success and are lost on restart. It exists for tests and is refused in
+	// production below.
+	AllowNoDB bool
+
 	// AppBaseURL is the public address of the web client. Links that leave the
 	// system — an invitation acceptance URL, for instance — are built from this
 	// rather than from the request Host header, which a caller controls.
@@ -154,6 +160,7 @@ func LoadConfig() (*Config, error) {
 		MetricsPassword: getEnv("METRICS_PASSWORD", ""),
 
 		AllowEphemeralRepos: getEnvAsBool("ALLOW_EPHEMERAL_REPOS", false),
+		AllowNoDB:           getEnvAsBool("ALLOW_NO_DB", false),
 
 		AppBaseURL:        resolveAppBaseURL(),
 		AnalyticsViewSalt: getEnv("ANALYTICS_VIEW_SALT", jwtSecret),
@@ -175,6 +182,14 @@ func LoadConfig() (*Config, error) {
 		if cfg.DatabaseURL == "" && cfg.DBHost == "" {
 			return nil, fmt.Errorf("FATAL: DATABASE_URL or DB_HOST must be configured for database access")
 		}
+		// ALLOW_NO_DB lets the process continue past a failed database
+		// connection, and every repository then serves its in-memory branch:
+		// applications, saved jobs and documents are accepted, reported as
+		// created and lost on the next restart. That is never a production
+		// posture, so it is refused here rather than merely warned about.
+		if cfg.AllowNoDB {
+			return nil, fmt.Errorf("FATAL: ALLOW_NO_DB must not be enabled in production; it silently discards every write")
+		}
 	}
 
 	// Audit log optional service integrations without leaking credentials
@@ -189,6 +204,7 @@ func LoadConfig() (*Config, error) {
 		slog.Float64("rate_limit_burst", cfg.RateLimitBurst),
 		slog.Bool("metrics_basic_auth", cfg.MetricsUsername != "" && cfg.MetricsPassword != ""),
 		slog.Bool("allow_ephemeral_repos", cfg.AllowEphemeralRepos),
+		slog.Bool("allow_no_db", cfg.AllowNoDB),
 		slog.Bool("swagger_enabled", cfg.SwaggerEnabled),
 		slog.Bool("swagger_basic_auth", cfg.SwaggerUsername != "" && cfg.SwaggerPassword != ""),
 	)

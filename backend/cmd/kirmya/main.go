@@ -304,10 +304,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// cfg.AllowNoDB is read from the same ALLOW_NO_DB variable as before but is
+	// now validated by LoadConfig, which refuses it outright in production.
+	// Reading it back from the environment here would reintroduce the hole the
+	// validation closes.
 	db, err := database.Connect()
 	if err != nil {
-		if os.Getenv("ALLOW_NO_DB") == "true" {
-			slog.Warn("Database connection failed (running in offline/mock mode for test support)", slog.String("error", err.Error()))
+		if cfg.AllowNoDB {
+			slog.Warn("Database connection failed; continuing without persistence because ALLOW_NO_DB is set. Every write will be discarded.",
+				slog.String("error", err.Error()))
 		} else {
 			slog.Error("Database connection failed", slog.String("error", err.Error()))
 			os.Exit(1)
@@ -319,6 +324,15 @@ func main() {
 	var dbPool *pgxpool.Pool
 	if db != nil {
 		dbPool = db.Pool
+	}
+
+	// Defence in depth behind the configuration check: whatever combination of
+	// settings led here, a production process must not reach the repository
+	// layer with a nil pool, because each repository treats that as "use the
+	// in-memory store" rather than as an error.
+	if dbPool == nil && cfg.AppEnv == "production" {
+		slog.Error("Refusing to start in production without a database connection")
+		os.Exit(1)
 	}
 
 	appCache := cachePkg.InitCache()

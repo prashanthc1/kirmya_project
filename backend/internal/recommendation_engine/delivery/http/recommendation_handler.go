@@ -126,7 +126,7 @@ func (h *RecommendationHandler) getUserID(c *gin.Context) uuid.UUID {
 			}
 		}
 	}
-	if val, exists := c.Get("user_id"); exists {
+	if val, exists := c.Get("userID"); exists {
 		if uid, ok := val.(uuid.UUID); ok {
 			return uid
 		}

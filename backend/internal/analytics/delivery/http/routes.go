@@ -34,12 +34,18 @@ func RegisterAnalyticsRoutes(router *gin.RouterGroup, handler *AnalyticsHandler)
 		getUserConsent, updateUserConsent, getPersonalFunnel, getPersonalMentorship, getPersonalLearning = dummy, dummy, dummy, dummy, dummy
 	}
 
+	// Every group below was previously registered with no authentication
+	// middleware at all. Combined with the handlers' fallback identity, that
+	// let an anonymous caller read personal analytics and write consent
+	// preferences against a shared synthetic user.
 	internalGroup := router.Group("/internal/analytics")
+	internalGroup.Use(sharedMiddleware.AuthRequired())
 	{
 		internalGroup.POST("/events", ingestEvent)
 	}
 
 	analytics := router.Group("/analytics")
+	analytics.Use(sharedMiddleware.AuthRequired())
 	{
 		analytics.GET("/profile", getUserAnalytics)
 		analytics.GET("/jobs", getUserAnalytics)
@@ -56,6 +62,7 @@ func RegisterAnalyticsRoutes(router *gin.RouterGroup, handler *AnalyticsHandler)
 	}
 
 	recruiterAnalytics := router.Group("/recruiter/analytics")
+	recruiterAnalytics.Use(sharedMiddleware.AuthRequired())
 	{
 		recruiterAnalytics.GET("/overview", getRecruiterAnalytics)
 		recruiterAnalytics.GET("/jobs", getRecruiterAnalytics)
@@ -63,6 +70,7 @@ func RegisterAnalyticsRoutes(router *gin.RouterGroup, handler *AnalyticsHandler)
 	}
 
 	companyAnalytics := router.Group("/company/analytics")
+	companyAnalytics.Use(sharedMiddleware.AuthRequired())
 	{
 		companyAnalytics.GET("/overview", getCompanyAnalytics)
 		companyAnalytics.GET("/jobs", getCompanyAnalytics)
@@ -71,6 +79,7 @@ func RegisterAnalyticsRoutes(router *gin.RouterGroup, handler *AnalyticsHandler)
 	}
 
 	communityAnalytics := router.Group("/communities")
+	communityAnalytics.Use(sharedMiddleware.AuthRequired())
 	{
 		communityAnalytics.GET("/:id/analytics", getCompanyAnalytics)
 	}
