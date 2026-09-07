@@ -22,7 +22,7 @@ Source of truth: [issue-register.json](issue-register.json). F01–F20 prioritie
 | F16 | P2 | open | Frontend and communications lead | Public experience and communications / 8, 9 | Realtime delivery is process-local despite distributed-broker documentation |
 | F17 | P2 | open | Frontend integration lead | API contracts / 5 | Job-specific apply alias validates the body before reading its path ID |
 | F18 | P1 | open | Backend data lead | Persistence and migrations / 4 | Production can enter unregistered nil-database fallback mode |
-| F19 | P1 | in progress | Platform and QA lead | Release gates / 2 | Frontend release check currently fails at linting |
+| F19 | P1 | in progress | Platform and QA lead | Release gates / 2 | Frontend release checks require one complete green SHA |
 | F20 | P1 | open | Technical lead | Evidence governance / 1, 12 | Audit scores and operational claims exceed their evidence |
 | R01 | P1 | unverified | Backend security lead | Identity and access / 3 | Identity resolution across remaining modules |
 | R02 | P2 | unverified | Backend security lead | Identity and access / 3 | Access-token session revocation after password reset |

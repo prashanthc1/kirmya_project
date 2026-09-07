@@ -13,7 +13,10 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
-    fileParallelism: false,
+    // Vitest's fork pool gives each file a separate child process. This keeps
+    // jsdom/MUI state isolated and avoids retaining one file's DOM runtime in
+    // the next file, while the CI shard keeps worker counts bounded.
+    fileParallelism: true,
     // A test that fills a form types one character at a time and re-renders a
     // MUI tree on each. That is comfortably under a second on its own and
     // several seconds when the whole suite runs its files side by side, so the

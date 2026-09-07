@@ -57,7 +57,7 @@ jobs:
           case '${{ matrix.check }}' in
             lint) npm --prefix frontend run lint -- --format json --output-file ../artifacts/eslint.json ;;
             typecheck) npm --prefix frontend run typecheck 2>&1 | tee artifacts/typecheck.log ;;
-            unit) npm --prefix frontend test -- --shard=${{ matrix.shard }} --reporter=default --reporter=../scripts/ci/vitest-progress.mjs --reporter=json --outputFile=../artifacts/vitest.json 2>&1 | tee artifacts/vitest.log ;;
+            unit) npm --prefix frontend test -- --shard=${{ matrix.shard }} --reporter=default --reporter=../scripts/ci/vitest-progress.mjs 2>&1 | tee artifacts/vitest.log ;;
             build) npm --prefix frontend run build 2>&1 | tee artifacts/build.log ;;
           esac
       - name: Reject missing, failed or skipped unit tests

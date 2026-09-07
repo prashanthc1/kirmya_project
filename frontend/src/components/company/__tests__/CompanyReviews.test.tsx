@@ -184,7 +184,13 @@ describe('CompanyReviews', () => {
       })
     );
     expect(await screen.findByText('Thanks — the moderation team will take a look.')).toBeInTheDocument();
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    // MUI keeps the dialog mounted through its exit transition. Under the
+    // parallel CI shard that transition can outlive Testing Library's 1s
+    // default even though the report mutation and close state both completed.
+    await waitFor(
+      () => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      { timeout: 5_000 }
+    );
     expect(screen.getByRole('article')).toBeInTheDocument();
   });
 

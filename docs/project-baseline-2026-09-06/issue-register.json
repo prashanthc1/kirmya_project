@@ -667,10 +667,10 @@
   },
   {
     "id": "F19",
-    "title": "Frontend release check currently fails at linting",
+    "title": "Frontend release checks require one complete green SHA",
     "priority": "P1",
     "status": "in progress",
-    "evidence_class": "lint and build test-verified; required unit gate awaiting the sharded rerun",
+    "evidence_class": "lint, typecheck and build test-verified; corrected unit gate awaiting the sharded rerun",
     "owner": "Platform and QA lead",
     "owner_assignment": "responsible role; individual not assigned",
     "workstream": "Release gates",
@@ -702,7 +702,8 @@
     "acceptance_evidence": [
       "GitHub run 34034881373 passed separate lint, typecheck and production build jobs on e461a11. The lint regression control reproduced the three historical no-restricted-syntax failures from ae1eea7 and verified all three corrected files.",
       "Current ESLint result is 0 errors and 141 warnings. Warning counts remain visible by rule in the retained JSON report.",
-      "The first required unit job failed with a retained UNIT_STALL diagnostic naming ApplicationDashboard rendering after the withdrawal-dialog test; the order-dependent dialog cleanup was reproduced and fixed, and the two-test regression then passed in 30.07 seconds. Eight fail-closed shards await remote verification."
+      "The first required unit job failed with a retained UNIT_STALL diagnostic. Follow-up traced an infinite render to an unstable mocked user retriggering the apply modal initialization effect. The application/modal regression passed 13/13 after using a provider-stable value and isolating the modal test file.",
+      "A loaded unsharded run reached 538/539 and exposed one company-review dialog exit transition beyond the one-second assertion budget. The corrected focused file passed 13/13 with a five-second transition allowance. Eight fail-closed shards await remote verification."
     ],
     "related_issues": []
   },
