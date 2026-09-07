@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { settled } from './helpers';
 
 test('built signin page makes a real API request and anonymous identity is denied', async ({ page, request }) => {
   const api = process.env.TEST_API_URL;
@@ -112,8 +111,12 @@ test('candidate application receipt survives reload against real storage and API
   // These pages hydrate by briefly mounting a second copy of the tree. Filling
   // before that window closes types into the copy that is about to be discarded,
   // so the form submits without the credentials and the API answers 401.
+  // Same guarantee as the shared settled() helper — exactly one copy of the
+  // field, so the hydration race is waited out rather than hidden — but with a
+  // window this test can afford. It is marked slow for the same reason.
   const emailField = page.getByRole('textbox', { name: 'Email Address' });
-  await settled(emailField);
+  await expect(emailField).toHaveCount(1, { timeout: 15_000 });
+  await expect(emailField).toBeVisible({ timeout: 15_000 });
   await emailField.fill(candidate.email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   const signedIn = page.waitForResponse(r => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST');
@@ -123,9 +126,20 @@ test('candidate application receipt survives reload against real storage and API
   // on the login response alone leaves before that happens, and the next page
   // then loads unauthenticated: /api/v1/applications answers 401 and the board
   // is empty for reasons that have nothing to do with persistence.
-  await expect(page).not.toHaveURL(/signin/);
-  await page.goto('/applications');
-  await settled(page.getByText(title).first());
-  await page.reload();
-  await settled(page.getByText(title).first());
+  await expect(page).not.toHaveURL(/signin/, { timeout: 15_000 });
+
+  // Gate on the list request itself rather than on a bare 5s element timeout:
+  // webkit took longer than that to fetch and paint the board, and asserting the
+  // response status keeps an empty board from passing quietly — a 401 here would
+  // mean the page loaded unauthenticated rather than that nothing persisted.
+  const showsTheApplication = async (navigate: () => Promise<unknown>) => {
+    const listed = page.waitForResponse(
+      (r) => new URL(r.url()).pathname === '/api/v1/applications' && r.request().method() === 'GET'
+    );
+    await navigate();
+    expect((await listed).status()).toBe(200);
+    await expect(page.getByText(title).first()).toBeVisible({ timeout: 15_000 });
+  };
+  await showsTheApplication(() => page.goto('/applications'));
+  await showsTheApplication(() => page.reload());
 });

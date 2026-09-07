@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
 	"kirmya/internal/auth/dto"
@@ -19,6 +20,16 @@ type AuthHandler struct {
 
 func NewAuthHandler(s *service.AuthService) *AuthHandler {
 	return &AuthHandler{service: s}
+}
+
+// secureRefreshCookie reports whether the refresh cookie carries the Secure
+// flag. It is always set except under APP_ENV=test, where the browser suite
+// serves the app over plain HTTP: WebKit refuses to store a Secure cookie on an
+// insecure origin — Chromium and Firefox make a localhost exception — so the
+// session could not survive a reload there and that gate could not be exercised
+// at all. Development and production are unaffected.
+func secureRefreshCookie() bool {
+	return !strings.EqualFold(strings.TrimSpace(os.Getenv("APP_ENV")), "test")
 }
 
 // Register handles POST /api/v1/auth/register
@@ -108,7 +119,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteStrictMode)
-	c.SetCookie("refresh_token", refreshToken, cookieMaxAge, "/api/v1/auth", "", true, true)
+	c.SetCookie("refresh_token", refreshToken, cookieMaxAge, "/api/v1/auth", "", secureRefreshCookie(), true)
 
 	userDTO := dto.UserProfileDTO{
 		ID:               u.ID,
@@ -149,13 +160,13 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 
 	newAccessToken, newRefreshToken, err := h.service.Refresh(c.Request.Context(), tokenStr, ipAddress, userAgent)
 	if err != nil {
-		c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", true, true)
+		c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", secureRefreshCookie(), true)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.SetSameSite(http.SameSiteStrictMode)
-	c.SetCookie("refresh_token", newRefreshToken, 7*24*3600, "/api/v1/auth", "", true, true)
+	c.SetCookie("refresh_token", newRefreshToken, 7*24*3600, "/api/v1/auth", "", secureRefreshCookie(), true)
 
 	c.JSON(http.StatusOK, gin.H{"accessToken": newAccessToken})
 }
@@ -167,7 +178,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		_ = h.service.Logout(c.Request.Context(), tokenStr, c.ClientIP())
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", true, true)
+	c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", secureRefreshCookie(), true)
 	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
 
