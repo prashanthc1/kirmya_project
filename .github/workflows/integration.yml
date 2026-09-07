@@ -49,6 +49,19 @@ jobs:
       NEXT_PUBLIC_API_URL: http://127.0.0.1:8080/api/v1
       CORS_ALLOWED_ORIGINS: http://127.0.0.1:3000
       NEXT_TELEMETRY_DISABLED: '1'
+      # This job registers and signs in disposable accounts for the ownership and
+      # organization-isolation checks, all from one loopback address, so it
+      # shares a single per-IP bucket. The API-wide limiter defaults to 600/min
+      # and the /auth group to 5/min with a burst of 5, which a suite creating
+      # several accounts exhausts immediately: the API then answers 429 where the
+      # tests assert 401, 201 or 403. Raised, not disabled, so both limiters
+      # still run on every request here. Their behaviour is covered by
+      # backend/internal/shared/middleware/rate_limit_test.go, and production
+      # defaults are untouched.
+      RATE_LIMIT_REQUESTS: '60000'
+      RATE_LIMIT_BURST: '12000'
+      AUTH_RATE_LIMIT_REQUESTS: '60000'
+      AUTH_RATE_LIMIT_BURST: '12000'
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
