@@ -13,6 +13,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	authRepo "kirmya/internal/auth/repository"
 )
 
 // Batch 2 acceptance: the identity, ownership and organization boundaries closed
@@ -390,5 +392,102 @@ func TestJobApplyAliasAcceptsPathIdentifier(t *testing.T) {
 	defer conflict.Body.Close()
 	if conflict.StatusCode != http.StatusBadRequest {
 		t.Fatalf("conflicting job_id: got %d want 400", conflict.StatusCode)
+	}
+}
+
+// TestPasswordResetRollsBackWhenRevocationFails proves the transaction, not just
+// the error handling.
+//
+// UpdatePasswordAndRevokeSessions exists because the password change and the
+// session revocation must not land separately. The service-level test in
+// internal/auth/service covers the caller refusing to report success; this
+// covers the half that only a real database can show — that when the second
+// statement fails, the first is rolled back and the old password still works.
+//
+// The failure is injected with a trigger on sessions that raises, which is
+// deterministic: the first UPDATE succeeds, the second raises, and the
+// transaction must undo both. A cancelled context would not do, because it could
+// abort before the first statement and prove nothing.
+func TestPasswordResetRollsBackWhenRevocationFails(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	base := required(t, "TEST_API_URL")
+	pool, err := pgxpool.New(ctx, required(t, "DATABASE_URL"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer pool.Close()
+
+	// Registering and signing in leaves a real session row, which the revoking
+	// UPDATE has to touch for the trigger to fire at all.
+	user := registerAndLogin(t, base)
+	userID := uuid.MustParse(user.id)
+
+	var sessions int
+	if err := pool.QueryRow(ctx, "SELECT count(*) FROM sessions WHERE user_id = $1", userID).Scan(&sessions); err != nil {
+		t.Fatalf("count sessions: %v", err)
+	}
+	if sessions == 0 {
+		t.Fatal("no session row for the signed-in user; the revoking UPDATE would match nothing and this test would prove nothing")
+	}
+
+	var originalHash string
+	if err := pool.QueryRow(ctx, "SELECT password_hash FROM users WHERE id = $1", userID).Scan(&originalHash); err != nil {
+		t.Fatalf("read original hash: %v", err)
+	}
+
+	if _, err := pool.Exec(ctx, `
+		CREATE OR REPLACE FUNCTION ci_b2_block_session_update() RETURNS trigger AS $fn$
+		BEGIN
+			RAISE EXCEPTION 'ci batch2: session revocation deliberately failed';
+		END;
+		$fn$ LANGUAGE plpgsql;`); err != nil {
+		t.Fatalf("create trigger function: %v", err)
+	}
+	if _, err := pool.Exec(ctx, `
+		CREATE TRIGGER ci_b2_block_session_update
+		BEFORE UPDATE ON sessions
+		FOR EACH ROW EXECUTE FUNCTION ci_b2_block_session_update();`); err != nil {
+		t.Fatalf("create trigger: %v", err)
+	}
+	defer func() {
+		// Dropped on its own context so a timed-out test still cleans up; leaving
+		// this trigger behind would break every later session revocation.
+		cleanup, cancelCleanup := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancelCleanup()
+		if _, err := pool.Exec(cleanup, "DROP TRIGGER IF EXISTS ci_b2_block_session_update ON sessions"); err != nil {
+			t.Errorf("drop trigger: %v", err)
+		}
+		if _, err := pool.Exec(cleanup, "DROP FUNCTION IF EXISTS ci_b2_block_session_update()"); err != nil {
+			t.Errorf("drop trigger function: %v", err)
+		}
+	}()
+
+	repo := authRepo.NewAuthRepository(pool)
+	err = repo.UpdatePasswordAndRevokeSessions(ctx, userID, "hashed-should-never-be-committed")
+	if err == nil {
+		t.Fatal("UpdatePasswordAndRevokeSessions reported success while the session revocation was failing")
+	}
+
+	var hashAfter string
+	if err := pool.QueryRow(ctx, "SELECT password_hash FROM users WHERE id = $1", userID).Scan(&hashAfter); err != nil {
+		t.Fatalf("read hash after failure: %v", err)
+	}
+	if hashAfter != originalHash {
+		t.Fatal("the password hash was committed even though the session revocation failed; the transaction did not roll back")
+	}
+
+	// The account must still be usable with the password it had.
+	loginBody, marshalErr := json.Marshal(map[string]any{"email": user.email, "password": "Disposable-CI-password-123!"})
+	if marshalErr != nil {
+		t.Fatal(marshalErr)
+	}
+	resp, err := httpClient().Post(base+"/api/v1/auth/login", "application/json", bytes.NewReader(loginBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("the original password stopped working after a rolled-back reset: login got %d want 200", resp.StatusCode)
 	}
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"regexp"
 	"strings"
@@ -500,5 +501,60 @@ func TestPasswordAndSessionRevocationAreInseparable(t *testing.T) {
 	// Effect two: the session established beforehand can no longer refresh.
 	if _, _, refreshErr := f.svc.Refresh(f.ctx, refreshToken, "127.0.0.1", "go-test"); refreshErr == nil {
 		t.Fatal("a session predating the password change can still be refreshed")
+	}
+}
+
+// failingRevokeRepo is the real repository with one write made to fail.
+//
+// Embedding rather than reimplementing means every other method keeps its real
+// behaviour, so the reset runs its full course — token lookup, policy check,
+// single-use consumption — and only the combined password-and-revocation write
+// fails. A hand-written stub would have had to fake all of that, and would
+// prove less.
+type failingRevokeRepo struct {
+	*repository.AuthRepository
+	err  error
+	call int
+}
+
+func (r *failingRevokeRepo) UpdatePasswordAndRevokeSessions(context.Context, uuid.UUID, string) error {
+	r.call++
+	return r.err
+}
+
+// TestResetReportsFailureWhenSessionsCannotBeRevoked covers the branch that a
+// concrete repository made untestable.
+//
+// The flow used to change the password, attempt the revocation, discard its
+// error and report success — so a user whose sessions could not be revoked was
+// told they were safe. The caller must now see a failure.
+func TestResetReportsFailureWhenSessionsCannotBeRevoked(t *testing.T) {
+	f := newResetFixture(t)
+	token := f.request(t)
+
+	failing := &failingRevokeRepo{AuthRepository: f.repo, err: errors.New("sessions table unavailable")}
+	f.svc.repo = failing
+
+	err := f.svc.ResetPassword(f.ctx, &dto.ResetPasswordRequest{
+		Token: token, NewPassword: fixtureNewPassword,
+	}, "127.0.0.1")
+
+	if err == nil {
+		t.Fatal("a reset whose session revocation failed reported success")
+	}
+	if failing.call != 1 {
+		t.Fatalf("the combined write was called %d times, want 1", failing.call)
+	}
+	// The message must not send the caller back to a link that is already spent.
+	if !strings.Contains(err.Error(), "request a new link") {
+		t.Fatalf("unhelpful failure message: %v", err)
+	}
+
+	// And the old password must still work, because nothing was committed.
+	f.svc.repo = f.repo
+	if _, _, _, loginErr := f.svc.Login(f.ctx, &dto.LoginRequest{
+		Email: fixtureEmail, Password: fixtureOldPassword,
+	}, "127.0.0.1", "go-test"); loginErr != nil {
+		t.Fatalf("the old password stopped working after a reset that failed: %v", loginErr)
 	}
 }

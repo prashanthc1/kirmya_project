@@ -37,8 +37,46 @@ type emailSender interface {
 	Send(to, subject, htmlBody string) error
 }
 
+// authRepository is the persistence AuthService depends on, declared here at the
+// consumer rather than in the repository package.
+//
+// It exists so the failure paths can be exercised. The reset flow's correctness
+// now rests on UpdatePasswordAndRevokeSessions returning an error when the
+// password and the session revocation cannot both be written, and with a
+// concrete *repository.AuthRepository there was no way to make that call fail in
+// a test — so the branch that refuses to report a successful reset went
+// unverified.
+//
+// *repository.AuthRepository satisfies this, so nothing at the call sites
+// changes.
+type authRepository interface {
+	CountRecentPasswordResets(ctx context.Context, userID uuid.UUID, since time.Time) (int, error)
+	CreateAuditLog(ctx context.Context, al *models.AuditLog) error
+	CreateEmailVerification(ctx context.Context, ev *models.EmailVerification) error
+	CreatePasswordReset(ctx context.Context, pr *models.PasswordReset) error
+	CreateProfile(ctx context.Context, u *models.User) error
+	CreateSession(ctx context.Context, sess *models.Session) error
+	CreateUser(ctx context.Context, u *models.User) error
+	DeleteEmailVerification(ctx context.Context, id uuid.UUID) error
+	GetEmailVerification(ctx context.Context, token string) (*models.EmailVerification, error)
+	GetPasswordResetByTokenHash(ctx context.Context, tokenHash string) (*models.PasswordReset, error)
+	GetSessionByRefreshToken(ctx context.Context, tokenStr string) (*models.Session, error)
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error)
+	InvalidateUserPasswordResets(ctx context.Context, userID uuid.UUID) error
+	MarkPasswordResetUsed(ctx context.Context, id uuid.UUID) error
+	RevokeAllUserSessions(ctx context.Context, userID uuid.UUID) error
+	RevokeSession(ctx context.Context, id uuid.UUID) error
+	UpdatePasswordAndRevokeSessions(ctx context.Context, userID uuid.UUID, passwordHash string) error
+	UpdateUserEmailVerified(ctx context.Context, id uuid.UUID) error
+}
+
+// Compile-time proof that the real repository still satisfies the interface, so
+// a signature change there is caught here rather than at every call site.
+var _ authRepository = (*repository.AuthRepository)(nil)
+
 type AuthService struct {
-	repo       *repository.AuthRepository
+	repo       authRepository
 	mail       emailSender
 	appBaseURL string
 }
