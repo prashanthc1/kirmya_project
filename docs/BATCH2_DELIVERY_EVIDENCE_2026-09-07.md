@@ -245,6 +245,16 @@ Two CI failures were caused by this batch and fixed:
    production defaults are unchanged.
 2. The saved-jobs 500 described above.
 
+## Product decisions taken
+
+- **`/internal/analytics/events` requires authentication.** Confirmed by the
+  product owner on 7 September 2026: the endpoint is internal, so an
+  unauthenticated write to the analytics store is not wanted. It previously
+  accepted arbitrary events from anyone. Nothing in the frontend is affected —
+  `analyticsApi.ingestEvent` is defined but has no callers anywhere in
+  `frontend/src`. If anonymous visitor telemetry is ever needed, it belongs on
+  the existing `/telemetry/*` endpoints rather than here.
+
 ## Open items from this batch
 
 - **R02, access-token revocation after password reset.** `ResetPassword` revokes
@@ -261,11 +271,6 @@ Two CI failures were caused by this batch and fixed:
   no-op handlers when the handler is nil, so a missing dependency registers
   routes that silently return nothing. A completeness check that fails startup is
   the right fix and is larger than this batch.
-- **`/internal/analytics/events` now requires authentication.** It is named
-  internal and accepted arbitrary events from anyone. If anonymous client
-  telemetry is a product requirement, it belongs on the existing `/telemetry/*`
-  endpoints rather than on an unauthenticated write to the analytics store. This
-  is a product decision to confirm.
 - **Seed data still uses the synthetic UUID.** Fourteen occurrences remain in
   repository `seedDefaultData` functions. They are demo rows, not caller
   identity, and were left alone; they should go when those repositories become
