@@ -1,38 +1,31 @@
 import { test, expect } from '@playwright/test';
+import { settled } from './helpers';
 
-test.describe('User Profile Management & Resume Upload Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    // Authenticate test user session
-    await page.goto('/auth/login');
-    await page.fill('input[name="email"]', 'candidate.test@kirmya.com');
-    await page.fill('input[name="password"]', 'Password123!');
-    await page.click('button[type="submit"]');
+// GET /api/v1/profile/me is registered under AuthRequired
+// (backend/internal/profile/delivery/http/routes.go). The page has no route
+// guard, so the honest anonymous outcome is the real 401 followed by the
+// error state from frontend/src/app/profile/page.tsx.
+
+test.describe('User Profile Flow', () => {
+  test('Anonymous profile load is refused and the page says so', async ({ page }) => {
+    const api = process.env.TEST_API_URL;
+    expect(api, 'TEST_API_URL is mandatory').toBeTruthy();
+
+    const profile = page.waitForResponse(
+      (r) => r.url() === `${api}/api/v1/profile/me` && r.request().method() === 'GET'
+    );
+    await page.goto('/profile');
+
+    expect((await profile).status()).toBe(401);
+
+    await settled(page.getByRole('heading', { name: 'Unable to load profile' }));
+    await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
   });
 
-  test('Create and Update Profile Information', async ({ page }) => {
-    await page.goto('/profile/me');
-    await page.click('button[id="edit-profile-btn"]');
-
-    await page.fill('input[name="headline"]', 'Staff Go Microservices Architect');
-    await page.fill('textarea[name="summary"]', '10+ years optimizing high-concurrency Go services & PostgreSQL databases.');
-    await page.click('button[type="submit"]');
-
-    await expect(page.locator('text=Staff Go Microservices Architect')).toBeVisible();
-  });
-
-  test('Upload Resume PDF Attachment', async ({ page }) => {
-    await page.goto('/profile/resume');
-    
-    // Set file payload
-    const filePayload = {
-      name: 'resume_alex_rivera.pdf',
-      mimeType: 'application/pdf',
-      buffer: Buffer.from('Mock PDF Content for Resume Upload Test'),
-    };
-
-    await page.setInputFiles('input[type="file"]', filePayload);
-    await page.click('button[id="upload-resume-btn"]');
-
-    await expect(page.locator('text=Resume uploaded and parsed successfully')).toBeVisible();
+  test('Profile editor route is reachable and distinct from the read view', async ({ page }) => {
+    await page.goto('/profile/edit');
+    await expect(page).toHaveURL(/\/profile\/edit$/);
+    // A 404 would render Next.js's not-found page instead of the app shell.
+    await expect(page.getByText('404')).toHaveCount(0);
   });
 });

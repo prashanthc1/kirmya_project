@@ -334,8 +334,10 @@ func main() {
 	deps.AllowedOrigins = cfg.CORSAllowedOrigins
 	deps.TrustedProxies = cfg.TrustedProxies
 	deps.RateLimit = router.RateLimitConfig{
-		RequestsPerMinute: cfg.RateLimitRequestsPerMinute,
-		Burst:             cfg.RateLimitBurst,
+		RequestsPerMinute:     cfg.RateLimitRequestsPerMinute,
+		Burst:                 cfg.RateLimitBurst,
+		AuthRequestsPerMinute: cfg.AuthRateLimitRequestsPerMinute,
+		AuthBurst:             cfg.AuthRateLimitBurst,
 	}
 	deps.Metrics = router.MetricsConfig{
 		Username: cfg.MetricsUsername,

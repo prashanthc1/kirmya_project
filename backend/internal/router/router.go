@@ -139,6 +139,11 @@ type Handlers = RouterDependencies
 type RateLimitConfig struct {
 	RequestsPerMinute float64
 	Burst             float64
+	// AuthRequestsPerMinute and AuthBurst size the /auth group's own bucket.
+	// Zero means "use the package default", so a caller that does not set them
+	// keeps the production allowance.
+	AuthRequestsPerMinute float64
+	AuthBurst             float64
 }
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
@@ -202,7 +207,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 
 	api.GET("/metrics", metricsGuard(deps.Metrics), metricsHandler())
 
-	authHttp.RegisterRoutes(api, deps.AuthHandler, deps.AuthMiddleware)
+	authHttp.RegisterRoutes(api, deps.AuthHandler, deps.AuthMiddleware, deps.RateLimit.AuthRequestsPerMinute, deps.RateLimit.AuthBurst)
 	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler, deps.AdminAnalyticsHandler)
 	aiHttp.RegisterRoutes(api, deps.AIHandler)
 
