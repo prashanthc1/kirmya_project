@@ -45,4 +45,21 @@ export interface LandingContentResponse {
   featured_jobs: FeaturedJob[];
   featured_companies: FeaturedCompany[];
   testimonials: Testimonial[];
+  /** Absent when no true figures could be counted. */
+  platform_statistics?: PlatformStatistics;
+}
+
+/**
+ * Counted platform figures.
+ *
+ * Every field is an integer counted from real rows at request time. It is
+ * optional on the response because "we cannot count this right now" is a real
+ * answer — the statistics band renders only when the figures are present,
+ * rather than falling back to a hardcoded number as it used to.
+ */
+export interface PlatformStatistics {
+  open_jobs: number;
+  hiring_companies: number;
+  members: number;
+  applications_submitted: number;
 }

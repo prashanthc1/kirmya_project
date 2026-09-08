@@ -7,7 +7,12 @@ import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import GlassCard from './GlassCard';
 
-export const CompanySection: React.FC = () => {
+interface CompanySectionProps {
+  /** Counted companies with at least one open role. Absent when uncountable. */
+  hiringCompanies?: number;
+}
+
+export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies }) => {
   const router = useRouter();
   const theme = useTheme();
 
@@ -85,9 +90,17 @@ export const CompanySection: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                <Typography variant="h4" sx={{ fontWeight: 900, color: '#10b981', mb: 1 }}>
-                  4,850+
-                </Typography>
+                {/*
+                  This tile carried a hardcoded "4,850+" with nothing behind it.
+                  The real count now comes from the landing API when it can be
+                  counted; when it cannot, the tile keeps its heading and drops
+                  the number rather than inventing one.
+                */}
+                {typeof hiringCompanies === 'number' && (
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#10b981', mb: 1 }}>
+                    {hiringCompanies.toLocaleString()}
+                  </Typography>
+                )}
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
                   Verified Companies Hiring
                 </Typography>
