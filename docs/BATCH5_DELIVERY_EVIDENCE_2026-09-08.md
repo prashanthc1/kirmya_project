@@ -179,10 +179,46 @@ request deadline flakes under a local browser suite. CI is the authority.
     871b89d docs(batch5): record what steps 10 and 11 actually got, and what they did not
     4d21494 test(e2e): open a new account's first pages in a browser, and stop the flake in the way
 
+## Second pass — 9 September 2026
+
+Continuing into the groups the first pass left open. Four more defects, found
+the same way and fixed the same way.
+
+| Group | What was wrong | What closes it |
+|---|---|---|
+| 10E | Accepting a freelance proposal checked nothing: the freelancer who wrote it could accept it themselves, repeatedly, each acceptance writing another contract for the same work | Only the client who posted the project may accept, only a submitted proposal, and a second attempt answers 409 |
+| 10H | `POST /mobile/push/send` took the recipient from the request body without checking it, so any signed-in account could push to anyone | A push goes to the caller; a body naming someone else answers 403 |
+| 10H | Device registration answered 500 on every call - it conflicted on `device_id` while the unique index is `(user_id, device_id)`, and the push-token upsert had the same mismatch - so no device or token was ever recorded | Both match their constraints, and registering a handset under a second account deactivates it for the first |
+| 10D and 10B | Assessment results, the skill badges issued from them, event attendees and interview feedback were all stamped with a name read from a gin context key nothing sets, falling back to "Alex Rivera" at alex.rivera@example.com; the event module also took the name and address from the request body | `internal/shared/identity` resolves all four from the users table, and the body is ignored |
+
+Three more CI checks cover these against the running API:
+`TestFreelanceProposalAcceptanceIsOwnedAndSingleUse`,
+`TestMobileDeviceAndPushBoundaries` and `TestEventAttendeeIsTheSignedInAccount`.
+
+Also checked and found already correct: assessment scoring happens on the
+server against the stored answer key, and the key is `json:"-"` so it never
+reaches the client. That is the property 10D most needed, and it holds.
+
+### Step 11 item 2, as far as it could honestly be taken
+
+The ownership checks this batch added run on every recruiter request, so their
+predicates were measured rather than assumed. All three are already indexed -
+`idx_jobs_recruiter`, `idx_job_applications_job` and `idx_company_members_user` -
+so **no new index is justified and none was added**.
+
+Two limits on that measurement, stated rather than papered over: the disposable
+database holds a handful of rows, where PostgreSQL correctly prefers a
+sequential scan whatever indexes exist, so a plan taken there cannot confirm
+index use; and a throughput run could not be taken on this workstation at all -
+registration alone costs 1.77s with bcrypt at cost 12, and `tools/loadcheck`
+seeding several accounts exceeds the API's five-second request deadline before
+the measured phase begins. A representative-data measurement belongs to the
+step 9 and 12 work, on CI hardware.
+
 ## Open, and why
 
-1. **10H mobile was not started.** It needs device builds and devices; nothing in it was verified here, and it stays `open`.
+1. **10H mobile is barely started.** Device registration and the push boundary are fixed and covered, which is the API half. Reproducible app builds, secure session storage on a device, links, offline recovery and real push delivery all need devices, and none of that was attempted.
 2. **10C has no configured provider.** The deterministic replacement is honest about being a skill comparison, but evaluation, provenance, cancellation, timeouts and cost budgets remain untested, and no provider decision has been made.
-3. **10D and 10E have no content or lifecycle.** The endpoints answer correctly and store what they are given; the product behaviour above them — scoring, repeat rules, certificates, contract transitions, disputes — is either not implemented or not verified.
+3. **10D and 10E are partly closed.** Assessment scoring is server-side and the proposal lifecycle is owned and single-use, both covered by CI. Still missing: catalogue content, repeat-attempt rules, verifiable completion records, and contract delivery and dispute behaviour.
 4. **Browser acceptance for these domains is thin.** `test/e2e/empty-account-surfaces.spec.ts` now opens /network, /notifications, /communities and /endorsements as an account with no data and fails on any uncaught exception - the case the reported crash came from. Everything else these groups contain is still only covered at the HTTP level.
 5. **The demo-user fallback still stands.** Anonymous callers to onboarding and profile completion share one profile, by the earlier decision recorded in `docs/decisions`. It is unchanged here.
