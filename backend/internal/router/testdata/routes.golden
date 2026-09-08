@@ -17,6 +17,7 @@ DELETE /api/v1/interview-prep/questions/:id
 DELETE /api/v1/interview-prep/tasks/:id
 DELETE /api/v1/job-alerts/:id
 DELETE /api/v1/jobs/:id/save
+DELETE /api/v1/mentorship/goals/:id
 DELETE /api/v1/network/connections/:id
 DELETE /api/v1/network/follow/:userId
 DELETE /api/v1/network/goals/:id
