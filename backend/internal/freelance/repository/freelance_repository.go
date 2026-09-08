@@ -180,10 +180,12 @@ func (r *pgxFreelanceRepository) GetProjects(ctx context.Context, status string)
 					list = append(list, p)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -279,10 +281,12 @@ func (r *pgxFreelanceRepository) GetProjectProposals(ctx context.Context, projec
 					list = append(list, p)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -373,10 +377,12 @@ func (r *pgxFreelanceRepository) GetUserContracts(ctx context.Context, userID uu
 					list = append(list, c)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

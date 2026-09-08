@@ -28,10 +28,18 @@ export const ConsentHistoryView: React.FC<ConsentHistoryViewProps> = ({ history:
 
   useEffect(() => {
     if (!propHistory) {
-      securityApi.getConsentHistory().then((data) => {
-        setItems(data);
-        setLoading(false);
-      });
+      securityApi
+        .getConsentHistory()
+        .then((data) => {
+          setItems(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          // The client used to answer with sample consents when the call
+          // failed, which is the one thing an audit log must never do.
+          setItems([]);
+          setLoading(false);
+        });
     }
   }, [propHistory]);
 

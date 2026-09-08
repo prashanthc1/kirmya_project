@@ -183,10 +183,12 @@ func (r *pgxMatchingRepository) GetUserMatches(ctx context.Context, userID uuid.
 					list = append(list, m)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

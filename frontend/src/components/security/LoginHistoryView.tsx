@@ -31,10 +31,18 @@ export const LoginHistoryView: React.FC<LoginHistoryViewProps> = ({ items: propI
 
   useEffect(() => {
     if (!propItems) {
-      securityApi.getLoginHistory().then((data) => {
-        setItems(data);
-        setLoading(false);
-      });
+      securityApi
+        .getLoginHistory()
+        .then((data) => {
+          setItems(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          // The client used to answer with sign-in records written into it, so a
+          // failed call looked like a quiet account. Show nothing instead.
+          setItems([]);
+          setLoading(false);
+        });
     }
   }, [propItems]);
 

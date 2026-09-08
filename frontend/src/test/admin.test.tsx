@@ -2,6 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
+// The admin client used to answer from sample records compiled into it, so
+// this suite proved the samples. It calls the API now, and the API is mocked
+// here with those same records.
+vi.mock('../services/authService', () => ({
+  authApiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -15,6 +28,13 @@ vi.mock('next/navigation', () => ({
 }));
 
 import { adminApi } from '../features/admin/services/adminApi';
+import { authApiClient } from '../services/authService';
+import {
+  MOCK_IMPERSONATION_SESSIONS,
+  MOCK_INCIDENTS,
+  MOCK_JOBS,
+  MOCK_MAINTENANCE,
+} from './fixtures/admin';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import UserManagement from '../components/admin/UserManagement';
 import RoleManagement from '../components/admin/RoleManagement';
@@ -28,7 +48,42 @@ import IncidentManager from '../components/admin/IncidentManager';
 import MaintenanceModeModal from '../components/admin/MaintenanceModeModal';
 import ImpersonationDialog from '../components/admin/ImpersonationDialog';
 
+const http = authApiClient as unknown as Record<
+  'get' | 'post' | 'put' | 'patch' | 'delete',
+  ReturnType<typeof vi.fn>
+>;
+
+const resolveWith = (payload: unknown) => ({ data: payload, status: 200 });
+
 describe('Admin & Platform Administration Module Test Suite', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    http.get.mockImplementation((url: string) => {
+      if (url.includes('/background-jobs')) return Promise.resolve(resolveWith(MOCK_JOBS));
+      if (url.includes('/incidents')) return Promise.resolve(resolveWith(MOCK_INCIDENTS));
+      if (url.includes('/maintenance-mode')) return Promise.resolve(resolveWith(MOCK_MAINTENANCE));
+      if (url.includes('/impersonate/sessions')) return Promise.resolve(resolveWith(MOCK_IMPERSONATION_SESSIONS));
+      if (url.includes('/admin/dashboard')) {
+        return Promise.resolve(
+          resolveWith({
+            totalUsers: 1200,
+            activeUsers: 830,
+            totalJobs: 240,
+            pendingModeration: 4,
+            totalApplications: 3100,
+            openIncidents: 1,
+            systemHealth: 'healthy',
+          })
+        );
+      }
+      return Promise.resolve(resolveWith([]));
+    });
+    http.post.mockResolvedValue(resolveWith({ success: true }));
+    http.put.mockResolvedValue(resolveWith({}));
+    http.patch.mockResolvedValue(resolveWith({}));
+    http.delete.mockResolvedValue(resolveWith({ success: true }));
+  });
+
   describe('API Client Methods (adminApi)', () => {
     it('fetches dashboard stats', async () => {
       const stats = await adminApi.getDashboardStats();
@@ -49,6 +104,10 @@ describe('Admin & Platform Administration Module Test Suite', () => {
       const incidents = await adminApi.listIncidents();
       expect(Array.isArray(incidents)).toBe(true);
 
+      http.post.mockResolvedValueOnce(
+        resolveWith({ ...MOCK_INCIDENTS[0], id: 'inc-new', title: 'Test Incident Spikes' })
+      );
+      http.put.mockResolvedValueOnce(resolveWith({ ...MOCK_INCIDENTS[0], status: 'Resolved' }));
       const created = await adminApi.createIncident({
         title: 'Test Incident Spikes',
         description: 'Testing high load on cache cluster.',
@@ -68,12 +127,16 @@ describe('Admin & Platform Administration Module Test Suite', () => {
       const config = await adminApi.getMaintenanceModeConfig();
       expect(config.enabled).toBeDefined();
 
+      http.put.mockResolvedValueOnce(resolveWith({ ...MOCK_MAINTENANCE, enabled: true, message: 'Maintenance active' }));
       const updated = await adminApi.updateMaintenanceModeConfig({ enabled: true, message: 'Maintenance active' });
       expect(updated.enabled).toBe(true);
       expect(updated.message).toBe('Maintenance active');
     });
 
     it('handles support impersonation requests and sessions', async () => {
+      http.post.mockResolvedValueOnce(
+        resolveWith({ ...MOCK_IMPERSONATION_SESSIONS[0], id: 'imp-new', targetUserId: 'u1' })
+      );
       const session = await adminApi.requestSupportImpersonation({
         targetUserId: 'u1',
         reason: 'Testing support impersonation workflow',

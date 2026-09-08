@@ -1,6 +1,20 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
+
+// The security client used to answer these calls from sample rows compiled
+// into it, so this suite proved the samples. It calls the API now, and the API
+// is mocked here: each test states what the server returns and asserts what the
+// client does with it.
+vi.mock('../services/authService', () => ({
+  authApiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -15,6 +29,15 @@ vi.mock('next/navigation', () => ({
 }));
 
 import { securityApi } from '../features/security/services/securityApi';
+import { authApiClient } from '../services/authService';
+import {
+  MOCK_ACCOUNT_RISK_SCORES,
+  MOCK_BOT_SIGNALS,
+  MOCK_FRAUD_ALERTS,
+  MOCK_SECURITY_ALERTS,
+  MOCK_SECURITY_CONFIGS,
+  MOCK_SECURITY_RULES,
+} from './fixtures/security';
 import SecurityCenter from '../components/security/SecurityCenter';
 import SessionManagerView from '../components/security/SessionManagerView';
 import DeviceManagerView from '../components/security/DeviceManagerView';
@@ -33,43 +56,143 @@ import SecurityAlertsPage from '../app/admin/security/alerts/page';
 import SecurityConfigurationPage from '../app/admin/security/configuration/page';
 import SettingsSecurityPage from '../app/settings/security/page';
 
+const http = authApiClient as unknown as Record<
+  'get' | 'post' | 'put' | 'patch' | 'delete',
+  ReturnType<typeof vi.fn>
+>;
+
+const alertFixture = {
+  id: 'alert-1',
+  severity: 'high',
+  status: 'open',
+  is_false_positive: false,
+  title: 'Credential stuffing attempt',
+};
+const ruleFixture = { id: 'rule-1', enabled: false, threshold: 10, name: 'Failed sign-ins' };
+const riskFixture = { user_id: 'user-1', risk_score: 62, last_assessed_at: '2026-09-01T00:00:00Z' };
+const botSignalFixture = { id: 'bot-1', signal_type: 'headless_browser', confidence: 0.9 };
+
+const resolveWith = (payload: unknown) => ({ data: payload });
+
 describe('Security Operations, Threat Detection & Fraud Prevention Module Test Suite', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // The components below fetch through the same client, so the mock answers
+    // by route with the records the assertions name.
+    http.get.mockImplementation((url: string) => {
+      if (url.includes('/security/alerts')) return Promise.resolve(resolveWith(MOCK_SECURITY_ALERTS));
+      if (url.includes('/security/rules')) return Promise.resolve(resolveWith(MOCK_SECURITY_RULES));
+      if (url.includes('/security/risk-scores')) return Promise.resolve(resolveWith(MOCK_ACCOUNT_RISK_SCORES));
+      if (url.includes('/security/risk-score')) return Promise.resolve(resolveWith(MOCK_ACCOUNT_RISK_SCORES[0]));
+      if (url.includes('/security/bot-signals')) return Promise.resolve(resolveWith(MOCK_BOT_SIGNALS));
+      if (url.includes('/security/bot-stats')) {
+        return Promise.resolve(
+          resolveWith({ total_blocked_24h: 42, captcha_challenges_24h: 12, blocked_ips_count: 3 })
+        );
+      }
+      if (url.includes('/security/fraud-alerts')) return Promise.resolve(resolveWith(MOCK_FRAUD_ALERTS));
+      if (url.includes('/security/configurations')) return Promise.resolve(resolveWith(MOCK_SECURITY_CONFIGS));
+      if (url.includes('/security/sessions')) {
+        return Promise.resolve(
+          resolveWith([
+            {
+              id: 's1',
+              user_id: 'u1',
+              ip_address: '127.0.0.1',
+              user_agent: 'Chrome 120.0 / Windows 11',
+              location: 'Dubai, UAE',
+              is_current: true,
+              expires_at: new Date(Date.now() + 604800000).toISOString(),
+              created_at: new Date().toISOString(),
+              last_active_at: new Date().toISOString(),
+              device_type: 'Desktop',
+            },
+          ])
+        );
+      }
+      if (url.includes('/security/login-history')) {
+        return Promise.resolve(
+          resolveWith([
+            {
+              id: 'lh1',
+              user_id: 'u1',
+              event_type: 'login.success',
+              severity: 'low',
+              ip_address: '127.0.0.1',
+              user_agent: 'Chrome 120.0 / Windows 11',
+              location: 'Dubai, UAE',
+              status: 'success',
+              created_at: new Date().toISOString(),
+            },
+          ])
+        );
+      }
+      return Promise.resolve(resolveWith([]));
+    });
+    http.post.mockResolvedValue(resolveWith({}));
+    http.put.mockResolvedValue(resolveWith({}));
+    http.patch.mockResolvedValue(resolveWith({}));
+    http.delete.mockResolvedValue(resolveWith({}));
+  });
+
   // 1. API Services Tests
   describe('Security API Client Methods', () => {
     it('fetches security alerts and updates status', async () => {
+      http.get.mockResolvedValueOnce(resolveWith([alertFixture]));
       const alerts = await securityApi.getSecurityAlerts();
-      expect(alerts.length).toBeGreaterThan(0);
-      expect(alerts[0]).toHaveProperty('id');
-      expect(alerts[0]).toHaveProperty('severity');
+      expect(alerts[0].id).toBe('alert-1');
 
-      const updated = await securityApi.updateSecurityAlertStatus(alerts[0].id, 'resolved');
+      http.patch.mockResolvedValueOnce(resolveWith({ ...alertFixture, status: 'resolved' }));
+      const updated = await securityApi.updateSecurityAlertStatus('alert-1', 'resolved');
       expect(updated.status).toBe('resolved');
 
-      const fp = await securityApi.markAlertFalsePositive(alerts[0].id, 'Verified partner test');
-      expect(fp.status).toBe('false_positive');
+      http.patch.mockResolvedValueOnce(
+        resolveWith({ ...alertFixture, status: 'false_positive', is_false_positive: true })
+      );
+      const fp = await securityApi.markAlertFalsePositive('alert-1', 'Verified partner test');
       expect(fp.is_false_positive).toBe(true);
     });
 
+    it('propagates a failed read instead of answering with sample alerts', async () => {
+      http.get.mockRejectedValueOnce(new Error('gateway down'));
+      await expect(securityApi.getSecurityAlerts()).rejects.toThrow('gateway down');
+    });
+
+    it('propagates a failed write instead of reporting the change as applied', async () => {
+      http.patch.mockRejectedValueOnce(new Error('conflict'));
+      await expect(securityApi.updateSecurityAlertStatus('alert-1', 'resolved')).rejects.toThrow(
+        'conflict'
+      );
+    });
+
     it('fetches security rules and updates threshold & toggle state', async () => {
+      http.get.mockResolvedValueOnce(resolveWith([ruleFixture]));
       const rules = await securityApi.getSecurityRules();
-      expect(rules.length).toBeGreaterThan(0);
+      expect(rules[0].id).toBe('rule-1');
 
-      const toggled = await securityApi.toggleSecurityRule(rules[0].id, !rules[0].enabled);
-      expect(toggled.enabled).toBe(!rules[0].enabled);
+      http.patch.mockResolvedValueOnce(resolveWith({ ...ruleFixture, enabled: true }));
+      const toggled = await securityApi.toggleSecurityRule('rule-1', true);
+      expect(toggled.enabled).toBe(true);
 
-      const updated = await securityApi.updateSecurityRule(rules[0].id, { threshold: 15 });
+      http.patch.mockResolvedValueOnce(resolveWith({ ...ruleFixture, threshold: 15 }));
+      const updated = await securityApi.updateSecurityRule('rule-1', { threshold: 15 });
       expect(updated.threshold).toBe(15);
     });
 
     it('fetches risk scores and triggers reassessment', async () => {
+      http.get.mockResolvedValueOnce(resolveWith([riskFixture]));
       const scores = await securityApi.getAccountRiskScores();
-      expect(scores.length).toBeGreaterThan(0);
+      expect(scores[0].user_id).toBe('user-1');
 
-      const userScore = await securityApi.getAccountRiskScore(scores[0].user_id);
-      expect(userScore).toBeDefined();
+      http.get.mockResolvedValueOnce(resolveWith(riskFixture));
+      const userScore = await securityApi.getAccountRiskScore('user-1');
+      expect(userScore.risk_score).toBe(62);
 
-      const reassessed = await securityApi.reassessAccountRisk(scores[0].user_id);
-      expect(reassessed.last_assessed_at).toBeDefined();
+      http.post.mockResolvedValueOnce(
+        resolveWith({ ...riskFixture, last_assessed_at: '2026-09-08T00:00:00Z' })
+      );
+      const reassessed = await securityApi.reassessAccountRisk('user-1');
+      expect(reassessed.last_assessed_at).toBe('2026-09-08T00:00:00Z');
     });
 
     it('fetches bot signals and mitigation stats', async () => {
@@ -77,8 +200,9 @@ describe('Security Operations, Threat Detection & Fraud Prevention Module Test S
       expect(signals.length).toBeGreaterThan(0);
 
       const stats = await securityApi.getBotMitigationStats();
-      expect(stats.total_blocked_24h).toBeGreaterThan(0);
+      expect(stats.total_blocked_24h).toBe(42);
 
+      http.post.mockResolvedValueOnce({ status: 200, data: {} });
       const updatedSetting = await securityApi.updateBotMitigationSetting('auto_captcha', true);
       expect(updatedSetting).toBe(true);
     });
@@ -86,6 +210,14 @@ describe('Security Operations, Threat Detection & Fraud Prevention Module Test S
     it('fetches fraud alerts and updates mitigation status', async () => {
       const fraudAlerts = await securityApi.getFraudAlerts();
       expect(fraudAlerts.length).toBeGreaterThan(0);
+
+      http.patch.mockResolvedValueOnce(
+        resolveWith({
+          ...MOCK_FRAUD_ALERTS[0],
+          status: 'confirmed_fraud',
+          mitigation_action: 'Account suspended',
+        })
+      );
 
       const updatedFraud = await securityApi.updateFraudAlertStatus(
         fraudAlerts[0].id,

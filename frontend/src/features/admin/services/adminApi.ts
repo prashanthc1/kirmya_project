@@ -17,121 +17,6 @@ import {
 const apiClient = authApiClient;
 
 // Default Mock Data for Offline Testing
-const MOCK_JOBS: BackgroundJobDTO[] = [
-  {
-    id: 'job-101',
-    name: 'email.bulk_notifications',
-    queue: 'high_priority',
-    status: 'failed',
-    attempts: 3,
-    maxAttempts: 3,
-    failedReason: 'SMTP Connection timeout after 30s',
-    createdAt: '2026-08-15T10:00:00Z',
-    startedAt: '2026-08-15T10:00:05Z',
-  },
-  {
-    id: 'job-102',
-    name: 'analytics.daily_aggregate',
-    queue: 'default',
-    status: 'running',
-    attempts: 1,
-    maxAttempts: 3,
-    createdAt: '2026-08-15T11:30:00Z',
-    startedAt: '2026-08-15T11:30:02Z',
-  },
-  {
-    id: 'job-103',
-    name: 'embedding.vector_indexing',
-    queue: 'ai_queue',
-    status: 'completed',
-    attempts: 1,
-    maxAttempts: 5,
-    createdAt: '2026-08-15T09:15:00Z',
-    startedAt: '2026-08-15T09:15:01Z',
-    completedAt: '2026-08-15T09:18:22Z',
-  },
-  {
-    id: 'job-104',
-    name: 'search.reindex_listings',
-    queue: 'low_priority',
-    status: 'pending',
-    attempts: 0,
-    maxAttempts: 3,
-    createdAt: '2026-08-15T12:00:00Z',
-  },
-];
-
-const MOCK_INCIDENTS: IncidentDTO[] = [
-  {
-    id: 'inc-001',
-    title: 'Intermittent Search Service Latency Spikes',
-    description: 'Vector search database node memory pressure causing elevated response times.',
-    status: 'Investigating',
-    severity: 'Major',
-    affectedServices: ['Search Engine', 'Job Recommendations'],
-    updates: [
-      {
-        id: 'u-1',
-        status: 'Open',
-        message: 'Elevated latency detected across elasticsearch cluster.',
-        createdAt: '2026-08-15T11:00:00Z',
-        author: 'SRE Monitor System',
-      },
-      {
-        id: 'u-2',
-        status: 'Investigating',
-        message: 'Engineers investigating heap utilization on node-03.',
-        createdAt: '2026-08-15T11:15:00Z',
-        author: 'Lead Platform Ops',
-      },
-    ],
-    createdAt: '2026-08-15T11:00:00Z',
-    updatedAt: '2026-08-15T11:15:00Z',
-  },
-  {
-    id: 'inc-002',
-    title: 'Payment Webhook Processing Backlog',
-    description: 'Third-party provider gateway rate-limiting webhook delivery.',
-    status: 'Mitigated',
-    severity: 'Minor',
-    affectedServices: ['Billing Gateway', 'Subscription Sync'],
-    updates: [
-      {
-        id: 'u-3',
-        status: 'Mitigated',
-        message: 'Rate limits adjusted with provider; backlog clearing rapidly.',
-        createdAt: '2026-08-15T08:30:00Z',
-        author: 'DevOps Engineer',
-      },
-    ],
-    createdAt: '2026-08-15T07:00:00Z',
-    updatedAt: '2026-08-15T08:30:00Z',
-  },
-];
-
-const MOCK_MAINTENANCE: MaintenanceModeConfigDTO = {
-  enabled: false,
-  message: 'Kirmya system maintenance in progress. We will return online shortly.',
-  allowedIpAddresses: ['192.168.1.1', '10.0.0.100'],
-  scheduledStartTime: '2026-08-20T02:00:00Z',
-  scheduledEndTime: '2026-08-20T04:00:00Z',
-  bypassToken: 'kirmya-maint-bypass-99812',
-  updatedBy: 'admin@kirmya.com',
-  updatedAt: '2026-08-14T18:00:00Z',
-};
-
-const MOCK_IMPERSONATION_SESSIONS: UserImpersonationSessionDTO[] = [
-  {
-    id: 'imp-sess-1',
-    adminId: 'admin-001',
-    targetUserId: 'u1',
-    targetUserEmail: 'tariq@kirmya.com',
-    reason: 'Investigating missing application notification bug',
-    status: 'active',
-    expiresAt: '2026-08-15T14:30:00Z',
-    createdAt: '2026-08-15T13:30:00Z',
-  },
-];
 
 export const adminApi = {
   getDashboardStats: async (): Promise<AdminDashboardStatsDTO> => {
@@ -434,8 +319,10 @@ export const adminApi = {
     try {
       const res = await apiClient.get<BackgroundJobDTO[]>('/admin/background-jobs');
       return res.data;
-    } catch {
-      return MOCK_JOBS;
+    } catch (error) {
+      // A failed read is not data. This used to answer with the sample
+      // records that lived in this file, so a broken console looked healthy.
+      throw error;
     }
   },
 
@@ -462,8 +349,10 @@ export const adminApi = {
     try {
       const res = await apiClient.get<IncidentDTO[]>('/admin/incidents');
       return res.data;
-    } catch {
-      return MOCK_INCIDENTS;
+    } catch (error) {
+      // A failed read is not data. This used to answer with the sample
+      // records that lived in this file, so a broken console looked healthy.
+      throw error;
     }
   },
 
@@ -502,25 +391,10 @@ export const adminApi = {
     try {
       const res = await apiClient.put<IncidentDTO>(`/admin/incidents/${id}/status`, payload);
       return res.data;
-    } catch {
-      const target = MOCK_INCIDENTS.find((i) => i.id === id) || MOCK_INCIDENTS[0];
-      const updated: IncidentDTO = {
-        ...target,
-        status: payload.status,
-        updatedAt: new Date().toISOString(),
-        resolvedAt: payload.status === 'Resolved' ? new Date().toISOString() : target.resolvedAt,
-        updates: [
-          ...target.updates,
-          {
-            id: `u-${Date.now()}`,
-            status: payload.status,
-            message: payload.message,
-            createdAt: new Date().toISOString(),
-            author: 'Admin User',
-          },
-        ],
-      };
-      return updated;
+    } catch (error) {
+      // A write that never reached the server did not happen. This used to
+      // return the sample record with the change applied to it.
+      throw error;
     }
   },
 
@@ -529,8 +403,10 @@ export const adminApi = {
     try {
       const res = await apiClient.get<MaintenanceModeConfigDTO>('/admin/maintenance-mode');
       return res.data;
-    } catch {
-      return MOCK_MAINTENANCE;
+    } catch (error) {
+      // A failed read is not data. This used to answer with the sample
+      // records that lived in this file, so a broken console looked healthy.
+      throw error;
     }
   },
 
@@ -538,12 +414,10 @@ export const adminApi = {
     try {
       const res = await apiClient.put<MaintenanceModeConfigDTO>('/admin/maintenance-mode', payload);
       return res.data;
-    } catch {
-      return {
-        ...MOCK_MAINTENANCE,
-        ...payload,
-        updatedAt: new Date().toISOString(),
-      };
+    } catch (error) {
+      // A write that never reached the server did not happen. This used to
+      // return the sample record with the change applied to it.
+      throw error;
     }
   },
 
@@ -571,8 +445,10 @@ export const adminApi = {
     try {
       const res = await apiClient.get<UserImpersonationSessionDTO[]>('/admin/impersonate/sessions');
       return res.data;
-    } catch {
-      return MOCK_IMPERSONATION_SESSIONS;
+    } catch (error) {
+      // A failed read is not data. This used to answer with the sample
+      // records that lived in this file, so a broken console looked healthy.
+      throw error;
     }
   },
 

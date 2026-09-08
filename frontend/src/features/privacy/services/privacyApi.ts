@@ -312,15 +312,21 @@ const MOCK_POLICY_VERSIONS: PolicyVersionItem[] = [
   },
 ];
 
+// Every path below used to be addressed under /admin/privacy/..., which the API
+// does not serve: the console was talking to endpoints that answer 404 and
+// showing sample rows from the catch block instead. The real routes are
+// /admin/compliance/... and /admin/data-governance/....
 export const privacyApi = {
   // Data Inventory
   async getDataInventory(): Promise<DataInventoryItem[]> {
     if (isTestEnv) return MOCK_DATA_INVENTORY;
     try {
-      const res = await apiClient.get<DataInventoryItem[]>('/admin/privacy/inventory', { timeout: 1000 });
+      const res = await apiClient.get<DataInventoryItem[]>('/admin/data-governance/inventory', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_DATA_INVENTORY;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -333,7 +339,7 @@ export const privacyApi = {
       return { ...existing, ...updates, updatedAt: new Date().toISOString().split('T')[0] };
     }
     try {
-      const res = await apiClient.put<DataInventoryItem>(`/admin/privacy/inventory/${id}`, updates, { timeout: 1000 });
+      const res = await apiClient.put<DataInventoryItem>(`/admin/data-governance/inventory/${id}`, updates, { timeout: 1000 });
       return res.data;
     } catch {
       const existing = MOCK_DATA_INVENTORY.find((i) => i.id === id) || MOCK_DATA_INVENTORY[0];
@@ -345,10 +351,12 @@ export const privacyApi = {
   async getDataSubjectRequests(): Promise<DataSubjectRequestItem[]> {
     if (isTestEnv) return MOCK_DSR_REQUESTS;
     try {
-      const res = await apiClient.get<DataSubjectRequestItem[]>('/privacy/dsr/requests', { timeout: 1000 });
+      const res = await apiClient.get<DataSubjectRequestItem[]>('/admin/compliance/dsr', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_DSR_REQUESTS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -366,17 +374,13 @@ export const privacyApi = {
       return newReq;
     }
     try {
-      const res = await apiClient.post<DataSubjectRequestItem>('/privacy/dsr/requests', data, { timeout: 1000 });
+      const res = await apiClient.post<DataSubjectRequestItem>('/admin/compliance/dsr', data, { timeout: 1000 });
       return res.data;
-    } catch {
-      const newReq: DataSubjectRequestItem = {
-        id: `dsr-${Date.now()}`,
-        ...data,
-        status: 'pending',
-        submittedAt: new Date().toISOString(),
-      };
-      MOCK_DSR_REQUESTS.unshift(newReq);
-      return newReq;
+    } catch (error) {
+      // A write that did not reach the server did not happen. This used to
+      // return a record built in the browser, so the console showed a legal
+      // hold or a request that exists nowhere.
+      throw error;
     }
   },
 
@@ -393,7 +397,7 @@ export const privacyApi = {
       return { ...req };
     }
     try {
-      const res = await apiClient.patch<DataSubjectRequestItem>(`/privacy/dsr/requests/${id}`, {
+      const res = await apiClient.patch<DataSubjectRequestItem>(`/admin/compliance/dsr/${id}`, {
         status,
         notes,
       }, { timeout: 1000 });
@@ -411,10 +415,12 @@ export const privacyApi = {
   async getRetentionPolicies(): Promise<RetentionPolicyItem[]> {
     if (isTestEnv) return MOCK_RETENTION_POLICIES;
     try {
-      const res = await apiClient.get<RetentionPolicyItem[]>('/admin/privacy/retention', { timeout: 1000 });
+      const res = await apiClient.get<RetentionPolicyItem[]>('/admin/data-governance/retention', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_RETENTION_POLICIES;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -428,7 +434,7 @@ export const privacyApi = {
       };
     }
     try {
-      const res = await apiClient.post<DryRunResult>(`/admin/privacy/retention/${id}/dry-run`, {}, { timeout: 1000 });
+      const res = await apiClient.post<DryRunResult>(`/admin/data-governance/retention/run`, {}, { timeout: 1000 });
       return res.data;
     } catch {
       return {
@@ -466,10 +472,12 @@ export const privacyApi = {
   async getLegalHolds(): Promise<LegalHoldItem[]> {
     if (isTestEnv) return MOCK_LEGAL_HOLDS;
     try {
-      const res = await apiClient.get<LegalHoldItem[]>('/admin/privacy/legal-holds', { timeout: 1000 });
+      const res = await apiClient.get<LegalHoldItem[]>('/admin/compliance/legal-holds', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_LEGAL_HOLDS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -487,17 +495,13 @@ export const privacyApi = {
       return newHold;
     }
     try {
-      const res = await apiClient.post<LegalHoldItem>('/admin/privacy/legal-holds', hold, { timeout: 1000 });
+      const res = await apiClient.post<LegalHoldItem>('/admin/compliance/legal-holds', hold, { timeout: 1000 });
       return res.data;
-    } catch {
-      const newHold: LegalHoldItem = {
-        id: `hold-${Date.now()}`,
-        ...hold,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-      };
-      MOCK_LEGAL_HOLDS.unshift(newHold);
-      return newHold;
+    } catch (error) {
+      // A write that did not reach the server did not happen. This used to
+      // return a record built in the browser, so the console showed a legal
+      // hold or a request that exists nowhere.
+      throw error;
     }
   },
 
@@ -509,7 +513,7 @@ export const privacyApi = {
       return { ...hold };
     }
     try {
-      const res = await apiClient.post<LegalHoldItem>(`/admin/privacy/legal-holds/${id}/release`, {}, { timeout: 1000 });
+      const res = await apiClient.post<LegalHoldItem>(`/admin/compliance/legal-holds/${id}/release`, {}, { timeout: 1000 });
       return res.data;
     } catch {
       const hold = MOCK_LEGAL_HOLDS.find((h) => h.id === id) || MOCK_LEGAL_HOLDS[0];
@@ -523,10 +527,12 @@ export const privacyApi = {
   async getAccessReviews(): Promise<DataAccessReviewItem[]> {
     if (isTestEnv) return MOCK_ACCESS_REVIEWS;
     try {
-      const res = await apiClient.get<DataAccessReviewItem[]>('/admin/privacy/access-reviews', { timeout: 1000 });
+      const res = await apiClient.get<DataAccessReviewItem[]>('/admin/compliance/access-reviews', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_ACCESS_REVIEWS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -559,10 +565,12 @@ export const privacyApi = {
   async getThirdPartyProcessors(): Promise<ThirdPartyProcessorItem[]> {
     if (isTestEnv) return MOCK_PROCESSORS;
     try {
-      const res = await apiClient.get<ThirdPartyProcessorItem[]>('/admin/privacy/processors', { timeout: 1000 });
+      const res = await apiClient.get<ThirdPartyProcessorItem[]>('/admin/data-governance/processors', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_PROCESSORS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -591,10 +599,12 @@ export const privacyApi = {
   async getDataQualityChecks(): Promise<DataQualityCheckItem[]> {
     if (isTestEnv) return MOCK_QUALITY_CHECKS;
     try {
-      const res = await apiClient.get<DataQualityCheckItem[]>('/admin/data-governance/quality', { timeout: 1000 });
+      const res = await apiClient.get<DataQualityCheckItem[]>('/admin/data-governance/quality-checks', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_QUALITY_CHECKS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -634,10 +644,12 @@ export const privacyApi = {
   async getPrivacyRiskSummary(): Promise<PrivacyRiskSummary> {
     if (isTestEnv) return MOCK_RISK_SUMMARY;
     try {
-      const res = await apiClient.get<PrivacyRiskSummary>('/admin/privacy/risk-summary', { timeout: 1000 });
+      const res = await apiClient.get<PrivacyRiskSummary>('/admin/compliance/risk-summary', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_RISK_SUMMARY;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -646,8 +658,10 @@ export const privacyApi = {
     try {
       const res = await apiClient.get<ComplianceOverview>('/admin/compliance/overview', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_COMPLIANCE_OVERVIEW;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -655,10 +669,12 @@ export const privacyApi = {
   async getPrivacyIncidents(): Promise<PrivacyIncidentItem[]> {
     if (isTestEnv) return MOCK_INCIDENTS;
     try {
-      const res = await apiClient.get<PrivacyIncidentItem[]>('/admin/privacy/incidents', { timeout: 1000 });
+      const res = await apiClient.get<PrivacyIncidentItem[]>('/admin/compliance/incidents', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_INCIDENTS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 
@@ -673,7 +689,7 @@ export const privacyApi = {
       return { ...inc };
     }
     try {
-      const res = await apiClient.patch<PrivacyIncidentItem>(`/admin/privacy/incidents/${id}`, {
+      const res = await apiClient.patch<PrivacyIncidentItem>(`/admin/compliance/incidents/${id}`, {
         status,
       }, { timeout: 1000 });
       return res.data;
@@ -689,10 +705,12 @@ export const privacyApi = {
   async getPolicyVersions(): Promise<PolicyVersionItem[]> {
     if (isTestEnv) return MOCK_POLICY_VERSIONS;
     try {
-      const res = await apiClient.get<PolicyVersionItem[]>('/admin/compliance/policies', { timeout: 1000 });
+      const res = await apiClient.get<PolicyVersionItem[]>('/admin/compliance/policy-versions', { timeout: 1000 });
       return res.data;
-    } catch {
-      return MOCK_POLICY_VERSIONS;
+    } catch (error) {
+      // A failed read is not an empty dataset dressed up as one, and it is
+      // certainly not a fabricated one: this used to answer with sample rows.
+      throw error;
     }
   },
 

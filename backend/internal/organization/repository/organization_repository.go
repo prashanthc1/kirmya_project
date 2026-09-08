@@ -199,10 +199,12 @@ func (r *pgxOrganizationRepository) GetOrganizationsForUser(ctx context.Context,
 					list = append(list, o)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -268,10 +270,12 @@ func (r *pgxOrganizationRepository) GetOrgMembers(ctx context.Context, orgID uui
 					list = append(list, m)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -320,10 +324,12 @@ func (r *pgxOrganizationRepository) GetPermissionsByRole(ctx context.Context, ro
 					list = append(list, p)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -351,10 +357,12 @@ func (r *pgxOrganizationRepository) GetAllPermissions(ctx context.Context) ([]do
 					list = append(list, p)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

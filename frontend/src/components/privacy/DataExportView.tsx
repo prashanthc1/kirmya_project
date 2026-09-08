@@ -12,11 +12,14 @@ export const DataExportView: React.FC = () => {
   const [exportStatus, setExportStatus] = useState<DataExportStatus | null>(null);
 
   useEffect(() => {
-    securityApi.getDataExportStatus().then((data) => {
-      if (data && data.status === 'completed') {
-        setExportStatus(data);
-      }
-    });
+    securityApi
+      .getDataExportStatus()
+      .then((data) => {
+        if (data && data.status === 'completed') {
+          setExportStatus(data);
+        }
+      })
+      .catch(() => setExportStatus(null));
   }, []);
 
   const handleRequestExport = async () => {

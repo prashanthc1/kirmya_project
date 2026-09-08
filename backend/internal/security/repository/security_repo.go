@@ -336,10 +336,12 @@ func (r *securityRepository) GetTrustedDevices(ctx context.Context, userID uuid.
 					list = append(list, d)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -503,10 +505,12 @@ func (r *securityRepository) GetLoginHistory(ctx context.Context, userID uuid.UU
 					list = append(list, item)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -662,10 +666,12 @@ func (r *securityRepository) GetRecoveryCodeHashes(ctx context.Context, userID u
 					list = append(list, code)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -747,10 +753,12 @@ func (r *securityRepository) GetAPIKeys(ctx context.Context, userID uuid.UUID) (
 					list = append(list, k)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -874,10 +882,12 @@ func (r *securityRepository) GetSecurityEvents(ctx context.Context, userID uuid.
 					list = append(list, e)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -1131,10 +1141,12 @@ func (r *securityRepository) GetSecurityIncidents(ctx context.Context) ([]models
 					list = append(list, inc)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

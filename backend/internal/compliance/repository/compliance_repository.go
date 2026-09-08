@@ -333,10 +333,12 @@ func (r *pgxComplianceRepository) GetUserConsents(ctx context.Context, userID uu
 					list = append(list, c)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -383,10 +385,12 @@ func (r *pgxComplianceRepository) GetUserDataRequests(ctx context.Context, userI
 					list = append(list, req)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -414,10 +418,12 @@ func (r *pgxComplianceRepository) GetAllDataRequests(ctx context.Context) ([]dom
 					list = append(list, req)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -504,10 +510,12 @@ func (r *pgxComplianceRepository) GetUserAuditEvents(ctx context.Context, userID
 					list = append(list, ev)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -529,10 +537,12 @@ func (r *pgxComplianceRepository) GetDataInventory(ctx context.Context) ([]domai
 					list = append(list, item)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -576,10 +586,12 @@ func (r *pgxComplianceRepository) GetRetentionPolicies(ctx context.Context) ([]d
 					list = append(list, p)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -628,10 +640,12 @@ func (r *pgxComplianceRepository) GetLegalHolds(ctx context.Context) ([]domain.L
 					list = append(list, h)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -724,10 +738,12 @@ func (r *pgxComplianceRepository) GetAccessReviews(ctx context.Context) ([]domai
 					list = append(list, ar)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -778,10 +794,12 @@ func (r *pgxComplianceRepository) GetThirdPartyProcessors(ctx context.Context) (
 					list = append(list, p)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -830,10 +848,12 @@ func (r *pgxComplianceRepository) GetDataQualityChecks(ctx context.Context) ([]d
 					list = append(list, q)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -958,10 +978,12 @@ func (r *pgxComplianceRepository) GetPrivacyIncidents(ctx context.Context) ([]do
 					list = append(list, inc)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -1007,10 +1029,12 @@ func (r *pgxComplianceRepository) GetPolicyVersions(ctx context.Context) ([]doma
 					list = append(list, pv)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

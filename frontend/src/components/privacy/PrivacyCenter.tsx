@@ -63,7 +63,9 @@ export const PrivacyCenter: React.FC<PrivacyCenterProps> = ({ initialTab = 0 }) 
   const [saveAlert, setSaveAlert] = useState(false);
 
   useEffect(() => {
-    securityApi.getPrivacySettings().then(setPrefs);
+    // A failed read leaves the switches at their documented defaults rather
+    // than showing settings the server never sent.
+    securityApi.getPrivacySettings().then(setPrefs).catch(() => undefined);
   }, []);
 
   const handleToggle = async (key: keyof PrivacySettings) => {

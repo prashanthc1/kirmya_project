@@ -139,10 +139,12 @@ func (r *pgxIntelligenceRepository) GetMarketInsights(ctx context.Context, indus
 					list = append(list, m)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -174,10 +176,12 @@ func (r *pgxIntelligenceRepository) GetSkillTrends(ctx context.Context) ([]domai
 					list = append(list, s)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -198,10 +202,12 @@ func (r *pgxIntelligenceRepository) GetHiringStatistics(ctx context.Context, reg
 					list = append(list, h)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

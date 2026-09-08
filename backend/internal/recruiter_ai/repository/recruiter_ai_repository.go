@@ -156,10 +156,12 @@ func (r *pgxRecruiterAIRepository) GetSessionCandidateScores(ctx context.Context
 					list = append(list, s)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -206,10 +208,12 @@ func (r *pgxRecruiterAIRepository) GetSessionContent(ctx context.Context, sessio
 					list = append(list, c)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()
@@ -234,10 +238,12 @@ func (r *pgxRecruiterAIRepository) GetRecruiterSessions(ctx context.Context, org
 					list = append(list, s)
 				}
 			}
-			if len(list) > 0 {
-				return list, nil
-			}
+			// An empty result set is an empty result set. This used to fall through
+			// to the seeded records below, so a table with no rows answered with
+			// sample data that looked exactly like real data.
+			return list, rows.Err()
 		}
+		return nil, err
 	}
 
 	r.mu.RLock()

@@ -41,10 +41,15 @@ export const AdminSecurityDashboard: React.FC = () => {
   const [events, setEvents] = useState<SecurityEvent[]>([]);
   const [incidents, setIncidents] = useState<SecurityIncident[]>([]);
 
+  const [loadError, setLoadError] = useState(false);
+
   useEffect(() => {
-    securityApi.getAdminSecuritySummary().then(setSummary);
-    securityApi.getSecurityEvents().then(setEvents);
-    securityApi.getSecurityIncidents().then(setIncidents);
+    // Each of these used to be answered by sample data inside the client when
+    // the call failed, so the console always looked populated. A failure is now
+    // a failure, and an empty summary keeps the counters from crashing on it.
+    securityApi.getAdminSecuritySummary().then(setSummary).catch(() => setLoadError(true));
+    securityApi.getSecurityEvents().then(setEvents).catch(() => setLoadError(true));
+    securityApi.getSecurityIncidents().then(setIncidents).catch(() => setLoadError(true));
   }, []);
 
   return (
@@ -61,12 +66,18 @@ export const AdminSecurityDashboard: React.FC = () => {
         </Box>
       </Stack>
 
+      {loadError && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          Some security telemetry could not be loaded. The figures below cover only what was returned.
+        </Alert>
+      )}
+
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card sx={{ p: 2.5, borderRadius: '20px' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Total Security Events</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: 'primary.main' }}>
-              {summary.total_events.toLocaleString()}
+              {(summary.total_events ?? 0).toLocaleString()}
             </Typography>
           </Card>
         </Grid>
