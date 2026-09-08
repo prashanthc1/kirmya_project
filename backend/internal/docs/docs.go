@@ -28002,6 +28002,50 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a goal from a mentorship the caller is the mentor or mentee of.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Mentorship"
+                ],
+                "summary": "Delete mentorship goal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Goal ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/mentorship/mentors/profile": {
@@ -55924,9 +55968,6 @@ const docTemplate = `{
         },
         "models.UpdatePreferencePayload": {
             "type": "object",
-            "required": [
-                "notificationType"
-            ],
             "properties": {
                 "category": {
                     "type": "string"

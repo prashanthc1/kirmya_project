@@ -163,6 +163,18 @@ func swaggerGetGoals() {}
 // @Router       /api/v1/mentorship/goals/{id} [put]
 func swaggerUpdateGoal() {}
 
+// @Summary      Delete mentorship goal
+// @Description  Removes a goal from a mentorship the caller is the mentor or mentee of.
+// @Tags         Mentorship
+// @Produce      json
+// @Param        id  path      string  true  "Goal ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/mentorship/goals/{id} [delete]
+func swaggerDeleteGoal() {}
+
 // @Summary      Schedule mentorship session
 // @Description  Schedule a mentoring session.
 // @Tags         Mentorship

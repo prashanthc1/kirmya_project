@@ -7988,8 +7988,6 @@ definitions:
         type: boolean
       smsEnabled:
         type: boolean
-    required:
-    - notificationType
     type: object
   models.UpdatePreparationRequest:
     properties:
@@ -26849,6 +26847,35 @@ paths:
       tags:
       - Mentorship
   /api/v1/mentorship/goals/{id}:
+    delete:
+      description: Removes a goal from a mentorship the caller is the mentor or mentee
+        of.
+      parameters:
+      - description: Goal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete mentorship goal
+      tags:
+      - Mentorship
     put:
       consumes:
       - application/json
