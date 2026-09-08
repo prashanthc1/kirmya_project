@@ -397,6 +397,25 @@ func (h *MentorshipHandler) UpdateGoal(c *gin.Context) {
 	})
 }
 
+// DeleteGoal DELETE /api/v1/mentorship/goals/:id
+func (h *MentorshipHandler) DeleteGoal(c *gin.Context) {
+	if h.svc == nil {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		return
+	}
+	userID := getUserID(c)
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: missing user id"})
+		return
+	}
+
+	if err := h.svc.DeleteGoal(c.Request.Context(), userID, c.Param("id")); err != nil {
+		respondServiceError(c, err, http.StatusBadRequest)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "goal deleted"})
+}
+
 // CreateSession POST /api/v1/mentorship/sessions
 func (h *MentorshipHandler) CreateSession(c *gin.Context) {
 	if h.svc == nil {

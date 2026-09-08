@@ -33,6 +33,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *MentorshipHandler) {
 		authed.POST("/goals", handler.CreateGoal)
 		authed.GET("/goals", handler.GetGoals)
 		authed.PUT("/goals/:id", handler.UpdateGoal)
+		authed.DELETE("/goals/:id", handler.DeleteGoal)
 
 		authed.POST("/sessions", handler.CreateSession)
 		authed.GET("/sessions", handler.GetSessions)

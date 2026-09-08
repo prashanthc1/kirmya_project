@@ -107,6 +107,10 @@ func (s *spyService) GetGoals(_ context.Context, userID string, _ string) ([]*mo
 	return nil, nil
 }
 
+func (s *spyService) DeleteGoal(_ context.Context, userID string, _ string) error {
+	return s.record(userID)
+}
+
 func (s *spyService) UpdateGoal(_ context.Context, userID string, _ string, _ models.UpdateMentorshipGoalDTO) (*models.MentorshipGoal, error) {
 	if err := s.record(userID); err != nil {
 		return nil, err

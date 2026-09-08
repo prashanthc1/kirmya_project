@@ -544,6 +544,22 @@ func (r *PostgresMentorshipRepository) UpdateGoal(ctx context.Context, goal *mod
 	return nil
 }
 
+// DeleteGoal removes a goal by id.
+func (r *PostgresMentorshipRepository) DeleteGoal(ctx context.Context, id string) error {
+	if r.pool == nil {
+		return r.fallback.DeleteGoal(ctx, id)
+	}
+
+	ct, err := r.pool.Exec(ctx, `DELETE FROM mentorship_goals WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete goal: %w", err)
+	}
+	if ct.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (r *PostgresMentorshipRepository) ListGoalsByMentorshipID(ctx context.Context, mentorshipID string) ([]*models.MentorshipGoal, error) {
 	if r.pool == nil {
 		return r.fallback.ListGoalsByMentorshipID(ctx, mentorshipID)

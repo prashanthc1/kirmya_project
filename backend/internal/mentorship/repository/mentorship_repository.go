@@ -41,6 +41,7 @@ type MentorshipRepository interface {
 	// Goal methods
 	CreateGoal(ctx context.Context, goal *models.MentorshipGoal) error
 	GetGoalByID(ctx context.Context, id string) (*models.MentorshipGoal, error)
+	DeleteGoal(ctx context.Context, id string) error
 	UpdateGoal(ctx context.Context, goal *models.MentorshipGoal) error
 	ListGoalsByMentorshipID(ctx context.Context, mentorshipID string) ([]*models.MentorshipGoal, error)
 
@@ -383,6 +384,19 @@ func (r *MemoryMentorshipRepository) UpdateGoal(ctx context.Context, goal *model
 	gCopy := *goal
 	gCopy.UpdatedAt = time.Now()
 	r.goals[goal.ID] = &gCopy
+	return nil
+}
+
+// DeleteGoal removes a goal. The mentorship UI has offered this since it was
+// built; nothing behind it existed, so the button reported success and the goal
+// came back on the next load.
+func (r *MemoryMentorshipRepository) DeleteGoal(ctx context.Context, id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if _, ok := r.goals[id]; !ok {
+		return ErrNotFound
+	}
+	delete(r.goals, id)
 	return nil
 }
 

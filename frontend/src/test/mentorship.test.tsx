@@ -3,7 +3,27 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import mentorshipApi, { MOCK_MENTORS, MOCK_MENTORSHIPS } from '../features/mentorship/api';
+import mentorshipApi from '../features/mentorship/api';
+import { apiClient } from '../services/api';
+import { MENTOR_FIXTURES, MENTORSHIP_FIXTURES } from './fixtures/mentorship';
+
+// The client used to answer these from fixtures compiled into it, so the suite
+// exercised the fixtures. It talks to the API now, and the API is mocked here.
+vi.mock('../services/api', () => ({
+  apiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
+const mockedClient = apiClient as unknown as {
+  get: ReturnType<typeof vi.fn>;
+  post: ReturnType<typeof vi.fn>;
+  put: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
+};
 import MentorCard from '../components/mentorship/MentorCard';
 import MentorFiltersSidebar from '../components/mentorship/MentorFiltersSidebar';
 import MentorshipRequestModal from '../components/mentorship/MentorshipRequestModal';
@@ -53,58 +73,59 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
   };
 
   describe('Mentorship API Client', () => {
-    it('searches mentors correctly', async () => {
-      const mentors = await mentorshipApi.searchMentors();
-      expect(mentors).toBeDefined();
-      expect(mentors.length).toBeGreaterThan(0);
-      expect(mentors[0]).toHaveProperty('name');
+    it('searches mentors through the search endpoint and unwraps the envelope', async () => {
+      mockedClient.get.mockResolvedValueOnce({ data: { mentors: MENTOR_FIXTURES } });
+      const mentors = await mentorshipApi.searchMentors({ search: 'go' } as any);
+      expect(mockedClient.get).toHaveBeenCalledWith('/mentorship/mentors/search', { params: { search: 'go' } });
+      expect(mentors).toHaveLength(MENTOR_FIXTURES.length);
     });
 
-    it('retrieves mentor by ID', async () => {
-      const mentor = await mentorshipApi.getMentorById('mentor-1');
-      expect(mentor).toBeDefined();
-      expect(mentor.id).toBe('mentor-1');
+    it('returns an empty list rather than inventing mentors when there are none', async () => {
+      mockedClient.get.mockResolvedValueOnce({ data: { mentors: [] } });
+      await expect(mentorshipApi.searchMentors()).resolves.toEqual([]);
     });
 
-    it('creates mentorship request', async () => {
-      const req = await mentorshipApi.createMentorshipRequest({
-        mentor_id: 'mentor-1',
-        note: 'Test note for mentorship',
-      });
-      expect(req).toBeDefined();
-      expect(req.note).toBe('Test note for mentorship');
+    it('propagates a failed search instead of falling back to fixtures', async () => {
+      mockedClient.get.mockRejectedValueOnce(new Error('network down'));
+      await expect(mentorshipApi.searchMentors()).rejects.toThrow('network down');
     });
 
-    it('creates goal and schedules session', async () => {
-      const goal = await mentorshipApi.createGoal('m-100', {
-        title: 'Master Vitest Suite',
-        description: 'Achieve 100% test coverage',
-      });
-      expect(goal).toBeDefined();
-      expect(goal.title).toBe('Master Vitest Suite');
+    it('creates a mentorship request against the real route', async () => {
+      mockedClient.post.mockResolvedValueOnce({ data: { request: { id: 'r1', note: 'Test note' } } });
+      const req = await mentorshipApi.createMentorshipRequest({ mentor_id: 'mentor-1', note: 'Test note' });
+      expect(mockedClient.post).toHaveBeenCalledWith('/mentorship/requests', { mentor_id: 'mentor-1', note: 'Test note' });
+      expect(req.note).toBe('Test note');
+    });
 
-      const session = await mentorshipApi.scheduleSession('m-100', {
-        title: 'Strategy Meeting',
-        duration_minutes: 45,
-      });
-      expect(session).toBeDefined();
+    it('creates a goal and a session on the mentorship they belong to', async () => {
+      mockedClient.post.mockResolvedValueOnce({ data: { goal: { id: 'g1', title: 'Master Vitest' } } });
+      const goal = await mentorshipApi.createGoal('m-100', { title: 'Master Vitest' });
+      expect(mockedClient.post).toHaveBeenCalledWith('/mentorship/goals', { title: 'Master Vitest', mentorship_id: 'm-100' });
+      expect(goal.title).toBe('Master Vitest');
+
+      mockedClient.post.mockResolvedValueOnce({ data: { session: { id: 's1', title: 'Strategy Meeting' } } });
+      const session = await mentorshipApi.scheduleSession('m-100', { title: 'Strategy Meeting' });
+      expect(mockedClient.post).toHaveBeenCalledWith('/mentorship/sessions', { title: 'Strategy Meeting', mentorship_id: 'm-100' });
       expect(session.title).toBe('Strategy Meeting');
     });
 
+    it('deletes a goal through the endpoint that now exists', async () => {
+      mockedClient.delete.mockResolvedValueOnce({ data: { message: 'goal deleted' } });
+      await mentorshipApi.deleteGoal('m-100', 'g1');
+      expect(mockedClient.delete).toHaveBeenCalledWith('/mentorship/goals/g1');
+    });
+
     it('submits feedback', async () => {
-      const fb = await mentorshipApi.submitFeedback({
-        mentorship_id: 'm-100',
-        rating: 5,
-        comments: 'Outstanding guidance!',
-      });
-      expect(fb).toBeDefined();
+      mockedClient.post.mockResolvedValueOnce({ data: { feedback: { id: 'f1', rating: 5 } } });
+      const fb = await mentorshipApi.submitFeedback({ mentorship_id: 'm-100', rating: 5 });
+      expect(mockedClient.post).toHaveBeenCalledWith('/mentorship/feedback', { mentorship_id: 'm-100', rating: 5 });
       expect(fb.rating).toBe(5);
     });
   });
 
   describe('Mentorship UI Components', () => {
     it('renders MentorCard component with mentor details', () => {
-      const mockMentor = MOCK_MENTORS[0];
+      const mockMentor = MENTOR_FIXTURES[0];
       const handleRequest = vi.fn();
       renderWithProviders(
         <MentorCard mentor={mockMentor} onRequestMentorship={handleRequest} />
@@ -140,7 +161,7 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
     it('renders MentorshipRequestModal and submits request', async () => {
       const handleClose = vi.fn();
       const handleSubmit = vi.fn().mockResolvedValue(undefined);
-      const mockMentor = MOCK_MENTORS[0];
+      const mockMentor = MENTOR_FIXTURES[0];
 
       renderWithProviders(
         <MentorshipRequestModal
@@ -164,7 +185,7 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
     });
 
     it('renders MentorshipGoalsCard and manages goals', async () => {
-      const mockGoals = MOCK_MENTORSHIPS[0].goals;
+      const mockGoals = MENTORSHIP_FIXTURES[0].goals;
       const handleAddGoal = vi.fn().mockResolvedValue(undefined);
       const handleUpdateGoal = vi.fn().mockResolvedValue(undefined);
       const handleDeleteGoal = vi.fn().mockResolvedValue(undefined);
@@ -184,7 +205,7 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
     });
 
     it('renders MentorshipSessionsCard and displays scheduled sessions', () => {
-      const mockSessions = MOCK_MENTORSHIPS[0].sessions;
+      const mockSessions = MENTORSHIP_FIXTURES[0].sessions;
       const handleScheduleSession = vi.fn().mockResolvedValue(undefined);
 
       renderWithProviders(
@@ -199,7 +220,7 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
     });
 
     it('renders MentorProfileEditor and handles input state', () => {
-      const mockMentor = MOCK_MENTORS[0];
+      const mockMentor = MENTOR_FIXTURES[0];
       const handleSave = vi.fn().mockResolvedValue(undefined);
 
       renderWithProviders(
@@ -235,6 +256,7 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
 
   describe('Mentorship App Router Pages', () => {
     it('renders MentorshipDashboardPage', async () => {
+      mockedClient.get.mockResolvedValue({ data: { mentorships: MENTORSHIP_FIXTURES, requests: [] } });
       renderWithProviders(<MentorshipDashboardPage />);
       await waitFor(() => {
         expect(screen.getByText(/Accelerate Your Professional Growth/i)).toBeInTheDocument();
@@ -242,20 +264,23 @@ describe('Kirmya Mentorship & Career Guidance Suite', () => {
     });
 
     it('renders MentorDiscoveryPage', async () => {
+      mockedClient.get.mockResolvedValue({ data: { mentors: MENTOR_FIXTURES } });
       renderWithProviders(<MentorDiscoveryPage />);
       await waitFor(() => {
         expect(screen.getByText(/Explore Industry Expert Mentors/i)).toBeInTheDocument();
       });
     });
 
-    it('renders MentorDetailPage', async () => {
+    it('renders MentorDetailPage from what the API returns', async () => {
+      mockedClient.get.mockResolvedValue({ data: { profile: MENTOR_FIXTURES[0] } });
       renderWithProviders(<MentorDetailPage />);
       await waitFor(() => {
         expect(screen.getByText(/About & Mentorship Philosophy/i)).toBeInTheDocument();
       });
     });
 
-    it('renders MentorshipWorkspacePage', async () => {
+    it('renders MentorshipWorkspacePage from what the API returns', async () => {
+      mockedClient.get.mockResolvedValue({ data: { mentorship: MENTORSHIP_FIXTURES[0] } });
       renderWithProviders(<MentorshipWorkspacePage />);
       await waitFor(() => {
         expect(screen.getByText(/Mentorship Workspace with/i)).toBeInTheDocument();

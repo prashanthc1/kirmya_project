@@ -44,6 +44,7 @@ type MentorshipService interface {
 	CreateGoal(ctx context.Context, userID string, dto models.CreateMentorshipGoalDTO) (*models.MentorshipGoal, error)
 	GetGoals(ctx context.Context, userID string, mentorshipID string) ([]*models.MentorshipGoal, error)
 	UpdateGoal(ctx context.Context, userID string, goalID string, dto models.UpdateMentorshipGoalDTO) (*models.MentorshipGoal, error)
+	DeleteGoal(ctx context.Context, userID string, goalID string) error
 
 	// Sessions
 	CreateSession(ctx context.Context, userID string, dto models.CreateMentorshipSessionDTO) (*models.MentorshipSession, error)
@@ -385,6 +386,20 @@ func (s *mentorshipService) GetGoals(ctx context.Context, userID string, mentors
 		return nil, ErrUnauthorized
 	}
 	return s.repo.ListGoalsByMentorshipID(ctx, mentorshipID)
+}
+
+// DeleteGoal removes a goal from a mentorship either participant belongs to.
+func (s *mentorshipService) DeleteGoal(ctx context.Context, userID string, goalID string) error {
+	goal, err := s.repo.GetGoalByID(ctx, goalID)
+	if err != nil {
+		return errors.New("goal not found")
+	}
+
+	m, err := s.repo.GetMentorshipByID(ctx, goal.MentorshipID)
+	if err != nil || (m.MenteeID != userID && m.MentorID != userID) {
+		return ErrUnauthorized
+	}
+	return s.repo.DeleteGoal(ctx, goalID)
 }
 
 func (s *mentorshipService) UpdateGoal(ctx context.Context, userID string, goalID string, dto models.UpdateMentorshipGoalDTO) (*models.MentorshipGoal, error) {
