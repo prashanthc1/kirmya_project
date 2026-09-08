@@ -154,7 +154,9 @@ batch, including a foreign-account or error case where one applies.
 - `go test -tags=ciintegration ./test/ci` against the disposable database and the running API: pass, including the new batch 5 domain tests and the schema conformance check
 - `npx tsc --noEmit` and `npx vitest run` (60 files, 567 tests): pass
 - The route sweep above, re-run after each change
-- GitHub Actions on `18e5fdd`: backend pipeline, frontend checks, integration (PostgreSQL/Redis HTTP plus 152 Playwright tests against the production build) and security workflows all green
+- GitHub Actions on `18e5fdd` and `871b89d`: backend pipeline, frontend checks, integration (PostgreSQL/Redis HTTP plus the Playwright suite against the production build) and security workflows all green
+- The integration run on `cf6ff30` failed on a pre-existing flake, not on this batch: `auth.spec.ts` clicked a bare `button[type="submit"]`, which also matches the landing footer's newsletter button, and mobile-chromium resolved two elements. The same code passed on the next commit. Every such click now names its button (`4d21494`)
+- The new browser spec was run locally against a production build and the real API: 8 tests on chromium and 8 on mobile-chromium, all passing
 
 Local integration runs are advisory: this workstation has no Redis, so
 `TestPostgresAndRedis` fails locally by design, and the API's five-second
@@ -174,11 +176,13 @@ request deadline flakes under a local browser suite. CI is the authority.
     1066c19 fix(onboarding): stop handing new users a career they never had
     a4cecf2 fix(employer,company): let a company be created, and let its portal find it
     cf6ff30 test(ci): fail when repository SQL names a table or column the schema lacks
+    871b89d docs(batch5): record what steps 10 and 11 actually got, and what they did not
+    4d21494 test(e2e): open a new account's first pages in a browser, and stop the flake in the way
 
 ## Open, and why
 
 1. **10H mobile was not started.** It needs device builds and devices; nothing in it was verified here, and it stays `open`.
 2. **10C has no configured provider.** The deterministic replacement is honest about being a skill comparison, but evaluation, provenance, cancellation, timeouts and cost budgets remain untested, and no provider decision has been made.
 3. **10D and 10E have no content or lifecycle.** The endpoints answer correctly and store what they are given; the product behaviour above them — scoring, repeat rules, certificates, contract transitions, disputes — is either not implemented or not verified.
-4. **Browser acceptance for these domains is missing.** The Playwright suite covers the hiring journey, accessibility and public indexing. None of the surfaces this batch touched has a browser test.
+4. **Browser acceptance for these domains is thin.** `test/e2e/empty-account-surfaces.spec.ts` now opens /network, /notifications, /communities and /endorsements as an account with no data and fails on any uncaught exception - the case the reported crash came from. Everything else these groups contain is still only covered at the HTTP level.
 5. **The demo-user fallback still stands.** Anonymous callers to onboarding and profile completion share one profile, by the earlier decision recorded in `docs/decisions`. It is unchanged here.
