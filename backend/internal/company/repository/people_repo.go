@@ -201,6 +201,28 @@ func (r *ManagementRepository) GetMember(ctx context.Context, companyID, memberI
 }
 
 // FindMemberByUser looks up a membership by user, whatever its status.
+// PrimaryCompanyForUser returns the company this user belongs to, most recent
+// active membership first. The employer portal routes carry no company id in
+// their path - they are the caller's own company - and every one of them used
+// to answer "Invalid id" because the shared handlers read one from the path.
+func (r *ManagementRepository) PrimaryCompanyForUser(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	var companyID uuid.UUID
+	err := r.db.QueryRow(ctx, `SELECT company_id
+	                           FROM company_members
+	                           -- company_members.status is written as 'approved' by
+	                           -- company creation and 'active' elsewhere; both mean
+	                           -- a current member.
+	                           WHERE user_id = $1
+	                             AND COALESCE(status, 'active') IN ('active', 'approved')
+	                             AND ended_at IS NULL
+	                           ORDER BY COALESCE(started_at, created_at) DESC
+	                           LIMIT 1`, userID).Scan(&companyID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return companyID, nil
+}
+
 func (r *ManagementRepository) FindMemberByUser(ctx context.Context, companyID, userID uuid.UUID) (*models.CompanyPerson, error) {
 	if r.db == nil {
 		return nil, ErrNoDatabase

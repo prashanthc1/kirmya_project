@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/enterprise_hiring/domain"
 	"kirmya/internal/enterprise_hiring/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -39,7 +40,7 @@ func (h *EnterpriseHandler) GetTeams(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": teams, "count": len(teams)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": teams, "count": len(teams)})
 }
 
 // CreateTeam handles POST /enterprise/teams
@@ -75,7 +76,7 @@ func (h *EnterpriseHandler) GetCandidatePools(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": pools, "count": len(pools)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": pools, "count": len(pools)})
 }
 
 // CreateCandidatePool handles POST /enterprise/pools
@@ -107,7 +108,7 @@ func (h *EnterpriseHandler) GetAuditLogs(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": logs, "count": len(logs)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": logs, "count": len(logs)})
 }
 
 func (h *EnterpriseHandler) getEnterpriseID(c *gin.Context) uuid.UUID {

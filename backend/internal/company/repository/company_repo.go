@@ -63,10 +63,13 @@ func (r *CompanyRepository) CreateCompany(ctx context.Context, c *models.Company
 		return err
 	}
 
-	// 4. Grant the creator the owner role.
-	_, err = tx.Exec(ctx, `INSERT INTO company_member_roles (company_id, member_id, user_id, role, granted_by)
-		VALUES ($1, $2, $3, 'company_owner', $3)
-		ON CONFLICT (company_id, user_id, role) DO NOTHING`, m.CompanyID, m.ID, m.UserID)
+	// 4. Grant the creator the owner role. The id column is a plain UUID primary
+	// key with no default, so leaving it out failed the not-null constraint and
+	// rolled the whole transaction back: creating a company answered 500 and no
+	// company was created.
+	_, err = tx.Exec(ctx, `INSERT INTO company_member_roles (id, company_id, member_id, user_id, role, granted_by)
+		VALUES ($1, $2, $3, $4, 'company_owner', $4)
+		ON CONFLICT (company_id, user_id, role) DO NOTHING`, uuid.New(), m.CompanyID, m.ID, m.UserID)
 	if err != nil {
 		return err
 	}

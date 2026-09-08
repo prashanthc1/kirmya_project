@@ -41,8 +41,19 @@ func (h *ManagementHandler) resolveCompany(c *gin.Context) (uuid.UUID, bool) {
 		raw = strings.TrimSpace(c.Query("company_id"))
 	}
 	if raw == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Company is required"})
-		return uuid.Nil, false
+		// The employer portal routes carry no id: they are about the company the
+		// caller belongs to. Every one of them used to answer "Invalid id".
+		actor := actorFrom(c)
+		if actor.UserID == uuid.Nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+			return uuid.Nil, false
+		}
+		id, err := h.service.PrimaryCompanyForUser(c.Request.Context(), actor.UserID)
+		if err != nil || id == uuid.Nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "no company is associated with this account"})
+			return uuid.Nil, false
+		}
+		return id, true
 	}
 	if id, err := uuid.Parse(raw); err == nil {
 		return id, true
@@ -100,7 +111,7 @@ func (h *ManagementHandler) GetCompany(c *gin.Context) {
 
 // UpdateCompany handles PUT /api/v1/companies/:id.
 func (h *ManagementHandler) UpdateCompany(c *gin.Context) {
-	companyID, ok := pathUUID(c, "id")
+	companyID, ok := h.resolveCompany(c)
 	if !ok {
 		return
 	}
@@ -277,7 +288,7 @@ func (h *ManagementHandler) DecideAssociation(c *gin.Context) {
 
 // GetTeam handles GET /api/v1/companies/:id/team.
 func (h *ManagementHandler) GetTeam(c *gin.Context) {
-	companyID, ok := pathUUID(c, "id")
+	companyID, ok := h.resolveCompany(c)
 	if !ok {
 		return
 	}
@@ -329,7 +340,7 @@ func (h *ManagementHandler) invite(c *gin.Context) {
 
 // UpdateTeamMember handles PUT /api/v1/companies/:id/team/:memberId.
 func (h *ManagementHandler) UpdateTeamMember(c *gin.Context) {
-	companyID, ok := pathUUID(c, "id")
+	companyID, ok := h.resolveCompany(c)
 	if !ok {
 		return
 	}
@@ -352,7 +363,7 @@ func (h *ManagementHandler) UpdateTeamMember(c *gin.Context) {
 
 // RemoveTeamMember handles DELETE /api/v1/companies/:id/team/:memberId.
 func (h *ManagementHandler) RemoveTeamMember(c *gin.Context) {
-	companyID, ok := pathUUID(c, "id")
+	companyID, ok := h.resolveCompany(c)
 	if !ok {
 		return
 	}
@@ -630,7 +641,7 @@ func (h *ManagementHandler) GetJobs(c *gin.Context) {
 
 // GetDashboard handles GET /api/v1/companies/:id/dashboard.
 func (h *ManagementHandler) GetDashboard(c *gin.Context) {
-	companyID, ok := pathUUID(c, "id")
+	companyID, ok := h.resolveCompany(c)
 	if !ok {
 		return
 	}
@@ -645,7 +656,7 @@ func (h *ManagementHandler) GetDashboard(c *gin.Context) {
 
 // GetAnalytics handles GET /api/v1/companies/:id/analytics.
 func (h *ManagementHandler) GetAnalytics(c *gin.Context) {
-	companyID, ok := pathUUID(c, "id")
+	companyID, ok := h.resolveCompany(c)
 	if !ok {
 		return
 	}
@@ -972,29 +983,10 @@ func handleError(c *gin.Context, err error) {
 	respondError(c, err)
 }
 
-func parseCompanyID(c *gin.Context) (uuid.UUID, error) {
-	companyID, err := uuid.Parse(c.Param("id"))
-	if err == nil {
-		return companyID, nil
-	}
-	if qID := c.Query("companyId"); qID != "" {
-		if parsed, pErr := uuid.Parse(qID); pErr == nil {
-			return parsed, nil
-		}
-	}
-	if qID := c.Query("company_id"); qID != "" {
-		if parsed, pErr := uuid.Parse(qID); pErr == nil {
-			return parsed, nil
-		}
-	}
-	return uuid.Nil, err
-}
-
 func (h *ManagementHandler) GetEmployerSettings(c *gin.Context) {
 	actor := getActor(c)
-	companyID, err := parseCompanyID(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+	companyID, ok := h.resolveCompany(c)
+	if !ok {
 		return
 	}
 	settings, err := h.service.GetEmployerSettings(c.Request.Context(), actor, companyID)
@@ -1007,9 +999,8 @@ func (h *ManagementHandler) GetEmployerSettings(c *gin.Context) {
 
 func (h *ManagementHandler) UpdateEmployerSettings(c *gin.Context) {
 	actor := getActor(c)
-	companyID, err := parseCompanyID(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+	companyID, ok := h.resolveCompany(c)
+	if !ok {
 		return
 	}
 	var payload models.EmployerSettingsUpdatePayload
@@ -1027,9 +1018,8 @@ func (h *ManagementHandler) UpdateEmployerSettings(c *gin.Context) {
 
 func (h *ManagementHandler) TransferOwnership(c *gin.Context) {
 	actor := getActor(c)
-	companyID, err := parseCompanyID(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+	companyID, ok := h.resolveCompany(c)
+	if !ok {
 		return
 	}
 	var payload models.TransferOwnershipPayload
@@ -1046,9 +1036,8 @@ func (h *ManagementHandler) TransferOwnership(c *gin.Context) {
 
 func (h *ManagementHandler) ResendInvitation(c *gin.Context) {
 	actor := getActor(c)
-	companyID, err := parseCompanyID(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+	companyID, ok := h.resolveCompany(c)
+	if !ok {
 		return
 	}
 	invID, err := uuid.Parse(c.Param("invitationId"))
@@ -1066,9 +1055,8 @@ func (h *ManagementHandler) ResendInvitation(c *gin.Context) {
 
 func (h *ManagementHandler) ExportCompanyData(c *gin.Context) {
 	actor := getActor(c)
-	companyID, err := parseCompanyID(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid company ID"})
+	companyID, ok := h.resolveCompany(c)
+	if !ok {
 		return
 	}
 	exp, err := h.service.ExportCompanyData(c.Request.Context(), actor, companyID)

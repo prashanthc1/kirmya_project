@@ -289,3 +289,56 @@ func TestRecruiterEvaluationIsScopedAndNotInvented(t *testing.T) {
 		t.Errorf("evaluation as a foreign recruiter: got %d, want 404. Body: %s", status, truncateBody(body))
 	}
 }
+
+// TestEmployerPortalResolvesItsOwnCompany covers 10A. Creating a company
+// answered 500 - the owner role insert omitted a primary key with no default,
+// so the whole transaction rolled back - and every /employer route answered
+// "Invalid id", because those routes carry no company id and the handlers
+// behind them read one from the path.
+func TestEmployerPortalResolvesItsOwnCompany(t *testing.T) {
+	base := batch5Base(t)
+	owner := registerAndLogin(t, base)
+	outsider := registerAndLogin(t, base)
+
+	for _, path := range []string{"/api/v1/employer/dashboard", "/api/v1/employer/company"} {
+		status, body := getJSON(t, base, path, owner.token)
+		if status != http.StatusNotFound {
+			t.Errorf("%s before joining a company: got %d, want 404. Body: %s", path, status, truncateBody(body))
+		}
+	}
+
+	slug := "batch5-co-" + strings.ToLower(strings.ReplaceAll(owner.id, "-", ""))[:16]
+	resp := do(t, http.MethodPost, base+"/api/v1/companies", owner.token, map[string]any{
+		"name":     "Batch5 Employer Probe",
+		"slug":     slug,
+		"handle":   slug,
+		"industry": "Technology",
+		"size":     "11-50",
+		"location": "Remote",
+	})
+	raw, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		t.Fatalf("create company: got %d, want 201. Body: %s", resp.StatusCode, truncateBody(string(raw)))
+	}
+
+	for _, path := range []string{
+		"/api/v1/employer/dashboard",
+		"/api/v1/employer/company",
+		"/api/v1/employer/team",
+		"/api/v1/employer/jobs",
+		"/api/v1/employer/analytics",
+		"/api/v1/employer/settings",
+	} {
+		status, body := getJSON(t, base, path, owner.token)
+		if status != http.StatusOK {
+			t.Errorf("%s as the company owner: got %d, want 200. Body: %s", path, status, truncateBody(body))
+		}
+	}
+
+	// Someone with no company still gets 404 rather than another company's.
+	status, body := getJSON(t, base, "/api/v1/employer/dashboard", outsider.token)
+	if status != http.StatusNotFound {
+		t.Errorf("employer dashboard for an account with no company: got %d, want 404. Body: %s", status, truncateBody(body))
+	}
+}

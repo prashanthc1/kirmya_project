@@ -1327,6 +1327,12 @@ func (s *ManagementService) GetJobs(ctx context.Context, actor Actor, companyID 
 }
 
 // GetDashboard returns the company dashboard summary.
+// PrimaryCompanyForUser resolves the company an employer portal request is
+// about when the route carries no id.
+func (s *ManagementService) PrimaryCompanyForUser(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	return s.repo.PrimaryCompanyForUser(ctx, userID)
+}
+
 func (s *ManagementService) GetDashboard(ctx context.Context, actor Actor, companyID uuid.UUID) (*models.CompanyDashboard, error) {
 	if _, err := s.authorize(ctx, actor, companyID, domain.PermAnalyticsView); err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"kirmya/internal/security/models"
 	"kirmya/internal/security/service"
+	"kirmya/internal/shared/httpx"
 )
 
 type SecurityHandler struct {
@@ -198,7 +199,7 @@ func (h *SecurityHandler) GetTrustedDevices(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, devices)
+	httpx.JSONList(c, http.StatusOK, devices)
 }
 
 func (h *SecurityHandler) RegisterDevice(c *gin.Context) {
@@ -292,7 +293,7 @@ func (h *SecurityHandler) GetLoginHistory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, history)
+	httpx.JSONList(c, http.StatusOK, history)
 }
 
 func (h *SecurityHandler) CreateAPIKey(c *gin.Context) {
@@ -328,7 +329,7 @@ func (h *SecurityHandler) GetAPIKeys(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, keys)
+	httpx.JSONList(c, http.StatusOK, keys)
 }
 
 func (h *SecurityHandler) RevokeAPIKey(c *gin.Context) {
@@ -368,7 +369,7 @@ func (h *SecurityHandler) GetSecurityEvents(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, events)
+	httpx.JSONList(c, http.StatusOK, events)
 }
 
 func (h *SecurityHandler) GetPrivacySettings(c *gin.Context) {

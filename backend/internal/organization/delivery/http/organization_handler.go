@@ -61,7 +61,7 @@ func (h *OrganizationHandler) GetOrganizationsForUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  orgs,
 		"count": len(orgs),
 	})
@@ -123,7 +123,7 @@ func (h *OrganizationHandler) GetAllPermissions(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  perms,
 		"count": len(perms),
 	})

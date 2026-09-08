@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"kirmya/internal/shared/httpx"
 	"kirmya/internal/trust_safety/domain"
 	"kirmya/internal/trust_safety/service"
 
@@ -53,7 +54,7 @@ func (h *TrustHandler) GetReports(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": reports, "count": len(reports)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": reports, "count": len(reports)})
 }
 
 // ExecuteModerationAction handles POST /trust/reports/:id/action

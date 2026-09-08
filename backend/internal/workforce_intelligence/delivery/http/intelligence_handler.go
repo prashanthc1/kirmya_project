@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"kirmya/internal/shared/httpx"
 	"kirmya/internal/workforce_intelligence/service"
 
 	"github.com/gin-gonic/gin"
@@ -30,7 +31,7 @@ func (h *IntelligenceHandler) GetMarketInsights(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": insights, "count": len(insights)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": insights, "count": len(insights)})
 }
 
 // GetSkillTrends handles GET /intelligence/skills
@@ -41,7 +42,7 @@ func (h *IntelligenceHandler) GetSkillTrends(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": trends, "count": len(trends)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": trends, "count": len(trends)})
 }
 
 // GetHiringStatistics handles GET /intelligence/hiring-stats
@@ -54,7 +55,7 @@ func (h *IntelligenceHandler) GetHiringStatistics(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": stats, "count": len(stats)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": stats, "count": len(stats)})
 }
 
 // GetUserCareerRecommendations handles GET /intelligence/user-recommendations

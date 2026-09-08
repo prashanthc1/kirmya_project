@@ -34,7 +34,7 @@ func (h *LearningHandler) GetCourses(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  courses,
 		"count": len(courses),
 	})
@@ -67,7 +67,7 @@ func (h *LearningHandler) GetLearningPaths(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  paths,
 		"count": len(paths),
 	})
