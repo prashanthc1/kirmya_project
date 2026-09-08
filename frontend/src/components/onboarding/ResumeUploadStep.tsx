@@ -21,6 +21,7 @@ import { motion } from 'framer-motion';
 import { springs } from '../../theme/motion';
 import GlassCard from '../landing/GlassCard';
 import { ResumeParsedResult } from '../../features/onboarding/types';
+import { onboardingApi } from '../../features/onboarding/api';
 
 interface StepProps {
   onNext: (data?: any) => void;
@@ -56,48 +57,22 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
     setError(null);
     setLoading(true);
 
-    // Simulate instant AI extraction response
-    setTimeout(() => {
-      setLoading(false);
-      setParsed({
-        file_name: file.name,
-        skills: ['React', 'Next.js', 'TypeScript', 'Golang', 'PostgreSQL', 'Docker', 'Vendor Management'],
-        work_experiences: [
-          {
-            company: 'TechVentures Inc.',
-            jobTitle: 'Senior Software Engineer',
-            employmentType: 'Full-time',
-            location: 'Dubai, UAE',
-            startDate: '2022-01',
-            endDate: '2024-06',
-            isCurrentJob: false,
-            responsibilities: 'Led frontend architecture and Go microservices.',
-            achievements: 'Improved application response times by 35%.',
-          },
-        ],
-        educations: [
-          {
-            institution: 'University of Technology',
-            degree: 'Bachelor of Science',
-            fieldOfStudy: 'Computer Science',
-            startDate: '2017-09',
-            endDate: '2021-06',
-            grade: '3.8/4.0',
-            description: 'Focused on software systems & operational research.',
-          },
-        ],
-        certifications: [
-          {
-            certificationName: 'AWS Certified Solutions Architect',
-            issuingOrganization: 'Amazon Web Services',
-            issueDate: '2023-04',
-            expiryDate: '2026-04',
-            credentialID: 'AWS-8492049',
-            credentialURL: 'https://aws.amazon.com/verify',
-          },
-        ],
+    // This used to answer after a 1.2 second timer with a career nobody had
+    // written: seven skills, a post at "TechVentures Inc.", a degree and an AWS
+    // credential number, all presented as what the uploaded file said. The file
+    // now goes to the server, and what comes back is what is shown.
+    const formData = new FormData();
+    formData.append('resume', file);
+    onboardingApi
+      .uploadResume(formData)
+      .then((result) => {
+        setParsed(result);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('The resume could not be uploaded. Try again, or continue and fill in the details yourself.');
+        setLoading(false);
       });
-    }, 1200);
   };
 
   return (
@@ -107,7 +82,8 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
           Upload Resume / CV
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-          Upload your existing resume to automatically extract skills, experience, education, and certifications.
+          Upload your existing resume. Automatic extraction is not available yet, so the fields on the next
+          steps stay yours to fill in.
         </Typography>
 
         {error && (

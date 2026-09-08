@@ -13,6 +13,11 @@ import (
 )
 
 type OnboardingRepository interface {
+	// PopularCommunities and SuggestedConnections back the two onboarding steps
+	// that used to answer with invented communities and invented people at real
+	// employers.
+	PopularCommunities(ctx context.Context, limit int) ([]domain.CommunityRecommendation, error)
+	SuggestedConnections(ctx context.Context, userID uuid.UUID, limit int) ([]domain.ConnectionRecommendation, error)
 	GetProgress(ctx context.Context, userID uuid.UUID) (*domain.OnboardingProgress, error)
 	SaveProgress(ctx context.Context, progress *domain.OnboardingProgress) error
 	SkipStep(ctx context.Context, userID uuid.UUID, step int) error
@@ -405,4 +410,65 @@ func (r *PostgresOnboardingRepository) SaveRecruiterOnboarding(ctx context.Conte
 
 func (r *PostgresOnboardingRepository) SaveEmployerOnboarding(ctx context.Context, userID uuid.UUID, payload *domain.EmployerOnboardingPayload) error {
 	return nil
+}
+
+// PopularCommunities returns the public communities with the most members.
+func (r *PostgresOnboardingRepository) PopularCommunities(ctx context.Context, limit int) ([]domain.CommunityRecommendation, error) {
+	out := []domain.CommunityRecommendation{}
+	if r.db == nil {
+		return out, nil
+	}
+	rows, err := r.db.Query(ctx, `SELECT id, title, COALESCE(category, ''), COALESCE(member_count, 0)
+	                              FROM communities
+	                              WHERE COALESCE(visibility, 'public') = 'public' AND COALESCE(is_private, false) = false
+	                              ORDER BY member_count DESC, created_at DESC
+	                              LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var c domain.CommunityRecommendation
+		if err := rows.Scan(&c.ID, &c.Name, &c.Category, &c.MemberCount); err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
+// SuggestedConnections returns real members other than the caller, most
+// recently active first. It is deliberately simple: the alternative it replaces
+// was three fictional people at named employers.
+func (r *PostgresOnboardingRepository) SuggestedConnections(ctx context.Context, userID uuid.UUID, limit int) ([]domain.ConnectionRecommendation, error) {
+	out := []domain.ConnectionRecommendation{}
+	if r.db == nil {
+		return out, nil
+	}
+	rows, err := r.db.Query(ctx, `SELECT u.id,
+	                                     COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), u.email),
+	                                     COALESCE(p.job_title, ''),
+	                                     COALESCE(up.headline, '')
+	                              FROM users u
+	                              LEFT JOIN profiles p ON p.user_id = u.id
+	                              LEFT JOIN user_profiles up ON up.user_id = u.id
+	                              WHERE u.id <> $1
+	                              ORDER BY u.created_at DESC
+	                              LIMIT $2`, userID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var c domain.ConnectionRecommendation
+		var headline string
+		if err := rows.Scan(&c.ID, &c.Name, &c.Title, &headline); err != nil {
+			return nil, err
+		}
+		if c.Title == "" {
+			c.Title = headline
+		}
+		out = append(out, c)
+	}
+	return out, rows.Err()
 }
