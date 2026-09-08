@@ -209,7 +209,18 @@ test.describe('Session persistence across reloads', () => {
       .toBeNull();
 
     // And the reload must not resurrect anything.
-    await page.goto('/applications');
+    //
+    // `waitUntil: 'commit'` rather than the default 'load', because the thing
+    // this test is asserting is the thing that breaks the default. The page
+    // loads, hydrates, finds no session and redirects itself to sign-in — and
+    // that client-side navigation aborts the still-pending one, which Firefox
+    // reports as NS_BINDING_ABORTED while Chromium and WebKit swallow it. The
+    // test was failing on Firefox alone because the app was behaving correctly.
+    //
+    // Resolving at commit sidesteps the race without weakening anything: the
+    // assertion below is unchanged, so a build that did not redirect — the
+    // actual regression this guards — still fails here.
+    await page.goto('/applications', { waitUntil: 'commit' });
     await expect(page).toHaveURL(/signin|login/, { timeout: 20_000 });
   });
 });
