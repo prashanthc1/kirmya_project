@@ -194,6 +194,8 @@ the same way and fixed the same way.
 Three more CI checks cover these against the running API:
 `TestFreelanceProposalAcceptanceIsOwnedAndSingleUse`,
 `TestMobileDeviceAndPushBoundaries` and `TestEventAttendeeIsTheSignedInAccount`.
+All four workflows are green on `21473d2` and `ab8c603`, and that run's own
+artifact reports 37 integration tests, 37 passed, 0 failed, 0 skipped.
 
 Also checked and found already correct: assessment scoring happens on the
 server against the stored answer key, and the key is `json:"-"` so it never
