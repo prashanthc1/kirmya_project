@@ -47524,32 +47524,36 @@
         "models.AIApplicationInsightsDTO": {
             "type": "object",
             "properties": {
-                "application_success_rate": {
+                "applications_considered": {
+                    "description": "ApplicationsConsidered is how many of the candidate's applications the\nrates below are computed over.",
+                    "type": "integer"
+                },
+                "general_guidance": {
+                    "description": "GeneralGuidance is standing advice, identical for every candidate. It is\nnamed for what it is: the previous field was called\nImprovementSuggestions and sat beside fabricated personal scores, which\nread as analysis of this particular person.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "interview_rate": {
+                    "description": "InterviewRate is the share that reached Interview or beyond.",
                     "type": "number"
                 },
-                "improvement_suggestions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "missing_skills": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "profile_match_score": {
+                "minimum_applications": {
+                    "description": "MinimumApplications is the threshold Sufficient is measured against, so\nthe UI can tell the user what would unlock these numbers.",
                     "type": "integer"
                 },
-                "recommended_jobs": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "offer_rate": {
+                    "description": "OfferRate is the share that reached Offer or Accepted.",
+                    "type": "number"
                 },
-                "resume_match_score": {
-                    "type": "integer"
+                "response_rate": {
+                    "description": "ResponseRate is the share of applications that moved beyond Applied —\nany signal at all from the employer.",
+                    "type": "number"
+                },
+                "sufficient": {
+                    "description": "Sufficient is false when the candidate has too few applications for a\nrate to mean anything. The rates are omitted in that case rather than\nbeing computed from one or two data points and rendered as a percentage.",
+                    "type": "boolean"
                 }
             }
         },
