@@ -62,6 +62,24 @@ jobs:
       RATE_LIMIT_BURST: '12000'
       AUTH_RATE_LIMIT_REQUESTS: '60000'
       AUTH_RATE_LIMIT_BURST: '12000'
+      # The session bucket (/auth/refresh, /auth/me, /auth/session, /auth/logout)
+      # is raised far less than the credential one, and on purpose.
+      #
+      # These endpoints used to share the credential allowance above, which is
+      # what signed users out on reload: restoring a session costs two requests,
+      # so the third reload from one address answered 429 and the web client
+      # read that as a dead session. Setting every allowance to 60000 is why CI
+      # never saw it.
+      #
+      # This value is well above what the suite needs — four browser projects
+      # driving every page load through one loopback address — while staying low
+      # enough to be a real limiter rather than a disabled one. The regression
+      # itself is guarded by TestReloadingRepeatedlyIsNotRateLimited in
+      # backend/internal/auth/delivery/http/session_persistence_test.go, which
+      # runs against the package defaults with no environment override and fails
+      # if the two buckets are ever merged again.
+      AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
+      AUTH_SESSION_RATE_LIMIT_BURST: '600'
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
@@ -198,6 +216,24 @@ jobs:
       # configurable and are unaffected.
       AUTH_RATE_LIMIT_REQUESTS: '60000'
       AUTH_RATE_LIMIT_BURST: '12000'
+      # The session bucket (/auth/refresh, /auth/me, /auth/session, /auth/logout)
+      # is raised far less than the credential one, and on purpose.
+      #
+      # These endpoints used to share the credential allowance above, which is
+      # what signed users out on reload: restoring a session costs two requests,
+      # so the third reload from one address answered 429 and the web client
+      # read that as a dead session. Setting every allowance to 60000 is why CI
+      # never saw it.
+      #
+      # This value is well above what the suite needs — four browser projects
+      # driving every page load through one loopback address — while staying low
+      # enough to be a real limiter rather than a disabled one. The regression
+      # itself is guarded by TestReloadingRepeatedlyIsNotRateLimited in
+      # backend/internal/auth/delivery/http/session_persistence_test.go, which
+      # runs against the package defaults with no environment override and fails
+      # if the two buckets are ever merged again.
+      AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
+      AUTH_SESSION_RATE_LIMIT_BURST: '600'
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5

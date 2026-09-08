@@ -19,6 +19,7 @@ import (
 	"kirmya/internal/auth/models"
 	"kirmya/internal/auth/repository"
 	"kirmya/internal/auth/validators"
+	"kirmya/internal/shared/authcookie"
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/mailer"
 
@@ -67,6 +68,7 @@ type authRepository interface {
 	MarkPasswordResetUsed(ctx context.Context, id uuid.UUID) error
 	RevokeAllUserSessions(ctx context.Context, userID uuid.UUID) error
 	RevokeSession(ctx context.Context, id uuid.UUID) error
+	RotateSession(ctx context.Context, oldSessionID uuid.UUID, next *models.Session) error
 	UpdatePasswordAndRevokeSessions(ctx context.Context, userID uuid.UUID, passwordHash string) error
 	UpdateUserEmailVerified(ctx context.Context, id uuid.UUID) error
 }
@@ -79,15 +81,33 @@ type AuthService struct {
 	repo       authRepository
 	mail       emailSender
 	appBaseURL string
+
+	// policy holds the session lifetimes. The service and the delivery layer
+	// read the same value, so the session row's expiry and the cookie's Max-Age
+	// are derived from one number rather than from two constants that drifted
+	// apart — which is how a 30-day Remember Me session came to be reissued as a
+	// 7-day one on its first refresh.
+	policy authcookie.Config
 }
 
 func NewAuthService(repo *repository.AuthRepository) *AuthService {
+	return NewAuthServiceWithPolicy(repo, authcookie.FromEnv())
+}
+
+// NewAuthServiceWithPolicy builds the service against an explicit session
+// policy. Tests use it to pin lifetimes without setting process environment.
+func NewAuthServiceWithPolicy(repo *repository.AuthRepository, policy authcookie.Config) *AuthService {
 	return &AuthService{
 		repo:       repo,
 		mail:       mailer.FromEnv(),
 		appBaseURL: configPkg.AppBaseURL(),
+		policy:     policy,
 	}
 }
+
+// SessionPolicy exposes the resolved lifetimes so the delivery layer writes a
+// cookie whose expiry matches the session row exactly.
+func (s *AuthService) SessionPolicy() authcookie.Config { return s.policy }
 
 // Password reset policy.
 const (
@@ -388,30 +408,33 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddres
 		return "", "", nil, &LoginRejectedError{Err: errors.New("invalid email or password")}
 	}
 
-	// Expiry calculation based on RememberMe
-	sessionDuration := 7 * 24 * time.Hour
-	if req.RememberMe {
-		sessionDuration = 30 * 24 * time.Hour
-	}
+	// The session's lifetime comes from the one resolved policy, so the row the
+	// server stores and the Max-Age the browser is given are the same number.
+	sessionDuration := s.policy.Lifetime(req.RememberMe)
 
-	// Generate Access Token (15 mins)
 	accessToken, err := s.GenerateAccessToken(u.ID, u.Email, u.RoleID)
 	if err != nil {
 		return "", "", nil, err
 	}
 
-	// Generate Refresh Token
+	// A refresh token that cannot be generated from the system CSPRNG must fail
+	// the login. The previous fallback to a UUID silently downgraded 256 bits of
+	// entropy to a version-4 UUID's 122, and did so precisely when the entropy
+	// source was misbehaving.
 	refreshTokenStr, err := generateSecureToken(32)
 	if err != nil {
-		refreshTokenStr = uuid.New().String()
+		return "", "", nil, fmt.Errorf("could not generate a session token: %w", err)
 	}
 
 	sess := &models.Session{
-		ID:           uuid.New(),
-		UserID:       u.ID,
-		RefreshToken: refreshTokenStr,
+		ID:     uuid.New(),
+		UserID: u.ID,
+		// Only the hash is stored. The bearer value goes to the browser and is
+		// never written down here.
+		RefreshToken: hashToken(refreshTokenStr),
 		IPAddress:    ipAddress,
 		UserAgent:    userAgent,
+		RememberMe:   req.RememberMe,
 		ExpiresAt:    time.Now().UTC().Add(sessionDuration),
 		CreatedAt:    time.Now().UTC(),
 	}
@@ -435,11 +458,40 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddres
 	return accessToken, refreshTokenStr, u, nil
 }
 
-// Refresh handles token rotation and reuse detection.
-func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgent string) (string, string, error) {
-	sess, err := s.repo.GetSessionByRefreshToken(ctx, tokenStr)
+// RefreshResult is what a successful rotation produces. ExpiresAt is the
+// session's own expiry, which the delivery layer turns into the cookie's
+// Max-Age, and RememberMe reports the policy that expiry came from.
+type RefreshResult struct {
+	AccessToken  string
+	RefreshToken string
+	ExpiresAt    time.Time
+	RememberMe   bool
+}
+
+// ErrSessionRotationRaced reports the losing half of two concurrent refreshes.
+// The caller should retry with the cookie the winning request set rather than
+// sign the user out.
+var ErrSessionRotationRaced = errors.New("session was just rotated. Please retry")
+
+// Refresh rotates the presented refresh token and issues a new access token.
+//
+// The session's absolute expiry is carried across the rotation rather than
+// recomputed. A rotation that started a fresh lifetime meant two things at once:
+// a Remember Me session was quietly downgraded to the default lifetime on its
+// first refresh, and any session at all became unbounded, since a user who kept
+// the tab open renewed it forever and the policy's end date never arrived.
+func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgent string) (*RefreshResult, error) {
+	tokenHash := hashToken(tokenStr)
+
+	sess, err := s.repo.GetSessionByRefreshToken(ctx, tokenHash)
 	if err != nil {
-		return "", "", errors.New("invalid or expired session")
+		// An absent session is an expired or forged token. Anything else is a
+		// server fault and must not be reported to the user as a dead session,
+		// because the client's response to that is to sign them out.
+		if errors.Is(err, repository.ErrSessionNotFound) {
+			return nil, errors.New("invalid or expired session")
+		}
+		return nil, fmt.Errorf("could not look up the session: %w", err)
 	}
 
 	// One page load can issue two refreshes with the same cookie: the first
@@ -450,7 +502,7 @@ func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgen
 	// the caller retries with the cookie the first refresh set — but without the
 	// containment step. A token replayed after the window is reuse as before.
 	if sess.RevokedAt != nil && time.Since(*sess.RevokedAt) <= refreshRotationGrace {
-		return "", "", errors.New("session was just rotated. Please retry")
+		return nil, ErrSessionRotationRaced
 	}
 
 	// Reuse detection: a revoked session token was presented, so it is in
@@ -477,64 +529,93 @@ func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgen
 		})
 		if revokeErr != nil {
 			// The previous message asserted the revocation as fact.
-			return "", "", errors.New("security alert: session token reuse detected. Please sign in again")
+			return nil, errors.New("security alert: session token reuse detected. Please sign in again")
 		}
-		return "", "", errors.New("security alert: session token reuse detected. All user sessions revoked")
+		return nil, errors.New("security alert: session token reuse detected. All user sessions revoked")
 	}
 
 	if time.Now().UTC().After(sess.ExpiresAt) {
-		return "", "", errors.New("session expired. Please sign in again")
+		return nil, errors.New("session expired. Please sign in again")
 	}
 
 	u, err := s.repo.GetUserByID(ctx, sess.UserID)
-	if err != nil || u.Status != "active" {
-		return "", "", errors.New("user account unavailable")
+	if err != nil || u == nil || u.Status != "active" {
+		return nil, errors.New("user account unavailable")
 	}
 
-	// Revoke current session
-	_ = s.repo.RevokeSession(ctx, sess.ID)
-
-	// Issue rotated refresh token
 	newAccessToken, err := s.GenerateAccessToken(u.ID, u.Email, u.RoleID)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	newRefreshTokenStr, err := generateSecureToken(32)
 	if err != nil {
-		newRefreshTokenStr = uuid.New().String()
+		return nil, fmt.Errorf("could not generate a session token: %w", err)
 	}
 
 	newSess := &models.Session{
 		ID:           uuid.New(),
 		UserID:       u.ID,
-		RefreshToken: newRefreshTokenStr,
+		RefreshToken: hashToken(newRefreshTokenStr),
 		IPAddress:    ipAddress,
 		UserAgent:    userAgent,
-		ExpiresAt:    time.Now().UTC().Add(7 * 24 * time.Hour),
-		CreatedAt:    time.Now().UTC(),
+		// The policy and the absolute expiry both come from the session being
+		// rotated, which is what keeps a Remember Me session on its own 30-day
+		// clock and stops any session from renewing itself indefinitely.
+		RememberMe: sess.RememberMe,
+		ExpiresAt:  sess.ExpiresAt,
+		CreatedAt:  time.Now().UTC(),
 	}
 
-	if err := s.repo.CreateSession(ctx, newSess); err != nil {
-		return "", "", err
+	// Revoking the old session and storing its replacement is one transaction.
+	// Done separately, a failure in between left the user holding a revoked
+	// cookie and no new one — signed out by a refresh that was supposed to keep
+	// them signed in.
+	if err := s.repo.RotateSession(ctx, sess.ID, newSess); err != nil {
+		if errors.Is(err, repository.ErrSessionAlreadyRotated) {
+			// Another in-flight refresh from the same page load won the race.
+			// Nothing was issued twice and the caller retries with the cookie
+			// that request set.
+			return nil, ErrSessionRotationRaced
+		}
+		return nil, fmt.Errorf("could not rotate the session: %w", err)
 	}
 
-	return newAccessToken, newRefreshTokenStr, nil
+	return &RefreshResult{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshTokenStr,
+		ExpiresAt:    sess.ExpiresAt,
+		RememberMe:   sess.RememberMe,
+	}, nil
 }
 
-// Logout revokes session.
+// Logout revokes the server session behind the presented refresh token.
+//
+// A revocation that fails is returned rather than discarded. Logout's whole
+// promise is that the session is dead on the server, and reporting success while
+// the session stayed live meant a user who signed out on a shared machine was
+// still signed in there. An unknown token is not an error: the session is
+// already gone, which is the outcome the caller asked for.
 func (s *AuthService) Logout(ctx context.Context, tokenStr, ipAddress string) error {
-	sess, err := s.repo.GetSessionByRefreshToken(ctx, tokenStr)
-	if err == nil {
-		_ = s.repo.RevokeSession(ctx, sess.ID)
-		_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{
-			ID:        uuid.New(),
-			UserID:    sess.UserID,
-			Action:    "LOGOUT_SUCCESS",
-			IPAddress: ipAddress,
-			CreatedAt: time.Now().UTC(),
-		})
+	sess, err := s.repo.GetSessionByRefreshToken(ctx, hashToken(tokenStr))
+	if err != nil {
+		if errors.Is(err, repository.ErrSessionNotFound) {
+			return nil
+		}
+		return fmt.Errorf("could not look up the session: %w", err)
 	}
+
+	if err := s.repo.RevokeSession(ctx, sess.ID); err != nil {
+		return fmt.Errorf("could not revoke the session: %w", err)
+	}
+
+	_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{
+		ID:        uuid.New(),
+		UserID:    sess.UserID,
+		Action:    "LOGOUT_SUCCESS",
+		IPAddress: ipAddress,
+		CreatedAt: time.Now().UTC(),
+	})
 	return nil
 }
 
@@ -839,7 +920,7 @@ func (s *AuthService) GetUserMe(ctx context.Context, userID uuid.UUID) (*dto.Use
 
 // GetSessionInfo returns session metadata.
 func (s *AuthService) GetSessionInfo(ctx context.Context, tokenStr string) (*dto.SessionDTO, error) {
-	sess, err := s.repo.GetSessionByRefreshToken(ctx, tokenStr)
+	sess, err := s.repo.GetSessionByRefreshToken(ctx, hashToken(tokenStr))
 	if err != nil {
 		return nil, errors.New("active session not found")
 	}
@@ -854,13 +935,26 @@ func (s *AuthService) GetSessionInfo(ctx context.Context, tokenStr string) (*dto
 }
 
 // GenerateAccessToken builds a signed JWT with HS256.
+// accessTokenTTL is the access-token lifetime, defaulting when the service was
+// built without a resolved policy (which older tests do).
+func (s *AuthService) accessTokenTTL() time.Duration {
+	if s.policy.AccessTTL > 0 {
+		return s.policy.AccessTTL
+	}
+	return authcookie.DefaultAccessTTL
+}
+
+// AccessTokenTTL is the lifetime the delivery layer reports as expiresIn, so the
+// number the client schedules against is the number in the token.
+func (s *AuthService) AccessTokenTTL() time.Duration { return s.accessTokenTTL() }
+
 func (s *AuthService) GenerateAccessToken(userID uuid.UUID, email, role string) (string, error) {
 	claims := models.JWTClaims{
 		UserID: userID,
 		Email:  email,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(15 * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(s.accessTokenTTL())),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 			NotBefore: jwt.NewNumericDate(time.Now().UTC()),
 			Issuer:    "kirmya-auth-service",

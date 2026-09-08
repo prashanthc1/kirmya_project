@@ -24,6 +24,18 @@ var ErrUserNotFound = errors.New("user not found")
 // second time, including when two requests race on the same link.
 var ErrPasswordResetAlreadyUsed = errors.New("this password reset link has already been used")
 
+// ErrSessionNotFound reports a refresh token that matches no session row, as
+// opposed to a lookup that failed. Refresh has to tell those apart: answering
+// "invalid or expired session" to a database timeout signs a user out for an
+// outage they had nothing to do with.
+var ErrSessionNotFound = errors.New("session not found")
+
+// ErrSessionAlreadyRotated reports that the session a caller tried to rotate had
+// already been revoked by the time the update ran. Two in-flight requests from
+// one page load race here routinely, and the loser must be told to retry rather
+// than be treated as an attacker replaying a stolen token.
+var ErrSessionAlreadyRotated = errors.New("session was already rotated")
+
 type AuthRepository struct {
 	db *pgxpool.Pool
 	mu sync.RWMutex
@@ -238,10 +250,9 @@ func (r *AuthRepository) CreateSession(ctx context.Context, s *models.Session) e
 	}
 
 	if r.db != nil {
-		query := `INSERT INTO sessions (id, user_id, refresh_token, ip_address, user_agent, expires_at, revoked_at, created_at)
-		          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-		_, err := r.db.Exec(ctx, query, s.ID, s.UserID, s.RefreshToken, s.IPAddress, s.UserAgent, s.ExpiresAt, s.RevokedAt, s.CreatedAt)
-		if err != nil {
+		if _, err := r.db.Exec(ctx, insertSessionSQL,
+			s.ID, s.UserID, s.RefreshToken, s.IPAddress, s.UserAgent,
+			s.RememberMe, s.ExpiresAt, s.RotatedFrom, s.RevokedAt, s.CreatedAt); err != nil {
 			return err
 		}
 	}
@@ -250,6 +261,97 @@ func (r *AuthRepository) CreateSession(ctx context.Context, s *models.Session) e
 	defer r.mu.Unlock()
 	r.memSessions[s.RefreshToken] = s
 	return nil
+}
+
+// insertSessionSQL and sessionColumns are shared by CreateSession and
+// RotateSession so a column added in one place cannot be forgotten in the other.
+const insertSessionSQL = `INSERT INTO sessions
+	(id, user_id, refresh_token, ip_address, user_agent, remember_me, expires_at, rotated_from, revoked_at, created_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+
+const sessionColumns = `id, user_id, refresh_token, ip_address, user_agent, remember_me, expires_at, rotated_from, revoked_at, created_at`
+
+// RotateSession revokes the presented session and stores its replacement in one
+// transaction.
+//
+// These were two independent statements, and the revoke's error was discarded
+// outright. A failure between them signed the user out with no new token to
+// present — the session was gone and its replacement had never been written.
+// Committing both together means a rotation either happens completely or not at
+// all, so a failed refresh leaves the original session usable and the caller can
+// simply retry.
+//
+// The revoke is conditional on the row still being active, and a zero row count
+// is reported as ErrSessionAlreadyRotated. That is what makes concurrent
+// refreshes safe: the database decides which request wins, rather than a timing
+// window that has to guess whether a replay is a race or a theft.
+func (r *AuthRepository) RotateSession(ctx context.Context, oldSessionID uuid.UUID, next *models.Session) error {
+	if next.ID == uuid.Nil {
+		next.ID = uuid.New()
+	}
+	if next.CreatedAt.IsZero() {
+		next.CreatedAt = time.Now().UTC()
+	}
+	next.RotatedFrom = &oldSessionID
+
+	if r.db != nil {
+		tx, err := r.db.Begin(ctx)
+		if err != nil {
+			return fmt.Errorf("begin session rotation: %w", err)
+		}
+		defer tx.Rollback(ctx)
+
+		tag, err := tx.Exec(ctx,
+			`UPDATE sessions SET revoked_at = $1 WHERE id = $2 AND revoked_at IS NULL`,
+			time.Now().UTC(), oldSessionID)
+		if err != nil {
+			return fmt.Errorf("revoke rotated session: %w", err)
+		}
+		if tag.RowsAffected() == 0 {
+			return ErrSessionAlreadyRotated
+		}
+
+		if _, err := tx.Exec(ctx, insertSessionSQL,
+			next.ID, next.UserID, next.RefreshToken, next.IPAddress, next.UserAgent,
+			next.RememberMe, next.ExpiresAt, next.RotatedFrom, next.RevokedAt, next.CreatedAt); err != nil {
+			return fmt.Errorf("store rotated session: %w", err)
+		}
+
+		if err := tx.Commit(ctx); err != nil {
+			return fmt.Errorf("commit session rotation: %w", err)
+		}
+
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		for _, s := range r.memSessions {
+			if s.ID == oldSessionID {
+				now := time.Now().UTC()
+				s.RevokedAt = &now
+			}
+		}
+		r.memSessions[next.RefreshToken] = next
+		return nil
+	}
+
+	// The in-memory store used by unit tests applies both halves under one lock,
+	// so it cannot land one without the other either. The same conditional
+	// revoke runs here so the concurrency behaviour matches the database's.
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for _, s := range r.memSessions {
+		if s.ID != oldSessionID {
+			continue
+		}
+		if s.RevokedAt != nil {
+			return ErrSessionAlreadyRotated
+		}
+		now := time.Now().UTC()
+		s.RevokedAt = &now
+		r.memSessions[next.RefreshToken] = next
+		return nil
+	}
+	return ErrSessionNotFound
 }
 
 func (r *AuthRepository) CreateRefreshToken(ctx context.Context, rt *models.RefreshToken) error {
@@ -267,27 +369,39 @@ func (r *AuthRepository) CreateRefreshToken(ctx context.Context, rt *models.Refr
 	return r.CreateSession(ctx, sess)
 }
 
-func (r *AuthRepository) GetSessionByRefreshToken(ctx context.Context, tokenStr string) (*models.Session, error) {
+// GetSessionByRefreshToken looks a session up by the SHA-256 hash of the token
+// the browser presented. Callers pass the hash, never the raw token.
+//
+// A database failure is returned as itself rather than falling through to the
+// in-memory map. The fallback used to swallow it and answer "session not
+// found", which the refresh path reports to the user as an expired session — so
+// a database blip signed everyone out and looked like normal expiry in the logs.
+func (r *AuthRepository) GetSessionByRefreshToken(ctx context.Context, tokenHash string) (*models.Session, error) {
 	if r.db != nil {
 		s := &models.Session{}
-		query := `SELECT id, user_id, refresh_token, ip_address, user_agent, expires_at, revoked_at, created_at
-		          FROM sessions WHERE refresh_token = $1`
-		err := r.db.QueryRow(ctx, query, tokenStr).Scan(
-			&s.ID, &s.UserID, &s.RefreshToken, &s.IPAddress, &s.UserAgent, &s.ExpiresAt, &s.RevokedAt, &s.CreatedAt,
+		err := r.db.QueryRow(ctx,
+			`SELECT `+sessionColumns+` FROM sessions WHERE refresh_token = $1`, tokenHash).Scan(
+			&s.ID, &s.UserID, &s.RefreshToken, &s.IPAddress, &s.UserAgent,
+			&s.RememberMe, &s.ExpiresAt, &s.RotatedFrom, &s.RevokedAt, &s.CreatedAt,
 		)
-		if err == nil {
+		switch {
+		case err == nil:
 			return s, nil
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrSessionNotFound
+		default:
+			return nil, fmt.Errorf("look up session: %w", err)
 		}
 	}
 
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	if s, exists := r.memSessions[tokenStr]; exists {
+	if s, exists := r.memSessions[tokenHash]; exists {
 		sCopy := *s
 		return &sCopy, nil
 	}
-	return nil, errors.New("session not found")
+	return nil, ErrSessionNotFound
 }
 
 func (r *AuthRepository) GetRefreshToken(ctx context.Context, tokenStr string) (*models.RefreshToken, error) {

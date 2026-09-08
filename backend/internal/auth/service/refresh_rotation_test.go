@@ -20,13 +20,14 @@ func TestConcurrentRefreshDoesNotRevokeEverySession(t *testing.T) {
 		t.Fatalf("login: %v", err)
 	}
 
-	_, rotated, err := f.svc.Refresh(f.ctx, firstRefresh, "127.0.0.1", "go-test")
+	first, err := f.svc.Refresh(f.ctx, firstRefresh, "127.0.0.1", "go-test")
 	if err != nil {
 		t.Fatalf("first refresh: %v", err)
 	}
+	rotated := first.RefreshToken
 
 	// The same cookie again, as the second in-flight request would send it.
-	if _, _, err = f.svc.Refresh(f.ctx, firstRefresh, "127.0.0.1", "go-test"); err == nil {
+	if _, err = f.svc.Refresh(f.ctx, firstRefresh, "127.0.0.1", "go-test"); err == nil {
 		t.Fatal("a rotated refresh token was accepted a second time")
 	} else if strings.Contains(err.Error(), "reuse detected") {
 		t.Fatalf("a concurrent refresh was treated as token theft: %v", err)
@@ -34,7 +35,7 @@ func TestConcurrentRefreshDoesNotRevokeEverySession(t *testing.T) {
 
 	// The token the first refresh issued must still work; the account was not
 	// signed out by the race.
-	if _, _, err = f.svc.Refresh(f.ctx, rotated, "127.0.0.1", "go-test"); err != nil {
+	if _, err = f.svc.Refresh(f.ctx, rotated, "127.0.0.1", "go-test"); err != nil {
 		t.Fatalf("the rotated session was revoked by the concurrent refresh: %v", err)
 	}
 }

@@ -128,7 +128,9 @@ export default function CompanyDetailPage({ params }: PageProps) {
   };
 
   return (
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+      /* Public discovery: listed in sitemap.ts as public, so a signed-out visitor must reach it. */
+      requireAuth={false}>
       <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
         <Box sx={{ mb: 3 }}>
           <Button

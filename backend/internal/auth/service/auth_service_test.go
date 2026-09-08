@@ -100,10 +100,11 @@ func TestLoginAndRefreshFlow(t *testing.T) {
 	assert.Equal(t, user.ID, claims.UserID)
 
 	// Token refresh
-	newAccToken, newRefToken, err := svc.Refresh(context.Background(), refToken, "127.0.0.1", "UnitTestAgent/1.0")
+	rotated, err := svc.Refresh(context.Background(), refToken, "127.0.0.1", "UnitTestAgent/1.0")
 	assert.NoError(t, err)
-	assert.NotEmpty(t, newAccToken)
-	assert.NotEmpty(t, newRefToken)
+	assert.NotEmpty(t, rotated.AccessToken)
+	assert.NotEmpty(t, rotated.RefreshToken)
+	assert.NotEqual(t, refToken, rotated.RefreshToken, "rotation must issue a different refresh token")
 }
 
 func TestTokenGenerationAndValidation(t *testing.T) {

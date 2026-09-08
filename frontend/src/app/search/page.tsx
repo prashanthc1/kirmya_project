@@ -328,7 +328,9 @@ function SearchPageContent() {
 
 export default function SearchPage() {
   return (
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+      /* Public discovery: a public search surface, so a signed-out visitor must reach it. */
+      requireAuth={false}>
       <Suspense
         fallback={
           <Container maxWidth="lg" sx={{ py: 4 }}>
