@@ -65,3 +65,28 @@ Core beta is the hiring loop and its required access/privacy/operations foundati
 | workforce_intelligence | full-platform expansion | Domain engineering lead | unverified | 0 | 4 | 0 |
 | web-shell | core-beta cross-cutting plus unclassified routes | Frontend experience lead | unverified | 12 | 0 | 56 |
 | native-client | full-platform expansion | Mobile engineering lead | unverified | 0 | 1 | 0 |
+
+## Batch 5 status changes — 8 September 2026
+
+Statuses below were revised against the evidence in
+[batch 5 delivery evidence](../BATCH5_DELIVERY_EVIDENCE_2026-09-08.md). A module
+is `in progress` when at least one of its journeys was exercised against the
+running API with real accounts in that batch and a defect in it was closed; it
+stays `unverified` when nothing in it was exercised. Nothing is marked
+`verified`: no module in this batch had its full journey - UI, API, service,
+storage, provider, owned and foreign cases, restart - checked end to end.
+
+| Module | Was | Now | Why |
+|---|---|---|---|
+| company | unverified | in progress | Company creation answered 500 and created nothing; fixed and covered by a CI test |
+| recruiter | unverified | in progress | Job, pipeline and application reads and status writes were unscoped; ownership added, foreign access answered 404, covered by a CI test |
+| networking | unverified | in progress | `networking_goals`, `connection_notes` and `connection_labels` did not exist; created, and goal persistence covered by a CI test |
+| notification | unverified | in progress | Category preferences were rejected with 400 and never consulted at delivery; stored and consulted, covered by a CI test |
+| mentorship | unverified | in progress | Client answered from bundled fixtures and addressed three routes that do not exist; rewritten, goal deletion endpoint added, header spoofing covered by a CI test |
+| onboarding | unverified | in progress | Resume step, community and connection suggestions returned invented records; replaced with real queries and an empty extraction |
+| endorsement | unverified | in progress | Endorser identity came from the request body; now from the authenticated account |
+| security | unverified | in progress | MFA enrolment and privacy settings wrote to columns that do not exist and discarded the error; both persist now |
+| compliance | unverified | in progress | Console addressed six endpoints the API does not serve and showed samples instead; repointed |
+| admin | unverified | in progress | Console answered from bundled samples on failure; now surfaces the failure. Every admin route refuses anonymous and non-admin callers (155 routes checked) |
+| community, event, freelance, learning, organization, trust_safety, verification, referral, enterprise_hiring, workforce_intelligence, recommendation_engine, ai_job_match, career_ai, career_companion, resume_analysis, recruiter_ai, assessment, messaging, interview, data_operations, landing | unverified | unverified | Their list contract and, where applicable, their repository reads were corrected in this batch, but no journey in them was exercised end to end |
+| mobile, native_mobile, native-client | unverified | unverified | Not started in this batch |

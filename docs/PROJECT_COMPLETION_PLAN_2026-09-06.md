@@ -151,6 +151,26 @@ Each implementation change must include its acceptance evidence, affected audit 
 
 ## Step 10 — Finish every remaining product domain in vertical slices
 
+**Delivery batch 5, 8 September 2026 — step 10 is NOT complete.** Recorded in
+[batch 5 delivery evidence](BATCH5_DELIVERY_EVIDENCE_2026-09-08.md). The batch
+closed a defect class that ran through most of these groups: sixty-three list
+endpoints across twenty-two modules answered `null` for an account with no rows
+(the crash that started it was a network dashboard reading `connections.length`
+on one), three tables no migration ever created, twelve write paths naming
+columns that only exist in a duplicate `CREATE TABLE`, and forty-three
+repository reads that answered an empty table with seeded sample records. It
+also closed specific failures: company creation answered 500, every
+`/employer/*` route answered "Invalid id", any recruiter could read and close
+another organization's job and read its applicants, MFA enrolment and privacy
+switches reported success while storing nothing, and the recruiter pipeline,
+recruiter AI evaluation, onboarding resume step, onboarding suggestions and
+five consoles presented invented people and figures as real.
+
+Group status is in that document and in the [module matrix](project-baseline-2026-09-06/MODULE_MATRIX.md).
+10A, 10B, 10F and 10G are **in progress**; 10C, 10D, 10E and 10H remain
+**open**. 10H was not started. No group is claimed as verified.
+
+
 **Owner:** designated domain engineers with QA. **Dependencies:** shared foundations in steps 3–8. Sequence the groups below; do not enable an unverified domain just because its pages compile.
 
 | Order | Domain coverage | Required completion proof |
@@ -169,6 +189,14 @@ For each group: inventory reachable features → trace UI/API/service/storage/pr
 **Exit:** every committed module and reachable route is verified or explicitly remains unfinished. Deferred work stays visible and does not count as delivered.
 
 ## Step 11 — Close architecture and enhancement debt deliberately
+
+**Partly delivered in batch 5.** Item 1 progressed: the `/messaging` and
+`/networking` duplicate route prefixes are gone, two of three company-id
+resolvers were removed, six privacy-console endpoints were repointed at the
+routes the API actually serves, and duplicate table ownership was resolved for
+the tables migration 0096 names. Items 2, 3 and 4 were not attempted; no new
+performance measurements were taken.
+
 
 **Owner:** technical lead with domain/product owners. **Dependencies:** relevant step 10 domains.
 

@@ -203,3 +203,41 @@ Source of truth: [issue-register.json](issue-register.json). F01–F20 prioritie
 | H170 | P3 | unverified | Backend data lead | Persistence and migrations / 4 | Rich media attachment pre-signed URL generation. |
 
 Each JSON row has source, acceptance, evidence classification and closure-evidence fields. No empty evidence array counts as PASS.
+
+## Batch 5 outcomes — 8 September 2026
+
+Evidence: [batch 5 delivery evidence](../BATCH5_DELIVERY_EVIDENCE_2026-09-08.md).
+Closure here means the defect was reproduced against the running API, fixed, and
+covered by a check that fails without the fix. Items whose scope is wider than
+what was verified are recorded as partly addressed, not closed.
+
+| Item | Outcome | Evidence |
+|---|---|---|
+| H143 (ephemeral repositories) | Already resolved before this batch; re-checked | `TestEveryMemoryOnlyRepositoryIsRegistered` reports no memory-only repository wired |
+| H144 (frontend mock user IDs) | Partly addressed | The mentorship client's `MOCK_USER_ID` and its fixture set are gone; the security, admin and privacy clients no longer answer from samples. Hard-coded ids remain in some recruiter components |
+| H145 (duplicate route clusters) | Partly addressed | `/messaging` and `/networking` API prefixes removed; the frontend page duplicates are deliberate redirects |
+| H148 (landing API mock fallback) | Related surfaces closed | Nine pages and three console clients stopped substituting invented content on failure |
+| H153 (duplicate company migrations) | Addressed for the diverging tables | Fifteen table names are defined twice; migration `0096` closes the ones whose columns diverge, and `TestRepositorySQLMatchesTheSchema` now fails on any new divergence |
+| H120 (MFA/TOTP) | Persistence fixed, feature still incomplete | Enrolment wrote to non-existent columns and discarded the error; it now persists and propagates. The enrolment and challenge journey is still unverified end to end |
+| H135 (mentorship identity spoofing) | Closed | `TestMentorshipIdentityCannotBeSpoofed` |
+| H136 (mentorship router nil dereference) | Not reproducible | `RegisterRoutes` returns early on a nil handler |
+| H141 (trust & safety route omission) | Not reproducible | The routes mount and answer; admin routes refuse non-admin callers |
+| H146 (missing top-level pages) | Not reproducible | `/auth`, `/compliance`, `/employer`, `/enterprise`, `/recommendations` and `/settings` all resolve |
+| H156 (inconsistent pagination keys) | Not addressed | Untouched by this batch |
+| B03 (native mobile validation) | Not started | 10H was not attempted |
+
+New items found by this batch and fixed in it — recorded so the register shows
+what the probe exposed, not to imply they were known before:
+
+| Item | What it was |
+|---|---|
+| B5-01 | 63 list endpoints answered `null` for an account with no rows; the network dashboard crashed on one |
+| B5-02 | `networking_goals`, `connection_notes` and `connection_labels` were queried by the code and created by no migration |
+| B5-03 | Creating a company answered 500 and created nothing: an owner-role insert omitted a primary key with no default |
+| B5-04 | Every `/api/v1/employer/*` route answered "Invalid id"; the handlers read a company id from a path that has none |
+| B5-05 | Recruiter job reads, status changes, pipelines, stage history and evaluations were not scoped to the owning recruiter |
+| B5-06 | The recruiter pipeline, AI evaluation, job matches and team lists returned invented people and scores |
+| B5-07 | The onboarding resume step returned an invented career, and the browser never called the server |
+| B5-08 | 43 repository reads answered an empty table with seeded sample records, and swallowed query errors |
+| B5-09 | Notification category preferences were rejected with 400 and never consulted at delivery |
+| B5-10 | The security module wrote `privacy_preferences` and MFA rows to columns that do not exist, discarding the error |
