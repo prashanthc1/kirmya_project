@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"kirmya/internal/applications/models"
@@ -61,7 +62,23 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 		var jobStatus string
 		var expiresAt *time.Time
 		var screeningRaw []byte
-		jobCheckQuery := `SELECT status, expires_at, COALESCE(screening_questions,'[]'::jsonb) FROM jobs WHERE id = $1 FOR SHARE`
+		// FOR NO KEY UPDATE, not FOR SHARE.
+		//
+		// This transaction takes a lock on the job row here and then upgrades it
+		// at step 5, where it increments applications_count. Two applications to
+		// the same posting arriving together each held the shared lock and each
+		// waited for the other to release it before the update could proceed:
+		// PostgreSQL broke the cycle with "deadlock detected (SQLSTATE 40P01)"
+		// and the applicant got a 500. A load run at sixteen concurrent clients
+		// failed 85 of 101 applications this way, and the same three-way curl
+		// reproduces it every time.
+		//
+		// Taking the stronger lock up front means concurrent applicants queue on
+		// the job row instead of deadlocking on the upgrade. It is deliberately
+		// not FOR UPDATE: the foreign key from job_applications to jobs needs a
+		// KEY SHARE lock on the parent row, which FOR UPDATE would block and
+		// FOR NO KEY UPDATE permits.
+		jobCheckQuery := `SELECT status, expires_at, COALESCE(screening_questions,'[]'::jsonb) FROM jobs WHERE id = $1 FOR NO KEY UPDATE`
 		if err := tx.QueryRow(ctx, jobCheckQuery, payload.JobID).Scan(&jobStatus, &expiresAt, &screeningRaw); err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return nil, errors.New("job posting not found")
@@ -151,6 +168,15 @@ func (r *ApplicationsRepository) CreateApplication(ctx context.Context, candidat
 			payload.ResumeID, payload.ResumeURL, payload.CoverLetter, answersJSON, source, payload.IdempotencyKey,
 			payload.ContactName, payload.ContactEmail, payload.ContactPhone, resumeTitle, resumeHash,
 		); err != nil {
+			// The duplicate check above is a read, so two applications from one
+			// candidate that pass it together both reach this insert. The
+			// unique index on (job_id, candidate_id) is what actually stops the
+			// second one, and its violation is the same answer the read gives:
+			// they have already applied. Reported as such rather than as an
+			// unhandled database error.
+			if isUniqueViolation(err, "idx_job_applications_candidate_job") {
+				return nil, errors.New("candidate has already applied to this job")
+			}
 			return nil, err
 		}
 
@@ -964,4 +990,14 @@ func (r *ApplicationsRepository) GetApplicationInterviews(ctx context.Context, c
 		return nil, fmt.Errorf("iterate application interviews: %w", err)
 	}
 	return interviews, nil
+}
+
+// isUniqueViolation reports whether err is a PostgreSQL unique-constraint
+// violation, optionally on one named constraint.
+func isUniqueViolation(err error, constraint string) bool {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.Code != "23505" {
+		return false
+	}
+	return constraint == "" || pgErr.ConstraintName == constraint
 }

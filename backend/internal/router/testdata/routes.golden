@@ -768,6 +768,8 @@ POST /api/v1/network/requests/:id/decline
 POST /api/v1/network/requests/:id/withdraw
 POST /api/v1/networking/blocks
 POST /api/v1/networking/requests
+POST /api/v1/newsletter/subscribe
+POST /api/v1/newsletter/unsubscribe
 POST /api/v1/notifications/:id/archive
 POST /api/v1/notifications/:id/read
 POST /api/v1/notifications/:id/unread

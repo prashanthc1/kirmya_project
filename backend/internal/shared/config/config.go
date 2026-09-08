@@ -62,6 +62,14 @@ type Config struct {
 	AuthSessionRateLimitRequestsPerMinute float64
 	AuthSessionRateLimitBurst             float64
 
+	// NewsletterRateLimitRequestsPerMinute and NewsletterRateLimitBurst size the
+	// bucket on the public newsletter endpoints. They take an address from
+	// anyone, so they are the obvious thing to point a list-stuffing script at;
+	// the default is generous for a person mistyping their address and far below
+	// what a script needs. Configurable so a test suite can exercise the flow.
+	NewsletterRateLimitRequestsPerMinute float64
+	NewsletterRateLimitBurst             float64
+
 	// MetricsUsername and MetricsPassword optionally put the Prometheus
 	// endpoint behind basic auth. Unset, it answers internal callers only.
 	MetricsUsername string
@@ -166,6 +174,9 @@ func LoadConfig() (*Config, error) {
 
 		AuthSessionRateLimitRequestsPerMinute: getEnvAsFloat("AUTH_SESSION_RATE_LIMIT_REQUESTS", 120),
 		AuthSessionRateLimitBurst:             getEnvAsFloat("AUTH_SESSION_RATE_LIMIT_BURST", 60),
+
+		NewsletterRateLimitRequestsPerMinute: getEnvAsFloat("NEWSLETTER_RATE_LIMIT_REQUESTS", 10),
+		NewsletterRateLimitBurst:             getEnvAsFloat("NEWSLETTER_RATE_LIMIT_BURST", 5),
 
 		MetricsUsername: getEnv("METRICS_USERNAME", ""),
 		MetricsPassword: getEnv("METRICS_PASSWORD", ""),

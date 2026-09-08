@@ -40,6 +40,7 @@ export default function ResumeAnalysisPage() {
   const [activeAnalysis, setActiveAnalysis] = useState<ResumeAnalysis | null>(null);
   const [history, setHistory] = useState<ResumeAnalysis[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const fetchHistory = async () => {
     try {
@@ -50,13 +51,15 @@ export default function ResumeAnalysisPage() {
           setActiveAnalysis(res.data[0]);
         }
       } else {
-        setActiveAnalysis(mockAnalysis);
-        setHistory([mockAnalysis]);
+        // No analysis yet. The page used to substitute a fabricated one —
+        // invented scores of 84/88/82 and a fixed missing-skills list —
+        // presented as this user's own resume analysis, and it appeared
+        // whenever the API returned nothing, which for a new user is always.
+        setHistory([]);
       }
     } catch (err) {
       console.error(err);
-      setActiveAnalysis(mockAnalysis);
-      setHistory([mockAnalysis]);
+      setLoadError('Your analysis history could not be loaded. Please try again.');
     }
   };
 
@@ -81,52 +84,9 @@ export default function ResumeAnalysisPage() {
     }
   };
 
-  const mockAnalysis: ResumeAnalysis = {
-    id: 'res-anal-101',
-    user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-    target_job_title: 'Staff Full-Stack Engineer',
-    target_job_description: 'Staff engineer with Go, React, PostgreSQL, Docker, Kubernetes experience.',
-    resume_text: resumeText,
-    status: 'completed',
-    created_at: new Date().toISOString(),
-    scores: {
-      id: 'sc-1',
-      analysis_id: 'res-anal-101',
-      overall_score: 84,
-      ats_compatibility_score: 88,
-      structure_score: 82,
-      skills_score: 80,
-      experience_score: 84,
-      job_match_score: 85,
-      created_at: new Date().toISOString(),
-    },
-    improvements: {
-      id: 'imp-1',
-      analysis_id: 'res-anal-101',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      missing_skills: ['KUBERNETES', 'AWS', 'CI/CD'],
-      present_keywords: ['GO', 'REACT', 'TYPESCRIPT', 'POSTGRESQL', 'DOCKER', 'MICROSERVICES', 'REST API'],
-      missing_keywords: ['KUBERNETES', 'AWS', 'CI/CD'],
-      keyword_density_score: 75,
-      structure_feedback: [
-        'Standard section headers (Experience, Education) detected correctly.',
-        'Dedicated Technical Skills summary section present at top.',
-      ],
-      experience_bullet_fixes: [
-        "Replace passive verb 'Worked on backend APIs' with action verb: 'Architected and deployed high-throughput REST microservices in Go'.",
-        "Quantify performance impact: Add metrics like 'reduced database P99 query latency by 45%' or 'improved frontend bundle load time by 30%'.",
-      ],
-      general_suggestions: [
-        'Tailor your summary specifically towards Staff Full-Stack Engineer position requirements.',
-        'Ensure contact information (Email, LinkedIn URL, GitHub profile) is formatted cleanly at top.',
-        'Export final resume in PDF format with single-column layout for ATS parser readability.',
-      ],
-      created_at: new Date().toISOString(),
-    },
-  };
 
-  const currentScores = activeAnalysis?.scores || mockAnalysis.scores!;
-  const currentImprovements = activeAnalysis?.improvements || mockAnalysis.improvements!;
+  const currentScores = activeAnalysis?.scores;
+  const currentImprovements = activeAnalysis?.improvements;
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
@@ -212,6 +172,31 @@ export default function ResumeAnalysisPage() {
 
           {/* Right Panel: Analysis Scores & Detailed Reports */}
           <Grid item xs={12} md={8}>
+            {loadError && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {loadError}
+              </Alert>
+            )}
+
+            {/*
+              Everything below reads a real analysis. The page used to fall back
+              to a fabricated one — invented scores and a fixed skills list,
+              rendered as this user's own resume analysis — whenever the API had
+              nothing, which for a new user is every visit. An empty state is
+              the honest answer, and it tells them how to get a real one.
+            */}
+            {!currentScores || !currentImprovements ? (
+              <Paper sx={{ p: 5, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ color: '#e2e8f0', mb: 1 }}>
+                  No analysis yet
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                  Paste your resume and a target job description on the left, then run the analysis.
+                  Your scores and suggested improvements will appear here.
+                </Typography>
+              </Paper>
+            ) : (
+            <>
             {/* Gauges & Top Score Cards */}
             <Grid container spacing={2} sx={{ mb: 3 }}>
               {/* Overall Resume Score Gauge */}
@@ -345,6 +330,8 @@ export default function ResumeAnalysisPage() {
                 </Box>
               ))}
             </Paper>
+            </>
+            )}
           </Grid>
         </Grid>
       </Container>

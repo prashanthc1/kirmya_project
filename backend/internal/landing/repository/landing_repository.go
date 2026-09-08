@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -20,6 +21,10 @@ type LandingRepository interface {
 	GetFeaturedJobs(ctx context.Context) ([]domain.FeaturedJob, error)
 	GetFeaturedCompanies(ctx context.Context) ([]domain.FeaturedCompany, error)
 	GetTestimonials(ctx context.Context) ([]domain.Testimonial, error)
+
+	// GetPlatformStatistics counts live figures from the tables that hold the
+	// real thing. See platform_statistics.go.
+	GetPlatformStatistics(ctx context.Context) (*domain.PlatformStatistics, error)
 }
 
 type postgresLandingRepository struct {
@@ -32,10 +37,16 @@ type postgresLandingRepository struct {
 	testimonials []domain.Testimonial
 }
 
+// NewLandingRepository builds the repository.
+//
+// It no longer seeds anything. The constructor used to fill the in-memory
+// fields with invented statistics, jobs, companies and testimonials —
+// "18,450+ Verified Careers Matched", named people at named employers — and
+// every read fell back to them when the table was empty or the query failed.
+// A fresh deployment therefore served fabrications as fact. Empty is the honest
+// answer when there is nothing real to show.
 func NewLandingRepository(pool *pgxpool.Pool) LandingRepository {
-	repo := &postgresLandingRepository{pool: pool}
-	repo.seedDefaultDataIfMemory()
-	return repo
+	return &postgresLandingRepository{pool: pool}
 }
 
 func (r *postgresLandingRepository) CreateTestimonial(ctx context.Context, t *domain.Testimonial) error {
@@ -108,7 +119,7 @@ func (r *postgresLandingRepository) GetStatistics(ctx context.Context) ([]domain
 	`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return r.statistics, nil
+		return nil, fmt.Errorf("query landing statistics: %w", err)
 	}
 	defer rows.Close()
 
@@ -119,9 +130,6 @@ func (r *postgresLandingRepository) GetStatistics(ctx context.Context) ([]domain
 			return nil, err
 		}
 		list = append(list, s)
-	}
-	if len(list) == 0 {
-		return r.statistics, nil
 	}
 	return list, rows.Err()
 }
@@ -141,7 +149,7 @@ func (r *postgresLandingRepository) GetFeaturedJobs(ctx context.Context) ([]doma
 	`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return r.featuredJobs, nil
+		return nil, fmt.Errorf("query featured jobs: %w", err)
 	}
 	defer rows.Close()
 
@@ -159,9 +167,6 @@ func (r *postgresLandingRepository) GetFeaturedJobs(ctx context.Context) ([]doma
 			_ = json.Unmarshal(tagsJSON, &j.Tags)
 		}
 		list = append(list, j)
-	}
-	if len(list) == 0 {
-		return r.featuredJobs, nil
 	}
 	return list, rows.Err()
 }
@@ -181,7 +186,7 @@ func (r *postgresLandingRepository) GetFeaturedCompanies(ctx context.Context) ([
 	`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return r.companies, nil
+		return nil, fmt.Errorf("query featured companies: %w", err)
 	}
 	defer rows.Close()
 
@@ -194,9 +199,6 @@ func (r *postgresLandingRepository) GetFeaturedCompanies(ctx context.Context) ([
 			return nil, err
 		}
 		list = append(list, c)
-	}
-	if len(list) == 0 {
-		return r.companies, nil
 	}
 	return list, rows.Err()
 }
@@ -217,7 +219,7 @@ func (r *postgresLandingRepository) GetTestimonials(ctx context.Context) ([]doma
 	`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		return r.testimonials, nil
+		return nil, fmt.Errorf("query testimonials: %w", err)
 	}
 	defer rows.Close()
 
@@ -231,9 +233,6 @@ func (r *postgresLandingRepository) GetTestimonials(ctx context.Context) ([]doma
 			return nil, err
 		}
 		list = append(list, t)
-	}
-	if len(list) == 0 {
-		return r.testimonials, nil
 	}
 	return list, rows.Err()
 }
@@ -256,69 +255,20 @@ func (r *postgresLandingRepository) GetLandingContent(ctx context.Context) (*dom
 		return nil, err
 	}
 
-	return &domain.LandingContentResponse{
+	response := &domain.LandingContentResponse{
 		Statistics:        stats,
 		FeaturedJobs:      jobs,
 		FeaturedCompanies: comps,
 		Testimonials:      tests,
-	}, nil
-}
-
-func (r *postgresLandingRepository) seedDefaultDataIfMemory() {
-	r.statistics = []domain.LandingStatistic{
-		{ID: uuid.New(), StatKey: "jobs_matched", StatValue: "18,450+", StatLabel: "Verified Careers Matched", DisplayOrder: 1},
-		{ID: uuid.New(), StatKey: "avg_placement_days", StatValue: "14 Days", StatLabel: "Average Time-to-Offer", DisplayOrder: 2},
-		{ID: uuid.New(), StatKey: "vetted_employers", StatValue: "850+", StatLabel: "Vetted Enterprise Employers", DisplayOrder: 3},
-		{ID: uuid.New(), StatKey: "interview_rate", StatValue: "78%", StatLabel: "AI-Matched Interview Rate", DisplayOrder: 4},
 	}
 
-	r.featuredJobs = []domain.FeaturedJob{
-		{
-			ID:              uuid.New(),
-			Title:           "Staff Infrastructure Architect",
-			Company:         "Careem Global",
-			Location:        "Dubai, UAE (Hybrid)",
-			MatchPercentage: 96,
-			SalaryRange:     "AED 38,000 - 52,000 / mo",
-			Tags:            []string{"Go", "Kubernetes", "High-Throughput", "Fintech"},
-			CreatedAt:       time.Now().Add(-6 * time.Hour),
-		},
-		{
-			ID:              uuid.New(),
-			Title:           "Principal AI Systems Engineer",
-			Company:         "Noon Tech",
-			Location:        "Riyadh, Saudi Arabia (On-site)",
-			MatchPercentage: 94,
-			SalaryRange:     "SAR 45,000 - 60,000 / mo",
-			Tags:            []string{"PyTorch", "Distributed Training", "LLM", "Vector DB"},
-			CreatedAt:       time.Now().Add(-14 * time.Hour),
-		},
+	// Counted figures are best-effort: a statistics failure must not take the
+	// whole landing page down, and the page renders the band only when they are
+	// present, so omitting them degrades to showing less rather than to showing
+	// something untrue.
+	if platform, statsErr := r.GetPlatformStatistics(ctx); statsErr == nil {
+		response.PlatformStatistics = platform
 	}
 
-	r.companies = []domain.FeaturedCompany{
-		{
-			ID:            uuid.New(),
-			Name:          "Careem Global",
-			LogoURL:       "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=150",
-			OpenPositions: 42,
-			Industry:      "Fintech & Mobility",
-			Location:      "Dubai Internet City, UAE",
-			CreatedAt:     time.Now(),
-		},
-	}
-
-	r.testimonials = []domain.Testimonial{
-		{
-			ID:          uuid.New(),
-			AuthorName:  "Sarah Al-Mansoor",
-			AuthorRole:  "Lead Cloud Platform Architect",
-			CompanyName: "Careem Global",
-			AvatarURL:   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-			Quote:       "Kirmya transformed my career search in the GCC. The verified credential badge allowed me to bypass traditional recruiter filters and land directly with the VP of Engineering within 10 days.",
-			Achievement: "Received 3 competitive offers in Dubai within 2 weeks",
-			Rating:      5.0,
-			IsFeatured:  true,
-			CreatedAt:   time.Now(),
-		},
-	}
+	return response, nil
 }

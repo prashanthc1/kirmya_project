@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"kirmya/internal/messaging/pubsub"
+	"kirmya/internal/notification/delivery/outbox"
 	"kirmya/internal/notification/models"
 	"kirmya/internal/notification/repository"
 
@@ -19,6 +20,11 @@ import (
 type NotificationService struct {
 	repo   *repository.NotificationRepository
 	pubsub pubsub.PubSub
+
+	// outbox is where outbound deliveries are queued. Nil in unit tests and in
+	// a database-free process, in which case nothing is queued — which is the
+	// same as before, but now that is the exception rather than the behaviour.
+	outbox *outbox.Store
 }
 
 func NewNotificationService(repo *repository.NotificationRepository, ps pubsub.PubSub) *NotificationService {
@@ -26,6 +32,13 @@ func NewNotificationService(repo *repository.NotificationRepository, ps pubsub.P
 		repo:   repo,
 		pubsub: ps,
 	}
+}
+
+// WithOutbox attaches the delivery outbox. Without it the email and push
+// branches of ProcessEvent only log, which is exactly what they used to do.
+func (s *NotificationService) WithOutbox(store *outbox.Store) *NotificationService {
+	s.outbox = store
+	return s
 }
 
 // ProcessEvent processes platform events centrally and evaluates user preferences and quiet hours.
@@ -115,19 +128,33 @@ func (s *NotificationService) ProcessEvent(ctx context.Context, evt models.Notif
 		}
 	}
 
-	if pref.EmailEnabled {
+	// Outbound channels are queued, not claimed.
+	//
+	// These two branches used to log "[EMAIL CHANNEL] Dispatched email
+	// notification to <user>" and return. Nothing was dispatched: no mail was
+	// sent, no row was written, and the log line asserted a delivery that had
+	// not happened. Under quiet hours they logged "deferred" and dropped the
+	// message permanently — there was nothing to defer it to.
+	//
+	// A queued delivery is a promise the worker can keep and an operator can
+	// inspect. Whether it arrived is recorded on the row, not in a log line
+	// written before the attempt.
+	if s.outbox != nil && n.ID != uuid.Nil {
+		var notBefore time.Time
 		if suppressOutbound {
-			log.Printf("[EMAIL CHANNEL] Email delivery deferred for user %s due to quiet hours", evt.TargetUserID)
-		} else {
-			log.Printf("[EMAIL CHANNEL] Dispatched email notification to %s. Title: %s", evt.TargetUserID, n.Title)
+			// Send it when their quiet hours end rather than never.
+			notBefore = quietHoursEnd(qh, time.Now())
 		}
-	}
 
-	if pref.PushEnabled {
-		if suppressOutbound {
-			log.Printf("[PUSH CHANNEL] Push delivery deferred for user %s due to quiet hours", evt.TargetUserID)
-		} else {
-			log.Printf("[PUSH CHANNEL] Dispatched mobile/web push notification to %s. Title: %s", evt.TargetUserID, n.Title)
+		if pref.EmailEnabled {
+			if err := s.outbox.EnqueueAt(ctx, n.ID, evt.TargetUserID, outbox.ChannelEmail, 0, notBefore); err != nil {
+				log.Printf("[EMAIL CHANNEL] could not queue delivery for user %s: %v", evt.TargetUserID, err)
+			}
+		}
+		if pref.PushEnabled {
+			if err := s.outbox.EnqueueAt(ctx, n.ID, evt.TargetUserID, outbox.ChannelPush, 0, notBefore); err != nil {
+				log.Printf("[PUSH CHANNEL] could not queue delivery for user %s: %v", evt.TargetUserID, err)
+			}
 		}
 	}
 
@@ -486,4 +513,33 @@ func isQuietHoursActive(qh *models.QuietHoursSettings, now time.Time) bool {
 		return curMinutes >= startMinutes && curMinutes < endMinutes
 	}
 	return curMinutes >= startMinutes || curMinutes < endMinutes
+}
+
+// quietHoursEnd returns the next moment the user's quiet hours are over.
+//
+// Quiet hours are stored as wall-clock "HH:MM" strings, so this reconstructs
+// the next occurrence of the end time relative to now. A window that cannot be
+// parsed defers by a conservative eight hours rather than sending into it.
+func quietHoursEnd(qh *models.QuietHoursSettings, now time.Time) time.Time {
+	const fallback = 8 * time.Hour
+
+	if qh == nil || !qh.Enabled {
+		return time.Time{}
+	}
+	parts := strings.Split(qh.EndTime, ":")
+	if len(parts) < 2 {
+		return now.Add(fallback)
+	}
+	hour, hourErr := strconv.Atoi(parts[0])
+	minute, minErr := strconv.Atoi(parts[1])
+	if hourErr != nil || minErr != nil || hour < 0 || hour > 23 || minute < 0 || minute > 59 {
+		return now.Add(fallback)
+	}
+
+	end := time.Date(now.Year(), now.Month(), now.Day(), hour, minute, 0, 0, now.Location())
+	if !end.After(now) {
+		// The window ends tomorrow: quiet hours that run past midnight.
+		end = end.Add(24 * time.Hour)
+	}
+	return end
 }

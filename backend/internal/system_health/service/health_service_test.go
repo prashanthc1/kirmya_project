@@ -23,10 +23,16 @@ func TestSystemHealthService_HealthProbesAndDiagnostics(t *testing.T) {
 		t.Errorf("expected liveness status healthy, got %s", liveness.Status)
 	}
 
-	// Test 2: Public Readiness Probe
+	// Test 2: Public Readiness Probe.
+	//
+	// This service holds no database handle, so it must not report ready. The
+	// assertion here was `readiness.Status != "healthy"` — a service with
+	// nothing to check answering "healthy" is what a readiness probe exists to
+	// prevent, and a deployment whose pool failed to build would have taken
+	// traffic on the strength of it.
 	readiness := svc.GetPublicReadiness(ctx)
-	if readiness.Status != "healthy" {
-		t.Errorf("expected readiness status healthy, got %s", readiness.Status)
+	if readiness.Status != "unhealthy" {
+		t.Errorf("readiness with no database handle: got %s, want unhealthy", readiness.Status)
 	}
 
 	// Test 3: Detailed Health Check
@@ -34,8 +40,11 @@ func TestSystemHealthService_HealthProbesAndDiagnostics(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error checking detailed health, got %v", err)
 	}
-	if summary.Status != models.StatusHealthy {
-		t.Errorf("expected overall status healthy, got %s", summary.Status)
+	// PostgreSQL is weighted critical and has no handle here, so the summary is
+	// critical. It used to be healthy, from a probe that reported "PostgreSQL
+	// connected (Mock / Embedded DB Mode)" with five active connections.
+	if summary.Status != models.StatusCritical {
+		t.Errorf("overall status with no database: got %s, want critical", summary.Status)
 	}
 	if len(summary.Components) < 5 {
 		t.Errorf("expected at least 5 component health probes, got %d", len(summary.Components))

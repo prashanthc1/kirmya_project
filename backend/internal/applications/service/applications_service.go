@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"math"
 	"time"
 
 	"github.com/google/uuid"
@@ -181,38 +182,93 @@ func (s *ApplicationsService) GetApplicationStats(ctx context.Context, candidate
 	return stats, nil
 }
 
+// minimumApplicationsForRates is how many applications a candidate needs before
+// a percentage over them is worth showing.
+//
+// Below this a single rejection reads as "0% response rate" and a single reply
+// as "100%", both rendered with the same confident progress bar. The threshold
+// is small because the alternative is showing nothing to almost everyone, and
+// the insufficient-data state names it so the user knows what changes it.
+const minimumApplicationsForRates = 3
+
+// GetAIInsights reports rates computed from the candidate's own applications.
+//
+// Every number here is arithmetic over rows the candidate can see for
+// themselves. It used to return constants — 85, 90, 75.0, and a fixed list of
+// three "missing skills" — which the UI rendered as a personalised assessment.
 func (s *ApplicationsService) GetAIInsights(ctx context.Context, candidateID uuid.UUID) (*models.AIApplicationInsightsDTO, error) {
 	apps, err := s.repo.GetCandidateApplications(ctx, candidateID, "", "")
 	if err != nil {
 		return nil, err
 	}
+	return computeApplicationInsights(apps), nil
+}
 
-	matchScore := 85
-	if len(apps) > 0 {
-		matchScore = 90
-	}
-
+// computeApplicationInsights is the whole of the calculation, separated from the
+// read so it can be exercised directly against known stages.
+func computeApplicationInsights(apps []models.ApplicationSummary) *models.AIApplicationInsightsDTO {
 	insights := &models.AIApplicationInsightsDTO{
-		ApplicationSuccessRate: 75.0,
-		ProfileMatchScore:      matchScore,
-		ResumeMatchScore:       matchScore - 4,
-		MissingSkills:          []string{"Distributed Systems Architecture", "System Design Patterns", "Automated Testing"},
-		ImprovementSuggestions: []string{
-			"Quantify accomplishments in past experience bullet points with measurable impact metrics.",
-			"Ensure your targeted job titles match those in the job description to optimize recruiter screening.",
-			"Attach customized cover letters highlighting relevant experience for competitive roles.",
+		MinimumApplications: minimumApplicationsForRates,
+		GeneralGuidance: []string{
+			"Quantify accomplishments in past experience with measurable impact.",
+			"Mirror the job description's own wording for titles and core skills.",
+			"Attach a cover letter tailored to the role for competitive postings.",
 		},
-		RecommendedJobs: []string{},
 	}
 
-	if len(apps) > 0 {
-		insights.ApplicationSuccessRate = float64(len(apps)*20) / float64(len(apps)+1)
-		if insights.ApplicationSuccessRate > 88.0 {
-			insights.ApplicationSuccessRate = 88.0
+	// Withdrawn and draft applications say nothing about how employers responded,
+	// so they are excluded from the denominator rather than counted as failures.
+	considered := make([]models.ApplicationSummary, 0, len(apps))
+	for _, a := range apps {
+		switch a.CurrentStatus {
+		case models.StageDraft, models.StageWithdrawn:
+			continue
+		default:
+			considered = append(considered, a)
 		}
 	}
 
-	return insights, nil
+	insights.ApplicationsConsidered = len(considered)
+	if len(considered) < minimumApplicationsForRates {
+		// Sufficient stays false and every rate stays zero-valued and omitted.
+		return insights
+	}
+
+	var responded, interviewed, offered int
+	for _, a := range considered {
+		switch a.CurrentStatus {
+		case models.StageViewed, models.StageShortlisted:
+			responded++
+		case models.StageInterview:
+			responded++
+			interviewed++
+		case models.StageOffer, models.StageAccepted:
+			responded++
+			interviewed++
+			offered++
+		case models.StageRejected:
+			// An explicit rejection is a response: the employer looked and
+			// decided. Counting it as silence would flatter the response rate.
+			responded++
+		}
+	}
+
+	total := float64(len(considered))
+	insights.Sufficient = true
+	insights.ResponseRate = percentage(float64(responded), total)
+	insights.InterviewRate = percentage(float64(interviewed), total)
+	insights.OfferRate = percentage(float64(offered), total)
+
+	return insights
+}
+
+// percentage rounds to one decimal so the value reads as a measurement rather
+// than a floating-point artefact.
+func percentage(part, whole float64) float64 {
+	if whole <= 0 {
+		return 0
+	}
+	return math.Round((part/whole)*1000) / 10
 }
 
 func (s *ApplicationsService) GetCareerAnalytics(ctx context.Context, candidateID uuid.UUID) (*models.CareerAnalyticsDTO, error) {

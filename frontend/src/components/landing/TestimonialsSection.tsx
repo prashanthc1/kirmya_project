@@ -23,34 +23,26 @@ interface TestimonialsSectionProps {
   testimonials?: TestimonialItem[];
 }
 
-const defaultTestimonials: TestimonialItem[] = [
-  {
-    author_name: 'Elena Rostova',
-    author_role: 'Senior AI Engineer',
-    company_name: 'Nexus AI',
-    quote: "Kirmya's AI match engine connected me with top-tier tech roles in under 48 hours after my layoff. Phenomenal platform!",
-    rating: 5,
-  },
-  {
-    author_name: 'Tariq Al-Mansoor',
-    author_role: 'VP of Engineering',
-    company_name: 'Hyperion Labs',
-    quote: 'The verified career credentials and seamless internal employee referral requests made hiring lead architects effortless.',
-    rating: 5,
-  },
-  {
-    author_name: 'Sarah Jenkins',
-    author_role: 'Principal Product Strategist',
-    company_name: 'GlobalVentures',
-    quote: 'Securing my professional identity and global talent network has never felt more intuitive. Highly recommended!',
-    rating: 5,
-  },
-];
-
+/**
+ * Quotes from real, consenting users — or nothing.
+ *
+ * This section shipped with three fabricated testimonials attributed to named
+ * people at named companies ("Elena Rostova, Senior AI Engineer, Nexus AI"),
+ * rendered whenever the API returned none, which on a fresh deployment is
+ * always. Beyond being untrue, attributed endorsements for a real service are
+ * an advertising-standards exposure in most jurisdictions.
+ *
+ * There is no fallback. With no testimonials the section does not render, and
+ * the page is shorter and honest.
+ */
 export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testimonials }) => {
   const theme = useTheme();
-  const list = testimonials && testimonials.length > 0 ? testimonials : defaultTestimonials;
+  const list = testimonials ?? [];
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (list.length === 0) {
+    return null;
+  }
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev + 1) % list.length);

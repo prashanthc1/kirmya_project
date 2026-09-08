@@ -109,6 +109,7 @@ type RouterDependencies struct {
 	IntelligenceHandler         *intelligenceHttp.IntelligenceHandler
 	RecommendationEngineHandler *recommendationEngineHttp.RecommendationHandler
 	LandingHandler              *landingHttp.LandingHandler
+	NewsletterHandler           *landingHttp.NewsletterHandler
 	OnboardingHandler           *onboardingHttp.OnboardingHandler
 	ApplicationsHandler         *applicationsHttp.ApplicationsHandler
 	JobAlertsHandler            *jobAlertsHttp.JobAlertsHandler
@@ -149,6 +150,11 @@ type RateLimitConfig struct {
 	// in front of the session endpoints, which every page load hits twice.
 	AuthSessionRequestsPerMinute float64
 	AuthSessionBurst             float64
+
+	// NewsletterRequestsPerMinute and NewsletterBurst size the public
+	// newsletter endpoints' bucket.
+	NewsletterRequestsPerMinute float64
+	NewsletterBurst             float64
 }
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
@@ -173,9 +179,22 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	return engine
 }
 
+// registerHealthCheck installs the probes used when no health service is wired.
+//
+// That is the tooling and unit-test path only; the running server always has
+// the real handler. What matters here is what this fallback must not do, which
+// is answer a question it cannot answer.
+//
+// It used to serve GET /health/dependencies with six hardcoded "healthy"
+// values — postgresql, redis, nats, opensearch, email, storage — on a router
+// built with no dependencies at all. A reliability test asserted that response
+// and passed, which is how a fabricated dependency report survives: the check
+// covering it is a check of the fabrication.
 func registerHealthCheck(engine *gin.Engine) {
 	health := engine.Group("/health")
 	{
+		// Liveness is the one thing this can honestly report: the process
+		// received the request and answered it.
 		health.GET("", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"status":    "ok",
@@ -186,22 +205,18 @@ func registerHealthCheck(engine *gin.Engine) {
 		health.GET("/live", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"status": "alive"})
 		})
+		// Readiness is not. Without a health service there is nothing to check
+		// the database or any other dependency with, so this fails closed: a
+		// platform host must not route traffic to a replica whose readiness is
+		// unknown, and 200 "ready" is what tells it to.
 		health.GET("/ready", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"status": "ready"})
-		})
-		health.GET("/dependencies", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"status": "healthy",
-				"dependencies": gin.H{
-					"postgresql": "healthy",
-					"redis":      "healthy",
-					"nats":       "healthy",
-					"opensearch": "healthy",
-					"email":      "healthy",
-					"storage":    "healthy",
-				},
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"status": "unknown",
+				"reason": "no health service is configured; readiness cannot be determined",
 			})
 		})
+		// GET /health/dependencies is deliberately absent. It reported on six
+		// dependencies this fallback has no handle on.
 	}
 }
 
@@ -252,7 +267,8 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	complianceHttp.RegisterRoutes(api, deps.ComplianceHandler)
 	intelligenceHttp.RegisterRoutes(api, deps.IntelligenceHandler)
 	recommendationEngineHttp.RegisterRoutes(api, deps.RecommendationEngineHandler)
-	landingHttp.RegisterRoutes(api, deps.LandingHandler)
+	landingHttp.RegisterRoutes(api, deps.LandingHandler, deps.NewsletterHandler,
+		deps.RateLimit.NewsletterRequestsPerMinute, deps.RateLimit.NewsletterBurst)
 	onboardingHttp.RegisterRoutes(api, deps.OnboardingHandler, deps.AuthMiddleware)
 	profileHttp.RegisterRoutes(api, deps.ProfileHandler, deps.AuthMiddleware)
 	resumeHttp.RegisterRoutes(api, deps.ResumeHandler)

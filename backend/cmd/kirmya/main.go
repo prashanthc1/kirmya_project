@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -112,6 +113,7 @@ import (
 	interviewSvc "kirmya/internal/interview/service"
 
 	jobAlertsHttp "kirmya/internal/job_alerts/delivery/http"
+	"kirmya/internal/job_alerts/matcher"
 	jobAlertsRepo "kirmya/internal/job_alerts/repository"
 	jobAlertsSvc "kirmya/internal/job_alerts/service"
 
@@ -143,6 +145,7 @@ import (
 	netSvc "kirmya/internal/networking/service"
 
 	notifyHttp "kirmya/internal/notification/delivery/http"
+	"kirmya/internal/notification/delivery/outbox"
 	notifyRepo "kirmya/internal/notification/repository"
 	notifySvc "kirmya/internal/notification/service"
 
@@ -250,6 +253,8 @@ import (
 	cachePkg "kirmya/internal/shared/cache"
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/database"
+	"kirmya/internal/shared/mailer"
+	"kirmya/internal/shared/middleware"
 	persistencePkg "kirmya/internal/shared/persistence"
 )
 
@@ -355,6 +360,9 @@ func main() {
 
 		AuthSessionRequestsPerMinute: cfg.AuthSessionRateLimitRequestsPerMinute,
 		AuthSessionBurst:             cfg.AuthSessionRateLimitBurst,
+
+		NewsletterRequestsPerMinute: cfg.NewsletterRateLimitRequestsPerMinute,
+		NewsletterBurst:             cfg.NewsletterRateLimitBurst,
 	}
 	deps.Metrics = router.MetricsConfig{
 		Username: cfg.MetricsUsername,
@@ -423,12 +431,56 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	commHandler := commHttp.NewCommunityHandler(commService)
 
 	msgRepository := msgRepo.NewMessagingRepository(dbPool)
-	psBroker := pubsub.NewInMemoryPubSub()
+	// Realtime fan-out. The in-memory broker only reaches subscribers inside
+	// this process, so with more than one API replica a message published here
+	// never arrives for a user connected elsewhere. Which broker is in use is
+	// logged because running several replicas on the in-memory one is broken in
+	// a way that only shows up as users not receiving messages.
+	// Rate limits are enforced across replicas when Redis is configured.
+	// Process-local buckets each grant the full allowance to the same client, so
+	// with N replicas a documented "5 sign-in attempts per minute" admits 5N.
+	if sharedLimiterClient := cachePkg.SharedRedisClient(appCache); sharedLimiterClient != nil {
+		middleware.ConfigureSharedRateLimiting(sharedLimiterClient)
+		slog.Info("rate limits are shared across replicas")
+	} else {
+		slog.Warn("rate limits are per-process; with more than one replica the effective limit is " +
+			"multiplied by the replica count. Configure REDIS_URL or REDIS_HOST to share them.")
+	}
+
+	psBroker, brokerKind := pubsub.FromEnv()
+	slog.Info("realtime broker configured", slog.String("kind", brokerKind))
+	if brokerKind != "redis" {
+		slog.Warn("realtime delivery is process-local; messaging and live notifications will not " +
+			"reach users connected to another replica. Configure REDIS_URL or REDIS_HOST before scaling out.")
+	}
 	msgService := msgSvc.NewMessagingService(msgRepository, psBroker)
 	msgHandler := msgHttp.NewMessagingHandler(msgService)
 
 	notifyRepository := notifyRepo.NewNotificationRepository(dbPool)
 	notifyService := notifySvc.NewNotificationService(notifyRepository, psBroker)
+
+	// Notifications are queued for delivery and drained by a worker.
+	//
+	// Until now the email and push branches logged "Dispatched" and sent
+	// nothing, so every job alert, recruiter message and application update
+	// reached the user only if they happened to open the app. The delivery
+	// table, its retry counters and the admin dead-letter view were already
+	// built; what was missing was anything that wrote to them.
+	deliveryOutbox := outbox.NewStore(dbPool)
+	notifyService = notifyService.WithOutbox(deliveryOutbox)
+
+	appMailer := mailer.FromEnv()
+	deliverySenders := []outbox.Sender{outbox.NewInAppSender()}
+	if mailSender := outbox.NewMailSender(appMailer, cfg.AppBaseURL); mailSender != nil {
+		deliverySenders = append(deliverySenders, mailSender)
+	}
+	deliveryWorker := outbox.NewWorker(deliveryOutbox, 25, deliverySenders...)
+	jobAlertMatcher := matcher.New(dbPool, deliveryOutbox)
+	// Logged at boot because a channel with no sender dead-letters everything
+	// queued for it, and that should be visible here rather than in a support
+	// ticket a week later.
+	slog.Info("notification delivery channels configured",
+		slog.Any("channels", deliveryWorker.Channels()))
 	notifyHandler := notifyHttp.NewNotificationHandler(notifyService)
 
 	authRepository := authRepo.NewAuthRepository(dbPool)
@@ -616,6 +668,9 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	landingRepository := landingRepo.NewLandingRepository(dbPool)
 	landingService := landingSvc.NewLandingService(landingRepository, appCache)
 	landingHandler := landingHttp.NewLandingHandler(landingService)
+	// The footer subscription form posted nowhere and reported success. This is
+	// the endpoint that stores the address it collects.
+	newsletterHandler := landingHttp.NewNewsletterHandler(landingRepo.NewNewsletterRepository(dbPool))
 
 	onboardingRepository := onboardingRepo.NewOnboardingRepository(dbPool)
 	onboardingService := onboardingSvc.NewOnboardingService(onboardingRepository)
@@ -660,6 +715,16 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	legalService := legalSvc.NewLegalService(legalRepository)
 	legalHandler := legalHttp.NewLegalHandler(legalService)
 	adminLegalHandler := legalHttp.NewAdminLegalHandler(legalService)
+	// Drains the notification outbox. Claims are taken with FOR UPDATE SKIP
+	// LOCKED, so this is safe to run on every API replica at once.
+	go deliveryWorker.Run(context.Background(), 15*time.Second)
+
+	// Compares newly published jobs against saved alerts. Job alerts were
+	// create/read/update/delete with nothing on the other end: a candidate
+	// could save one and never hear anything, and the alert history screen
+	// read a table nothing wrote to.
+	go jobAlertMatcher.Run(context.Background(), 5*time.Minute)
+
 	go func() {
 		// Durable jobs are claimed with row locks, so restarts and multiple API
 		// replicas safely resume pending work without processing one job twice.
@@ -685,10 +750,6 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	supportService := supportSvc.NewSupportService(supportRepository)
 	supportHandler := supportHttp.NewSupportHandler(supportService)
 	adminSupportHandler := supportHttp.NewAdminSupportHandler(supportService)
-
-	sysHealthRepository := sysHealthRepo.NewHealthRepository(sqlDB)
-	sysHealthService := sysHealthSvc.NewSystemHealthService(sysHealthRepository, sqlDB)
-	sysHealthHandler := sysHealthHttp.NewSystemHealthHandler(sysHealthService)
 
 	mentorshipRepository := mentorshipRepo.NewPostgresMentorshipRepository(dbPool)
 	mentorshipService := mentorshipSvc.NewMentorshipService(mentorshipRepository)
@@ -730,6 +791,14 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 			PublicBaseURL:   os.Getenv("STORAGE_PUBLIC_BASE_URL"),
 		}, localStorageProvider)
 	}
+
+	// Built here, after the storage provider, because the health report probes
+	// it: a status page that says storage is fine without touching storage is
+	// what this replaces.
+	sysHealthRepository := sysHealthRepo.NewHealthRepository(sqlDB)
+	sysHealthService := sysHealthSvc.NewSystemHealthServiceWithProbes(sysHealthRepository, sqlDB,
+		buildHealthProbes(cfg, appCache, brokerKind, deliveryOutbox, storageProvider, appMailer))
+	sysHealthHandler := sysHealthHttp.NewSystemHealthHandler(sysHealthService)
 
 	fileRepository := mediaRepo.NewFileRepository(dbPool)
 	fileService := mediaSvc.NewFileService(fileRepository, storageProvider)
@@ -778,6 +847,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		IntelligenceHandler:         intelligenceHandler,
 		RecommendationEngineHandler: recommendationHandler,
 		LandingHandler:              landingHandler,
+		NewsletterHandler:           newsletterHandler,
 		OnboardingHandler:           onboardingHandler,
 		ApplicationsHandler:         appsHandler,
 		JobAlertsHandler:            jAlertsHandler,
@@ -799,4 +869,110 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		MentorshipHandler:           mentorshipHandler,
 		FileHandler:                 fileHandler,
 	}
+}
+
+// buildHealthProbes wires the dependency checks the health report runs.
+//
+// Step 9 asks for alerts that fire on injected failures. Before this, six of
+// the seven components in that report were constants: Redis, the event bus,
+// search, object storage, email and the background workers each returned
+// "healthy" with a figure beside it that nothing had measured — a 98.4% cache
+// hit rate, 450 messages a second, 4500 GB free, eight workers with active
+// heartbeats. Injecting a failure into any of them changed nothing anywhere.
+//
+// A probe left nil here means the dependency is genuinely not part of this
+// deployment, and the report says disabled with the consequence spelled out.
+// Nothing reports healthy unless something answered.
+func buildHealthProbes(
+	cfg *configPkg.Config,
+	appCache cachePkg.Cache,
+	brokerKind string,
+	deliveryOutbox *outbox.Store,
+	storageProvider storagePkg.StorageProvider,
+	appMailer *mailer.Mailer,
+) sysHealthSvc.Probes {
+	probes := sysHealthSvc.Probes{
+		Version:  cfg.AppVersion,
+		BuildSHA: strings.TrimSpace(os.Getenv("BUILD_SHA")),
+	}
+
+	// Redis: a real round trip, not a reachable-at-boot assumption.
+	if redisClient := cachePkg.SharedRedisClient(appCache); redisClient != nil {
+		probes.Redis = func(ctx context.Context) (string, map[string]interface{}, error) {
+			ctxT, cancel := context.WithTimeout(ctx, 2*time.Second)
+			defer cancel()
+			if err := redisClient.Ping(ctxT).Err(); err != nil {
+				return "Redis did not answer PING", nil, err
+			}
+			return "Redis answered PING", map[string]interface{}{
+				"rate_limits_shared_across_replicas": true,
+			}, nil
+		}
+
+		// The realtime broker runs on the same server when it is Redis at all,
+		// so the same round trip covers it. What is worth reporting is whether
+		// delivery actually crosses replicas.
+		if brokerKind == "redis" {
+			probes.Realtime = func(ctx context.Context) (string, map[string]interface{}, error) {
+				ctxT, cancel := context.WithTimeout(ctx, 2*time.Second)
+				defer cancel()
+				if err := redisClient.Ping(ctxT).Err(); err != nil {
+					return "the realtime broker did not answer PING", nil, err
+				}
+				return "Redis pub/sub reachable; delivery crosses replicas",
+					map[string]interface{}{"broker": brokerKind}, nil
+			}
+		}
+	}
+
+	// Object storage: Exists on a key that will not be there. For S3 that is a
+	// HEAD, which proves the endpoint, bucket and credentials; for the local
+	// provider it proves the upload directory is readable.
+	if storageProvider != nil {
+		probes.Storage = func(ctx context.Context) (string, map[string]interface{}, error) {
+			ctxT, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+			driver := storageProvider.DriverName()
+			if _, err := storageProvider.Exists(ctxT, "health-probe/.keep-absent"); err != nil {
+				return fmt.Sprintf("%s storage did not answer", driver), nil, err
+			}
+			return fmt.Sprintf("%s storage answered", driver),
+				map[string]interface{}{"driver": driver}, nil
+		}
+	}
+
+	// Email. There is no probe that proves a message will arrive without
+	// sending one, so this reports configuration, and says exactly that.
+	if appMailer.Enabled() {
+		probes.Email = func(ctx context.Context) (string, map[string]interface{}, error) {
+			return "SMTP is configured; configuration only, no message is sent to check it",
+				map[string]interface{}{"from": appMailer.From()}, nil
+		}
+	}
+
+	// Workers: the queue they drain. A worker that has stopped shows up as a
+	// backlog that stops falling and a dead-letter count that climbs, which is
+	// a fact about the database rather than a heartbeat the worker reports
+	// about itself.
+	if deliveryOutbox != nil {
+		probes.Workers = func(ctx context.Context) (string, map[string]interface{}, error) {
+			ctxT, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+			stats, err := deliveryOutbox.QueueDepth(ctxT)
+			if err != nil {
+				return "the delivery queue could not be read", nil, err
+			}
+			return fmt.Sprintf("%d deliveries pending, %d overdue, %d dead-lettered",
+					stats.Pending, stats.Overdue, stats.DeadLettered),
+				map[string]interface{}{
+					"pending":       stats.Pending,
+					"overdue":       stats.Overdue,
+					"dead_lettered": stats.DeadLettered,
+				}, stats.Err()
+		}
+	}
+
+	// Search has no cluster wired in this build; the report says so rather than
+	// claiming a green OpenSearch cluster with 24 active shards.
+	return probes
 }

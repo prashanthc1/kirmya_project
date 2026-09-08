@@ -284,3 +284,7 @@ backend/kirmya.exe
 
 # Disposable CI diagnostic output
 artifacts/
+
+# Redis writes a snapshot into whatever directory it was started from. One
+# reached a commit in this batch; it is runtime state, not source.
+dump.rdb

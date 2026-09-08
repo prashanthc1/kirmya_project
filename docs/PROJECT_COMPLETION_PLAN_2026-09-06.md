@@ -214,16 +214,35 @@ The [report review index](AUDIT_REPORT_REVIEW_INDEX_2026-09-06.md) lists all 92 
 | F05 | P1 (batch 2) | Saved jobs use the wrong response shape | 5, 6 |
 | F06 | P1 (batch 2) | Production frontend CI supplies an incompatible API base URL | 5 |
 | F07 | P1 (batch 2) | Several reachable feature clients still use mock authentication and localhost | 5, 10 |
-| F08 | P1 | Public homepage presents hardcoded social proof as real | 8 |
-| F09 | P2 | Newsletter success does not capture a subscription | 8 |
-| F10 | P1 | Search discovery is weakened by metadata and job indexing gaps | 8 |
+| F08 | P1 (batch 4) | Public homepage presents hardcoded social proof as real | 8 |
+| F09 | P2 (batch 4) | Newsletter success does not capture a subscription | 8 |
+| F10 | P1 (batch 4) | Search discovery is weakened by metadata and job indexing gaps | 8 |
 | F11 | P1 | Database-free CI is mistaken for full workflow validation | 2, 12 |
 | F12 | P1 | Security workflow deliberately suppresses scan failures | 2, 12 |
 | F13 | P1 (batch 2) | Application data access hides database errors | 4, 6 |
-| F14 | P2 | Application analytics present synthetic scores as personalized measurements | 8, 10C |
-| F15 | P2 | Duplicate landmarks and unlabeled controls contradict accessibility claims | 8 |
-| F16 | P2 | Realtime delivery is process-local despite distributed-broker documentation | 8, 9 |
+| F14 | P2 (batch 4) | Application analytics present synthetic scores as personalized measurements | 8, 10C |
+| F15 | P2 (batch 4) | Duplicate landmarks and unlabeled controls contradict accessibility claims | 8 |
+| F16 | P2 (batch 4) | Realtime delivery is process-local despite distributed-broker documentation | 8, 9 |
 | F17 | P2 (batch 2) | Job-specific apply alias validates the body before reading its path ID | 5, 6 |
 | F18 | P1 (batch 2) | Production can enter unregistered nil-database fallback mode | 4 |
 | F19 | P1 | Frontend release check currently fails at linting | 2 |
 | F20 | P1 | Audit scores and operational claims exceed their evidence | 1, 12 |
+| F21 | P1 (batch 4) | Concurrent applications to one job deadlock and return a database error to the applicant | 6, 9 |
+| F22 | P1 (batch 4) | System health reports six unprobed dependencies as healthy with invented figures | 9 |
+
+## Batch 4 — steps 8 and 9
+
+Closed: F08, F09, F10, F14, F15, F16, and F21 and F22 which this batch found.
+
+| Finding | What it was | What closes it |
+|---|---|---|
+| F08 | Landing page invented statistics, testimonials, job postings at real named employers, and a "People You May Know" panel of three fictional people with mutual-connection counts and live Connect buttons | Figures are counted from the same rows the public board serves, using its exact predicate; with no data the section renders nothing. `frontend/src/test/landing-honesty.test.tsx` |
+| F09 | The newsletter form reported success and stored nothing | Subscriptions persist, with a configurable limiter on the public endpoint |
+| F10 | Every page was a client component, so a crawler received an empty shell. No `generateMetadata` anywhere; the sitemap listed six hardcoded URLs and not one job | Job pages render on the server with per-job metadata, self-canonicals, JobPosting JSON-LD and a sitemap built from real open inventory. `test/e2e/public-indexing.spec.ts` |
+| F14 | Application analytics presented invented match scores and success probabilities as personal measurement | Replaced with counted response, interview and offer rates, and an explicit insufficient-data state below a minimum sample |
+| F15 | Recorded as duplicate landmarks and unlabelled controls — both already gone. Scanning found what the finding had missed: every filled button failed WCAG AA on contrast, including the sign-in and registration submit buttons, and no automated accessibility check ran anywhere | Per-mode palette with measured ratios on `main` and on the hover shade, and `test/e2e/accessibility.spec.ts`: 24 checks over the core journey in both modes at two widths, 0 serious or critical violations |
+| F16 | Realtime delivery and rate limiting were process-local, so a message reached one replica's subscribers and a documented "5 sign-in attempts per minute" admitted 5N | Redis pub/sub behind the existing interface and a Lua-scripted shared token bucket, both falling back to per-process rather than failing closed |
+| F21 | Found by the batch's own load test. `CreateApplication` took `FOR SHARE` on the job row then upgraded it to increment `applications_count`, so simultaneous applicants deadlocked: eight of eight failed, each receiving `{"error":"ERROR: deadlock detected (SQLSTATE 40P01)"}`. Throughput on the hiring mix was 28 req/s | `FOR NO KEY UPDATE` taken up front, the unique index translated into a 409, and the raw error kept out of the response. 2810 req/s after. `backend/test/ci/apply_concurrency_test.go` |
+| F22 | Redis, the event bus, search, storage, email and the workers all reported healthy from constants, with invented figures beside them; readiness answered 200 with no database handle; the build SHA was a literal string | Real probes supplied by the composition root, `disabled` for what this deployment does not have, and readiness that fails closed. `internal/system_health/service/health_probes_test.go` |
+
+Step 9's remaining items need production access or contact with real users and were not attempted. What was executed, with measurements, is in [docs/operations/step9-readiness-evidence-2026-09-08.md](operations/step9-readiness-evidence-2026-09-08.md), which also records the beta-readiness verdict: not ready, and what is missing is access and configuration rather than code.

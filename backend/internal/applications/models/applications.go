@@ -345,13 +345,47 @@ type ApplicationStatsDTO struct {
 	ResponseRate         float64 `json:"response_rate"`
 }
 
+// AIApplicationInsightsDTO reports what can be measured from a candidate's own
+// application history, and says so when there is not enough of it.
+//
+// It previously carried a "profile match score" of 85 (90 if the candidate had
+// applied to anything at all), a "resume match score" of that minus four, an
+// "application success rate" of 75%, and a fixed list of three missing skills —
+// every one of them a constant, presented in the UI as a personalised
+// measurement with a progress bar. There was no model behind any of it.
+//
+// The scores are gone rather than reimplemented: there is nothing to compute
+// them from. What remains is arithmetic over the candidate's real applications,
+// reproducible by anyone with the same rows.
 type AIApplicationInsightsDTO struct {
-	ApplicationSuccessRate float64  `json:"application_success_rate"`
-	ProfileMatchScore      int      `json:"profile_match_score"`
-	ResumeMatchScore       int      `json:"resume_match_score"`
-	MissingSkills          []string `json:"missing_skills"`
-	ImprovementSuggestions []string `json:"improvement_suggestions"`
-	RecommendedJobs        []string `json:"recommended_jobs"`
+	// Sufficient is false when the candidate has too few applications for a
+	// rate to mean anything. The rates are omitted in that case rather than
+	// being computed from one or two data points and rendered as a percentage.
+	Sufficient bool `json:"sufficient"`
+
+	// MinimumApplications is the threshold Sufficient is measured against, so
+	// the UI can tell the user what would unlock these numbers.
+	MinimumApplications int `json:"minimum_applications"`
+
+	// ApplicationsConsidered is how many of the candidate's applications the
+	// rates below are computed over.
+	ApplicationsConsidered int `json:"applications_considered"`
+
+	// ResponseRate is the share of applications that moved beyond Applied —
+	// any signal at all from the employer.
+	ResponseRate float64 `json:"response_rate,omitempty"`
+
+	// InterviewRate is the share that reached Interview or beyond.
+	InterviewRate float64 `json:"interview_rate,omitempty"`
+
+	// OfferRate is the share that reached Offer or Accepted.
+	OfferRate float64 `json:"offer_rate,omitempty"`
+
+	// GeneralGuidance is standing advice, identical for every candidate. It is
+	// named for what it is: the previous field was called
+	// ImprovementSuggestions and sat beside fabricated personal scores, which
+	// read as analysis of this particular person.
+	GeneralGuidance []string `json:"general_guidance"`
 }
 
 type CareerAnalyticsDTO struct {

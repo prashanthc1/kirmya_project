@@ -34,19 +34,27 @@ func TestReliability_HealthChecks_LiveAndReady(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w2.Code)
 	assert.Contains(t, w2.Body.String(), `"status":"alive"`)
 
-	// 3. Test GET /health/ready
+	// 3. Readiness on a router built with no dependencies must fail closed.
+	//
+	// This asserted 200 "ready". The router under test is constructed with an
+	// empty RouterDependencies — no database, no cache, no anything — so the
+	// only honest answer is that readiness cannot be determined, and a platform
+	// host must not send traffic to a replica in that state.
 	req3, _ := http.NewRequest("GET", "/health/ready", nil)
 	w3 := httptest.NewRecorder()
 	engine.ServeHTTP(w3, req3)
-	assert.Equal(t, http.StatusOK, w3.Code)
-	assert.Contains(t, w3.Body.String(), `"status":"ready"`)
+	assert.Equal(t, http.StatusServiceUnavailable, w3.Code)
+	assert.Contains(t, w3.Body.String(), `"status":"unknown"`)
 
-	// 4. Test GET /health/dependencies
+	// 4. GET /health/dependencies is gone.
+	//
+	// It answered 200 with postgresql, redis, nats, opensearch, email and
+	// storage all "healthy" — six hardcoded strings from a router holding none
+	// of them. The assertion that used to be here checked the constant.
 	req4, _ := http.NewRequest("GET", "/health/dependencies", nil)
 	w4 := httptest.NewRecorder()
 	engine.ServeHTTP(w4, req4)
-	assert.Equal(t, http.StatusOK, w4.Code)
-	assert.Contains(t, w4.Body.String(), `"postgresql":"healthy"`)
+	assert.Equal(t, http.StatusNotFound, w4.Code)
 }
 
 // 2. PANIC RECOVERY AT HTTP BOUNDARY

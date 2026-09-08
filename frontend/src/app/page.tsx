@@ -14,7 +14,6 @@ import CommunitiesSection from '../components/landing/CommunitiesSection';
 import RecruiterSection from '../components/landing/RecruiterSection';
 import CompanySection from '../components/landing/CompanySection';
 import TestimonialsSection from '../components/landing/TestimonialsSection';
-import MetricsSection from '../components/landing/MetricsSection';
 import FAQSection from '../components/landing/FAQSection';
 import CTASection from '../components/landing/CTASection';
 import Footer from '../components/landing/Footer';
@@ -74,7 +73,7 @@ export default function HomePage() {
         <HeroSection />
 
         {/* 4. Trusted Statistics */}
-        <StatisticsSection />
+        <StatisticsSection statistics={content?.platform_statistics} />
 
         {/* 5. Why Kirmya Value Propositions */}
         <WhyKirmyaSection />
@@ -98,13 +97,11 @@ export default function HomePage() {
         <RecruiterSection />
 
         {/* 12. Verified Companies */}
-        <CompanySection />
+        <CompanySection hiringCompanies={content?.platform_statistics?.hiring_companies} />
 
         {/* 13. Testimonials */}
         <TestimonialsSection testimonials={content?.testimonials} />
 
-        {/* 14. Metrics */}
-        <MetricsSection />
 
         {/* 15. FAQ Accordion */}
         <FAQSection />

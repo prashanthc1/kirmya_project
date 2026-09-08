@@ -138,15 +138,24 @@ export function CandidateJobDashboard({
 
       {tabValue === 4 && (
         <Box>
-          <Typography variant="h6" gutterBottom>AI Career Suggestions & Improvement Tips</Typography>
-          {insights?.improvement_suggestions?.map((tip, idx) => (
-             <Chip key={idx} label={tip} sx={{ m: 0.5 }} color="primary" variant="outlined" />
-          )) || <Typography>No insights available at this time.</Typography>}
-          
-          <Typography variant="h6" sx={{ mt: 3 }} gutterBottom>Recommended Jobs</Typography>
-          {insights?.recommended_jobs?.map((job, idx) => (
-             <Typography key={idx}>- {job}</Typography>
-          ))}
+          {/*
+            Headed "AI Career Suggestions" over a list that was the same three
+            server-side constants for every user. It is standing advice, and the
+            heading now says so. The "Recommended Jobs" list below it was always
+            empty — the field was never populated — so it is gone rather than
+            rendering a permanently blank section.
+          */}
+          <Typography variant="h6" gutterBottom>General application guidance</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            The same advice for everyone, not an analysis of your profile.
+          </Typography>
+          {insights?.general_guidance?.length ? (
+            insights.general_guidance.map((tip) => (
+              <Chip key={tip} label={tip} sx={{ m: 0.5 }} color="primary" variant="outlined" />
+            ))
+          ) : (
+            <Typography>No guidance available at this time.</Typography>
+          )}
         </Box>
       )}
 

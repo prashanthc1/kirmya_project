@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,9 +49,38 @@ type LandingStatistic struct {
 	DisplayOrder int       `json:"display_order"`
 }
 
+// ErrStatisticsUnavailable reports that no true platform figures could be
+// produced. Callers render nothing rather than substituting an invented number.
+var ErrStatisticsUnavailable = errors.New("platform statistics are unavailable")
+
+// PlatformStatistics are counts of real rows, not editorial copy.
+//
+// Every field is an integer counted at request time. The landing page used to
+// read pre-formatted strings out of a content table ("18,450+", "78%"), which
+// meant nothing verified them and a fresh deployment served the seeded
+// placeholders as fact. A number here is either counted or absent.
+type PlatformStatistics struct {
+	// OpenJobs counts postings a visitor can actually find on the public board:
+	// the predicate matches the board's own filter exactly.
+	OpenJobs int64 `json:"open_jobs"`
+
+	// HiringCompanies counts distinct companies with at least one open job.
+	HiringCompanies int64 `json:"hiring_companies"`
+
+	// Members counts active accounts.
+	Members int64 `json:"members"`
+
+	// ApplicationsSubmitted counts applications people have actually sent.
+	ApplicationsSubmitted int64 `json:"applications_submitted"`
+}
+
 type LandingContentResponse struct {
 	Statistics        []LandingStatistic `json:"statistics"`
 	FeaturedJobs      []FeaturedJob      `json:"featured_jobs"`
 	FeaturedCompanies []FeaturedCompany  `json:"featured_companies"`
 	Testimonials      []Testimonial      `json:"testimonials"`
+
+	// PlatformStatistics is nil when no true figures could be counted. The web
+	// client renders the statistics band only when it is present.
+	PlatformStatistics *PlatformStatistics `json:"platform_statistics,omitempty"`
 }

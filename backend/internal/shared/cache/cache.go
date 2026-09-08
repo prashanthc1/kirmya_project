@@ -110,3 +110,22 @@ func (m *InMemoryCache) Delete(ctx context.Context, key string) error {
 	m.store.Delete(key)
 	return nil
 }
+
+// Client exposes the underlying Redis connection.
+//
+// It exists so the rate limiter can share one connection rather than opening a
+// second to the same server. Nothing else should reach through the cache
+// abstraction for it.
+func (r *RedisCache) Client() *redis.Client { return r.client }
+
+// SharedRedisClient returns the Redis connection behind a cache, or nil when
+// the cache is not Redis-backed.
+//
+// A nil result means limits stay per-process, which is correct for a single
+// replica and too permissive for several — so the caller logs which it got.
+func SharedRedisClient(c Cache) *redis.Client {
+	if redisCache, ok := c.(*RedisCache); ok && redisCache != nil {
+		return redisCache.Client()
+	}
+	return nil
+}

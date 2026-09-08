@@ -22,7 +22,9 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import XIcon from '@mui/icons-material/X';
 import SendIcon from '@mui/icons-material/Send';
 import { ROUTES } from '../../shared/routes';
+import axios from 'axios';
 import { tokens } from '../../theme/tokens';
+import { newsletterApi } from '../../features/landing/newsletter';
 
 export const Footer: React.FC = () => {
   const theme = useTheme();
@@ -30,12 +32,36 @@ export const Footer: React.FC = () => {
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  /**
+   * Subscribes, and only says so once the server has stored the address.
+   *
+   * This used to set `subscribed` and clear the field without making a request
+   * at all — "Subscribed successfully!" over an address that went nowhere. A
+   * failure is now reported as a failure, with the address left in the field so
+   * the visitor does not have to retype it.
+   */
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newsletterEmail) {
+    const email = newsletterEmail.trim();
+    if (!email || subscribing) return;
+
+    setSubscribing(true);
+    setSubscribeError(null);
+    try {
+      await newsletterApi.subscribe(email);
       setSubscribed(true);
       setNewsletterEmail('');
+    } catch (err) {
+      const message =
+        axios.isAxiosError(err) && typeof err.response?.data?.error === 'string'
+          ? err.response.data.error
+          : 'We could not save your subscription. Please try again.';
+      setSubscribeError(message);
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -72,18 +98,26 @@ export const Footer: React.FC = () => {
                 </Typography>
                 {subscribed ? (
                   <Alert severity="success" sx={{ borderRadius: `${tokens.radius.sm}px` }}>
-                    Subscribed successfully!
+                    You are subscribed. Every email includes a one-click unsubscribe link.
                   </Alert>
                 ) : (
-                  <form onSubmit={handleSubscribe}>
+                  <form onSubmit={handleSubscribe} aria-label="Subscribe to career advice and updates">
+                    {subscribeError && (
+                      <Alert severity="error" sx={{ borderRadius: `${tokens.radius.sm}px`, mb: 1 }}>
+                        {subscribeError}
+                      </Alert>
+                    )}
                     <Stack direction="row" spacing={1}>
                       <TextField
                         size="small"
                         placeholder="Enter your email"
+                        label="Email address"
+                        aria-label="Email address for career updates"
                         value={newsletterEmail}
                         onChange={(e) => setNewsletterEmail(e.target.value)}
                         type="email"
                         required
+                        disabled={subscribing}
                         fullWidth
                         sx={{
                           '& .MuiOutlinedInput-root': {
@@ -95,6 +129,8 @@ export const Footer: React.FC = () => {
                       <Button
                         type="submit"
                         variant="contained"
+                        disabled={subscribing}
+                        aria-label={subscribing ? 'Subscribing' : 'Subscribe'}
                         sx={{
                           borderRadius: `${tokens.radius.sm}px`,
                           px: 2.5,

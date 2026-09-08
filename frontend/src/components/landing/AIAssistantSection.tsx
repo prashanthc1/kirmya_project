@@ -10,6 +10,18 @@ export const AIAssistantSection: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
+  /*
+   * F15. The eyebrow chip painted #a855f7 on a 15% wash of itself, which reads
+   * 3.83:1 in dark mode — under the 4.5:1 AA threshold, and this is 13px bold
+   * text, so the large-text exemption does not apply.
+   *
+   * One colour cannot pass on both grounds: the same wash composites to a near
+   * black in dark mode and a near white in light mode. So the label tracks the
+   * mode while the wash and border, which are decoration, stay put.
+   * #c084fc on the dark composite = 5.74:1; #7e22ce on the light one = 5.56:1.
+   */
+  const accent = isDark ? '#c084fc' : '#7e22ce';
+
   const aiCards = [
     { title: 'AI Resume Review', desc: 'Detailed scoring & bullet point recommendations to pass ATS screeners.' },
     { title: 'AI Profile Optimization', desc: 'Enhance headline, summary, and skills for maximum recruiter visibility.' },
@@ -27,14 +39,14 @@ export const AIAssistantSection: React.FC = () => {
           {/* Left Column: AI Capabilities */}
           <Grid item xs={12} md={6}>
             <Chip
-              icon={<AutoAwesomeIcon sx={{ color: '#a855f7 !important' }} />}
+              icon={<AutoAwesomeIcon sx={{ color: `${accent} !important` }} />}
               label="NEXT-GEN CAREER AI"
               sx={{
                 fontWeight: 800,
                 px: 1,
                 mb: 2,
                 bgcolor: 'rgba(168, 85, 247, 0.15)',
-                color: '#a855f7',
+                color: accent,
                 border: '1px solid rgba(168, 85, 247, 0.3)',
               }}
             />
@@ -49,7 +61,7 @@ export const AIAssistantSection: React.FC = () => {
               {aiCards.map((card, idx) => (
                 <Grid item xs={12} sm={6} key={idx}>
                   <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                    <CheckCircleOutlineIcon sx={{ color: '#a855f7', fontSize: 20, mt: 0.3 }} />
+                    <CheckCircleOutlineIcon sx={{ color: accent, fontSize: 20, mt: 0.3 }} />
                     <Box>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                         {card.title}
@@ -76,8 +88,8 @@ export const AIAssistantSection: React.FC = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                     Kirmya Career Coach
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#a855f7', fontWeight: 600 }}>
-                    Online • Neural Engine Ready
+                  <Typography variant="caption" sx={{ color: accent, fontWeight: 600 }}>
+                    Example conversation
                   </Typography>
                 </Box>
               </Box>
@@ -102,8 +114,8 @@ export const AIAssistantSection: React.FC = () => {
                   sx={{
                     p: 2,
                     borderRadius: '14px',
-                    bgcolor: '#6366f1',
-                    color: '#ffffff',
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
                     maxWidth: '80%',
                     alignSelf: 'flex-end',
                   }}
@@ -122,7 +134,7 @@ export const AIAssistantSection: React.FC = () => {
                     maxWidth: '88%',
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: '#a855f7', fontWeight: 800, display: 'block', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: accent, fontWeight: 800, display: 'block', mb: 0.5 }}>
                     ✨ AI Suggested Bullet:
                   </Typography>
                   <Typography variant="body2" sx={{ fontStyle: 'italic', lineHeight: 1.6 }}>
