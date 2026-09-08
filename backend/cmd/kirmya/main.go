@@ -112,6 +112,7 @@ import (
 	interviewSvc "kirmya/internal/interview/service"
 
 	jobAlertsHttp "kirmya/internal/job_alerts/delivery/http"
+	"kirmya/internal/job_alerts/matcher"
 	jobAlertsRepo "kirmya/internal/job_alerts/repository"
 	jobAlertsSvc "kirmya/internal/job_alerts/service"
 
@@ -143,6 +144,7 @@ import (
 	netSvc "kirmya/internal/networking/service"
 
 	notifyHttp "kirmya/internal/notification/delivery/http"
+	"kirmya/internal/notification/delivery/outbox"
 	notifyRepo "kirmya/internal/notification/repository"
 	notifySvc "kirmya/internal/notification/service"
 
@@ -250,6 +252,7 @@ import (
 	cachePkg "kirmya/internal/shared/cache"
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/database"
+	"kirmya/internal/shared/mailer"
 	persistencePkg "kirmya/internal/shared/persistence"
 )
 
@@ -429,6 +432,28 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 
 	notifyRepository := notifyRepo.NewNotificationRepository(dbPool)
 	notifyService := notifySvc.NewNotificationService(notifyRepository, psBroker)
+
+	// Notifications are queued for delivery and drained by a worker.
+	//
+	// Until now the email and push branches logged "Dispatched" and sent
+	// nothing, so every job alert, recruiter message and application update
+	// reached the user only if they happened to open the app. The delivery
+	// table, its retry counters and the admin dead-letter view were already
+	// built; what was missing was anything that wrote to them.
+	deliveryOutbox := outbox.NewStore(dbPool)
+	notifyService = notifyService.WithOutbox(deliveryOutbox)
+
+	deliverySenders := []outbox.Sender{outbox.NewInAppSender()}
+	if mailSender := outbox.NewMailSender(mailer.FromEnv(), cfg.AppBaseURL); mailSender != nil {
+		deliverySenders = append(deliverySenders, mailSender)
+	}
+	deliveryWorker := outbox.NewWorker(deliveryOutbox, 25, deliverySenders...)
+	jobAlertMatcher := matcher.New(dbPool, deliveryOutbox)
+	// Logged at boot because a channel with no sender dead-letters everything
+	// queued for it, and that should be visible here rather than in a support
+	// ticket a week later.
+	slog.Info("notification delivery channels configured",
+		slog.Any("channels", deliveryWorker.Channels()))
 	notifyHandler := notifyHttp.NewNotificationHandler(notifyService)
 
 	authRepository := authRepo.NewAuthRepository(dbPool)
@@ -660,6 +685,16 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	legalService := legalSvc.NewLegalService(legalRepository)
 	legalHandler := legalHttp.NewLegalHandler(legalService)
 	adminLegalHandler := legalHttp.NewAdminLegalHandler(legalService)
+	// Drains the notification outbox. Claims are taken with FOR UPDATE SKIP
+	// LOCKED, so this is safe to run on every API replica at once.
+	go deliveryWorker.Run(context.Background(), 15*time.Second)
+
+	// Compares newly published jobs against saved alerts. Job alerts were
+	// create/read/update/delete with nothing on the other end: a candidate
+	// could save one and never hear anything, and the alert history screen
+	// read a table nothing wrote to.
+	go jobAlertMatcher.Run(context.Background(), 5*time.Minute)
+
 	go func() {
 		// Durable jobs are claimed with row locks, so restarts and multiple API
 		// replicas safely resume pending work without processing one job twice.
