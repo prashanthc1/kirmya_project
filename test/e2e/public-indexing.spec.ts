@@ -1,4 +1,5 @@
-import { test, expect, APIRequestContext } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { publishJob } from './helpers';
 
 /**
  * F10. A job posting must be in the HTML a crawler receives.
@@ -11,43 +12,6 @@ import { test, expect, APIRequestContext } from '@playwright/test';
  * These assertions all read the raw HTML — never the hydrated DOM — because
  * that is what a crawler gets.
  */
-
-const PASSWORD = 'Disposable-CI-password-123!';
-
-/** Publishes a real job and returns its id and title. */
-async function publishJob(request: APIRequestContext, api: string) {
-  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-  const email = `pw-seo-${suffix}@example.invalid`;
-
-  const registration = await request.post(`${api}/api/v1/auth/register`, {
-    data: {
-      firstName: 'SEO', lastName: 'Recruiter', email, password: PASSWORD,
-      acceptTerms: true, acceptPrivacy: true,
-    },
-  });
-  expect(registration.status()).toBe(201);
-
-  const login = await request.post(`${api}/api/v1/auth/login`, { data: { email, password: PASSWORD } });
-  expect(login.status()).toBe(200);
-  const token = (await login.json()).accessToken;
-
-  const title = `Indexable Staff Engineer ${suffix}`;
-  const created = await request.post(`${api}/api/v1/recruiter/jobs`, {
-    headers: { Authorization: `Bearer ${token}` },
-    data: {
-      title,
-      description:
-        'A real posting seeded by the public indexing spec, with enough description text to exercise the meta description trimming.',
-      status: 'Active',
-      workplaceType: 'Remote',
-      employmentType: 'Full-time',
-      location: 'Remote',
-    },
-  });
-  expect(created.status(), await created.text()).toBe(201);
-
-  return { id: (await created.json()).id as string, title };
-}
 
 test.describe('Public job indexing', () => {
   test('a job posting is in the served HTML, not only after hydration', async ({ request }) => {

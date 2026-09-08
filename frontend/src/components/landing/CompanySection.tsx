@@ -16,6 +16,14 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
   const router = useRouter();
   const theme = useTheme();
 
+  /*
+   * F15. #10b981 on a 15% wash of itself reads 2.11:1 in light mode — the worst
+   * contrast on the page, and it is 13px bold text, so no large-text exemption
+   * applies. As with the other eyebrows, one colour cannot serve both grounds:
+   * #065f46 on the light composite = 6.40:1, #34d399 on the dark one = 7.37:1.
+   */
+  const accent = theme.palette.mode === 'dark' ? '#34d399' : '#065f46';
+
   const companyBenefits = [
     'Premium Employer Branding & Company Pages',
     'Custom Career Portal & Job Listing Showcases',
@@ -32,14 +40,14 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={7}>
               <Chip
-                icon={<CorporateFareIcon sx={{ color: '#10b981 !important' }} />}
+                icon={<CorporateFareIcon sx={{ color: `${accent} !important` }} />}
                 label="FOR ENTERPRISES & ORGANIZATIONS"
                 sx={{
                   fontWeight: 800,
                   px: 1,
                   mb: 2,
                   bgcolor: 'rgba(16, 185, 129, 0.15)',
-                  color: '#10b981',
+                  color: accent,
                 }}
               />
               <Typography variant="h3" sx={{ fontWeight: 900, mb: 2, color: 'text.primary' }}>
@@ -53,7 +61,7 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
                 {companyBenefits.map((b, idx) => (
                   <Grid item xs={12} sm={6} key={idx}>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <CheckCircleOutlineIcon sx={{ color: '#10b981', fontSize: 20 }} />
+                      <CheckCircleOutlineIcon sx={{ color: accent, fontSize: 20 }} />
                       <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                         {b}
                       </Typography>

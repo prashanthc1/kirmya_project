@@ -1,10 +1,17 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import StatisticsSection from '../components/landing/StatisticsSection';
 import TestimonialsSection from '../components/landing/TestimonialsSection';
+import NetworkingSection from '../components/landing/NetworkingSection';
 import { landingApi } from '../features/landing/api';
+
+// NetworkingSection renders a router-driven call to action.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn(), back: vi.fn() }),
+  usePathname: () => '/',
+}));
 
 /**
  * F08. The landing page must not present anything it cannot support.
@@ -124,5 +131,37 @@ describe('landing API fallback', () => {
     for (const employer of ['Stripe', 'Emaar', 'Careem', 'Noon']) {
       expect(asText).not.toContain(employer);
     }
+  });
+});
+
+describe('the networking panel', () => {
+  it('does not present invented people as members of the network', () => {
+    // This panel rendered three named people at named employers with specific
+    // mutual-connection counts and a live "Connect" button each. None of them
+    // existed. It is the same defect as the testimonials, one section down the
+    // page, and it survived the first pass at F08.
+    const { container } = render(<NetworkingSection />);
+    const rendered = container.textContent ?? '';
+
+    for (const invented of [
+      'Sarah Chen',
+      'Tariq Al-Mansoor',
+      'Elena Rostova',
+      'Hyperion Labs',
+      'Nexus AI',
+      'Amazon Web Services',
+      'Mutual Connections',
+    ]) {
+      expect(rendered).not.toContain(invented);
+    }
+  });
+
+  it('describes the referral flow instead', () => {
+    const { container } = render(<NetworkingSection />);
+    const rendered = container.textContent ?? '';
+
+    expect(rendered).toContain('How a referral happens');
+    // And makes no unsourced claim about the industry.
+    expect(rendered).not.toContain('70%');
   });
 });
