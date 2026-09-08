@@ -264,7 +264,9 @@ function CommunitiesContent() {
 
 export default function CommunitiesDiscoveryPage() {
   return (
-    <AuthenticatedLayout>
+    <AuthenticatedLayout
+      /* Public discovery: listed in sitemap.ts as public, so a signed-out visitor must reach it. */
+      requireAuth={false}>
       <Suspense fallback={null}>
         <CommunitiesContent />
       </Suspense>

@@ -31,14 +31,34 @@ type UserAccount = User
 
 // Session tracks active refresh tokens and user sessions.
 type Session struct {
-	ID           uuid.UUID  `json:"id"`
-	UserID       uuid.UUID  `json:"userId"`
-	RefreshToken string     `json:"refreshToken"`
-	IPAddress    string     `json:"ipAddress"`
-	UserAgent    string     `json:"userAgent"`
-	ExpiresAt    time.Time  `json:"expiresAt"`
-	RevokedAt    *time.Time `json:"revokedAt,omitempty"`
-	CreatedAt    time.Time  `json:"createdAt"`
+	ID uuid.UUID `json:"id"`
+
+	UserID uuid.UUID `json:"userId"`
+
+	// RefreshToken holds the SHA-256 hash of the refresh token, never the token
+	// itself. The bearer value exists only in the response cookie and in the
+	// browser that received it, so read access to this table no longer hands
+	// anyone a usable session.
+	RefreshToken string `json:"-"`
+
+	IPAddress string `json:"ipAddress"`
+	UserAgent string `json:"userAgent"`
+
+	// RememberMe is the policy the session was created under. Rotation carries
+	// it forward so a 30-day session is not quietly reissued as a 7-day one.
+	RememberMe bool `json:"rememberMe"`
+
+	// ExpiresAt is the absolute end of the session chain. Every rotated session
+	// inherits it rather than starting a fresh lifetime, so an active user's
+	// session still ends when the policy says it does.
+	ExpiresAt time.Time `json:"expiresAt"`
+
+	// RotatedFrom links a session to the one it replaced, so a reuse incident
+	// can be traced back through the chain.
+	RotatedFrom *uuid.UUID `json:"-"`
+
+	RevokedAt *time.Time `json:"revokedAt,omitempty"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 // RefreshToken alias for Session for legacy references.

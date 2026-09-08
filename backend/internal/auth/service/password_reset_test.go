@@ -359,7 +359,7 @@ func TestSessionsAreRevokedOnReset(t *testing.T) {
 	}
 
 	// The session established before the reset must no longer refresh.
-	if _, _, refreshErr := f.svc.Refresh(f.ctx, refreshToken, "127.0.0.1", "go-test"); refreshErr == nil {
+	if _, refreshErr := f.svc.Refresh(f.ctx, refreshToken, "127.0.0.1", "go-test"); refreshErr == nil {
 		t.Fatal("a session from before the password reset can still be refreshed")
 	}
 }
@@ -499,7 +499,7 @@ func TestPasswordAndSessionRevocationAreInseparable(t *testing.T) {
 	}
 
 	// Effect two: the session established beforehand can no longer refresh.
-	if _, _, refreshErr := f.svc.Refresh(f.ctx, refreshToken, "127.0.0.1", "go-test"); refreshErr == nil {
+	if _, refreshErr := f.svc.Refresh(f.ctx, refreshToken, "127.0.0.1", "go-test"); refreshErr == nil {
 		t.Fatal("a session predating the password change can still be refreshed")
 	}
 }

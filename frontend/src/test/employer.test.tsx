@@ -30,6 +30,9 @@ vi.mock('../hooks/useAuth', () => ({
   default: () => ({
     user: { id: 'user-1', name: 'Test Employer' },
     isAuthenticated: true,
+    // The context exposes an explicit state machine; guards branch on it
+    // rather than inferring 'signed out' from a false boolean.
+    status: 'authenticated' as const,
     loading: false,
   }),
 }));

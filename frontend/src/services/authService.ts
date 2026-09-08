@@ -1,6 +1,24 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+/**
+ * The single API base every authenticated call goes through.
+ *
+ * NEXT_PUBLIC_API_URL is documented as including the version prefix, but the
+ * root .env.example published it without one, so a developer who copied the
+ * documented value got every auth call sent to /auth/refresh instead of
+ * /api/v1/auth/refresh — a 404 that reads as "the session did not survive the
+ * reload". Normalising here means either spelling reaches the same endpoints.
+ */
+const resolveApiBaseUrl = (): string => {
+  const configured = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').trim();
+  const withoutTrailingSlash = configured.replace(/\/+$/, '');
+  if (/\/api\/v\d+$/.test(withoutTrailingSlash)) {
+    return withoutTrailingSlash;
+  }
+  return `${withoutTrailingSlash}/api/v1`;
+};
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export const authApiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -11,7 +29,14 @@ export const authApiClient = axios.create({
   },
 });
 
-// In-memory access token storage
+/**
+ * The access token lives in this module closure and nowhere else.
+ *
+ * Never localStorage or sessionStorage: anything readable from JavaScript is
+ * readable by any script that gets injected into the page. Losing it on reload
+ * is the intended trade — the HttpOnly refresh cookie is what restores the
+ * session, and the browser never lets script near it.
+ */
 let accessTokenInMemory: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
@@ -19,6 +44,96 @@ export const setAccessToken = (token: string | null) => {
 };
 
 export const getAccessToken = () => accessTokenInMemory;
+
+/**
+ * Endpoints that must never trigger the refresh-on-401 interceptor.
+ *
+ * Refreshing in response to a failed refresh is an infinite loop, and refreshing
+ * in response to a failed login turns a wrong password into a spurious session
+ * request. Logout is here because a 401 there already means the session is gone.
+ */
+const NO_REFRESH_PATHS = ['/auth/login', '/auth/refresh', '/auth/logout', '/auth/register'];
+
+const skipsRefresh = (url?: string): boolean =>
+  !!url && NO_REFRESH_PATHS.some((path) => url.includes(path));
+
+/**
+ * A bare client for the refresh call itself, deliberately without the
+ * interceptors below. Sharing the instrumented client would let a failing
+ * refresh re-enter the interceptor that called it.
+ *
+ * Exported so tests can install an adapter on it; nothing in the app should
+ * call it directly — use refreshAccessToken().
+ */
+export const refreshClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  timeout: 15000,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+/**
+ * The in-flight refresh, if there is one.
+ *
+ * Every caller that needs a fresh access token awaits this same promise, so N
+ * simultaneous 401s produce exactly one POST /auth/refresh. That matters beyond
+ * efficiency: refresh tokens rotate, so a second concurrent refresh presents a
+ * token the first one has already spent, and the server has to decide whether it
+ * is looking at a race or a stolen token.
+ */
+let inFlightRefresh: Promise<string> | null = null;
+
+const performRefresh = async (): Promise<string> => {
+  try {
+    const { data } = await refreshClient.post('/auth/refresh', {});
+    const token = data?.accessToken as string | undefined;
+    if (!token) {
+      throw new Error('Refresh response carried no access token');
+    }
+    setAccessToken(token);
+    return token;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 409) {
+      // Another tab rotated the cookie first. Ours is stale but the session is
+      // very much alive, so retry once with the cookie that request set rather
+      // than reporting the user as signed out.
+      const { data } = await refreshClient.post('/auth/refresh', {});
+      const token = data?.accessToken as string | undefined;
+      if (!token) {
+        throw new Error('Refresh retry carried no access token');
+      }
+      setAccessToken(token);
+      return token;
+    }
+    setAccessToken(null);
+    throw error;
+  }
+};
+
+/**
+ * Exchanges the HttpOnly refresh cookie for a new access token, collapsing
+ * concurrent callers onto one request.
+ */
+export const refreshAccessToken = (): Promise<string> => {
+  if (!inFlightRefresh) {
+    inFlightRefresh = performRefresh().finally(() => {
+      inFlightRefresh = null;
+    });
+  }
+  return inFlightRefresh;
+};
+
+/**
+ * True when the failure means "this browser has no valid session", as opposed to
+ * "the request did not get through". A throttled or unreachable API must not be
+ * reported as a signed-out user: that is what turns a transient blip into an
+ * unexpected logout.
+ */
+export const isAuthenticationFailure = (error: unknown): boolean => {
+  if (!axios.isAxiosError(error)) return false;
+  const status = error.response?.status;
+  return status === 401 || status === 403;
+};
 
 // Generate unique client-side request IDs for tracing & correlation
 const generateRequestId = (): string => {
@@ -44,65 +159,48 @@ authApiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: auto-refresh access token on 401 error
-let isRefreshing = false;
-let failedQueue: Array<{ resolve: (token: string) => void; reject: (error: any) => void }> = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else if (token) {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
+/**
+ * Response interceptor: exchange the refresh cookie for a new access token when
+ * a call comes back 401, then replay that call exactly once.
+ *
+ * The previous implementation kept its own `isRefreshing` flag and a queue of
+ * pending resolvers. It worked, but it was a second copy of the single-flight
+ * logic — and the bootstrap path in AuthContext had a third, so a page load
+ * could issue two refreshes with the same cookie and race its own rotation.
+ * Everything now funnels through refreshAccessToken().
+ *
+ * `_retry` is set before the replay, so a request whose replay also comes back
+ * 401 is rejected rather than refreshed again. That is what bounds this: a
+ * request can cost at most one refresh, and a refresh can never trigger another.
+ */
 authApiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest: any = error.config;
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+
     if (
-      error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !originalRequest.url?.includes('/auth/login') &&
-      !originalRequest.url?.includes('/auth/refresh')
+      error.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      skipsRefresh(originalRequest.url)
     ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return authApiClient(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const { data } = await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-        const newAccessToken = data.accessToken;
-        setAccessToken(newAccessToken);
-        processQueue(null, newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return authApiClient(originalRequest);
-      } catch (refreshErr) {
-        processQueue(refreshErr, null);
-        setAccessToken(null);
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
-      }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    originalRequest._retry = true;
+
+    try {
+      const token = await refreshAccessToken();
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+      }
+      return authApiClient(originalRequest);
+    } catch (refreshErr) {
+      // The session could not be restored. Surface the original 401 rather than
+      // the refresh failure: the caller asked about its own request, and the
+      // context's bootstrap is what decides whether the user is signed out.
+      return Promise.reject(refreshErr);
+    }
   }
 );
 
@@ -173,6 +271,15 @@ export const authService = {
     return res.data;
   },
 
+  /**
+   * Ends the session on the server and locally.
+   *
+   * The in-memory token is cleared in `finally` so a failed request still leaves
+   * this tab signed out — but the caller is told the request failed, because a
+   * logout whose revocation did not land leaves the session alive on the server
+   * and the user should know to try again rather than walk away from a shared
+   * machine believing they are signed out.
+   */
   async logout() {
     try {
       await authApiClient.post('/auth/logout');
@@ -181,12 +288,14 @@ export const authService = {
     }
   },
 
+  /**
+   * Restores the session from the HttpOnly refresh cookie. Shares the same
+   * in-flight request as the 401 interceptor, so a page load that bootstraps
+   * while an API call is already retrying spends one refresh token, not two.
+   */
   async refresh() {
-    const res = await authApiClient.post('/auth/refresh');
-    if (res.data.accessToken) {
-      setAccessToken(res.data.accessToken);
-    }
-    return res.data;
+    const accessToken = await refreshAccessToken();
+    return { accessToken };
   },
 
   async verifyEmail(token: string) {

@@ -40,6 +40,9 @@ vi.mock('../context/AuthContext', () => ({
     setNotificationsCount: vi.fn(),
     authenticated: true,
     isAuthenticated: true,
+    // The context exposes an explicit state machine; guards branch on it
+    // rather than inferring 'signed out' from a false boolean.
+    status: 'authenticated' as const,
     loading: false,
     permissions: [],
   }),

@@ -38,9 +38,9 @@ import (
 	learningHttp "kirmya/internal/learning/delivery/http"
 	legalHttp "kirmya/internal/legal/delivery/http"
 	mediaHttp "kirmya/internal/media/delivery/http"
+	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
 	mobileHttp "kirmya/internal/mobile/delivery/http"
-	mentorshipHttp "kirmya/internal/mentorship/delivery/http"
 	nativeMobileHttp "kirmya/internal/native_mobile/delivery/http"
 	netHttp "kirmya/internal/networking/delivery/http"
 	notifyHttp "kirmya/internal/notification/delivery/http"
@@ -144,6 +144,11 @@ type RateLimitConfig struct {
 	// keeps the production allowance.
 	AuthRequestsPerMinute float64
 	AuthBurst             float64
+
+	// AuthSessionRequestsPerMinute and AuthSessionBurst size the separate bucket
+	// in front of the session endpoints, which every page load hits twice.
+	AuthSessionRequestsPerMinute float64
+	AuthSessionBurst             float64
 }
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
@@ -156,6 +161,10 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	}
 	engine.Use(middleware.SecurityHeaders())
 	engine.Use(middleware.CORS(deps.AllowedOrigins))
+	// CORS hides an unauthorised response; it does not stop the request from
+	// running. OriginGuard refuses the state-changing ones outright, which is
+	// what actually prevents a forged cross-site write.
+	engine.Use(middleware.OriginGuard(deps.AllowedOrigins))
 	registerSwagger(engine, cfg)
 	if deps.SystemHealthHandler == nil {
 		registerHealthCheck(engine)
@@ -207,7 +216,9 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 
 	api.GET("/metrics", metricsGuard(deps.Metrics), metricsHandler())
 
-	authHttp.RegisterRoutes(api, deps.AuthHandler, deps.AuthMiddleware, deps.RateLimit.AuthRequestsPerMinute, deps.RateLimit.AuthBurst)
+	authHttp.RegisterRoutesWithSessionLimit(api, deps.AuthHandler, deps.AuthMiddleware,
+		deps.RateLimit.AuthRequestsPerMinute, deps.RateLimit.AuthBurst,
+		deps.RateLimit.AuthSessionRequestsPerMinute, deps.RateLimit.AuthSessionBurst)
 	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler, deps.AdminAnalyticsHandler)
 	aiHttp.RegisterRoutes(api, deps.AIHandler)
 

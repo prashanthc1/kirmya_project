@@ -54,6 +54,14 @@ type Config struct {
 	AuthRateLimitRequestsPerMinute float64
 	AuthRateLimitBurst             float64
 
+	// AuthSessionRateLimitRequestsPerMinute and AuthSessionRateLimitBurst size
+	// the separate bucket in front of /auth/refresh, /auth/me, /auth/session and
+	// /auth/logout. Restoring a session costs two requests on every page load,
+	// so these endpoints cannot share the credential allowance without signing
+	// users out on reload; see internal/auth/delivery/http/routes.go.
+	AuthSessionRateLimitRequestsPerMinute float64
+	AuthSessionRateLimitBurst             float64
+
 	// MetricsUsername and MetricsPassword optionally put the Prometheus
 	// endpoint behind basic auth. Unset, it answers internal callers only.
 	MetricsUsername string
@@ -155,6 +163,9 @@ func LoadConfig() (*Config, error) {
 
 		AuthRateLimitRequestsPerMinute: getEnvAsFloat("AUTH_RATE_LIMIT_REQUESTS", 5),
 		AuthRateLimitBurst:             getEnvAsFloat("AUTH_RATE_LIMIT_BURST", 5),
+
+		AuthSessionRateLimitRequestsPerMinute: getEnvAsFloat("AUTH_SESSION_RATE_LIMIT_REQUESTS", 120),
+		AuthSessionRateLimitBurst:             getEnvAsFloat("AUTH_SESSION_RATE_LIMIT_BURST", 60),
 
 		MetricsUsername: getEnv("METRICS_USERNAME", ""),
 		MetricsPassword: getEnv("METRICS_PASSWORD", ""),

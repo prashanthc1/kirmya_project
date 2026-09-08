@@ -352,6 +352,9 @@ func main() {
 		Burst:                 cfg.RateLimitBurst,
 		AuthRequestsPerMinute: cfg.AuthRateLimitRequestsPerMinute,
 		AuthBurst:             cfg.AuthRateLimitBurst,
+
+		AuthSessionRequestsPerMinute: cfg.AuthSessionRateLimitRequestsPerMinute,
+		AuthSessionBurst:             cfg.AuthSessionRateLimitBurst,
 	}
 	deps.Metrics = router.MetricsConfig{
 		Username: cfg.MetricsUsername,
@@ -430,6 +433,11 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 
 	authRepository := authRepo.NewAuthRepository(dbPool)
 	authService := authSvc.NewAuthService(authRepository)
+	// The resolved cookie policy is logged once at boot. A refresh cookie the
+	// browser silently refuses — Secure over plain HTTP, SameSite=None without
+	// Secure — is otherwise invisible from the server side, and it presents as
+	// "users are signed out when they reload".
+	authService.SessionPolicy().LogSummary()
 	authHandler := authHttp.NewAuthHandler(authService)
 	authMiddleware := authMiddlewarePkg.NewAuthMiddleware(authService)
 

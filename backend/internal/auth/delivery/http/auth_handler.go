@@ -4,11 +4,12 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"os"
 	"strings"
+	"time"
 
 	"kirmya/internal/auth/dto"
 	"kirmya/internal/auth/service"
+	"kirmya/internal/shared/authcookie"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,20 +17,19 @@ import (
 
 type AuthHandler struct {
 	service *service.AuthService
+
+	// cookie is the one refresh-cookie policy this handler writes through.
+	// Login, refresh and logout used to each build their own SetCookie call and
+	// their attributes drifted, so a cookie set with SameSite=Strict was cleared
+	// with no SameSite at all.
+	cookie authcookie.Config
 }
 
+// NewAuthHandler builds the handler against the session policy the service
+// already resolved, so the cookie's Max-Age and the session row's expiry are the
+// same number rather than two constants maintained in parallel.
 func NewAuthHandler(s *service.AuthService) *AuthHandler {
-	return &AuthHandler{service: s}
-}
-
-// secureRefreshCookie reports whether the refresh cookie carries the Secure
-// flag. It is always set except under APP_ENV=test, where the browser suite
-// serves the app over plain HTTP: WebKit refuses to store a Secure cookie on an
-// insecure origin — Chromium and Firefox make a localhost exception — so the
-// session could not survive a reload there and that gate could not be exercised
-// at all. Development and production are unaffected.
-func secureRefreshCookie() bool {
-	return !strings.EqualFold(strings.TrimSpace(os.Getenv("APP_ENV")), "test")
+	return &AuthHandler{service: s, cookie: s.SessionPolicy()}
 }
 
 // Register handles POST /api/v1/auth/register
@@ -112,14 +112,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Set HttpOnly, Secure, SameSite=Strict cookie for refresh token
-	cookieMaxAge := 7 * 24 * 3600
-	if payload.RememberMe {
-		cookieMaxAge = 30 * 24 * 3600
-	}
-
-	c.SetSameSite(http.SameSiteStrictMode)
-	c.SetCookie("refresh_token", refreshToken, cookieMaxAge, "/api/v1/auth", "", secureRefreshCookie(), true)
+	// The cookie expires exactly when the session row does, and both come from
+	// the Remember Me policy the request asked for.
+	h.cookie.Set(c, refreshToken, time.Now().UTC().Add(h.cookie.Lifetime(payload.RememberMe)))
 
 	userDTO := dto.UserProfileDTO{
 		ID:               u.ID,
@@ -141,44 +136,68 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.AuthResponseDTO{
 		AccessToken:      accessToken,
 		AccessTokenCamel: accessToken,
-		ExpiresIn:        86400,
-		User:             userDTO,
-		Message:          "Login successful",
+		// The real lifetime of the token in this response. It was hardcoded to
+		// 86400 while the token expired in fifteen minutes, so any client that
+		// scheduled a refresh against it woke up almost a day too late.
+		ExpiresIn: int64(h.service.AccessTokenTTL().Seconds()),
+		User:      userDTO,
+		Message:   "Login successful",
 	})
 }
 
 // Refresh handles POST /api/v1/auth/refresh
 func (h *AuthHandler) Refresh(c *gin.Context) {
-	tokenStr, err := c.Cookie("refresh_token")
-	if err != nil || tokenStr == "" {
+	tokenStr := h.cookie.Read(c)
+	if tokenStr == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing refresh token cookie"})
 		return
 	}
 
-	ipAddress := c.ClientIP()
-	userAgent := c.Request.UserAgent()
-
-	newAccessToken, newRefreshToken, err := h.service.Refresh(c.Request.Context(), tokenStr, ipAddress, userAgent)
+	result, err := h.service.Refresh(c.Request.Context(), tokenStr, c.ClientIP(), c.Request.UserAgent())
 	if err != nil {
-		c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", secureRefreshCookie(), true)
+		// A refresh that lost a race against another in-flight refresh from the
+		// same page load must not clear the cookie: the winning request already
+		// replaced it, and deleting it here would sign the user out of the very
+		// reload that was supposed to keep them signed in. 409 tells the client
+		// to retry rather than to give up on the session.
+		if errors.Is(err, service.ErrSessionRotationRaced) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		h.cookie.Clear(c)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.SetSameSite(http.SameSiteStrictMode)
-	c.SetCookie("refresh_token", newRefreshToken, 7*24*3600, "/api/v1/auth", "", secureRefreshCookie(), true)
+	// The rotated cookie inherits the session's absolute expiry rather than
+	// starting a fresh lifetime, so a Remember Me session keeps its own clock and
+	// no session renews itself forever.
+	h.cookie.Set(c, result.RefreshToken, result.ExpiresAt)
 
-	c.JSON(http.StatusOK, gin.H{"accessToken": newAccessToken})
+	c.JSON(http.StatusOK, gin.H{
+		"accessToken": result.AccessToken,
+		"expiresIn":   int(h.service.AccessTokenTTL().Seconds()),
+	})
 }
 
 // Logout handles POST /api/v1/auth/logout
 func (h *AuthHandler) Logout(c *gin.Context) {
-	tokenStr, err := c.Cookie("refresh_token")
-	if err == nil && tokenStr != "" {
-		_ = h.service.Logout(c.Request.Context(), tokenStr, c.ClientIP())
+	tokenStr := h.cookie.Read(c)
+
+	// The cookie is cleared whatever happens on the server, so the browser stops
+	// presenting a token it can no longer use. But a revocation that failed is
+	// not a successful logout: the session is still live for anyone holding that
+	// token, and saying "logged out" would be false.
+	if tokenStr != "" {
+		if err := h.service.Logout(c.Request.Context(), tokenStr, c.ClientIP()); err != nil {
+			h.cookie.Clear(c)
+			slog.Error("logout could not revoke the session", slog.String("error", err.Error()))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Sign-out could not be completed. Please try again."})
+			return
+		}
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/api/v1/auth", "", secureRefreshCookie(), true)
+	h.cookie.Clear(c)
 	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
 
@@ -286,8 +305,8 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 
 // GetSession handles GET /api/v1/auth/session
 func (h *AuthHandler) GetSession(c *gin.Context) {
-	tokenStr, err := c.Cookie("refresh_token")
-	if err != nil || tokenStr == "" {
+	tokenStr := h.cookie.Read(c)
+	if tokenStr == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Active session not found"})
 		return
 	}
