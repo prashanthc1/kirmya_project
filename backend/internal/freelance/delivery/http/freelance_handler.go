@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"kirmya/internal/freelance/domain"
@@ -124,7 +125,14 @@ func (h *FreelanceHandler) AcceptProposal(c *gin.Context) {
 	}
 	contract, err := h.svc.AcceptProposal(c.Request.Context(), clientID, propID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		switch {
+		case errors.Is(err, service.ErrNotProjectOwner):
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		case errors.Is(err, service.ErrProposalAlreadyAccepted), errors.Is(err, service.ErrProposalNotOpen):
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not accept this proposal"})
+		}
 		return
 	}
 

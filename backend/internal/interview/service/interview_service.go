@@ -42,7 +42,7 @@ type InterviewService interface {
 	AddRound(ctx context.Context, interviewID uuid.UUID, req domain.CreateRoundRequest) (*domain.InterviewRound, error)
 	UpdateRoundStatus(ctx context.Context, roundID uuid.UUID, status string) error
 
-	SubmitFeedback(ctx context.Context, roundID uuid.UUID, interviewerID uuid.UUID, interviewerName string, req domain.SubmitFeedbackRequest) (*domain.InterviewFeedback, error)
+	SubmitFeedback(ctx context.Context, roundID uuid.UUID, interviewerID uuid.UUID, req domain.SubmitFeedbackRequest) (*domain.InterviewFeedback, error)
 	GetRoundFeedback(ctx context.Context, roundID uuid.UUID) ([]domain.InterviewFeedback, error)
 
 	SetCandidateAvailability(ctx context.Context, candidateID uuid.UUID, req domain.SetAvailabilityRequest) (*domain.CandidateAvailability, error)
@@ -307,7 +307,15 @@ func (s *interviewService) UpdateRoundStatus(ctx context.Context, roundID uuid.U
 	return s.repo.UpdateRoundStatus(ctx, roundID, status)
 }
 
-func (s *interviewService) SubmitFeedback(ctx context.Context, roundID uuid.UUID, interviewerID uuid.UUID, interviewerName string, req domain.SubmitFeedbackRequest) (*domain.InterviewFeedback, error) {
+func (s *interviewService) SubmitFeedback(ctx context.Context, roundID uuid.UUID, interviewerID uuid.UUID, req domain.SubmitFeedbackRequest) (*domain.InterviewFeedback, error) {
+	// Feedback is signed by the account writing it. The name used to come from a
+	// gin context key nothing sets, so every entry read "Interviewer".
+	person, err := s.repo.ResolveUser(ctx, interviewerID)
+	if err != nil {
+		return nil, fmt.Errorf("resolve the interviewer: %w", err)
+	}
+	interviewerName := person.Name
+
 	// Find corresponding round and interview
 	var interviewID uuid.UUID
 	rounds, _ := s.repo.GetRoundsByInterviewID(ctx, uuid.Nil)

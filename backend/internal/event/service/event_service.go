@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"kirmya/internal/event/domain"
@@ -144,21 +145,20 @@ func (s *eventService) RegisterAttendee(ctx context.Context, userID uuid.UUID, e
 		return nil, errors.New("user is already registered for this event")
 	}
 
-	userName := payload.UserName
-	if userName == "" {
-		userName = "Alex Rivera"
-	}
-	userEmail := payload.UserEmail
-	if userEmail == "" {
-		userEmail = "alex.rivera@example.com"
+	// The attendee is whoever is signed in. These two used to be taken from the
+	// request body, so a caller could register under any name and address, and
+	// an omitted one became "Alex Rivera" at alex.rivera@example.com.
+	person, err := s.repo.ResolveUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("resolve the account being registered: %w", err)
 	}
 
 	att := &domain.EventAttendee{
 		ID:        uuid.New(),
 		EventID:   eventID,
 		UserID:    userID,
-		UserName:  userName,
-		UserEmail: userEmail,
+		UserName:  person.Name,
+		UserEmail: person.Email,
 		Status:    domain.AttendeeStatusRegistered,
 		CreatedAt: time.Now(),
 	}

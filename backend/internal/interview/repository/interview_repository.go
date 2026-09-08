@@ -7,12 +7,17 @@ import (
 	"time"
 
 	"kirmya/internal/interview/domain"
+	"kirmya/internal/shared/identity"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type InterviewRepository interface {
+	// ResolveUser returns the name on the account a piece of feedback is signed
+	// with.
+	ResolveUser(ctx context.Context, userID uuid.UUID) (identity.Person, error)
+
 	CreateInterview(ctx context.Context, interview *domain.Interview) error
 	GetInterviewByID(ctx context.Context, id uuid.UUID) (*domain.Interview, error)
 	ListInterviews(ctx context.Context, candidateID, organizerID *uuid.UUID, status string) ([]domain.Interview, error)
@@ -502,4 +507,10 @@ func (r *pgxInterviewRepository) DeleteAvailability(ctx context.Context, id uuid
 	defer r.mu.Unlock()
 	delete(r.availability, id)
 	return nil
+}
+
+// ResolveUser reads the interviewer's own name. It used to come from a gin
+// context key nothing sets, so every piece of feedback was signed "Interviewer".
+func (r *pgxInterviewRepository) ResolveUser(ctx context.Context, userID uuid.UUID) (identity.Person, error) {
+	return identity.Resolve(ctx, r.pool, userID)
 }

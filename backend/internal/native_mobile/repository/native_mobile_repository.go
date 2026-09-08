@@ -64,8 +64,10 @@ func (r *postgresNativeMobileRepository) RegisterDevice(ctx context.Context, dev
 		INSERT INTO user_devices (
 			id, user_id, device_id, platform, device_model, os_version, app_version, is_active, last_active_at, created_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-		ON CONFLICT (device_id) DO UPDATE SET
-			user_id = EXCLUDED.user_id,
+		-- The unique index on this table is (user_id, device_id). Conflicting on
+		-- device_id alone matched no constraint, so every registration answered
+		-- 500 and no device was ever recorded.
+		ON CONFLICT (user_id, device_id) DO UPDATE SET
 			platform = EXCLUDED.platform,
 			device_model = EXCLUDED.device_model,
 			os_version = EXCLUDED.os_version,
@@ -73,10 +75,19 @@ func (r *postgresNativeMobileRepository) RegisterDevice(ctx context.Context, dev
 			is_active = EXCLUDED.is_active,
 			last_active_at = EXCLUDED.last_active_at
 	`
-	_, err := r.pool.Exec(ctx, query,
+	if _, err := r.pool.Exec(ctx, query,
 		dev.ID, dev.UserID, dev.DeviceID, dev.Platform, dev.DeviceModel,
 		dev.OSVersion, dev.AppVersion, dev.IsActive, dev.LastActiveAt, dev.CreatedAt,
-	)
+	); err != nil {
+		return err
+	}
+
+	// A handset registered by a second account stops being active for the first,
+	// so the previous user does not keep receiving pushes on a device they have
+	// signed out of.
+	_, err := r.pool.Exec(ctx,
+		`UPDATE user_devices SET is_active = false WHERE device_id = $1 AND user_id <> $2`,
+		dev.DeviceID, dev.UserID)
 	return err
 }
 
@@ -148,9 +159,9 @@ func (r *postgresNativeMobileRepository) SavePushToken(ctx context.Context, toke
 		INSERT INTO push_tokens (
 			id, device_id, user_id, provider, token, created_at, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7)
-		ON CONFLICT (device_id) DO UPDATE SET
+		-- Same again: the constraint here is (device_id, provider).
+		ON CONFLICT (device_id, provider) DO UPDATE SET
 			user_id = EXCLUDED.user_id,
-			provider = EXCLUDED.provider,
 			token = EXCLUDED.token,
 			updated_at = EXCLUDED.updated_at
 	`

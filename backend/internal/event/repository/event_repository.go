@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kirmya/internal/event/domain"
+	"kirmya/internal/shared/identity"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -14,6 +15,9 @@ import (
 )
 
 type EventRepository interface {
+	// ResolveUser returns the name and address on the account being registered.
+	ResolveUser(ctx context.Context, userID uuid.UUID) (identity.Person, error)
+
 	CreateHost(ctx context.Context, host *domain.EventHost) error
 	GetHostByID(ctx context.Context, id uuid.UUID) (*domain.EventHost, error)
 
@@ -374,4 +378,11 @@ func (r *pgxEventRepository) CancelAttendee(ctx context.Context, eventID, userID
 		}
 	}
 	return fmt.Errorf("attendee registration not found")
+}
+
+// ResolveUser reads the identity an attendee row is recorded under. It used to
+// come from the request body, so an attendee list could be filled with any name
+// and address the caller chose, and an omitted one became "Alex Rivera".
+func (r *pgxEventRepository) ResolveUser(ctx context.Context, userID uuid.UUID) (identity.Person, error) {
+	return identity.Resolve(ctx, r.pool, userID)
 }

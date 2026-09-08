@@ -18,7 +18,7 @@ type AssessmentService interface {
 	GetAssessments(ctx context.Context, category, level string) ([]domain.Assessment, error)
 	GetAssessmentForRunner(ctx context.Context, id uuid.UUID) (*domain.Assessment, error)
 
-	SubmitAssessment(ctx context.Context, userID uuid.UUID, userName string, assessmentID uuid.UUID, req domain.SubmitTestRequest) (*domain.UserAssessmentResult, error)
+	SubmitAssessment(ctx context.Context, userID uuid.UUID, assessmentID uuid.UUID, req domain.SubmitTestRequest) (*domain.UserAssessmentResult, error)
 	GetUserResults(ctx context.Context, userID uuid.UUID) ([]domain.UserAssessmentResult, error)
 	GetUserBadges(ctx context.Context, userID uuid.UUID) ([]domain.SkillBadge, error)
 }
@@ -57,7 +57,17 @@ func (s *assessmentService) GetAssessmentForRunner(ctx context.Context, id uuid.
 	return assessment, nil
 }
 
-func (s *assessmentService) SubmitAssessment(ctx context.Context, userID uuid.UUID, userName string, assessmentID uuid.UUID, req domain.SubmitTestRequest) (*domain.UserAssessmentResult, error) {
+func (s *assessmentService) SubmitAssessment(ctx context.Context, userID uuid.UUID, assessmentID uuid.UUID, req domain.SubmitTestRequest) (*domain.UserAssessmentResult, error) {
+	// The name on a result, and on any badge issued from it, comes from the
+	// account. It used to come from a gin context key nothing sets, and fell
+	// back to "Alex Rivera" - so every stored result and every issued skill
+	// badge carried that name.
+	person, err := s.repo.ResolveUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("resolve the account this result belongs to: %w", err)
+	}
+	userName := person.Name
+
 	assessment, err := s.repo.GetAssessmentByID(ctx, assessmentID)
 	if err != nil {
 		return nil, fmt.Errorf("assessment not found: %w", err)
@@ -142,9 +152,6 @@ func (s *assessmentService) SubmitAssessment(ctx context.Context, userID uuid.UU
 	// Automated Skill Verification & Badge Issuance upon passing!
 	if passed {
 		badgeCode := fmt.Sprintf("BADGE-%X-%d", rand.Intn(0xFFFFFF), time.Now().Unix())
-		if userName == "" {
-			userName = "Alex Rivera"
-		}
 
 		badge := &domain.SkillBadge{
 			ID:               uuid.New(),

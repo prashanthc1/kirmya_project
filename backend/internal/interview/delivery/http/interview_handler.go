@@ -190,12 +190,7 @@ func (h *InterviewHandler) SubmitFeedback(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
 		return
 	}
-	interviewerName := c.GetString("user_name")
-	if interviewerName == "" {
-		interviewerName = "Interviewer"
-	}
-
-	feedback, err := h.svc.SubmitFeedback(c.Request.Context(), roundID, interviewerID, interviewerName, req)
+	feedback, err := h.svc.SubmitFeedback(c.Request.Context(), roundID, interviewerID, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

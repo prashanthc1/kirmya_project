@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"kirmya/internal/assessment/domain"
+	"kirmya/internal/shared/identity"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -26,6 +27,10 @@ type AssessmentRepository interface {
 	IssueBadge(ctx context.Context, badge *domain.SkillBadge) error
 	CalculatePercentileRank(ctx context.Context, assessmentID uuid.UUID, score int) int
 	GetBadgeByVerificationCode(ctx context.Context, code string) (*domain.SkillBadge, error)
+
+	// ResolveUser returns the name and address on the account a result or badge
+	// is being recorded for.
+	ResolveUser(ctx context.Context, userID uuid.UUID) (identity.Person, error)
 }
 
 type postgresAssessmentRepository struct {
@@ -428,4 +433,11 @@ func (r *postgresAssessmentRepository) seedInitialDataIfMemory() {
 			QuestionOrder:      2,
 		},
 	}
+}
+
+// ResolveUser reads the identity a result or badge is attributed to. The name
+// used to come from a gin context key nothing sets, so every record was written
+// under a person who does not exist.
+func (r *postgresAssessmentRepository) ResolveUser(ctx context.Context, userID uuid.UUID) (identity.Person, error) {
+	return identity.Resolve(ctx, r.pool, userID)
 }

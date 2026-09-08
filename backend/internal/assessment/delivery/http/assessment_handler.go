@@ -76,12 +76,7 @@ func (h *AssessmentHandler) SubmitAssessment(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
 		return
 	}
-	userName := c.GetString("user_name")
-	if userName == "" {
-		userName = "Alex Rivera"
-	}
-
-	result, err := h.svc.SubmitAssessment(c.Request.Context(), userID, userName, id, req)
+	result, err := h.svc.SubmitAssessment(c.Request.Context(), userID, id, req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

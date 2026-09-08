@@ -2,12 +2,21 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"kirmya/internal/freelance/domain"
 	"kirmya/internal/freelance/repository"
 
 	"github.com/google/uuid"
+)
+
+// Refusals a caller can act on, rather than a 500 with a driver message.
+var (
+	ErrNotProjectOwner         = errors.New("only the client who posted this project can accept a proposal on it")
+	ErrProposalAlreadyAccepted = errors.New("this proposal has already been accepted")
+	ErrProposalNotOpen         = errors.New("this proposal is not open")
 )
 
 type FreelanceService interface {
@@ -100,8 +109,26 @@ func (s *freelanceService) AcceptProposal(ctx context.Context, clientID uuid.UUI
 		return nil, err
 	}
 
-	_ = s.repo.UpdateProposalStatus(ctx, proposalID, domain.ProposalStatusAccepted)
-	_ = s.repo.UpdateProjectStatus(ctx, proj.ID, domain.ProjectStatusInProgress)
+	// Only the client who posted the project may accept a proposal on it. This
+	// was unchecked, so the freelancer who wrote the proposal could accept it
+	// themselves - and could do it repeatedly, each time writing another
+	// contract for the same work.
+	if proj.ClientID != clientID {
+		return nil, ErrNotProjectOwner
+	}
+	if prop.Status == domain.ProposalStatusAccepted {
+		return nil, ErrProposalAlreadyAccepted
+	}
+	if prop.Status != "" && prop.Status != domain.ProposalStatusSubmitted {
+		return nil, fmt.Errorf("%w: proposal is %s", ErrProposalNotOpen, prop.Status)
+	}
+
+	if err := s.repo.UpdateProposalStatus(ctx, proposalID, domain.ProposalStatusAccepted); err != nil {
+		return nil, fmt.Errorf("accept proposal: %w", err)
+	}
+	if err := s.repo.UpdateProjectStatus(ctx, proj.ID, domain.ProjectStatusInProgress); err != nil {
+		return nil, fmt.Errorf("move project to in progress: %w", err)
+	}
 
 	contract := &domain.Contract{
 		ID:           uuid.New(),

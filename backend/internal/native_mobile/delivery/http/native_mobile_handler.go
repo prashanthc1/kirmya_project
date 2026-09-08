@@ -78,13 +78,20 @@ func (h *NativeMobileHandler) SendPushNotification(c *gin.Context) {
 		return
 	}
 
-	if payload.UserID == uuid.Nil {
-		resolved, ok := h.getUserID(c)
-		if !ok {
-			return
-		}
-		payload.UserID = resolved
+	// The recipient is the caller. A user_id in the body used to be honoured
+	// without a check, so any signed-in account could send a push notification
+	// to anyone on the platform. Delivery to another user belongs behind the
+	// notification pipeline, which decides who gets what, not behind an endpoint
+	// the recipient's own device calls.
+	recipient, ok := h.getUserID(c)
+	if !ok {
+		return
 	}
+	if payload.UserID != uuid.Nil && payload.UserID != recipient {
+		c.JSON(http.StatusForbidden, gin.H{"error": "a push can only be sent to the signed-in account"})
+		return
+	}
+	payload.UserID = recipient
 
 	if err := h.svc.SendPushNotification(c.Request.Context(), payload); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

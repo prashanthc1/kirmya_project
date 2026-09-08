@@ -342,3 +342,152 @@ func TestEmployerPortalResolvesItsOwnCompany(t *testing.T) {
 		t.Errorf("employer dashboard for an account with no company: got %d, want 404. Body: %s", status, truncateBody(body))
 	}
 }
+
+// TestFreelanceProposalAcceptanceIsOwnedAndSingleUse covers 10E. Accepting a
+// proposal checked nothing: the freelancer who wrote it could accept it
+// themselves, and any number of times, each acceptance writing another contract
+// for the same work.
+func TestFreelanceProposalAcceptanceIsOwnedAndSingleUse(t *testing.T) {
+	base := batch5Base(t)
+	client := registerAndLogin(t, base)
+	freelancer := registerAndLogin(t, base)
+
+	projectID := createdID(t, do(t, http.MethodPost, base+"/api/v1/freelance/projects", client.token, map[string]any{
+		"title":       "Batch5 Lifecycle Probe",
+		"description": "Posted by the batch 5 lifecycle checks.",
+		"budget":      900.0,
+	}), "project")
+
+	proposalID := createdID(t, do(t, http.MethodPost, base+"/api/v1/freelance/projects/"+projectID+"/proposals", freelancer.token, map[string]any{
+		"bid_amount":     800.0,
+		"estimated_days": 10,
+		"cover_letter":   "Submitted by the batch 5 lifecycle checks.",
+	}), "proposal")
+
+	accept := "/api/v1/freelance/proposals/" + proposalID + "/accept"
+
+	resp := do(t, http.MethodPost, base+accept, freelancer.token, map[string]any{})
+	raw, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Errorf("the freelancer accepting their own proposal: got %d, want 403. Body: %s", resp.StatusCode, truncateBody(string(raw)))
+	}
+
+	resp = do(t, http.MethodPost, base+accept, client.token, map[string]any{})
+	raw, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		t.Fatalf("the client accepting: got %d, want 201. Body: %s", resp.StatusCode, truncateBody(string(raw)))
+	}
+
+	resp = do(t, http.MethodPost, base+accept, client.token, map[string]any{})
+	raw, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusConflict {
+		t.Errorf("accepting a second time: got %d, want 409. Body: %s", resp.StatusCode, truncateBody(string(raw)))
+	}
+}
+
+// TestMobileDeviceAndPushBoundaries covers 10H. Device registration answered
+// 500 on every call - it conflicted on a column with no matching constraint -
+// so no device was ever recorded, and the push endpoint honoured a user_id from
+// the body, so any account could push to any other.
+func TestMobileDeviceAndPushBoundaries(t *testing.T) {
+	base := batch5Base(t)
+	owner := registerAndLogin(t, base)
+	other := registerAndLogin(t, base)
+
+	device := map[string]any{
+		"device_id":    "batch5-" + owner.id,
+		"platform":     "ios",
+		"device_model": "iPhone",
+		"os_version":   "18.0",
+		"app_version":  "1.0.0",
+	}
+	for attempt := 1; attempt <= 2; attempt++ {
+		resp := do(t, http.MethodPost, base+"/api/v1/mobile/devices/register", owner.token, device)
+		raw, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+			t.Fatalf("registering a device (attempt %d): got %d, want 201. Body: %s", attempt, resp.StatusCode, truncateBody(string(raw)))
+		}
+	}
+
+	resp := do(t, http.MethodPost, base+"/api/v1/mobile/push/send", owner.token, map[string]any{
+		"user_id": other.id,
+		"title":   "Batch5",
+		"body":    "This must not be deliverable to another account.",
+	})
+	raw, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		t.Errorf("pushing to another account: got %d, want 403. Body: %s", resp.StatusCode, truncateBody(string(raw)))
+	}
+}
+
+// TestEventAttendeeIsTheSignedInAccount covers the identity a record is written
+// under. The attendee name and address came from the request body, so a list
+// could be filled with anyone, and an omitted one became "Alex Rivera".
+func TestEventAttendeeIsTheSignedInAccount(t *testing.T) {
+	base := batch5Base(t)
+	host := registerAndLogin(t, base)
+	guest := registerAndLogin(t, base)
+
+	eventID := createdID(t, do(t, http.MethodPost, base+"/api/v1/events", host.token, map[string]any{
+		"title":       "Batch5 Identity Probe",
+		"event_type":  "webinar",
+		"description": "Created by the batch 5 identity checks.",
+		"start_time":  "2026-12-02T10:00:00Z",
+		"end_time":    "2026-12-02T11:00:00Z",
+	}), "event")
+
+	resp := do(t, http.MethodPost, base+"/api/v1/events/"+eventID+"/register", guest.token, map[string]any{
+		"user_name":  "Someone Else",
+		"user_email": "forged@example.invalid",
+	})
+	raw, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		t.Fatalf("registering for an event: got %d, want 201. Body: %s", resp.StatusCode, truncateBody(string(raw)))
+	}
+	body := string(raw)
+	if strings.Contains(body, "Someone Else") || strings.Contains(body, "forged@example.invalid") {
+		t.Errorf("the attendee was recorded under the name the request body claimed: %s", truncateBody(body))
+	}
+	if strings.Contains(body, "Alex Rivera") {
+		t.Errorf("the attendee was recorded under the invented default name: %s", truncateBody(body))
+	}
+	if !strings.Contains(body, guest.email) {
+		t.Errorf("the attendee was not recorded under the signed-in account: %s", truncateBody(body))
+	}
+}
+
+// createdID pulls the id out of a creation response, which the modules wrap
+// under their own key or return bare.
+func createdID(t *testing.T, resp *http.Response, key string) string {
+	t.Helper()
+	defer resp.Body.Close()
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		t.Fatalf("create %s: got %d, want 201. Body: %s", key, resp.StatusCode, truncateBody(string(raw)))
+	}
+
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		t.Fatalf("create %s: %v. Body: %s", key, err, truncateBody(string(raw)))
+	}
+	if wrapped, ok := payload[key]; ok {
+		var inner map[string]json.RawMessage
+		if err := json.Unmarshal(wrapped, &inner); err == nil {
+			payload = inner
+		}
+	}
+	var id string
+	if err := json.Unmarshal(payload["id"], &id); err != nil || id == "" {
+		t.Fatalf("create %s: no id in the response. Body: %s", key, truncateBody(string(raw)))
+	}
+	return id
+}
