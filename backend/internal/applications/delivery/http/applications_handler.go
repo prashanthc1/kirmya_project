@@ -2,7 +2,9 @@ package http
 
 import (
 	"errors"
+	"github.com/jackc/pgx/v5/pgconn"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -90,7 +92,23 @@ func (h *ApplicationsHandler) ApplyToJob(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// Two applications to the same posting used to deadlock, and this line
+		// answered the applicant with `{"error":"ERROR: deadlock detected
+		// (SQLSTATE 40P01)"}` — a database internal handed to a browser, and a
+		// message nobody could act on. The deadlock itself is fixed in the
+		// repository; a contended write can still lose, so it is reported as
+		// something to retry rather than as a fault in the request.
+		if isTransientWriteConflict(err) {
+			slog.Warn("application write lost a contended transaction",
+				slog.String("job_id", payload.JobID.String()), slog.String("error", err.Error()))
+			c.JSON(http.StatusConflict, gin.H{"error": "That did not go through. Please try again."})
+			return
+		}
+		// The detail goes to the log, where an operator can read it. The caller
+		// gets an answer, not the internals.
+		slog.Error("application could not be created",
+			slog.String("job_id", payload.JobID.String()), slog.String("error", err.Error()))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Your application could not be submitted."})
 		return
 	}
 	c.JSON(http.StatusCreated, detail)
@@ -499,4 +517,18 @@ func (h *ApplicationsHandler) GetAIInsights(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, insights)
+}
+
+// isTransientWriteConflict reports whether a write failed because it lost a
+// race, rather than because it was wrong.
+//
+// 40P01 is a deadlock and 40001 a serialization failure. Both mean the same
+// thing to a caller: nothing was written, and the same request may well succeed
+// if sent again.
+func isTransientWriteConflict(err error) bool {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return false
+	}
+	return pgErr.Code == "40P01" || pgErr.Code == "40001"
 }
