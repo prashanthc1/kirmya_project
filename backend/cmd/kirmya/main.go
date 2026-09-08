@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -468,8 +469,9 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	deliveryOutbox := outbox.NewStore(dbPool)
 	notifyService = notifyService.WithOutbox(deliveryOutbox)
 
+	appMailer := mailer.FromEnv()
 	deliverySenders := []outbox.Sender{outbox.NewInAppSender()}
-	if mailSender := outbox.NewMailSender(mailer.FromEnv(), cfg.AppBaseURL); mailSender != nil {
+	if mailSender := outbox.NewMailSender(appMailer, cfg.AppBaseURL); mailSender != nil {
 		deliverySenders = append(deliverySenders, mailSender)
 	}
 	deliveryWorker := outbox.NewWorker(deliveryOutbox, 25, deliverySenders...)
@@ -749,10 +751,6 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	supportHandler := supportHttp.NewSupportHandler(supportService)
 	adminSupportHandler := supportHttp.NewAdminSupportHandler(supportService)
 
-	sysHealthRepository := sysHealthRepo.NewHealthRepository(sqlDB)
-	sysHealthService := sysHealthSvc.NewSystemHealthService(sysHealthRepository, sqlDB)
-	sysHealthHandler := sysHealthHttp.NewSystemHealthHandler(sysHealthService)
-
 	mentorshipRepository := mentorshipRepo.NewPostgresMentorshipRepository(dbPool)
 	mentorshipService := mentorshipSvc.NewMentorshipService(mentorshipRepository)
 	mentorshipHandler := mentorshipHttp.NewMentorshipHandler(mentorshipService)
@@ -793,6 +791,14 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 			PublicBaseURL:   os.Getenv("STORAGE_PUBLIC_BASE_URL"),
 		}, localStorageProvider)
 	}
+
+	// Built here, after the storage provider, because the health report probes
+	// it: a status page that says storage is fine without touching storage is
+	// what this replaces.
+	sysHealthRepository := sysHealthRepo.NewHealthRepository(sqlDB)
+	sysHealthService := sysHealthSvc.NewSystemHealthServiceWithProbes(sysHealthRepository, sqlDB,
+		buildHealthProbes(cfg, appCache, brokerKind, deliveryOutbox, storageProvider, appMailer))
+	sysHealthHandler := sysHealthHttp.NewSystemHealthHandler(sysHealthService)
 
 	fileRepository := mediaRepo.NewFileRepository(dbPool)
 	fileService := mediaSvc.NewFileService(fileRepository, storageProvider)
@@ -863,4 +869,110 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		MentorshipHandler:           mentorshipHandler,
 		FileHandler:                 fileHandler,
 	}
+}
+
+// buildHealthProbes wires the dependency checks the health report runs.
+//
+// Step 9 asks for alerts that fire on injected failures. Before this, six of
+// the seven components in that report were constants: Redis, the event bus,
+// search, object storage, email and the background workers each returned
+// "healthy" with a figure beside it that nothing had measured — a 98.4% cache
+// hit rate, 450 messages a second, 4500 GB free, eight workers with active
+// heartbeats. Injecting a failure into any of them changed nothing anywhere.
+//
+// A probe left nil here means the dependency is genuinely not part of this
+// deployment, and the report says disabled with the consequence spelled out.
+// Nothing reports healthy unless something answered.
+func buildHealthProbes(
+	cfg *configPkg.Config,
+	appCache cachePkg.Cache,
+	brokerKind string,
+	deliveryOutbox *outbox.Store,
+	storageProvider storagePkg.StorageProvider,
+	appMailer *mailer.Mailer,
+) sysHealthSvc.Probes {
+	probes := sysHealthSvc.Probes{
+		Version:  cfg.AppVersion,
+		BuildSHA: strings.TrimSpace(os.Getenv("BUILD_SHA")),
+	}
+
+	// Redis: a real round trip, not a reachable-at-boot assumption.
+	if redisClient := cachePkg.SharedRedisClient(appCache); redisClient != nil {
+		probes.Redis = func(ctx context.Context) (string, map[string]interface{}, error) {
+			ctxT, cancel := context.WithTimeout(ctx, 2*time.Second)
+			defer cancel()
+			if err := redisClient.Ping(ctxT).Err(); err != nil {
+				return "Redis did not answer PING", nil, err
+			}
+			return "Redis answered PING", map[string]interface{}{
+				"rate_limits_shared_across_replicas": true,
+			}, nil
+		}
+
+		// The realtime broker runs on the same server when it is Redis at all,
+		// so the same round trip covers it. What is worth reporting is whether
+		// delivery actually crosses replicas.
+		if brokerKind == "redis" {
+			probes.Realtime = func(ctx context.Context) (string, map[string]interface{}, error) {
+				ctxT, cancel := context.WithTimeout(ctx, 2*time.Second)
+				defer cancel()
+				if err := redisClient.Ping(ctxT).Err(); err != nil {
+					return "the realtime broker did not answer PING", nil, err
+				}
+				return "Redis pub/sub reachable; delivery crosses replicas",
+					map[string]interface{}{"broker": brokerKind}, nil
+			}
+		}
+	}
+
+	// Object storage: Exists on a key that will not be there. For S3 that is a
+	// HEAD, which proves the endpoint, bucket and credentials; for the local
+	// provider it proves the upload directory is readable.
+	if storageProvider != nil {
+		probes.Storage = func(ctx context.Context) (string, map[string]interface{}, error) {
+			ctxT, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+			driver := storageProvider.DriverName()
+			if _, err := storageProvider.Exists(ctxT, "health-probe/.keep-absent"); err != nil {
+				return fmt.Sprintf("%s storage did not answer", driver), nil, err
+			}
+			return fmt.Sprintf("%s storage answered", driver),
+				map[string]interface{}{"driver": driver}, nil
+		}
+	}
+
+	// Email. There is no probe that proves a message will arrive without
+	// sending one, so this reports configuration, and says exactly that.
+	if appMailer.Enabled() {
+		probes.Email = func(ctx context.Context) (string, map[string]interface{}, error) {
+			return "SMTP is configured; configuration only, no message is sent to check it",
+				map[string]interface{}{"from": appMailer.From()}, nil
+		}
+	}
+
+	// Workers: the queue they drain. A worker that has stopped shows up as a
+	// backlog that stops falling and a dead-letter count that climbs, which is
+	// a fact about the database rather than a heartbeat the worker reports
+	// about itself.
+	if deliveryOutbox != nil {
+		probes.Workers = func(ctx context.Context) (string, map[string]interface{}, error) {
+			ctxT, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+			stats, err := deliveryOutbox.QueueDepth(ctxT)
+			if err != nil {
+				return "the delivery queue could not be read", nil, err
+			}
+			return fmt.Sprintf("%d deliveries pending, %d overdue, %d dead-lettered",
+					stats.Pending, stats.Overdue, stats.DeadLettered),
+				map[string]interface{}{
+					"pending":       stats.Pending,
+					"overdue":       stats.Overdue,
+					"dead_lettered": stats.DeadLettered,
+				}, stats.Err()
+		}
+	}
+
+	// Search has no cluster wired in this build; the report says so rather than
+	// claiming a green OpenSearch cluster with 24 active shards.
+	return probes
 }

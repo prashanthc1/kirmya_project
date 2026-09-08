@@ -317,3 +317,60 @@ func backoff(attempt int) time.Duration {
 		return 2 * time.Hour
 	}
 }
+
+// QueueStats is what the delivery queue looks like right now.
+//
+// It exists so the health report can say something true about the background
+// workers. That component used to report "All 8 background workers reporting
+// active heartbeats" from a constant, so a worker that had stopped drained
+// nothing and the status page stayed green.
+type QueueStats struct {
+	// Pending is everything queued and not yet sent or given up on.
+	Pending int64
+
+	// Overdue is the part of Pending whose scheduled time has passed by more
+	// than a grace period. A healthy queue has a Pending count that moves and
+	// an Overdue count near zero; a stopped worker shows up here first.
+	Overdue int64
+
+	// DeadLettered is the count of deliveries that exhausted their attempts.
+	DeadLettered int64
+}
+
+// overdueGrace is how far past its scheduled time a delivery may sit before it
+// counts as overdue. It is well beyond one worker tick and the backoff between
+// the first retries, so an ordinary retry does not read as a stalled worker.
+const overdueGrace = 5 * time.Minute
+
+// Err reports a stalled queue as an error, so the health probe that calls
+// QueueDepth degrades the component rather than reporting the backlog as a
+// detail beside a healthy status.
+func (q QueueStats) Err() error {
+	if q.Overdue > 0 {
+		return fmt.Errorf("%d deliveries are more than %s past due; the delivery worker may not be running",
+			q.Overdue, overdueGrace)
+	}
+	return nil
+}
+
+// QueueDepth counts the delivery queue.
+func (s *Store) QueueDepth(ctx context.Context) (QueueStats, error) {
+	var stats QueueStats
+	if s.pool == nil {
+		return stats, errors.New("no database pool; the delivery queue cannot be read")
+	}
+
+	err := s.pool.QueryRow(ctx, `
+		SELECT
+			COUNT(*) FILTER (WHERE status IN ($1, $2)),
+			COUNT(*) FILTER (WHERE status IN ($1, $2) AND scheduled_at < NOW() - $4::interval),
+			COUNT(*) FILTER (WHERE status = $3)
+		FROM notification_deliveries`,
+		StatusPending, StatusRetrying, StatusDeadLettered, overdueGrace.String(),
+	).Scan(&stats.Pending, &stats.Overdue, &stats.DeadLettered)
+	if err != nil {
+		return QueueStats{}, fmt.Errorf("read delivery queue depth: %w", err)
+	}
+
+	return stats, nil
+}
