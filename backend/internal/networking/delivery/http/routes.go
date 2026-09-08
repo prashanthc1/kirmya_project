@@ -56,19 +56,13 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NetworkingHandler) {
 		// Following & Followers
 		network.GET("/following", handler.GetFollowing)
 		network.GET("/followers", handler.GetFollowers)
-	}
 
-	// Legacy /networking Group (Backwards Compatibility)
-	networking := api.Group("/networking")
-	networking.Use(sharedMiddleware.AuthRequired())
-	{
-		networking.GET("/recommendations", handler.GetRecommendations)
-		networking.GET("/connections", handler.ListConnections)
-		networking.GET("/requests", handler.ListIncomingRequests)
-		networking.POST("/requests", handler.SendRequest)
-		networking.PUT("/requests/:id", handler.UpdateRequestLegacy)
-		networking.POST("/blocks", handler.BlockUser)
-		networking.DELETE("/blocks/:userId", handler.UnblockUser)
+		// Blocking. This lived under a parallel /networking group with four
+		// other duplicates of routes above; nothing called those, and the two
+		// blocking routes were the only ones a client used, so they moved here
+		// rather than keeping a second prefix alive for them.
+		network.POST("/blocks", handler.BlockUser)
+		network.DELETE("/blocks/:userId", handler.UnblockUser)
 	}
 
 	// Admin Network Management Group

@@ -431,6 +431,33 @@ func swaggerAdminNetworkAnalytics() {}
 // @Router       /api/v1/admin/network/reports [get]
 func swaggerAdminNetworkReports() {}
 
+// swaggerNetworkBlockUser documents POST /api/v1/network/blocks
+//
+// @Summary      Block a member
+// @Description  Blocks a member so neither account can reach the other. Moved here from the removed /networking prefix.
+// @Tags         Networking
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/blocks [post]
+func swaggerNetworkBlockUser() {}
+
+// swaggerNetworkUnblockUser documents DELETE /api/v1/network/blocks/{userId}
+//
+// @Summary      Unblock a member
+// @Description  Removes a block the caller placed.
+// @Tags         Networking
+// @Security     BearerAuth
+// @Produce      json
+// @Param        userId  path  string  true  "Blocked member ID"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Router       /api/v1/network/blocks/{userId} [delete]
+func swaggerNetworkUnblockUser() {}
+
 var (
 	_ swagger.ErrorResponse
 	_ models.SendConnectionRequestDTO

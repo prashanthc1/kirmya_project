@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -74,10 +75,14 @@ func (s *learningService) GetLearningPaths(ctx context.Context, category string)
 	return s.repo.GetLearningPaths(ctx, category)
 }
 
+// ErrCourseNotFound is a caller mistake, not a server failure: enrolling in a
+// course that does not exist answered 500 with the repository error text.
+var ErrCourseNotFound = errors.New("course not found")
+
 func (s *learningService) EnrollUser(ctx context.Context, userID, courseID uuid.UUID, pathID *uuid.UUID) (*domain.UserLearningProgress, error) {
 	course, err := s.repo.GetCourseByID(ctx, courseID)
 	if err != nil {
-		return nil, fmt.Errorf("cannot enroll in non-existent course: %w", err)
+		return nil, fmt.Errorf("%w: %s", ErrCourseNotFound, courseID)
 	}
 
 	existing, err := s.repo.GetProgressByCourse(ctx, userID, courseID)

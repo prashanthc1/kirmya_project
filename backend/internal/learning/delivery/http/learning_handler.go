@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"kirmya/internal/learning/domain"
@@ -91,7 +92,11 @@ func (h *LearningHandler) Enroll(c *gin.Context) {
 
 	progress, err := h.svc.EnrollUser(c.Request.Context(), userID, body.CourseID, body.LearningPathID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.Is(err, service.ErrCourseNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "course not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "enrollment failed"})
 		return
 	}
 

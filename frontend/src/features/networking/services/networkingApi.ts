@@ -493,7 +493,7 @@ export const networkingApi = {
 
   blockUser: async (blockedId: string): Promise<{ message: string }> => {
     try {
-      const res = await client.post('/networking/blocks', { blockedId });
+      const res = await client.post('/network/blocks', { blockedId });
       return res.data;
     } catch {
       return { message: 'User blocked' };
@@ -502,7 +502,7 @@ export const networkingApi = {
 
   unblockUser: async (userId: string): Promise<{ message: string }> => {
     try {
-      const res = await client.delete(`/networking/blocks/${userId}`);
+      const res = await client.delete(`/network/blocks/${userId}`);
       return res.data;
     } catch {
       return { message: 'User unblocked' };

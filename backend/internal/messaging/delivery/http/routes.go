@@ -30,16 +30,9 @@ func RegisterRoutes(api *gin.RouterGroup, handler *MessagingHandler) {
 		messages.POST("/report", handler.ReportMessage)
 	}
 
-	// Legacy compatibility /messaging endpoints
-	messaging := api.Group("/messaging")
-	messaging.Use(sharedMiddleware.AuthRequired())
-	{
-		messaging.GET("/ws", handler.UpgradeWS)
-		messaging.GET("/conversations", handler.ListConversations)
-		messaging.POST("/conversations", handler.GetOrCreateConversation)
-		messaging.GET("/conversations/:id/messages", handler.ListMessages)
-		messaging.POST("/conversations/:id/messages", handler.SendMessage)
-	}
+	// The /messaging prefix duplicated five of the routes above. No client
+	// addressed it - the web app uses /messages throughout - so it is gone
+	// rather than kept as a second name for the same handlers.
 
 	// Admin messaging desk
 	admin := api.Group("/admin/messaging")

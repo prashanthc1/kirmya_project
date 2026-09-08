@@ -208,39 +208,6 @@ func (h *NetworkingHandler) WithdrawRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "connection request withdrawn"})
 }
 
-func (h *NetworkingHandler) UpdateRequestLegacy(c *gin.Context) {
-	userID, ok := getUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-		return
-	}
-	reqID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request id"})
-		return
-	}
-
-	var body struct {
-		Status string `json:"status"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
-		return
-	}
-
-	if body.Status == "accepted" {
-		err = h.service.AcceptConnectionRequest(c.Request.Context(), userID, reqID)
-	} else {
-		err = h.service.RejectConnectionRequest(c.Request.Context(), userID, reqID)
-	}
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "request status updated"})
-}
-
 func (h *NetworkingHandler) RemoveConnection(c *gin.Context) {
 	userID, ok := getUserID(c)
 	if !ok {

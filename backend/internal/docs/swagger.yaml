@@ -28172,6 +28172,57 @@ paths:
       summary: Get network dashboard summary
       tags:
       - Networking & People
+  /api/v1/network/blocks:
+    post:
+      consumes:
+      - application/json
+      description: Blocks a member so neither account can reach the other. Moved here
+        from the removed /networking prefix.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Block a member
+      tags:
+      - Networking
+  /api/v1/network/blocks/{userId}:
+    delete:
+      description: Removes a block the caller placed.
+      parameters:
+      - description: Blocked member ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unblock a member
+      tags:
+      - Networking
   /api/v1/network/company-connections/{companyId}:
     get:
       description: Returns 1st and 2nd-degree connections currently employed at target
