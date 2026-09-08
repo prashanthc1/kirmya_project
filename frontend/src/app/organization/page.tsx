@@ -53,6 +53,7 @@ export default function OrganizationPage() {
   const [members, setMembers] = useState<OrganizationUser[]>([]);
   const [permissions, setPermissions] = useState<OrganizationPermission[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Modals
   const [createOrgOpen, setCreateOrgOpen] = useState(false);
@@ -73,27 +74,30 @@ export default function OrganizationPage() {
         organizationApi.getAllPermissions(),
       ]);
 
+      // A user who belongs to no organization belongs to no organization. This
+      // used to substitute an invented company, with invented members and
+      // permissions, whenever the call failed or returned nothing.
       if (resOrgs.status === 'fulfilled') {
-        const orgList = resOrgs.value?.data || mockOrgs;
+        const orgList = resOrgs.value?.data ?? [];
         setOrganizations(orgList);
         if (!activeOrg && orgList.length > 0) {
           setActiveOrg(orgList[0]);
           fetchOrgMembers(orgList[0].id);
         }
       } else {
-        setOrganizations(mockOrgs);
-        setActiveOrg(mockOrgs[0]);
+        setOrganizations([]);
+        setLoadError('Could not load your organizations. Try again shortly.');
       }
 
       if (resPerms.status === 'fulfilled') {
-        setPermissions(resPerms.value?.data || mockPermissions);
+        setPermissions(resPerms.value?.data ?? []);
       } else {
-        setPermissions(mockPermissions);
+        setPermissions([]);
       }
     } catch (err) {
       console.error(err);
-      setOrganizations(mockOrgs);
-      setActiveOrg(mockOrgs[0]);
+      setOrganizations([]);
+      setLoadError('Could not load your organizations. Try again shortly.');
     } finally {
       setLoading(false);
     }
@@ -102,9 +106,10 @@ export default function OrganizationPage() {
   const fetchOrgMembers = async (orgId: string) => {
     try {
       const res = await organizationApi.getOrgMembers(orgId);
-      setMembers(res.data || mockMembers);
+      setMembers(res.data ?? []);
     } catch (err) {
-      setMembers(mockMembers);
+      setMembers([]);
+      setLoadError('Could not load the members of this organization.');
     }
   };
 
@@ -155,74 +160,8 @@ export default function OrganizationPage() {
     }
   };
 
-  const mockOrgs: Organization[] = [
-    {
-      id: '00000000-0000-0000-0000-000000000000',
-      name: 'Default Kirmya Enterprise Tenant',
-      org_type: 'company',
-      tenant_domain: 'kirmya-default.tenant',
-      status: 'active',
-      tier: 'enterprise',
-      member_count: 5,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'org22222-2222-2222-2222-222222222222',
-      name: 'TechCorp Global Recruiting Agency',
-      org_type: 'recruiter_agency',
-      tenant_domain: 'techcorp-agency.tenant',
-      status: 'active',
-      tier: 'enterprise',
-      member_count: 12,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'org33333-3333-3333-3333-333333333333',
-      name: 'Kirmya Leadership Academy',
-      org_type: 'training_provider',
-      tenant_domain: 'leadership-academy.tenant',
-      status: 'active',
-      tier: 'pro',
-      member_count: 8,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockMembers: OrganizationUser[] = [
-    {
-      id: 'm1',
-      org_id: '00000000-0000-0000-0000-000000000000',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      user_name: 'Alex Rivera',
-      user_email: 'alex.rivera@example.com',
-      role: 'org_admin',
-      status: 'active',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'm2',
-      org_id: '00000000-0000-0000-0000-000000000000',
-      user_id: 'u2',
-      user_name: 'Sarah Jenkins',
-      user_email: 'sarah.j@techcorp.com',
-      role: 'recruiter',
-      status: 'active',
-      created_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockPermissions: OrganizationPermission[] = [
-    { id: 'p1', role: 'org_admin', resource: 'interviews', action: 'manage', created_at: '' },
-    { id: 'p2', role: 'org_admin', resource: 'assessments', action: 'manage', created_at: '' },
-    { id: 'p3', role: 'recruiter', resource: 'interviews', action: 'write', created_at: '' },
-    { id: 'p4', role: 'recruiter', resource: 'verifications', action: 'write', created_at: '' },
-    { id: 'p5', role: 'instructor', resource: 'learning', action: 'write', created_at: '' },
-    { id: 'p6', role: 'instructor', resource: 'assessments', action: 'write', created_at: '' },
-    { id: 'p7', role: 'viewer', resource: 'organization', action: 'read', created_at: '' },
-  ];
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>

@@ -66,6 +66,7 @@ function VerificationDashboardContent() {
   const [status, setStatus] = useState<VerificationStatus | null>(null);
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Form states for creating verification requests
   const [workEmail, setWorkEmail] = useState('');
@@ -85,21 +86,26 @@ function VerificationDashboardContent() {
         verificationApi.getUserRequests(),
       ]);
 
+      // An unverified account is unverified. This used to show a verified
+      // identity badge and a list of approved documents whenever the status
+      // call failed.
       if (resStatus.status === 'fulfilled') {
-        setStatus(resStatus.value || mockStatus);
+        setStatus(resStatus.value ?? null);
       } else {
-        setStatus(mockStatus);
+        setStatus(null);
+        setLoadError('Could not load your verification status. Try again shortly.');
       }
 
       if (resRequests.status === 'fulfilled') {
-        setRequests(resRequests.value?.data || mockRequests);
+        setRequests(resRequests.value?.data ?? []);
       } else {
-        setRequests(mockRequests);
+        setRequests([]);
       }
     } catch (err) {
       console.error(err);
-      setStatus(mockStatus);
-      setRequests(mockRequests);
+      setStatus(null);
+      setRequests([]);
+      setLoadError('Could not load your verification status. Try again shortly.');
     } finally {
       setLoading(false);
     }
@@ -143,47 +149,25 @@ function VerificationDashboardContent() {
     }
   };
 
-  const mockStatus: VerificationStatus = {
-    id: 'st-1',
-    user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-    trust_score: 85,
-    badge_level: 'Verified Professional',
-    email_verified: true,
-    employment_verified: true,
-    skills_verified: true,
-    certifications_verified: true,
-    privacy_setting: 'recruiters_only',
+
+
+  // An account with no verification record yet is Unverified with a zero trust
+  // score. The fallback this replaces claimed a "Verified Professional" badge
+  // and a trust score the server had never issued.
+  const currentStatus: VerificationStatus = status ?? {
+    id: '',
+    user_id: '',
+    trust_score: 0,
+    badge_level: 'Unverified',
+    email_verified: false,
+    employment_verified: false,
+    skills_verified: false,
+    certifications_verified: false,
+    privacy_setting: 'private',
     hide_sensitive_docs: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: '',
+    updated_at: '',
   };
-
-  const mockRequests: VerificationRequest[] = [
-    {
-      id: 'vr-1',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      verification_type: 'email',
-      title: 'Work Email Verification',
-      work_email: 'alex.rivera@techcorp.com',
-      status: 'verified',
-      reviewer_notes: 'Work domain techcorp.com successfully verified via DNS & MX record match.',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'vr-2',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      verification_type: 'employment',
-      title: 'Senior Software Engineer',
-      organization_name: 'TechCorp Global',
-      status: 'verified',
-      reviewer_notes: 'Employment history confirmed via corporate manager reference audit.',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ];
-
-  const currentStatus = status || mockStatus;
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>

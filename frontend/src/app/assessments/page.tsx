@@ -62,21 +62,21 @@ export default function AssessmentsPage() {
       ]);
 
       if (resAssess.status === 'fulfilled') {
-        setAssessments(resAssess.value?.data || mockAssessments);
+        setAssessments(resAssess.value?.data ?? []);
       } else {
-        setAssessments(mockAssessments);
+        setAssessments([]);
       }
 
       if (resResults.status === 'fulfilled') {
-        setResults(resResults.value?.results || mockResults);
+        setResults(resResults.value?.results ?? []);
       } else {
-        setResults(mockResults);
+        setResults([]);
       }
 
       if (resBadges.status === 'fulfilled') {
-        setBadges(resBadges.value?.badges || mockBadges);
+        setBadges(resBadges.value?.badges ?? []);
       } else {
-        setBadges(mockBadges);
+        setBadges([]);
       }
     } catch (err) {
       console.error('Error fetching assessment data:', err);
@@ -110,135 +110,8 @@ export default function AssessmentsPage() {
   };
 
   // Mock initial data fallbacks for instant rich UI rendering
-  const mockAssessments: Assessment[] = [
-    {
-      id: 'c1111111-1111-1111-1111-111111111111',
-      title: 'Full-Stack Web Architecture & Go Mastery',
-      description: 'Rigorous evaluation of REST API design, Go concurrency, database indexing, and React state synchronization.',
-      category: 'Engineering',
-      difficulty_level: 'advanced',
-      duration_minutes: 25,
-      passing_score: 70,
-      total_questions: 4,
-      badge_title: 'Master Full-Stack Architect',
-      badge_tier: 'Platinum',
-      created_at: new Date().toISOString(),
-      questions: [
-        {
-          id: 'q1',
-          assessment_id: 'c1111111-1111-1111-1111-111111111111',
-          question_type: 'mcq',
-          question_text: 'In Go, how do you prevent goroutine leaks when consuming values from a channel with a timeout?',
-          options: ['Use time.Sleep inside goroutine', 'Use select statement with time.After and context cancellation', 'Call runtime.Goexit()', 'Close channel synchronously before receiving'],
-          max_points: 10,
-          question_order: 1,
-        },
-        {
-          id: 'q2',
-          assessment_id: 'c1111111-1111-1111-1111-111111111111',
-          question_type: 'mcq',
-          question_text: 'Which PostgreSQL index type is optimal for B-Tree equality and range queries on UUID primary keys?',
-          options: ['GIN Index', 'GiST Index', 'B-Tree Index', 'Hash Index'],
-          max_points: 10,
-          question_order: 2,
-        },
-        {
-          id: 'q3',
-          assessment_id: 'c1111111-1111-1111-1111-111111111111',
-          question_type: 'mcq',
-          question_text: 'In React 18, what is the primary purpose of the useDeferredValue hook?',
-          options: ['Defer non-critical state updates to prevent UI blocking', 'Force immediate component re-render', 'Cache expensive mathematical computations', 'Handle async HTTP requests synchronously'],
-          max_points: 10,
-          question_order: 3,
-        },
-        {
-          id: 'q4',
-          assessment_id: 'c1111111-1111-1111-1111-111111111111',
-          question_type: 'practical',
-          question_text: 'PRACTICAL SCENARIO: Write a Go HTTP handler function that accepts a JSON payload, validates inputs, and publishes an event asynchronously without blocking the client response.',
-          practical_rubric: 'Must handle JSON decoding error, validate non-nil IDs, launch background goroutine/pubsub, and respond with HTTP 201 Created.',
-          max_points: 20,
-          question_order: 4,
-        },
-      ],
-    },
-    {
-      id: 'c2222222-2222-2222-2222-222222222222',
-      title: 'Distributed Systems & Cloud Architecture',
-      description: 'Evaluate microservices isolation, rate limiting algorithms, caching strategies, and event-driven patterns.',
-      category: 'Architecture',
-      difficulty_level: 'advanced',
-      duration_minutes: 30,
-      passing_score: 75,
-      total_questions: 3,
-      badge_title: 'Certified Cloud Architect',
-      badge_tier: 'Gold',
-      created_at: new Date().toISOString(),
-      questions: [
-        {
-          id: 'q5',
-          assessment_id: 'c2222222-2222-2222-2222-222222222222',
-          question_type: 'mcq',
-          question_text: 'Which rate limiting algorithm guarantees smooth token replenishment without burst spikes?',
-          options: ['Leaky Bucket', 'Token Bucket', 'Fixed Window Counter', 'Sliding Window Log'],
-          max_points: 10,
-          question_order: 1,
-        },
-        {
-          id: 'q6',
-          assessment_id: 'c2222222-2222-2222-2222-222222222222',
-          question_type: 'practical',
-          question_text: 'PRACTICAL ARCHITECTURE: Outline a high-throughput notification distribution system handling 1,000,000 push notifications per minute. Detail queueing, partition keys, and retry strategies.',
-          practical_rubric: 'Must cover message queues (Kafka/RabbitMQ), worker pools, idempotent processing, exponential backoff, and dead-letter queues.',
-          max_points: 20,
-          question_order: 2,
-        },
-      ],
-    },
-  ];
 
-  const mockResults: UserAssessmentResult[] = [
-    {
-      id: 'res-101',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      user_name: 'Alex Rivera',
-      assessment_id: 'c1111111-1111-1111-1111-111111111111',
-      assessment_title: 'Full-Stack Web Architecture & Go Mastery',
-      score_percentage: 92,
-      mcq_score: 100,
-      practical_ai_score: 85,
-      percentile_rank: 94,
-      passed: true,
-      time_taken_seconds: 720,
-      ai_feedback_summary: 'Demonstrated exceptional Go concurrency mastery, clean JSON validation error handling, and robust async event publishing.',
-      earned_badge: {
-        id: 'badge-101',
-        user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-        user_name: 'Alex Rivera',
-        assessment_id: 'c1111111-1111-1111-1111-111111111111',
-        badge_title: 'Master Full-Stack Architect',
-        tier: 'Platinum',
-        verification_code: 'BADGE-PLAT-9F2A01',
-        skills_validated: ['Engineering', 'Advanced', 'Verified Proficient'],
-        issued_at: new Date().toISOString(),
-      },
-      completed_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockBadges: SkillBadge[] = [
-    {
-      id: 'badge-101',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      user_name: 'Alex Rivera',
-      assessment_id: 'c1111111-1111-1111-1111-111111111111',
-      badge_title: 'Master Full-Stack Architect',
-      tier: 'Platinum',
-      verification_code: 'BADGE-PLAT-9F2A01',
-      skills_validated: ['Engineering', 'Advanced', 'Verified Proficient'],
-      issued_at: new Date().toISOString(),
-    },
-  ];
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>

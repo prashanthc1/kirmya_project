@@ -53,9 +53,12 @@ func (s *endorsementService) EndorseSkill(ctx context.Context, endorserID uuid.U
 		return nil, errors.New("abuse prevention violation: you have already endorsed this skill for this user")
 	}
 
-	endorserName := payload.EndorserName
-	if endorserName == "" {
-		endorserName = "Verified Professional Peer"
+	// The endorser's name and title come from their account, not from the body
+	// they sent. A caller used to choose both, and an omitted name became
+	// "Verified Professional Peer" - a title nobody holds.
+	endorserName, endorserTitle, endorserAvatar, err := s.repo.Identity(ctx, endorserID)
+	if err != nil {
+		return nil, fmt.Errorf("resolve endorser identity: %w", err)
 	}
 
 	end := &domain.SkillEndorsement{
@@ -64,8 +67,8 @@ func (s *endorsementService) EndorseSkill(ctx context.Context, endorserID uuid.U
 		EndorserID:        endorserID,
 		SkillName:         strings.TrimSpace(payload.SkillName),
 		EndorserName:      endorserName,
-		EndorserTitle:     payload.EndorserTitle,
-		EndorserAvatarURL: payload.EndorserAvatarURL,
+		EndorserTitle:     endorserTitle,
+		EndorserAvatarURL: endorserAvatar,
 		CreatedAt:         time.Now(),
 	}
 
@@ -90,9 +93,11 @@ func (s *endorsementService) SubmitRecommendation(ctx context.Context, authorID 
 		return nil, errors.New("abuse prevention violation: you cannot write a recommendation for yourself")
 	}
 
-	authorName := payload.AuthorName
-	if authorName == "" {
-		authorName = "Senior Engineering Manager"
+	// As with endorsements: the author of a recommendation is the account
+	// writing it. The default used to invent "Senior Engineering Manager".
+	authorName, authorTitle, authorAvatar, err := s.repo.Identity(ctx, authorID)
+	if err != nil {
+		return nil, fmt.Errorf("resolve author identity: %w", err)
 	}
 
 	// Default status is 'pending_approval' requiring recipient consent before public display
@@ -101,8 +106,8 @@ func (s *endorsementService) SubmitRecommendation(ctx context.Context, authorID 
 		RecipientID:     recipientID,
 		AuthorID:        authorID,
 		AuthorName:      authorName,
-		AuthorTitle:     payload.AuthorTitle,
-		AuthorAvatarURL: payload.AuthorAvatarURL,
+		AuthorTitle:     authorTitle,
+		AuthorAvatarURL: authorAvatar,
 		Relationship:    payload.Relationship,
 		ContentText:     payload.ContentText,
 		Status:          domain.RecStatusPending,

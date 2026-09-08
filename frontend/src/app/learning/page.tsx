@@ -55,27 +55,27 @@ export default function LearningPage() {
       ]);
 
       if (resCourses.status === 'fulfilled') {
-        setCourses(resCourses.value?.data || mockCourses);
+        setCourses(resCourses.value?.data ?? []);
       } else {
-        setCourses(mockCourses);
+        setCourses([]);
       }
 
       if (resPaths.status === 'fulfilled') {
-        setPaths(resPaths.value?.data || mockPaths);
+        setPaths(resPaths.value?.data ?? []);
       } else {
-        setPaths(mockPaths);
+        setPaths([]);
       }
 
       if (resProgress.status === 'fulfilled') {
-        setUserProgress(resProgress.value?.data || mockProgress);
+        setUserProgress(resProgress.value?.data ?? []);
       } else {
-        setUserProgress(mockProgress);
+        setUserProgress([]);
       }
 
       if (resCerts.status === 'fulfilled') {
-        setCertificates(resCerts.value?.certificates || mockCertificates);
+        setCertificates(resCerts.value?.certificates ?? []);
       } else {
-        setCertificates(mockCertificates);
+        setCertificates([]);
       }
     } catch (err) {
       console.error('Error fetching learning hub data:', err);
@@ -109,128 +109,9 @@ export default function LearningPage() {
   };
 
   // Mock initial data fallbacks for instant rich UI rendering
-  const mockCourses: Course[] = [
-    {
-      id: 'a1111111-1111-1111-1111-111111111111',
-      title: 'Full-Stack Web Development with Go & Next.js',
-      description: 'Master modern full-stack web applications, REST APIs, database indexing, and React state management.',
-      category: 'Technology',
-      difficulty_level: 'intermediate',
-      provider: 'kirmya',
-      duration_hours: 18,
-      total_lessons: 16,
-      rating: 4.9,
-      skills_covered: ['Go', 'Next.js', 'PostgreSQL', 'TypeScript', 'REST API'],
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'a2222222-2222-2222-2222-222222222222',
-      title: 'Agile Product Management & Scrum Leadership',
-      description: 'Learn sprint planning, backlog prioritization, stakeholder management, and product roadmap execution.',
-      category: 'Management',
-      difficulty_level: 'intermediate',
-      provider: 'kirmya',
-      duration_hours: 12,
-      total_lessons: 10,
-      rating: 4.8,
-      skills_covered: ['Agile', 'Scrum', 'Product Roadmap', 'Jira', 'Prioritization'],
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'a3333333-3333-3333-3333-333333333333',
-      title: 'Executive Communication & Salary Negotiation',
-      description: 'Build persuasive presentation skills, emotional intelligence, cross-team influence, and career negotiation tactics.',
-      category: 'Soft skills',
-      difficulty_level: 'all_levels',
-      provider: 'kirmya',
-      duration_hours: 8,
-      total_lessons: 8,
-      rating: 4.95,
-      skills_covered: ['Public Speaking', 'Negotiation', 'Emotional Intelligence', 'Conflict Resolution'],
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'a4444444-4444-4444-4444-444444444444',
-      title: 'FAANG Technical Interview & System Design Masterclass',
-      description: 'Cracking coding interviews: Data structures, algorithm optimization, system design blueprints, and mock interviews.',
-      category: 'Interview preparation',
-      difficulty_level: 'advanced',
-      provider: 'kirmya',
-      duration_hours: 20,
-      total_lessons: 18,
-      rating: 4.9,
-      skills_covered: ['Algorithms', 'Data Structures', 'System Design', 'Mock Interviews'],
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'a5555555-5555-5555-5555-555555555555',
-      title: 'AWS Certified Solutions Architect Official Prep',
-      description: 'Comprehensive preparation for AWS SAA-C03 certification exam covering S3, EC2, VPC, Lambda, and IAM security.',
-      category: 'Industry certifications',
-      difficulty_level: 'intermediate',
-      provider: 'coursera',
-      external_url: 'https://coursera.org/learn/aws-architect',
-      duration_hours: 24,
-      total_lessons: 20,
-      rating: 4.85,
-      skills_covered: ['AWS', 'Cloud Architecture', 'IAM', 'Serverless', 'Security'],
-      created_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockPaths: LearningPath[] = [
-    {
-      id: 'b1111111-1111-1111-1111-111111111111',
-      title: 'Job-Ready Senior Software Engineer Track',
-      description: 'Step-by-step career transformation path from technical coding to system architecture and FAANG interview readiness.',
-      target_role: 'Senior Full-Stack Engineer',
-      category: 'Technology',
-      estimated_weeks: 6,
-      course_ids: ['a1111111-1111-1111-1111-111111111111', 'a4444444-4444-4444-4444-444444444444'],
-      badge_name: 'Certified Job-Ready Engineer',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'b2222222-2222-2222-2222-222222222222',
-      title: 'Product Manager & Technical Leadership Accelerator',
-      description: 'Transition into high-impact management with mastery over agile methodologies, executive communication, and team leadership.',
-      target_role: 'Technical Product Manager',
-      category: 'Management',
-      estimated_weeks: 4,
-      course_ids: ['a2222222-2222-2222-2222-222222222222', 'a3333333-3333-3333-3333-333333333333'],
-      badge_name: 'Certified Product Leader',
-      created_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockProgress: UserLearningProgress[] = [
-    {
-      id: 'prog-1',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      course_id: 'a1111111-1111-1111-1111-111111111111',
-      course_title: 'Full-Stack Web Development with Go & Next.js',
-      status: 'in_progress',
-      completed_lessons: 12,
-      total_lessons: 16,
-      completion_percentage: 75,
-      time_spent_minutes: 540,
-      last_accessed_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockCertificates: Certificate[] = [
-    {
-      id: 'cert-101',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      user_name: 'Alex Rivera',
-      course_id: 'a3333333-3333-3333-3333-333333333333',
-      title: 'Certified Professional: Executive Communication & Negotiation',
-      verification_code: 'KIRMYA-EXEC-8F391A',
-      skills_mastered: ['Public Speaking', 'Negotiation', 'Emotional Intelligence'],
-      issue_date: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(),
-    },
-  ];
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>

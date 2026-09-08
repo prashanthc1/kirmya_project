@@ -353,19 +353,24 @@ export default function CareerCompanionPage() {
           <Paper sx={{ p: 4, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2.5 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap' }}>
               <Box>
+                {/* Until a roadmap has been generated there is no target role,
+                    level or salary to show. These used to read as a plan the
+                    user had never made. */}
                 <Typography variant="h5" fontWeight="bold" sx={{ color: '#a855f7' }}>
-                  Target Role: {careerPlan?.target_role || 'Principal Backend Architect'}
+                  {careerPlan ? `Target Role: ${careerPlan.target_role}` : 'No roadmap yet'}
                 </Typography>
 
                 <Typography variant="body2" sx={{ color: subTextColor }}>
-                  Current Level: {careerPlan?.current_level || 'Senior Software Engineer'} • Target Salary: {careerPlan?.target_salary || '$180,000 - $220,000'}
+                  {careerPlan
+                    ? `Current Level: ${careerPlan.current_level} • Target Salary: ${careerPlan.target_salary}`
+                    : 'Generate a plan to see your milestones here.'}
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ textAlign: 'right' }}>
                   <Typography variant="caption" sx={{ color: subTextColor }}>Roadmap Completion</Typography>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#10b981' }}>{careerPlan?.progress_percentage || 45}%</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#10b981' }}>{careerPlan ? `${careerPlan.progress_percentage}%` : '—'}</Typography>
                 </Box>
                 <Button variant="contained" onClick={handleGenerateRoadmap} sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold' }}>
                   Regenerate Plan
@@ -377,7 +382,7 @@ export default function CareerCompanionPage() {
 
             {/* Stepper Milestones */}
             <Stepper orientation="vertical" activeStep={1}>
-              {careerPlan?.milestones.map((m, idx) => (
+              {(careerPlan?.milestones ?? []).map((m, idx) => (
                 <Step key={idx} active={true}>
                   <StepLabel
                     StepIconComponent={() => (

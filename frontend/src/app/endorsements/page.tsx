@@ -44,6 +44,7 @@ export default function EndorsementsPage() {
   const [recommendations, setRecommendations] = useState<ProfessionalRecommendation[]>([]);
   const [references, setReferences] = useState<ProfessionalReference[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [abuseError, setAbuseError] = useState<string | null>(null);
 
   // Form states
@@ -55,10 +56,10 @@ export default function EndorsementsPage() {
   );
   const [recRelationship, setRecRelationship] = useState('managed_directly');
 
-  const [refName, setRefName] = useState('Sarah Jenkins');
-  const [refTitle, setRefTitle] = useState('VP of Engineering');
-  const [refCompany, setRefCompany] = useState('TechCorp Global');
-  const [refEmail, setRefEmail] = useState('sarah.j@techcorp.com');
+  const [refName, setRefName] = useState('');
+  const [refTitle, setRefTitle] = useState('');
+  const [refCompany, setRefCompany] = useState('');
+  const [refEmail, setRefEmail] = useState('');
 
   const fetchData = async () => {
     try {
@@ -69,23 +70,33 @@ export default function EndorsementsPage() {
         endorsementApi.getUserReferences(),
       ]);
 
+      // A failed load is a failed load. These three used to fall back to
+      // endorsements and recommendations from people who do not exist, at
+      // named employers, which is indistinguishable from real ones on screen.
+      const failed: string[] = [];
+
       if (resEnd.status === 'fulfilled') {
-        setEndorsementGroups(resEnd.value?.data || mockEndorsements);
+        setEndorsementGroups(resEnd.value?.data ?? []);
       } else {
-        setEndorsementGroups(mockEndorsements);
+        setEndorsementGroups([]);
+        failed.push('endorsements');
       }
 
       if (resRec.status === 'fulfilled') {
-        setRecommendations(resRec.value?.data || mockRecommendations);
+        setRecommendations(resRec.value?.data ?? []);
       } else {
-        setRecommendations(mockRecommendations);
+        setRecommendations([]);
+        failed.push('recommendations');
       }
 
       if (resRef.status === 'fulfilled') {
-        setReferences(resRef.value?.data || mockReferences);
+        setReferences(resRef.value?.data ?? []);
       } else {
-        setReferences(mockReferences);
+        setReferences([]);
+        failed.push('references');
       }
+
+      setLoadError(failed.length > 0 ? `Could not load ${failed.join(', ')}. Try again shortly.` : null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -101,11 +112,11 @@ export default function EndorsementsPage() {
     setAbuseError(null);
     try {
       setLoading(true);
+      // The endorser's name and title come from the signed-in account on the
+      // server. They used to be sent from here as a fixed job title.
       await endorsementApi.endorseSkill({
         user_id: targetUserId,
         skill_name: endorseSkillName,
-        endorser_name: 'Verified Engineering Peer',
-        endorser_title: 'Staff Architect',
       });
       await fetchData();
     } catch (err: any) {
@@ -122,8 +133,6 @@ export default function EndorsementsPage() {
       setLoading(true);
       await endorsementApi.submitRecommendation({
         recipient_id: targetUserId,
-        author_name: 'Senior Director of Product',
-        author_title: 'Director',
         relationship: recRelationship,
         content_text: recContent,
       });
@@ -166,77 +175,8 @@ export default function EndorsementsPage() {
     }
   };
 
-  const mockEndorsements: SkillEndorsementGroup[] = [
-    {
-      skill_name: 'Go & Distributed Systems',
-      endorsement_count: 8,
-      endorsers: [
-        {
-          id: 'e1',
-          user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-          endorser_id: 'end1',
-          skill_name: 'Go & Distributed Systems',
-          endorser_name: 'David Chen',
-          endorser_title: 'Principal Architect at Google',
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: 'e2',
-          user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-          endorser_id: 'end2',
-          skill_name: 'Go & Distributed Systems',
-          endorser_name: 'Elena Rostova',
-          endorser_title: 'Lead Engineer at Stripe',
-          created_at: new Date().toISOString(),
-        },
-      ],
-    },
-    {
-      skill_name: 'React & Next.js Frontend Architecture',
-      endorsement_count: 6,
-      endorsers: [
-        {
-          id: 'e3',
-          user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-          endorser_id: 'end3',
-          skill_name: 'React & Next.js Frontend Architecture',
-          endorser_name: 'Marcus Vance',
-          endorser_title: 'Design Systems Lead',
-          created_at: new Date().toISOString(),
-        },
-      ],
-    },
-  ];
 
-  const mockRecommendations: ProfessionalRecommendation[] = [
-    {
-      id: 'rec-1',
-      recipient_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      author_id: 'author-1',
-      author_name: 'Sarah Jenkins',
-      author_title: 'VP of Engineering at TechCorp',
-      relationship: 'managed_directly',
-      content_text: 'Alex consistently delivered high-impact microservices that scaled our platform to 2 million active users. A natural technical leader and brilliant engineer.',
-      status: 'accepted',
-      is_flagged: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockReferences: ProfessionalReference[] = [
-    {
-      id: 'ref-1',
-      candidate_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      referee_name: 'Sarah Jenkins',
-      referee_title: 'VP of Engineering',
-      company_name: 'TechCorp Global',
-      referee_email: 'sarah.j@techcorp.com',
-      relationship: 'former_manager',
-      status: 'confirmed',
-      created_at: new Date().toISOString(),
-    },
-  ];
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
@@ -269,6 +209,12 @@ export default function EndorsementsPage() {
         {abuseError && (
           <Alert severity="error" sx={{ mb: 3, bgcolor: '#7f1d1d', color: '#fca5a5', border: '1px solid #991b1b' }}>
             {abuseError}
+          </Alert>
+        )}
+
+        {loadError && (
+          <Alert severity="warning" sx={{ mb: 3, bgcolor: '#78350f', color: '#fde68a', border: '1px solid #92400e' }}>
+            {loadError}
           </Alert>
         )}
 

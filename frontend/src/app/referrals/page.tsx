@@ -72,15 +72,15 @@ export default function ReferralsPage() {
       ]);
 
       if (resOpen.status === 'fulfilled') {
-        setOpenRequests(resOpen.value?.data || mockOpenRequests);
+        setOpenRequests(resOpen.value?.data ?? []);
       } else {
-        setOpenRequests(mockOpenRequests);
+        setOpenRequests([]);
       }
 
       if (resMy.status === 'fulfilled') {
-        setMyReferrals(resMy.value?.data || mockMyReferrals);
+        setMyReferrals(resMy.value?.data ?? []);
       } else {
-        setMyReferrals(mockMyReferrals);
+        setMyReferrals([]);
       }
     } catch (err) {
       console.error(err);
@@ -154,52 +154,7 @@ export default function ReferralsPage() {
     }
   };
 
-  const mockOpenRequests: ReferralRequest[] = [
-    {
-      id: 'req-101',
-      candidate_id: 'cand-1',
-      candidate_name: 'Alex Rivera',
-      company_name: 'Stripe Global',
-      job_title: 'Senior Full-Stack Engineer',
-      target_job_url: 'https://stripe.com/jobs/123',
-      resume_link: 'https://kirmya.dev/resume/alex',
-      message_to_referrer: 'Seeking internal referral for Stripe Full-Stack position. 5+ years Go & React experience.',
-      status: 'open',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    {
-      id: 'req-102',
-      candidate_id: 'cand-2',
-      candidate_name: 'Jordan Lee',
-      company_name: 'Google',
-      job_title: 'Software Engineer - Distributed Systems',
-      target_job_url: 'https://careers.google.com/jobs/456',
-      resume_link: 'https://kirmya.dev/resume/jordan',
-      message_to_referrer: 'Looking for a Googler to submit an internal referral for Cloud Infrastructure role.',
-      status: 'open',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockMyReferrals: Referral[] = [
-    {
-      id: 'ref-201',
-      request_id: 'req-101',
-      candidate_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      candidate_name: 'Alex Rivera',
-      referrer_id: 'ref-user-1',
-      referrer_name: 'David Chen',
-      referrer_company: 'Stripe Global',
-      referrer_job_title: 'Principal Architect',
-      referrer_email: '[MASKED UNTIL MATCH CONFIRMED]',
-      status: 'accepted',
-      privacy_masked: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ];
 
   const getStepIndex = (status: ReferralStatus) => {
     switch (status) {

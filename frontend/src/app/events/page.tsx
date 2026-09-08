@@ -65,9 +65,9 @@ export default function EventsPage() {
       ]);
 
       if (resEvents.status === 'fulfilled') {
-        setEvents(resEvents.value?.data || mockEvents);
+        setEvents(resEvents.value?.data ?? []);
       } else {
-        setEvents(mockEvents);
+        setEvents([]);
       }
 
       if (resMy.status === 'fulfilled') {
@@ -75,7 +75,7 @@ export default function EventsPage() {
       }
     } catch (err) {
       console.error(err);
-      setEvents(mockEvents);
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -134,72 +134,6 @@ export default function EventsPage() {
     setLiveModalOpen(true);
   };
 
-  const mockEvents: Event[] = [
-    {
-      id: 'e1111111-1111-1111-1111-111111111111',
-      host_id: 'h1',
-      title: 'Virtual Tech Hiring Fair & Speed Recruiter Match',
-      event_type: 'hiring_event',
-      description: 'Connect live with hiring managers from 15+ tech scaleups. Speed interviewing sessions and ATS resume reviews.',
-      start_time: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-      end_time: new Date(Date.now() + 27 * 3600 * 1000).toISOString(),
-      max_attendees: 500,
-      current_attendees: 142,
-      location_type: 'virtual',
-      live_stream_url: 'https://live.kirmya.dev/rooms/hiring-fair-2026',
-      status: 'upcoming',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      host: {
-        id: 'h1',
-        user_id: 'u1',
-        host_name: 'Sarah Jenkins',
-        company_name: 'TechCorp & Kirmya Careers',
-        title: 'VP of Engineering',
-        verified_host: true,
-        created_at: new Date().toISOString(),
-      },
-      is_registered: true,
-      live_stream: {
-        stream_url: 'https://live.kirmya.dev/rooms/hiring-fair-2026',
-        provider: 'kirmya-webrtc-v1',
-        room_id: 'kirmya-room-hiring',
-        access_token: 'token-998811',
-      },
-    },
-    {
-      id: 'e2222222-2222-2222-2222-222222222222',
-      host_id: 'h2',
-      title: 'Mastering System Design & Distributed Go Architecture',
-      event_type: 'webinar',
-      description: 'Technical webinar covering microservice isolation, rate limiting algorithms, and PostgreSQL P99 query optimization.',
-      start_time: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
-      end_time: new Date(Date.now() + 50 * 3600 * 1000).toISOString(),
-      max_attendees: 300,
-      current_attendees: 98,
-      location_type: 'virtual',
-      live_stream_url: 'https://live.kirmya.dev/rooms/sys-design-webinar',
-      status: 'upcoming',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      host: {
-        id: 'h2',
-        user_id: 'u2',
-        host_name: 'David Chen',
-        company_name: 'Stripe Global',
-        title: 'Principal Architect',
-        verified_host: true,
-        created_at: new Date().toISOString(),
-      },
-      is_registered: false,
-      live_stream: {
-        stream_url: 'https://live.kirmya.dev/rooms/sys-design-webinar',
-        provider: 'kirmya-webrtc-v1',
-        room_id: 'kirmya-room-webinar',
-        access_token: 'token-774422',
-      },
-    },
-  ];
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>

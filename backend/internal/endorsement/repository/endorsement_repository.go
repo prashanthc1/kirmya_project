@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"context"
 	"fmt"
 	"strings"
@@ -24,6 +25,9 @@ type EndorsementRepository interface {
 
 	CreateReference(ctx context.Context, ref *domain.ProfessionalReference) error
 	GetUserReferences(ctx context.Context, candidateID uuid.UUID) ([]domain.ProfessionalReference, error)
+
+	// Identity returns the name, headline and avatar recorded for a user.
+	Identity(ctx context.Context, userID uuid.UUID) (name, title, avatar string, err error)
 }
 
 type postgresEndorsementRepository struct {
@@ -66,6 +70,26 @@ func (r *postgresEndorsementRepository) HasEndorsed(ctx context.Context, userID,
 	var exists bool
 	err := r.pool.QueryRow(ctx, query, userID, endorserID, skillName).Scan(&exists)
 	return exists, err
+}
+
+// Identity returns the name, headline and avatar recorded for a user. An
+// endorsement carries the endorser's identity, and that identity has to come
+// from the account making it: it used to come from the request body, so an
+// endorser chose the name and title displayed beside their own endorsement.
+func (r *postgresEndorsementRepository) Identity(ctx context.Context, userID uuid.UUID) (string, string, string, error) {
+	if r.pool == nil {
+		return "", "", "", errors.New("endorser identity requires PostgreSQL")
+	}
+	var name, title, avatar string
+	err := r.pool.QueryRow(ctx, `
+		SELECT COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), u.email),
+		       COALESCE(NULLIF(up.headline, ''), COALESCE(p.job_title, '')),
+		       COALESCE(up.avatar_url, '')
+		FROM users u
+		LEFT JOIN user_profiles up ON up.user_id = u.id
+		LEFT JOIN profiles p ON p.user_id = u.id
+		WHERE u.id = $1`, userID).Scan(&name, &title, &avatar)
+	return name, title, avatar, err
 }
 
 func (r *postgresEndorsementRepository) CreateEndorsement(ctx context.Context, end *domain.SkillEndorsement) error {

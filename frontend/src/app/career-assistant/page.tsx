@@ -57,16 +57,16 @@ export default function CareerAssistantPage() {
       ]);
 
       if (resRecs.status === 'fulfilled') {
-        setRecommendations(resRecs.value?.data || mockRecs);
+        setRecommendations(resRecs.value?.data ?? []);
       } else {
-        setRecommendations(mockRecs);
+        setRecommendations([]);
       }
 
       if (resUsage.status === 'fulfilled') {
-        setUsageLogs(resUsage.value?.logs || mockLogs);
+        setUsageLogs(resUsage.value?.logs ?? []);
         setTotalTokens(resUsage.value?.total_tokens || 1450);
       } else {
-        setUsageLogs(mockLogs);
+        setUsageLogs([]);
       }
     } catch (err) {
       console.error(err);
@@ -147,39 +147,7 @@ export default function CareerAssistantPage() {
   };
 
   // Mock initial fallbacks for immediate presentation
-  const mockRecs: AIRecommendation[] = [
-    {
-      id: 'rec-101',
-      session_id: 'sess-1',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      category: 'career_trajectory',
-      title: 'Accelerated Career Trajectory: Staff Engineer / Engineering Manager',
-      content_text: 'Based on your 5 years of experience in Senior Software Engineer, transitioning into Staff Engineer / Engineering Manager is highly achievable. Focus on demonstrating high-scale system ownership, cross-functional engineering leadership, and cloud-native architecture.',
-      priority_score: 9,
-      action_items: [
-        'Audit your top 3 project accomplishments and quantify revenue or performance impact.',
-        "Complete Kirmya's System Design & Distributed Architecture Assessment.",
-        'Connect with 5 hiring engineering managers at target growth-stage companies.',
-      ],
-      bookmarked: false,
-      created_at: new Date().toISOString(),
-    },
-  ];
 
-  const mockLogs: AIUsageLog[] = [
-    {
-      id: 'log-1',
-      user_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-      provider_name: 'gemini-pro',
-      model_name: 'gemini-1.5-pro',
-      request_type: 'career_advice',
-      prompt_tokens: 340,
-      completion_tokens: 180,
-      total_tokens: 520,
-      latency_ms: 145,
-      created_at: new Date().toISOString(),
-    },
-  ];
 
   return (
     <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
