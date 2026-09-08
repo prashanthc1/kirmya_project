@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/learning/domain"
 	"kirmya/internal/learning/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -140,7 +141,7 @@ func (h *LearningHandler) GetUserProgress(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  progressList,
 		"count": len(progressList),
 	})
@@ -160,7 +161,7 @@ func (h *LearningHandler) GetCertificates(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"certificates": certs,
 		"count":        len(certs),
 	})

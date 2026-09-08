@@ -6,6 +6,7 @@ import (
 
 	"kirmya/internal/messaging/models"
 	"kirmya/internal/messaging/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -75,7 +76,7 @@ func (h *MessagingHandler) ListConversations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *MessagingHandler) GetOrCreateConversation(c *gin.Context) {
@@ -253,7 +254,7 @@ func (h *MessagingHandler) ListIncomingRequests(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, reqs)
+	httpx.JSONList(c, http.StatusOK, reqs)
 }
 
 func (h *MessagingHandler) SendMessageRequest(c *gin.Context) {

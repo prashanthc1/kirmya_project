@@ -524,11 +524,13 @@ func (r *RecruiterRepository) GetPipeline(ctx context.Context, jobID uuid.UUID) 
 		}, nil
 	}
 
+	// user_profiles has no full_name column, so this query answered 500 for
+	// every recruiter who opened a pipeline. Names and addresses come from
+	// users, which is where the rest of this repository reads them.
 	query := `SELECT cp.id, cp.job_id, cp.candidate_id, cp.stage, cp.notes, cp.interview_scheduled_at, cp.updated_at,
-	                 COALESCE(up.full_name, 'Candidate name'), COALESCE(ua.email, 'candidate@kirmya.ae')
+	                 COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), 'Candidate'), COALESCE(u.email, '')
 	          FROM candidate_pipeline cp
-	          LEFT JOIN user_profiles up ON cp.candidate_id = up.user_id
-	          LEFT JOIN usr_accounts ua ON cp.candidate_id = ua.id
+	          LEFT JOIN users u ON cp.candidate_id = u.id
 	          WHERE cp.job_id = $1
 	          ORDER BY cp.updated_at DESC`
 
@@ -675,10 +677,10 @@ func (r *RecruiterRepository) GetStageHistory(ctx context.Context, applicationID
 		}, nil
 	}
 
-	query := `SELECT ash.id, ash.application_id, ash.from_stage, ash.to_stage, ash.moved_by, 
-	                 COALESCE(up.full_name, 'Recruiter'), ash.notes, ash.moved_at
+	query := `SELECT ash.id, ash.application_id, ash.from_stage, ash.to_stage, ash.moved_by,
+	                 COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), 'Recruiter'), ash.notes, ash.moved_at
 	          FROM application_stage_history ash
-	          LEFT JOIN user_profiles up ON ash.moved_by = up.user_id
+	          LEFT JOIN users u ON ash.moved_by = u.id
 	          WHERE ash.application_id = $1
 	          ORDER BY ash.moved_at DESC`
 	rows, err := r.db.Query(ctx, query, applicationID)

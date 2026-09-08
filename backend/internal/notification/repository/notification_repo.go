@@ -375,12 +375,15 @@ func (r *NotificationRepository) GetPreferences(ctx context.Context, userID uuid
 	return list, nil
 }
 
-// GetPreference gets a single notification preference or returns a default fallback.
+// GetPreference resolves the preference the delivery pipeline acts on: the row
+// for this event type, then the row for the category the type belongs to, then
+// the documented default.
 func (r *NotificationRepository) GetPreference(ctx context.Context, userID uuid.UUID, nType string) (*models.NotificationPreference, error) {
+	category := models.CategoryForType(nType)
 	defaultPref := &models.NotificationPreference{
 		UserID:           userID,
 		NotificationType: nType,
-		Category:         "System",
+		Category:         category,
 		EmailEnabled:     true,
 		PushEnabled:      true,
 		InAppEnabled:     true,
@@ -399,7 +402,11 @@ func (r *NotificationRepository) GetPreference(ctx context.Context, userID uuid.
 		err := r.db.QueryRow(ctx, query, userID, nType).Scan(&p.UserID, &p.NotificationType, &p.Category, &p.EmailEnabled, &p.PushEnabled, &p.InAppEnabled, &p.SMSEnabled, &p.Frequency, &p.UpdatedAt)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				return defaultPref, nil
+				// No preference for this exact event type. The settings screen
+				// toggles categories, so the category override decides before
+				// the default does; without this step every toggle a user made
+				// was ignored when the notification was actually delivered.
+				return r.categoryPreference(ctx, userID, category, defaultPref)
 			}
 			return nil, err
 		}
@@ -412,7 +419,29 @@ func (r *NotificationRepository) GetPreference(ctx context.Context, userID uuid.
 	if p, exists := r.preferences[key]; exists {
 		return &p, nil
 	}
+	if p, exists := r.preferences[userID.String()+":category:"+category]; exists {
+		return &p, nil
+	}
 	return defaultPref, nil
+}
+
+// categoryPreference returns the stored override for a category, or fallback.
+func (r *NotificationRepository) categoryPreference(ctx context.Context, userID uuid.UUID, category string, fallback *models.NotificationPreference) (*models.NotificationPreference, error) {
+	p := &models.NotificationPreference{UserID: userID, NotificationType: fallback.NotificationType, Category: category}
+	var enabled bool
+	err := r.db.QueryRow(ctx, `SELECT enabled, email_enabled, push_enabled, in_app_enabled, sms_enabled, frequency
+	                           FROM notification_preference_categories WHERE user_id = $1 AND category = $2`, userID, category).
+		Scan(&enabled, &p.EmailEnabled, &p.PushEnabled, &p.InAppEnabled, &p.SMSEnabled, &p.Frequency)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return fallback, nil
+		}
+		return nil, err
+	}
+	if !enabled {
+		p.EmailEnabled, p.PushEnabled, p.InAppEnabled, p.SMSEnabled = false, false, false, false
+	}
+	return p, nil
 }
 
 // UpsertPreference inserts or updates preference configs.
@@ -435,6 +464,74 @@ func (r *NotificationRepository) UpsertPreference(ctx context.Context, p *models
 	key := p.UserID.String() + ":" + p.NotificationType
 	p.UpdatedAt = time.Now()
 	r.preferences[key] = *p
+	return nil
+}
+
+// GetCategoryPreferences returns the stored per-category overrides. Categories
+// with no row are absent: the service merges them over the defaults, so a user
+// who never opened the settings screen still gets the documented behaviour.
+func (r *NotificationRepository) GetCategoryPreferences(ctx context.Context, userID uuid.UUID) ([]models.NotificationPreference, error) {
+	if r == nil {
+		return []models.NotificationPreference{}, nil
+	}
+	if r.db != nil {
+		rows, err := r.db.Query(ctx, `SELECT category, enabled, email_enabled, push_enabled, in_app_enabled, sms_enabled, frequency
+		                              FROM notification_preference_categories WHERE user_id = $1`, userID)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		list := []models.NotificationPreference{}
+		for rows.Next() {
+			p := models.NotificationPreference{UserID: userID}
+			var enabled bool
+			if err := rows.Scan(&p.Category, &enabled, &p.EmailEnabled, &p.PushEnabled, &p.InAppEnabled, &p.SMSEnabled, &p.Frequency); err != nil {
+				return nil, err
+			}
+			if !enabled {
+				p.EmailEnabled, p.PushEnabled, p.InAppEnabled, p.SMSEnabled = false, false, false, false
+			}
+			list = append(list, p)
+		}
+		return list, rows.Err()
+	}
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	list := []models.NotificationPreference{}
+	prefix := userID.String() + ":category:"
+	for key, p := range r.preferences {
+		if strings.HasPrefix(key, prefix) {
+			list = append(list, p)
+		}
+	}
+	return list, nil
+}
+
+// UpsertCategoryPreference stores one category override.
+func (r *NotificationRepository) UpsertCategoryPreference(ctx context.Context, p *models.NotificationPreference) error {
+	if r == nil {
+		return nil
+	}
+	enabled := p.EmailEnabled || p.PushEnabled || p.InAppEnabled || p.SMSEnabled
+	if r.db != nil {
+		_, err := r.db.Exec(ctx, `INSERT INTO notification_preference_categories
+		        (user_id, category, enabled, email_enabled, push_enabled, in_app_enabled, sms_enabled, frequency)
+		        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		        ON CONFLICT (user_id, category) DO UPDATE SET
+		            enabled = EXCLUDED.enabled, email_enabled = EXCLUDED.email_enabled,
+		            push_enabled = EXCLUDED.push_enabled, in_app_enabled = EXCLUDED.in_app_enabled,
+		            sms_enabled = EXCLUDED.sms_enabled, frequency = EXCLUDED.frequency`,
+			p.UserID, p.Category, enabled, p.EmailEnabled, p.PushEnabled, p.InAppEnabled, p.SMSEnabled, p.Frequency)
+		return err
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.initInMemory()
+	p.UpdatedAt = time.Now()
+	r.preferences[p.UserID.String()+":category:"+p.Category] = *p
 	return nil
 }
 

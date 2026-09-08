@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/assessment/domain"
 	"kirmya/internal/assessment/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -31,7 +32,7 @@ func (h *AssessmentHandler) GetAssessments(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  list,
 		"count": len(list),
 	})
@@ -106,7 +107,7 @@ func (h *AssessmentHandler) GetUserResults(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"results": results,
 		"count":   len(results),
 	})
@@ -126,7 +127,7 @@ func (h *AssessmentHandler) GetUserBadges(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"badges": badges,
 		"count":  len(badges),
 	})

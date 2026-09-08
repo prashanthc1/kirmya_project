@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
 	"errors"
@@ -15,6 +16,13 @@ import (
 	"kirmya/internal/notification/repository"
 
 	"github.com/google/uuid"
+)
+
+// ErrUnknownCategory and ErrPreferenceSubjectMissing are caller mistakes, not
+// server failures: the delivery layer answers 400 for both.
+var (
+	ErrUnknownCategory          = errors.New("unknown notification category")
+	ErrPreferenceSubjectMissing = errors.New("notificationType or category is required")
 )
 
 type NotificationService struct {
@@ -212,11 +220,40 @@ func (s *NotificationService) Archive(ctx context.Context, id uuid.UUID, userID 
 	return s.repo.Archive(ctx, id, userID)
 }
 
+// GetPreferences returns one row per category: the stored override where the
+// user set one, the documented default everywhere else. It used to return only
+// stored rows, so a new account's settings screen listed nothing while the
+// pipeline was in fact delivering on every channel.
 func (s *NotificationService) GetPreferences(ctx context.Context, userID uuid.UUID) ([]models.NotificationPreference, error) {
-	return s.repo.GetPreferences(ctx, userID)
+	stored, err := s.repo.GetCategoryPreferences(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	byCategory := make(map[string]models.NotificationPreference, len(stored))
+	for _, p := range stored {
+		byCategory[p.Category] = p
+	}
+
+	out := make([]models.NotificationPreference, 0, len(models.AllCategories))
+	for _, category := range models.AllCategories {
+		if p, ok := byCategory[category]; ok {
+			p.UserID = userID
+			out = append(out, p)
+			continue
+		}
+		out = append(out, models.DefaultCategoryPreference(userID, category))
+	}
+	return out, nil
 }
 
 func (s *NotificationService) UpdatePreference(ctx context.Context, userID uuid.UUID, payload models.UpdatePreferencePayload) error {
+	if payload.NotificationType == "" && payload.Category == "" {
+		return ErrPreferenceSubjectMissing
+	}
+	if payload.NotificationType == "" {
+		return s.updateCategoryPreference(ctx, userID, payload)
+	}
+
 	pref, err := s.repo.GetPreference(ctx, userID, payload.NotificationType)
 	if err != nil {
 		return err
@@ -242,6 +279,44 @@ func (s *NotificationService) UpdatePreference(ctx context.Context, userID uuid.
 	}
 
 	return s.repo.UpsertPreference(ctx, pref)
+}
+
+// updateCategoryPreference stores a category-wide override, the unit the
+// settings screen actually toggles. Absent fields keep their current value.
+func (s *NotificationService) updateCategoryPreference(ctx context.Context, userID uuid.UUID, payload models.UpdatePreferencePayload) error {
+	if !models.IsKnownCategory(payload.Category) {
+		return fmt.Errorf("%w: %q", ErrUnknownCategory, payload.Category)
+	}
+
+	current, err := s.repo.GetCategoryPreferences(ctx, userID)
+	if err != nil {
+		return err
+	}
+	pref := models.DefaultCategoryPreference(userID, payload.Category)
+	for _, p := range current {
+		if p.Category == payload.Category {
+			p.UserID = userID
+			pref = p
+			break
+		}
+	}
+
+	if payload.EmailEnabled != nil {
+		pref.EmailEnabled = *payload.EmailEnabled
+	}
+	if payload.PushEnabled != nil {
+		pref.PushEnabled = *payload.PushEnabled
+	}
+	if payload.InAppEnabled != nil {
+		pref.InAppEnabled = *payload.InAppEnabled
+	}
+	if payload.SMSEnabled != nil {
+		pref.SMSEnabled = *payload.SMSEnabled
+	}
+	if payload.Frequency != "" {
+		pref.Frequency = payload.Frequency
+	}
+	return s.repo.UpsertCategoryPreference(ctx, &pref)
 }
 
 func (s *NotificationService) GetQuietHours(ctx context.Context, userID uuid.UUID) (*models.QuietHoursSettings, error) {
@@ -357,42 +432,9 @@ func (s *NotificationService) ListDeliveryAnalytics(ctx context.Context) ([]mode
 }
 
 // Helper Functions
-func deriveCategory(nType string) string {
-	switch nType {
-	case "security_alert", "password_changed", "new_login", "email_verification", "2fa_enabled", "2fa_disabled", "security_device_added", "security.new_login", "security.password_changed":
-		return models.CategorySecurity
-	case "privacy.export_completed", "privacy.deletion_completed", "privacy_request_updated":
-		return models.CategoryPrivacy
-	case "trust.report_updated", "trust.restriction_created", "trust.appeal_updated", "trust_action_taken":
-		return models.CategoryTrustSafety
-	case "recommended_job", "job_alert", "saved_search_match", "job_expiring", "company_hiring", "job_recommendation", "job.created", "job.recommended", "job.alert_match_found":
-		return models.CategoryJobs
-	case "application_submitted", "application_viewed", "application_status_changed", "application_shortlisted", "application_rejected", "offer_received", "job.application_submitted", "job.application_status_changed":
-		return models.CategoryApplications
-	case "interview_scheduled", "interview_rescheduled", "interview_cancelled", "interview_reminder", "interview_feedback":
-		return models.CategoryInterviews
-	case "new_candidate", "candidate_response", "candidate_match", "candidate_assignment", "recruiter_invitation":
-		return models.CategoryRecruiter
-	case "connection_request", "connection_accepted", "profile_view", "recommendation", "connection.requested", "connection.accepted":
-		return models.CategoryNetworking
-	case "new_message", "message_received", "direct_message", "chat_mention", "message.received":
-		return models.CategoryMessaging
-	case "community_invitation", "community_update", "community_activity", "community_post", "community.invited", "community.mentioned":
-		return models.CategoryCommunities
-	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder", "mentorship_request", "mentorship_accepted":
-		return models.CategoryCareer
-	case "resume_analysis", "ats_improvement", "resume_updated":
-		return models.CategoryResume
-	case "cover_letter_suggestion", "cover_letter_generated":
-		return models.CategoryCoverLetters
-	case "ai_analysis_complete", "ai_recommendation", "ai_insights_ready":
-		return models.CategoryAI
-	case "support.ticket.created", "support.ticket.updated", "support.ticket.response.created", "support.ticket.resolved", "support.ticket.closed", "support.ticket.reopened":
-		return models.CategorySupport
-	default:
-		return models.CategorySystem
-	}
-}
+// deriveCategory maps an event type to its category. The mapping lives in
+// models because the repository resolves category preferences with it too.
+func deriveCategory(nType string) string { return models.CategoryForType(nType) }
 
 func derivePriority(nType string) string {
 	switch nType {

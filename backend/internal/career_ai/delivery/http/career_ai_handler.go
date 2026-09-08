@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/career_ai/domain"
 	"kirmya/internal/career_ai/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 
@@ -163,7 +164,7 @@ func (h *CareerAIHandler) GetUserRecommendations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  recs,
 		"count": len(recs),
 	})
@@ -188,7 +189,7 @@ func (h *CareerAIHandler) GetUserUsage(c *gin.Context) {
 		totalTokens += l.TotalTokens
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"logs":         logs,
 		"total_tokens": totalTokens,
 		"count":        len(logs),

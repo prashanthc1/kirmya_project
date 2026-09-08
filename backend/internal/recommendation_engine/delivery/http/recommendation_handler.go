@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/recommendation_engine/domain"
 	"kirmya/internal/recommendation_engine/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ func (h *RecommendationHandler) GetUnifiedRecommendations(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	httpx.JSONList(c, http.StatusOK, resp)
 }
 
 // TrackEvent handles POST /recommendations/events

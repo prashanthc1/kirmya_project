@@ -225,9 +225,12 @@ type AdminAnnouncementRequest struct {
 	ActionURL  string `json:"actionUrl"`
 }
 
-// UpdatePreferencePayload is the payload struct for updating user preferences.
+// UpdatePreferencePayload carries either a notificationType, for one event
+// type, or a category, for every event type that derives to it. The settings
+// screen toggles categories, so requiring notificationType here rejected every
+// request it made.
 type UpdatePreferencePayload struct {
-	NotificationType string `json:"notificationType" binding:"required"`
+	NotificationType string `json:"notificationType,omitempty"`
 	Category         string `json:"category,omitempty"`
 	EmailEnabled     *bool  `json:"emailEnabled,omitempty"`
 	PushEnabled      *bool  `json:"pushEnabled,omitempty"`
@@ -341,3 +344,75 @@ type BroadcastAnnouncementPayload struct {
 	ActionURL  string `json:"actionUrl"`
 }
 
+// CategoryForType maps a notification event type to the category the settings
+// screen groups it under.
+func CategoryForType(nType string) string {
+	switch nType {
+	case "security_alert", "password_changed", "new_login", "email_verification", "2fa_enabled", "2fa_disabled", "security_device_added", "security.new_login", "security.password_changed":
+		return CategorySecurity
+	case "privacy.export_completed", "privacy.deletion_completed", "privacy_request_updated":
+		return CategoryPrivacy
+	case "trust.report_updated", "trust.restriction_created", "trust.appeal_updated", "trust_action_taken":
+		return CategoryTrustSafety
+	case "recommended_job", "job_alert", "saved_search_match", "job_expiring", "company_hiring", "job_recommendation", "job.created", "job.recommended", "job.alert_match_found":
+		return CategoryJobs
+	case "application_submitted", "application_viewed", "application_status_changed", "application_shortlisted", "application_rejected", "offer_received", "job.application_submitted", "job.application_status_changed":
+		return CategoryApplications
+	case "interview_scheduled", "interview_rescheduled", "interview_cancelled", "interview_reminder", "interview_feedback":
+		return CategoryInterviews
+	case "new_candidate", "candidate_response", "candidate_match", "candidate_assignment", "recruiter_invitation":
+		return CategoryRecruiter
+	case "connection_request", "connection_accepted", "profile_view", "recommendation", "connection.requested", "connection.accepted":
+		return CategoryNetworking
+	case "new_message", "message_received", "direct_message", "chat_mention", "message.received":
+		return CategoryMessaging
+	case "community_invitation", "community_update", "community_activity", "community_post", "community.invited", "community.mentioned":
+		return CategoryCommunities
+	case "skill_recommendation", "skill_gap_alert", "learning_recommendation", "career_goal_reminder", "mentorship_request", "mentorship_accepted":
+		return CategoryCareer
+	case "resume_analysis", "ats_improvement", "resume_updated":
+		return CategoryResume
+	case "cover_letter_suggestion", "cover_letter_generated":
+		return CategoryCoverLetters
+	case "ai_analysis_complete", "ai_recommendation", "ai_insights_ready":
+		return CategoryAI
+	case "support.ticket.created", "support.ticket.updated", "support.ticket.response.created", "support.ticket.resolved", "support.ticket.closed", "support.ticket.reopened":
+		return CategorySupport
+	default:
+		return CategorySystem
+	}
+}
+
+// AllCategories is the category vocabulary the settings screen renders and
+// CategoryForType maps onto.
+var AllCategories = []string{
+	CategorySecurity, CategoryPrivacy, CategoryTrustSafety, CategoryJobs,
+	CategoryApplications, CategoryInterviews, CategoryRecruiter, CategoryNetworking,
+	CategoryMessaging, CategoryCommunities, CategoryCareer, CategoryResume,
+	CategoryCoverLetters, CategoryAI, CategorySupport, CategorySystem,
+}
+
+// IsKnownCategory reports whether category is part of that vocabulary.
+func IsKnownCategory(category string) bool {
+	for _, c := range AllCategories {
+		if c == category {
+			return true
+		}
+	}
+	return false
+}
+
+// DefaultCategoryPreference is what a user gets before they change anything:
+// every in-product channel on, SMS reserved for the categories where a missed
+// message costs the user something immediate.
+func DefaultCategoryPreference(userID uuid.UUID, category string) NotificationPreference {
+	return NotificationPreference{
+		UserID:       userID,
+		Category:     category,
+		EmailEnabled: true,
+		PushEnabled:  true,
+		InAppEnabled: true,
+		SMSEnabled:   category == CategorySecurity || category == CategoryInterviews,
+		Frequency:    "Instant",
+	}
+}

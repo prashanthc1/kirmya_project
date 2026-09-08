@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"kirmya/internal/shared/httpx"
 	"kirmya/internal/trust_safety/models"
 	"kirmya/internal/trust_safety/service"
 )
@@ -69,7 +70,7 @@ func (h *TrustSafetyHandler) GetUserReports(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": reports})
+	httpx.JSONList(c, http.StatusOK, gin.H{"status": "success", "data": reports})
 }
 
 func (h *TrustSafetyHandler) GetReportByID(c *gin.Context) {
@@ -165,7 +166,7 @@ func (h *TrustSafetyHandler) GetUserBlocks(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": blocks})
+	httpx.JSONList(c, http.StatusOK, gin.H{"status": "success", "data": blocks})
 }
 
 func (h *TrustSafetyHandler) MuteEntity(c *gin.Context) {
@@ -228,7 +229,7 @@ func (h *TrustSafetyHandler) GetUserMutes(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": mutes})
+	httpx.JSONList(c, http.StatusOK, gin.H{"status": "success", "data": mutes})
 }
 
 func (h *TrustSafetyHandler) SubmitAppeal(c *gin.Context) {
@@ -306,5 +307,5 @@ func (h *TrustSafetyHandler) GetUserRestrictions(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "success", "data": restrictions})
+	httpx.JSONList(c, http.StatusOK, gin.H{"status": "success", "data": restrictions})
 }

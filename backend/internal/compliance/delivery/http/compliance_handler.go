@@ -6,6 +6,7 @@ import (
 
 	"kirmya/internal/compliance/domain"
 	"kirmya/internal/compliance/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -80,7 +81,7 @@ func (h *ComplianceHandler) GetUserConsents(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": consents, "count": len(consents)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": consents, "count": len(consents)})
 }
 
 // RequestDataExport handles POST /compliance/export
@@ -155,7 +156,7 @@ func (h *ComplianceHandler) GetUserDataRequests(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": reqs, "count": len(reqs)})
+	httpx.JSONList(c, http.StatusOK, gin.H{"data": reqs, "count": len(reqs)})
 }
 
 // CreateUserRequest handles POST /compliance/requests

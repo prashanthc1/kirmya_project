@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/resume_analysis/domain"
 	"kirmya/internal/resume_analysis/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -78,7 +79,7 @@ func (h *ResumeAnalysisHandler) GetUserAnalysisHistory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  history,
 		"count": len(history),
 	})

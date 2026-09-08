@@ -6,6 +6,7 @@ import (
 
 	"kirmya/internal/networking/models"
 	"kirmya/internal/networking/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -71,7 +72,7 @@ func (h *NetworkingHandler) SearchPeople(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, results)
+	httpx.JSONList(c, http.StatusOK, results)
 }
 
 func (h *NetworkingHandler) GetNetworkStats(c *gin.Context) {
@@ -99,7 +100,7 @@ func (h *NetworkingHandler) ListConnections(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, conns)
+	httpx.JSONList(c, http.StatusOK, conns)
 }
 
 func (h *NetworkingHandler) ListIncomingRequests(c *gin.Context) {
@@ -113,7 +114,7 @@ func (h *NetworkingHandler) ListIncomingRequests(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, reqs)
+	httpx.JSONList(c, http.StatusOK, reqs)
 }
 
 func (h *NetworkingHandler) ListSentRequests(c *gin.Context) {
@@ -127,7 +128,7 @@ func (h *NetworkingHandler) ListSentRequests(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, reqs)
+	httpx.JSONList(c, http.StatusOK, reqs)
 }
 
 func (h *NetworkingHandler) SendRequest(c *gin.Context) {
@@ -276,7 +277,7 @@ func (h *NetworkingHandler) GetMutualConnections(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	httpx.JSONList(c, http.StatusOK, result)
 }
 
 func (h *NetworkingHandler) DismissRecommendation(c *gin.Context) {
@@ -590,7 +591,7 @@ func (h *NetworkingHandler) GetGoals(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, goals)
+	httpx.JSONList(c, http.StatusOK, goals)
 }
 
 func (h *NetworkingHandler) UpdateGoal(c *gin.Context) {
@@ -670,7 +671,7 @@ func (h *NetworkingHandler) GetFollowing(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, results)
+	httpx.JSONList(c, http.StatusOK, results)
 }
 
 func (h *NetworkingHandler) GetFollowers(c *gin.Context) {
@@ -685,6 +686,6 @@ func (h *NetworkingHandler) GetFollowers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, results)
+	httpx.JSONList(c, http.StatusOK, results)
 }
 

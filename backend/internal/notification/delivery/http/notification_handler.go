@@ -1,11 +1,13 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"kirmya/internal/notification/models"
 	"kirmya/internal/notification/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -50,7 +52,7 @@ func (h *NotificationHandler) ListNotifications(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *NotificationHandler) GetUnreadCount(c *gin.Context) {
@@ -229,9 +231,22 @@ func (h *NotificationHandler) UpdatePreference(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// /preferences/categories/:category names its subject in the path. The
+	// handler used to ignore it and write whatever the body said.
+	if pathCategory := c.Param("category"); pathCategory != "" {
+		payload.Category = pathCategory
+		payload.NotificationType = ""
+	}
+	if payload.NotificationType == "" && payload.Category == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "notificationType or category is required"})
+		return
+	}
 
-	err := h.service.UpdatePreference(c.Request.Context(), userID, payload)
-	if err != nil {
+	if err := h.service.UpdatePreference(c.Request.Context(), userID, payload); err != nil {
+		if errors.Is(err, service.ErrUnknownCategory) || errors.Is(err, service.ErrPreferenceSubjectMissing) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -315,7 +330,7 @@ func (h *NotificationHandler) GetDevices(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *NotificationHandler) DeleteDevice(c *gin.Context) {
@@ -351,7 +366,7 @@ func (h *NotificationHandler) GetSchedules(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, schedules)
+	httpx.JSONList(c, http.StatusOK, schedules)
 }
 
 func (h *NotificationHandler) CreateSchedule(c *gin.Context) {
@@ -408,7 +423,7 @@ func (h *NotificationHandler) GetHistory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, history)
+	httpx.JSONList(c, http.StatusOK, history)
 }
 
 // Admin Handlers

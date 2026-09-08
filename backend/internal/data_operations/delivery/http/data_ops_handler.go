@@ -6,6 +6,7 @@ import (
 
 	"kirmya/internal/data_operations/models"
 	"kirmya/internal/data_operations/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -63,7 +64,7 @@ func (h *DataOperationsHandler) ListUserExports(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *DataOperationsHandler) PreviewImport(c *gin.Context) {

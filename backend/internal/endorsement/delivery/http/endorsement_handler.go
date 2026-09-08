@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/endorsement/domain"
 	"kirmya/internal/endorsement/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -74,7 +75,7 @@ func (h *EndorsementHandler) GetUserEndorsements(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  groups,
 		"count": len(groups),
 	})
@@ -134,7 +135,7 @@ func (h *EndorsementHandler) GetRecommendationsForUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  recs,
 		"count": len(recs),
 	})
@@ -223,7 +224,7 @@ func (h *EndorsementHandler) GetUserReferences(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  refs,
 		"count": len(refs),
 	})

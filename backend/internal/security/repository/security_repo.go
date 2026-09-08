@@ -150,7 +150,7 @@ func (r *securityRepository) GetSecurityOverview(ctx context.Context, userID uui
 	if r.db != nil {
 		var mfaEnabled bool
 		var pwdLastChanged time.Time
-		_ = r.db.QueryRow(ctx, "SELECT COALESCE(mfa_enabled, false), COALESCE(password_last_changed_at, NOW()) FROM security_settings WHERE user_id = $1", userID).Scan(&mfaEnabled, &pwdLastChanged)
+		_ = r.db.QueryRow(ctx, "SELECT COALESCE(mfa_enabled, false), COALESCE(password_last_changed_at, NOW()) FROM user_security_settings WHERE user_id = $1", userID).Scan(&mfaEnabled, &pwdLastChanged)
 
 		var trustedCount int
 		_ = r.db.QueryRow(ctx, "SELECT COUNT(*) FROM trusted_devices WHERE user_id = $1 AND trusted_status = 'trusted'", userID).Scan(&trustedCount)
@@ -546,7 +546,7 @@ func (r *securityRepository) RecordLoginHistory(ctx context.Context, item *model
 func (r *securityRepository) GetMFAStatus(ctx context.Context, userID uuid.UUID) (bool, error) {
 	if r.db != nil {
 		var mfaEnabled bool
-		err := r.db.QueryRow(ctx, "SELECT COALESCE(mfa_enabled, false) FROM security_settings WHERE user_id = $1", userID).Scan(&mfaEnabled)
+		err := r.db.QueryRow(ctx, "SELECT COALESCE(mfa_enabled, false) FROM user_security_settings WHERE user_id = $1", userID).Scan(&mfaEnabled)
 		if err == nil {
 			return mfaEnabled, nil
 		}
@@ -571,32 +571,49 @@ func (r *securityRepository) GetMFASecret(ctx context.Context, userID uuid.UUID)
 	return r.memMFASecrets[userID], nil
 }
 
+// EnableMFA stores the enrolment. Every statement here used to discard its
+// error and the function returned nil regardless, so an enrolment that never
+// reached the database still answered "MFA enabled" and kept the secret in a
+// process map that the next restart cleared - the user's authenticator then
+// produced codes the server could not check.
 func (r *securityRepository) EnableMFA(ctx context.Context, userID uuid.UUID, secret string, recoveryCodeHashes []string) error {
 	if r.db != nil {
 		tx, err := r.db.Begin(ctx)
-		if err == nil {
-			defer tx.Rollback(ctx) // nolint:errcheck
+		if err != nil {
+			return fmt.Errorf("begin mfa enrolment: %w", err)
+		}
+		defer tx.Rollback(ctx) // nolint:errcheck
 
-			_, _ = tx.Exec(ctx, `
+		if _, err := tx.Exec(ctx, `
 				INSERT INTO mfa_methods (id, user_id, method_type, secret, is_primary, is_verified, created_at, updated_at)
 				VALUES ($1, $2, 'totp', $3, true, true, NOW(), NOW())
 				ON CONFLICT (user_id, method_type) DO UPDATE SET secret = EXCLUDED.secret, is_verified = true, updated_at = NOW()
-			`, uuid.New(), userID, secret)
+			`, uuid.New(), userID, secret); err != nil {
+			return fmt.Errorf("store mfa secret: %w", err)
+		}
 
-			_, _ = tx.Exec(ctx, `
-				INSERT INTO security_settings (id, user_id, mfa_enabled, updated_at)
-				VALUES ($1, $2, true, NOW())
+		if _, err := tx.Exec(ctx, `
+				INSERT INTO user_security_settings (user_id, mfa_enabled, updated_at)
+				VALUES ($1, true, NOW())
 				ON CONFLICT (user_id) DO UPDATE SET mfa_enabled = true, updated_at = NOW()
-			`, uuid.New(), userID)
+			`, userID); err != nil {
+			return fmt.Errorf("enable mfa flag: %w", err)
+		}
 
-			for _, codeHash := range recoveryCodeHashes {
-				_, _ = tx.Exec(ctx, `
+		if _, err := tx.Exec(ctx, "DELETE FROM mfa_recovery_codes WHERE user_id = $1", userID); err != nil {
+			return fmt.Errorf("replace recovery codes: %w", err)
+		}
+		for _, codeHash := range recoveryCodeHashes {
+			if _, err := tx.Exec(ctx, `
 					INSERT INTO mfa_recovery_codes (id, user_id, code_hash, is_used, created_at)
 					VALUES ($1, $2, $3, false, NOW())
-				`, uuid.New(), userID, codeHash)
+				`, uuid.New(), userID, codeHash); err != nil {
+				return fmt.Errorf("store recovery code: %w", err)
 			}
+		}
 
-			_ = tx.Commit(ctx)
+		if err := tx.Commit(ctx); err != nil {
+			return fmt.Errorf("commit mfa enrolment: %w", err)
 		}
 	}
 
@@ -611,9 +628,17 @@ func (r *securityRepository) EnableMFA(ctx context.Context, userID uuid.UUID, se
 
 func (r *securityRepository) DisableMFA(ctx context.Context, userID uuid.UUID) error {
 	if r.db != nil {
-		_, _ = r.db.Exec(ctx, "DELETE FROM mfa_methods WHERE user_id = $1", userID)
-		_, _ = r.db.Exec(ctx, "DELETE FROM mfa_recovery_codes WHERE user_id = $1", userID)
-		_, _ = r.db.Exec(ctx, "UPDATE security_settings SET mfa_enabled = false, updated_at = NOW() WHERE user_id = $1", userID)
+		if _, err := r.db.Exec(ctx, "DELETE FROM mfa_methods WHERE user_id = $1", userID); err != nil {
+			return fmt.Errorf("remove mfa methods: %w", err)
+		}
+		if _, err := r.db.Exec(ctx, "DELETE FROM mfa_recovery_codes WHERE user_id = $1", userID); err != nil {
+			return fmt.Errorf("remove recovery codes: %w", err)
+		}
+		if _, err := r.db.Exec(ctx, `INSERT INTO user_security_settings (user_id, mfa_enabled, updated_at)
+			VALUES ($1, false, NOW())
+			ON CONFLICT (user_id) DO UPDATE SET mfa_enabled = false, updated_at = NOW()`, userID); err != nil {
+			return fmt.Errorf("clear mfa flag: %w", err)
+		}
 	}
 
 	r.mu.Lock()

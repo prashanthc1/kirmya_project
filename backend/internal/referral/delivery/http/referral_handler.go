@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/referral/domain"
 	"kirmya/internal/referral/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -54,7 +55,7 @@ func (h *ReferralHandler) GetOpenRequests(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  requests,
 		"count": len(requests),
 	})
@@ -100,7 +101,7 @@ func (h *ReferralHandler) GetUserReferrals(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  referrals,
 		"count": len(referrals),
 	})

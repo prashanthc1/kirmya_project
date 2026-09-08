@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/ai_job_match/domain"
 	"kirmya/internal/ai_job_match/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -34,7 +35,7 @@ func (h *MatchingHandler) GetUserMatches(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  matches,
 		"count": len(matches),
 	})

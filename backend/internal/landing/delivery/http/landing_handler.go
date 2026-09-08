@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/landing/domain"
 	"kirmya/internal/landing/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +25,7 @@ func (h *LandingHandler) GetLandingContent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, content)
+	httpx.JSONList(c, http.StatusOK, content)
 }
 
 // CreateTestimonial handles POST /landing/admin/testimonials

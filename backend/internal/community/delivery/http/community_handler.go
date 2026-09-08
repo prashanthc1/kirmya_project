@@ -6,6 +6,7 @@ import (
 
 	"kirmya/internal/community/models"
 	"kirmya/internal/community/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -83,7 +84,7 @@ func (h *CommunityHandler) ListCommunities(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, list)
+		httpx.JSONList(c, http.StatusOK, list)
 		return
 	}
 
@@ -93,7 +94,7 @@ func (h *CommunityHandler) ListCommunities(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *CommunityHandler) GetRecommendedCommunities(c *gin.Context) {
@@ -115,7 +116,7 @@ func (h *CommunityHandler) GetRecommendedCommunities(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *CommunityHandler) CreateCommunity(c *gin.Context) {

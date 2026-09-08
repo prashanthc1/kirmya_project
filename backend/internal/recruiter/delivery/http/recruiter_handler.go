@@ -6,6 +6,7 @@ import (
 
 	"kirmya/internal/recruiter/models"
 	"kirmya/internal/recruiter/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -68,7 +69,7 @@ func (h *RecruiterHandler) GetDashboardOverview(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, overview)
+	httpx.JSONList(c, http.StatusOK, overview)
 }
 
 func (h *RecruiterHandler) CreateJob(c *gin.Context) {
@@ -104,7 +105,7 @@ func (h *RecruiterHandler) GetJobs(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *RecruiterHandler) GetJobByID(c *gin.Context) {
@@ -496,7 +497,7 @@ func (h *RecruiterHandler) GetStageHistory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, history)
+	httpx.JSONList(c, http.StatusOK, history)
 }
 
 func (h *RecruiterHandler) CreateCandidateNote(c *gin.Context) {
@@ -546,7 +547,7 @@ func (h *RecruiterHandler) GetCandidateNotes(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, notes)
+	httpx.JSONList(c, http.StatusOK, notes)
 }
 
 func (h *RecruiterHandler) CreateCandidateEvaluation(c *gin.Context) {
@@ -583,7 +584,7 @@ func (h *RecruiterHandler) GetCandidateEvaluations(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, evals)
+	httpx.JSONList(c, http.StatusOK, evals)
 }
 
 // Helpers

@@ -99,7 +99,7 @@ func (r *postgresRecommendationRepository) GetUserPreferences(ctx context.Contex
 
 	query := `
 		SELECT id, user_id, preferred_skills, preferred_locations, disliked_items, feature_vector, updated_at
-		FROM user_preferences
+		FROM recommendation_user_preferences
 		WHERE user_id = $1
 	`
 	var pref domain.UserPreference
@@ -156,7 +156,7 @@ func (r *postgresRecommendationRepository) SaveUserPreferences(ctx context.Conte
 	vecJSON, _ := json.Marshal(pref.FeatureVector)
 
 	query := `
-		INSERT INTO user_preferences (
+		INSERT INTO recommendation_user_preferences (
 			id, user_id, preferred_skills, preferred_locations, disliked_items, feature_vector, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (user_id) DO UPDATE SET

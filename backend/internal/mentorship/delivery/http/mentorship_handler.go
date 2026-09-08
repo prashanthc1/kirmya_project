@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"kirmya/internal/mentorship/models"
 	"kirmya/internal/mentorship/service"
+	"kirmya/internal/shared/httpx"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
@@ -131,7 +132,7 @@ func (h *MentorshipHandler) GetMentorByID(c *gin.Context) {
 // SearchMentors GET /api/v1/mentorship/mentors/search
 func (h *MentorshipHandler) SearchMentors(c *gin.Context) {
 	if h.svc == nil {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		httpx.JSONList(c, http.StatusOK, gin.H{"status": "ok"})
 		return
 	}
 	var params models.MentorFilterParams
@@ -151,7 +152,7 @@ func (h *MentorshipHandler) SearchMentors(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"mentors": profiles,
 		"total":   total,
 		"page":    params.Page,
@@ -162,7 +163,7 @@ func (h *MentorshipHandler) SearchMentors(c *gin.Context) {
 // GetRecommendations GET /api/v1/mentorship/mentors/recommendations
 func (h *MentorshipHandler) GetRecommendations(c *gin.Context) {
 	if h.svc == nil {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		httpx.JSONList(c, http.StatusOK, gin.H{"status": "ok"})
 		return
 	}
 	userID := getUserID(c)
@@ -179,7 +180,7 @@ func (h *MentorshipHandler) GetRecommendations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"recommendations": mentors})
+	httpx.JSONList(c, http.StatusOK, gin.H{"recommendations": mentors})
 }
 
 // CreateMentorshipRequest POST /api/v1/mentorship/requests
@@ -246,7 +247,7 @@ func (h *MentorshipHandler) RespondToMentorshipRequest(c *gin.Context) {
 // GetUserRequests GET /api/v1/mentorship/requests
 func (h *MentorshipHandler) GetUserRequests(c *gin.Context) {
 	if h.svc == nil {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		httpx.JSONList(c, http.StatusOK, gin.H{"status": "ok"})
 		return
 	}
 	userID := getUserID(c)
@@ -262,13 +263,13 @@ func (h *MentorshipHandler) GetUserRequests(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"requests": requests})
+	httpx.JSONList(c, http.StatusOK, gin.H{"requests": requests})
 }
 
 // GetActiveMentorships GET /api/v1/mentorship/relationships
 func (h *MentorshipHandler) GetActiveMentorships(c *gin.Context) {
 	if h.svc == nil {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		httpx.JSONList(c, http.StatusOK, gin.H{"status": "ok"})
 		return
 	}
 	userID := getUserID(c)
@@ -283,7 +284,7 @@ func (h *MentorshipHandler) GetActiveMentorships(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"mentorships": mentorships})
+	httpx.JSONList(c, http.StatusOK, gin.H{"mentorships": mentorships})
 }
 
 // GetMentorshipByID GET /api/v1/mentorship/relationships/:id

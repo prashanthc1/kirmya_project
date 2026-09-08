@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/freelance/domain"
 	"kirmya/internal/freelance/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -145,7 +146,7 @@ func (h *FreelanceHandler) GetUserContracts(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  contracts,
 		"count": len(contracts),
 	})

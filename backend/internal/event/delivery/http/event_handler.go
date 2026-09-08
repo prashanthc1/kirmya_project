@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/event/domain"
 	"kirmya/internal/event/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -158,7 +159,7 @@ func (h *EventHandler) GetUserRegistrations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  events,
 		"count": len(events),
 	})

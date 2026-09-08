@@ -17,6 +17,10 @@ export type ConnectionRequestItem = ConnectionRequest;
 
 const client = authApiClient;
 
+// ponytail: Go marshals nil slices as JSON null, so an empty list arrives as `null`
+// with a 200 and never hits the catch below. Treat any non-array payload as empty.
+const asList = <T,>(data: unknown): T[] => (Array.isArray(data) ? data : []);
+
 export interface AdminNetworkAnalytics {
   totalConnectionsCount: number;
   totalRequestsCount: number;
@@ -201,7 +205,7 @@ export const networkingApi = {
   searchPeople: async (params?: Record<string, any>): Promise<PeopleSearchResult[]> => {
     try {
       const res = await client.get<PeopleSearchResult[]>('/people/search', { params });
-      return res.data;
+      return asList(res.data);
     } catch {
       let results: PeopleSearchResult[] = [
         {
@@ -294,7 +298,7 @@ export const networkingApi = {
   getSuggestions: async (): Promise<ConnectionRecommendation[]> => {
     try {
       const res = await client.get<ConnectionRecommendation[]>('/people/suggestions');
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.suggestions;
     }
@@ -325,7 +329,7 @@ export const networkingApi = {
   listConnections: async (params?: Record<string, any>): Promise<any[]> => {
     try {
       const res = await client.get('/network/connections', { params });
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.connections.map((c) => ({
         userId: c.userId,
@@ -361,7 +365,7 @@ export const networkingApi = {
   listIncomingRequests: async (): Promise<ConnectionRequestItem[]> => {
     try {
       const res = await client.get<ConnectionRequestItem[]>('/network/requests');
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.incomingRequests;
     }
@@ -370,7 +374,7 @@ export const networkingApi = {
   listSentRequests: async (): Promise<ConnectionRequestItem[]> => {
     try {
       const res = await client.get<ConnectionRequestItem[]>('/network/requests/sent');
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.sentRequests;
     }
@@ -518,7 +522,7 @@ export const networkingApi = {
   getConnectionNotes: async (connectionId: string): Promise<ConnectionNote[]> => {
     try {
       const res = await client.get<ConnectionNote[]>(`/network/connections/${connectionId}/notes`);
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.notes.filter((n) => n.connectionId === connectionId);
     }
@@ -554,7 +558,7 @@ export const networkingApi = {
   getConnectionLabels: async (): Promise<ConnectionLabel[]> => {
     try {
       const res = await client.get<ConnectionLabel[]>('/network/labels');
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.labels;
     }
@@ -580,7 +584,7 @@ export const networkingApi = {
   getNetworkingGoals: async (): Promise<NetworkingGoal[]> => {
     try {
       const res = await client.get<NetworkingGoal[]>('/network/goals');
-      return res.data;
+      return asList(res.data);
     } catch {
       return mockState.goals;
     }
@@ -639,7 +643,7 @@ export const networkingApi = {
       const res = await client.get<CompanyConnection[]>('/network/company-connections', {
         params: { company: companyName },
       });
-      return res.data;
+      return asList(res.data);
     } catch {
       if (companyName) {
         const q = companyName.toLowerCase();
@@ -668,7 +672,7 @@ export const networkingApi = {
   getAdminReports: async (): Promise<any[]> => {
     try {
       const res = await client.get('/admin/network/reports');
-      return res.data;
+      return asList(res.data);
     } catch {
       return [];
     }

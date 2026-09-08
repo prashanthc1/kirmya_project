@@ -5,6 +5,7 @@ import (
 
 	"kirmya/internal/career_companion/domain"
 	"kirmya/internal/career_companion/service"
+	"kirmya/internal/shared/httpx"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -89,7 +90,7 @@ func (h *CompanionHandler) GetUserConversations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  convs,
 		"count": len(convs),
 	})
@@ -135,7 +136,7 @@ func (h *CompanionHandler) GetLatestCareerPlan(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, plan)
+	httpx.JSONList(c, http.StatusOK, plan)
 }
 
 // GetUserContext handles GET /career-companion/context

@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"kirmya/internal/shared/httpx"
 	"kirmya/internal/verification/domain"
 	"kirmya/internal/verification/service"
 
@@ -60,7 +61,7 @@ func (h *VerificationHandler) GetUserRequests(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	httpx.JSONList(c, http.StatusOK, gin.H{
 		"data":  requests,
 		"count": len(requests),
 	})
