@@ -104,8 +104,19 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
                   counted; when it cannot, the tile keeps its heading and drops
                   the number rather than inventing one.
                 */}
+                {/*
+                  The count uses the same per-mode accent as the eyebrow above,
+                  and for the same reason. #10b981 on this tile's own 8% wash
+                  composites to #ebf9f4 in light mode and reads 2.34:1, against
+                  the 3:1 that 22px bold text needs.
+
+                  This one is worth noting for how it hid: the tile renders only
+                  when the API returns a real count, so an accessibility scan run
+                  against a build that could not reach the API sees no number at
+                  all and passes. The first scan of this page did exactly that.
+                */}
                 {typeof hiringCompanies === 'number' && (
-                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#10b981', mb: 1 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: accent, mb: 1 }}>
                     {hiringCompanies.toLocaleString()}
                   </Typography>
                 )}
