@@ -59,13 +59,11 @@ func TestRecruiterService_FullWorkflow(t *testing.T) {
 		t.Errorf("Expected job title 'Senior Go Engineer', got %s", job.Title)
 	}
 
-	// 3. Test Candidate Pipeline & Match Analysis
-	match, err := svc.GetCandidateMatch(ctx, userID, job.ID, uuid.New())
-	if err != nil {
-		t.Fatalf("GetCandidateMatch failed: %v", err)
-	}
-	if match.OverallMatchScore < 80 {
-		t.Errorf("Expected match score >= 80, got %d", match.OverallMatchScore)
+	// 3. A match is computed from stored job and profile skills, so it needs the
+	//    database both to prove the job is the caller's and to read those
+	//    records. It used to answer 96% for a candidate id invented on the spot.
+	if _, err := svc.GetCandidateMatch(ctx, userID, job.ID, uuid.New()); err == nil {
+		t.Error("expected an error computing a match with no database behind it")
 	}
 
 	// 4. Test Interview Feedback & Offer
@@ -179,13 +177,11 @@ func TestRecruiterService_CandidateEvaluation(t *testing.T) {
 		t.Errorf("Expected recommendation 'Strong Hire', got %s", eval.Recommendation)
 	}
 
-	// Get evaluations
-	evals, err := svc.GetCandidateEvaluations(ctx, eval.ApplicationID)
-	if err != nil {
-		t.Fatalf("GetCandidateEvaluations failed: %v", err)
-	}
-	if len(evals) == 0 {
-		t.Error("Expected at least one evaluation")
+	// Reading evaluations now requires proving the application belongs to a job
+	// this recruiter posted, and ownership cannot be established without the
+	// database. Fail closed rather than answer with another recruiter's notes.
+	if _, err := svc.GetCandidateEvaluations(ctx, userID, eval.ApplicationID); err == nil {
+		t.Error("expected an error reading evaluations with no database to check ownership against")
 	}
 }
 
@@ -195,15 +191,11 @@ func TestRecruiterService_StageHistory(t *testing.T) {
 	ctx := context.Background()
 	appID := uuid.New()
 
-	history, err := svc.GetStageHistory(ctx, appID)
-	if err != nil {
-		t.Fatalf("GetStageHistory failed: %v", err)
-	}
-	if len(history) < 2 {
-		t.Errorf("Expected at least 2 history entries, got %d", len(history))
-	}
-	if history[0].FromStage != "New" || history[0].ToStage != "Shortlisted" {
-		t.Errorf("Unexpected stage transition: %s -> %s", history[0].FromStage, history[0].ToStage)
+	// Same boundary as the evaluations above: no database, no ownership proof,
+	// no history. The fixture this used to assert on described an application
+	// the caller had no claim to.
+	if _, err := svc.GetStageHistory(ctx, uuid.New(), appID); err == nil {
+		t.Error("expected an error reading stage history with no database to check ownership against")
 	}
 }
 
