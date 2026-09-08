@@ -109,6 +109,7 @@ type RouterDependencies struct {
 	IntelligenceHandler         *intelligenceHttp.IntelligenceHandler
 	RecommendationEngineHandler *recommendationEngineHttp.RecommendationHandler
 	LandingHandler              *landingHttp.LandingHandler
+	NewsletterHandler           *landingHttp.NewsletterHandler
 	OnboardingHandler           *onboardingHttp.OnboardingHandler
 	ApplicationsHandler         *applicationsHttp.ApplicationsHandler
 	JobAlertsHandler            *jobAlertsHttp.JobAlertsHandler
@@ -149,6 +150,11 @@ type RateLimitConfig struct {
 	// in front of the session endpoints, which every page load hits twice.
 	AuthSessionRequestsPerMinute float64
 	AuthSessionBurst             float64
+
+	// NewsletterRequestsPerMinute and NewsletterBurst size the public
+	// newsletter endpoints' bucket.
+	NewsletterRequestsPerMinute float64
+	NewsletterBurst             float64
 }
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
@@ -252,7 +258,8 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	complianceHttp.RegisterRoutes(api, deps.ComplianceHandler)
 	intelligenceHttp.RegisterRoutes(api, deps.IntelligenceHandler)
 	recommendationEngineHttp.RegisterRoutes(api, deps.RecommendationEngineHandler)
-	landingHttp.RegisterRoutes(api, deps.LandingHandler)
+	landingHttp.RegisterRoutes(api, deps.LandingHandler, deps.NewsletterHandler,
+		deps.RateLimit.NewsletterRequestsPerMinute, deps.RateLimit.NewsletterBurst)
 	onboardingHttp.RegisterRoutes(api, deps.OnboardingHandler, deps.AuthMiddleware)
 	profileHttp.RegisterRoutes(api, deps.ProfileHandler, deps.AuthMiddleware)
 	resumeHttp.RegisterRoutes(api, deps.ResumeHandler)

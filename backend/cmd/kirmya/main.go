@@ -358,6 +358,9 @@ func main() {
 
 		AuthSessionRequestsPerMinute: cfg.AuthSessionRateLimitRequestsPerMinute,
 		AuthSessionBurst:             cfg.AuthSessionRateLimitBurst,
+
+		NewsletterRequestsPerMinute: cfg.NewsletterRateLimitRequestsPerMinute,
+		NewsletterBurst:             cfg.NewsletterRateLimitBurst,
 	}
 	deps.Metrics = router.MetricsConfig{
 		Username: cfg.MetricsUsername,
@@ -641,6 +644,9 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	landingRepository := landingRepo.NewLandingRepository(dbPool)
 	landingService := landingSvc.NewLandingService(landingRepository, appCache)
 	landingHandler := landingHttp.NewLandingHandler(landingService)
+	// The footer subscription form posted nowhere and reported success. This is
+	// the endpoint that stores the address it collects.
+	newsletterHandler := landingHttp.NewNewsletterHandler(landingRepo.NewNewsletterRepository(dbPool))
 
 	onboardingRepository := onboardingRepo.NewOnboardingRepository(dbPool)
 	onboardingService := onboardingSvc.NewOnboardingService(onboardingRepository)
@@ -813,6 +819,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		IntelligenceHandler:         intelligenceHandler,
 		RecommendationEngineHandler: recommendationHandler,
 		LandingHandler:              landingHandler,
+		NewsletterHandler:           newsletterHandler,
 		OnboardingHandler:           onboardingHandler,
 		ApplicationsHandler:         appsHandler,
 		JobAlertsHandler:            jAlertsHandler,

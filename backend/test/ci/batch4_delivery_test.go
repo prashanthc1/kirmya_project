@@ -3,8 +3,11 @@
 package ci
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -521,4 +524,102 @@ func TestDeliveryForAMissingNotificationDoesNotStallTheQueue(t *testing.T) {
 	if status != outbox.StatusSent {
 		t.Errorf("live delivery status = %q, want %q", status, outbox.StatusSent)
 	}
+}
+
+// F09. The footer form set a local "Subscribed successfully!" flag and posted
+// nothing anywhere, so every address it collected was discarded at the moment
+// the visitor was told it had been kept.
+func TestNewsletterSubscriptionIsStoredAndRevocable(t *testing.T) {
+	ctx := context.Background()
+	base := required(t, "TEST_API_URL")
+	pool := batch4Pool(t)
+
+	address := "batch4-newsletter-" + uuid.NewString() + "@example.invalid"
+
+	status, body := postJSON(t, base+"/api/v1/newsletter/subscribe",
+		map[string]any{"email": address})
+	if status != 200 {
+		t.Fatalf("subscribe: got %d, body %s", status, body)
+	}
+
+	// The claim in the response has to be true in the database.
+	var storedStatus, token string
+	if err := pool.QueryRow(ctx,
+		`SELECT status, unsubscribe_token FROM newsletter_subscriptions WHERE LOWER(email) = LOWER($1)`,
+		address).Scan(&storedStatus, &token); err != nil {
+		t.Fatalf("the address the form reported saving is not in the database: %v", err)
+	}
+	if storedStatus != "subscribed" {
+		t.Errorf("stored status = %q, want subscribed", storedStatus)
+	}
+	if len(token) < 32 {
+		t.Errorf("unsubscribe token is %d characters; it must be unguessable", len(token))
+	}
+
+	// Subscribing twice must not create a second row, or an unsubscribe could
+	// be undone by re-submitting the address.
+	if status, body := postJSON(t, base+"/api/v1/newsletter/subscribe",
+		map[string]any{"email": address}); status != 200 {
+		t.Fatalf("second subscribe: got %d, body %s", status, body)
+	}
+	var rows int
+	if err := pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM newsletter_subscriptions WHERE LOWER(email) = LOWER($1)`,
+		address).Scan(&rows); err != nil {
+		t.Fatalf("count rows: %v", err)
+	}
+	if rows != 1 {
+		t.Errorf("two subscribes produced %d rows, want 1", rows)
+	}
+
+	// A malformed address is refused rather than stored.
+	if status, _ := postJSON(t, base+"/api/v1/newsletter/subscribe",
+		map[string]any{"email": "not-an-address"}); status != 400 {
+		t.Errorf("malformed address: got %d, want 400", status)
+	}
+
+	// The unsubscribe link's token ends it.
+	if status, body := postJSON(t, base+"/api/v1/newsletter/unsubscribe",
+		map[string]any{"token": token}); status != 200 {
+		t.Fatalf("unsubscribe: got %d, body %s", status, body)
+	}
+	if err := pool.QueryRow(ctx,
+		`SELECT status FROM newsletter_subscriptions WHERE LOWER(email) = LOWER($1)`,
+		address).Scan(&storedStatus); err != nil {
+		t.Fatalf("read back: %v", err)
+	}
+	if storedStatus != "unsubscribed" {
+		t.Errorf("status after unsubscribe = %q, want unsubscribed", storedStatus)
+	}
+
+	// And re-subscribing after an unsubscribe must be a deliberate act that
+	// still leaves exactly one record, not a way to silently resurrect someone.
+	if status, _ := postJSON(t, base+"/api/v1/newsletter/subscribe",
+		map[string]any{"email": address}); status != 200 {
+		t.Fatal("re-subscribe failed")
+	}
+	if err := pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM newsletter_subscriptions WHERE LOWER(email) = LOWER($1)`,
+		address).Scan(&rows); err != nil {
+		t.Fatalf("count rows: %v", err)
+	}
+	if rows != 1 {
+		t.Errorf("re-subscribe produced %d rows, want 1", rows)
+	}
+}
+
+// postJSON posts a body and returns the status and response text.
+func postJSON(t *testing.T, url string, payload map[string]any) (int, string) {
+	t.Helper()
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := httpClient().Post(url, "application/json", bytes.NewReader(encoded))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, string(body)
 }
