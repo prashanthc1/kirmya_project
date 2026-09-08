@@ -17,12 +17,12 @@ test.describe('Authentication & User Identity Flow', () => {
     await settled(page.getByRole('heading', { name: 'Sign In to Kirmya' }));
 
     // Empty submit surfaces the required-field messages from signInSchema.
-    await page.locator('button[type="submit"]').click();
+    await page.getByRole('button', { name: 'Sign In' }).click();
     await expect(page.getByText('Email address is required')).toBeVisible();
     await expect(page.getByText('Password is required')).toBeVisible();
 
     await page.getByRole('textbox', { name: 'Email Address' }).fill('invalid-email-format');
-    await page.locator('button[type="submit"]').click();
+    await page.getByRole('button', { name: 'Sign In' }).click();
     await expect(page.getByText('Please enter a valid email address')).toBeVisible();
   });
 
@@ -31,7 +31,7 @@ test.describe('Authentication & User Identity Flow', () => {
 
     await settled(page.getByRole('heading', { name: 'Create your account' }));
 
-    await page.locator('button[type="submit"]').click();
+    await page.getByRole('button', { name: 'Create Account' }).click();
     await expect(page.getByText('First name is required')).toBeVisible();
     await expect(page.getByText('Last name is required')).toBeVisible();
     await expect(page.getByText('Email address is required')).toBeVisible();
@@ -41,7 +41,7 @@ test.describe('Authentication & User Identity Flow', () => {
     await page.getByRole('textbox', { name: 'Email Address' }).fill('candidate@example.invalid');
     await page.getByLabel('Password (min 12 characters)').fill('short');
     await page.getByLabel('Confirm Password').fill('short');
-    await page.locator('button[type="submit"]').click();
+    await page.getByRole('button', { name: 'Create Account' }).click();
 
     await expect(page.getByText('Password must be at least 12 characters long')).toBeVisible();
     // Nothing was submitted, so the page must not have navigated away.

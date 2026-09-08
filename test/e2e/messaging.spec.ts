@@ -63,7 +63,7 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     const signedIn = page.waitForResponse(
       (r) => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST'
     );
-    await page.locator('button[type="submit"]').click();
+    await page.getByRole('button', { name: 'Sign In' }).click();
     expect((await signedIn).status()).toBe(200);
     await expect(page).not.toHaveURL(/signin/, { timeout: 15_000 });
 

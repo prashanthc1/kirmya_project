@@ -12,7 +12,7 @@ test('built signin page makes a real API request and anonymous identity is denie
   await email.fill('absent-ci-user@example.invalid');
   await password.fill('Disposable-CI-password-123!');
   const response = page.waitForResponse(r => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST');
-  await page.locator('button[type="submit"]').click();
+  await page.getByRole('button', { name: 'Sign In' }).click();
   expect((await response).status()).toBe(401);
   await expect(page).toHaveURL(/signin/);
 });
@@ -120,7 +120,7 @@ test('candidate application receipt survives reload against real storage and API
   await emailField.fill(candidate.email);
   await page.getByLabel('Password', { exact: true }).fill(password);
   const signedIn = page.waitForResponse(r => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST');
-  await page.locator('button[type="submit"]').click();
+  await page.getByRole('button', { name: 'Sign In' }).click();
   expect((await signedIn).status()).toBe(200);
   // The form redirects on a short timer after storing the session. Navigating
   // on the login response alone leaves before that happens, and the next page
