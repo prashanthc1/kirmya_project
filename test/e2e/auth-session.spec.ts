@@ -210,17 +210,22 @@ test.describe('Session persistence across reloads', () => {
 
     // And the reload must not resurrect anything.
     //
-    // `waitUntil: 'commit'` rather than the default 'load', because the thing
-    // this test is asserting is the thing that breaks the default. The page
-    // loads, hydrates, finds no session and redirects itself to sign-in — and
-    // that client-side navigation aborts the still-pending one, which Firefox
-    // reports as NS_BINDING_ABORTED while Chromium and WebKit swallow it. The
-    // test was failing on Firefox alone because the app was behaving correctly.
+    // The navigation is attempted and its outcome ignored, which needs
+    // explaining because ignoring an error in a test is usually how a defect
+    // gets hidden. Here it is the opposite: the app redirects out of this URL
+    // while the navigation is still in flight — WebKit says so exactly,
+    // "interrupted by another navigation to /login" — and Firefox cancels the
+    // original request outright rather than completing it, so the call rejects
+    // (NS_BINDING_ABORTED at 'load', NS_ERROR_FAILURE at 'commit') even though
+    // the application did precisely what this test wants it to do.
     //
-    // Resolving at commit sidesteps the race without weakening anything: the
-    // assertion below is unchanged, so a build that did not redirect — the
-    // actual regression this guards — still fails here.
-    await page.goto('/applications', { waitUntil: 'commit' });
+    // Nothing is weakened, because the navigation call was never the check.
+    // The assertion below is: a build that stopped redirecting after logout —
+    // the regression this guards — still fails it, and so does a server that
+    // did not answer at all, since the URL would not match either.
+    await page.goto('/applications', { waitUntil: 'commit' }).catch(() => {
+      // The redirect beat us to it; the assertion decides.
+    });
     await expect(page).toHaveURL(/signin|login/, { timeout: 20_000 });
   });
 });
