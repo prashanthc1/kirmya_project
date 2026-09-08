@@ -111,12 +111,21 @@ func TestApplicationsService_FullWorkflow(t *testing.T) {
 		t.Error("Expected non-zero total applications after create")
 	}
 
+	// This used to assert ProfileMatchScore != 0, which only held because the
+	// score was the constant 85. With one application there is nothing to
+	// compute a rate from, and the honest answer is to say so.
 	insights, err := svc.GetAIInsights(ctx, candidateID)
 	if err != nil {
 		t.Fatalf("GetAIInsights failed: %v", err)
 	}
-	if insights.ProfileMatchScore == 0 {
-		t.Error("Expected profile match score")
+	if insights.Sufficient {
+		t.Errorf("one application reported sufficient data for rates (considered %d)", insights.ApplicationsConsidered)
+	}
+	if insights.ResponseRate != 0 || insights.InterviewRate != 0 || insights.OfferRate != 0 {
+		t.Error("rates were computed from too few applications")
+	}
+	if insights.MinimumApplications == 0 {
+		t.Error("the insufficient-data state does not say what would satisfy it")
 	}
 
 	analytics, err := svc.GetCareerAnalytics(ctx, candidateID)

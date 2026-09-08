@@ -167,12 +167,20 @@ export interface ApplicationStatsDTO {
 }
 
 export interface AIApplicationInsightsDTO {
-  application_success_rate: number;
-  profile_match_score: number;
-  resume_match_score: number;
-  missing_skills: string[];
-  improvement_suggestions: string[];
-  recommended_jobs: string[];
+  /** False when there are too few applications for a rate to mean anything. */
+  sufficient: boolean;
+  /** The threshold `sufficient` is measured against. */
+  minimum_applications: number;
+  /** How many applications the rates are computed over. */
+  applications_considered: number;
+  /** Share of applications that drew any reply, including a rejection. */
+  response_rate: number;
+  /** Share that reached interview or beyond. */
+  interview_rate: number;
+  /** Share that reached an offer. */
+  offer_rate: number;
+  /** Standing advice, identical for every candidate. */
+  general_guidance: string[];
 }
 
 export interface CategoryCount {
