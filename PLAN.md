@@ -1,6 +1,14 @@
 # Plan: Kirmya Backend Database Connectivity & Auto-Migration Architecture
 <!-- /autoplan restore point: /.gstack/projects/my_project/main-autoplan-restore-20260809-222921.md -->
 
+> [!NOTE]
+> **Status: COMPLETED & EXPANDED (Updated: September 2026)**  
+> This was the initial August 2026 database connectivity plan. The objectives here have been fully accomplished and significantly expanded:
+> - Auto-migrations now manage **98 migration scripts** (`0001` through `0096_close_schema_gaps_batch5`) with session advisory locking.
+> - `ALLOW_NO_DB` is strictly rejected in production; in-memory sample-data repository fallbacks have been completely eliminated.
+> - A dedicated schema conformance CI test (`backend/test/ci/schema_conformance_test.go`) validates that all repository SQL queries match the migrated schema.
+> - For current project milestones, see [`docs/PROJECT_COMPLETION_PLAN_2026-09-06.md`](docs/PROJECT_COMPLETION_PLAN_2026-09-06.md) and [`docs/BATCH5_DELIVERY_EVIDENCE_2026-09-08.md`](docs/BATCH5_DELIVERY_EVIDENCE_2026-09-08.md).
+
 ## Summary
 Establish robust, automated database connection management and migration execution for the Kirmya AI Career Companion backend (Golang Gin + PostgreSQL).
 

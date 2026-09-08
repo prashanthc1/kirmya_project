@@ -15,8 +15,8 @@ Client (Next.js / TypeScript / Mobile)
         │
         ├─────────────────────────────┬─────────────────────────────┐
         ▼                             ▼                             ▼
-[Repository Layer]             [Event Bus / NATS]            [External Adapters]
-(pgxpool / PostgreSQL SQL)     (In-Process / PubSub)         (OpenSearch, AI, Mailer)
+[Repository Layer]             [Realtime Broker / Redis]      [External Adapters]
+(pgxpool / PostgreSQL SQL)     (Redis PubSub / Memory Queue) (S3 Storage, Mailer)
 ```
 
 ---
@@ -26,14 +26,17 @@ Client (Next.js / TypeScript / Mobile)
 ### 2.1 Transport Layer (`internal/<module>/delivery/http/`)
 - **Single Responsibility**: HTTP request parsing, header extraction, query binding, and transport-level authorization context verification.
 - **Contract Enforcement**: Handlers never execute direct SQL or instantiate repository pools; all business execution is delegated to the domain service layer.
+- **List Contract Normalization**: Uses `internal/shared/httpx.JSONList` to ensure empty collections marshal as `[]` rather than `null`.
 
 ### 2.2 Service / Use-Case Layer (`internal/<module>/service/`)
 - **Single Responsibility**: Business rule enforcement, cross-entity orchestration, transactional boundaries, event dispatching, and error mapping.
 - **Independence**: Services never import Gin context (`*gin.Context`) or depend on HTTP-specific primitives.
 
 ### 2.3 Repository Layer (`internal/<module>/repository/`)
-- **Single Responsibility**: PostgreSQL SQL execution via `*pgxpool.Pool` with thread-safe `sync.RWMutex` protected in-memory fallbacks when running without external databases (`ALLOW_NO_DB=true`).
-- **Safety**: Uses parameterized queries preventing SQL injection and bounded pagination limits.
+- **Single Responsibility**: PostgreSQL SQL execution via `*pgxpool.Pool` with parameterized queries (`$1, $2`).
+- **Fail-Closed Persistence**: Production strictly refuses `ALLOW_NO_DB=true` and nil connection pools. In-memory sample-data fallbacks that substituted mock rows for empty tables have been completely eliminated; empty queries return empty slices, and query errors bubble up cleanly.
+- **Schema Conformance**: Repository SQL statements are strictly conformance-checked against migrated tables and columns via automated CI checks (`backend/test/ci/schema_conformance_test.go`).
+- **Concurrency & Locking**: Critical writes (such as job application submissions) use `FOR NO KEY UPDATE` locking to prevent database deadlocks under high concurrent load.
 
 ---
 

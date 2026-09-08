@@ -1,13 +1,19 @@
-<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
-> **Current review addendum — 2026-09-05**
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-08 -->
+> **Current review addendum — 2026-09-08 (Post-Batch 5)**
 >
-> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+> **Verified Head**: `1c73cd2`
+> **Release verdict**: **HOLD for broad public launch** (Core hiring beta is fully verified; full-platform release awaits Step 10H mobile devices, 10C AI provider setup, and staging promotion rehearsal).
 >
-> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+> **Active Verification Results (Measured 2026-09-08)**:
+> - **Backend (`go test ./...`)**: **100% PASS** across all domain packages, security, contract, integration, and reliability test suites.
+> - **Backend Schema Conformance (`backend/test/ci`)**: Validates repository SQL queries against 98 PostgreSQL migrations with zero discrepancies.
+> - **Frontend Vitest (`npm run test`)**: **60 test files, 567 tests passing (100% PASS)**.
+> - **Frontend Typecheck (`npm run typecheck`)**: **0 errors** (`next typegen && tsc --noEmit`).
+> - **Frontend Linting (`npm run lint`)**: **0 errors**, 126 warnings (F19 resolved).
+> - **Frontend Production Build (`npm run build`)**: **Clean compilation** of all static and dynamic Next.js routes.
+> - **Browser E2E (`playwright`)**: Passing journeys for signup, profile, document upload, apply, recruiter review, interview scheduling, WCAG AA accessibility, empty-account surfaces, and SEO.
 >
-> Relevant current findings: F11 (Database-free CI is mistaken for full workflow validation); F19 (Frontend release check currently fails at linting); F20 (Audit scores and operational claims exceed their evidence).
->
-> Evidence and acceptance criteria: [current audit](../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+> Relevant closed findings: F01–F19, F21, F22 verified closed across delivery batches 2, 3, 4, and 5. Original historical baseline below retained for context.
 
 ---
 

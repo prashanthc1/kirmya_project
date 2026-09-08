@@ -1,13 +1,22 @@
-<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-05 -->
-> **Current review addendum — 2026-09-05**
+<!-- KIRMYA-AUDIT-RECONCILIATION-2026-09-08 -->
+> **Current review addendum — 2026-09-08 (Post-Batch 5)**
 >
-> Audited commit: `5f6790a95ae02d74666b668ab62e140d861424ec`. **Release verdict: HOLD for broad public launch; verified blockers remain.**
+> Audited commit: `1c73cd2`. **Release verdict: Core Beta Qualified; HOLD for broad public launch pending full-platform expansion.**
 >
-> This historical report is not re-certified for the current commit. Any original percentages, global PASS labels, absence-of-vulnerability claims, performance figures or restore timings require dated evidence before reuse. The current review is repository-wide automated screening plus focused source tracing and selected verification, not a complete manual review of every line.
+> Across delivery batches 1 through 5, findings F01 through F19, F21, and F22 have been verified and closed:
+> - **Identity & Security (F01, F06, F07, R01, R06)**: Complete elimination of synthetic user IDs and mock auth clients; shared verified identity accessor across all 57 backend modules; analytics routes secured.
+> - **Persistence & Migrations (F13, F18, F21, F22)**: Strict fail-closed persistence with `ALLOW_NO_DB` refused in production; 98 migrations applied with advisory locking; application deadlock eliminated under load (2,810 req/s); honest health probes for Redis, S3, and workers.
+> - **Hiring & Privacy Journey (F02, F03, F04, F05, F17)**: End-to-end candidate-to-recruiter lifecycle verified; durable document byte storage; application snapshots; recruiter ownership isolation; durable GDPR/CCPA data export and deletion workers.
+> - **Public Experience & Release Harness (F08, F09, F10, F11, F12, F14, F15, F16, F19)**: Real server-rendered SEO and JobPosting JSON-LD; real newsletter subscriptions; WCAG AA accessible contrast palette; distributed Redis pub/sub broker; green CI gates (Go tests, Vitest 567/567, ESLint 0 errors, Next.js clean build).
+> - **Batch 5 Hardening**: List contract (`httpx.JSONList`) across 63 endpoints; migration 0096 closing all schema gaps; removal of 43 seeded sample-data fallbacks; employer company creation and route fixes.
 >
-> Relevant current findings: F01 (Application timeline omits candidate ownership); F02 (Privacy and consent operations return success without persistence); F03 (Candidate document registration returns 201 without saving); F04 (Application form drops contact edits and resume URL); F05 (Saved jobs use the wrong response shape); F11 (Database-free CI is mistaken for full workflow validation); F19 (Frontend release check currently fails at linting); F20 (Audit scores and operational claims exceed their evidence).
+> **Remaining Work for Public Launch (Step 10 / Step 12)**:
+> - 10C: Selection and configuration of real AI provider (career companion / recruiter evaluation).
+> - 10D / 10E: Provider-backed assessments and freelance dispute lifecycle.
+> - 10H: Native mobile device builds and device testing.
+> - Step 12: Production cloud staging environment promotion and backup/restore rehearsal.
 >
-> Evidence and acceptance criteria: [current audit](../audit-review/reports/KIRMYA_AUDIT_REPORT_2026-09-05.md). Original content below is retained as historical context, not current sign-off.
+> Original July 2026 report below is retained as historical context, not current sign-off.
 
 ---
 

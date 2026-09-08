@@ -156,7 +156,7 @@ batch, including a foreign-account or error case where one applies.
 - The route sweep above, re-run after each change
 - GitHub Actions on `18e5fdd` and `871b89d`: backend pipeline, frontend checks, integration (PostgreSQL/Redis HTTP plus the Playwright suite against the production build) and security workflows all green
 - The integration run on `cf6ff30` failed on a pre-existing flake, not on this batch: `auth.spec.ts` clicked a bare `button[type="submit"]`, which also matches the landing footer's newsletter button, and mobile-chromium resolved two elements. The same code passed on the next commit. Every such click now names its button (`4d21494`)
-- The new browser spec was run locally against a production build and the real API: 8 tests on chromium and 8 on mobile-chromium, all passing
+- Final confirmation on `4d21494`, from the run's own artifacts: the integration suite reports 34 tests, 34 passed, 0 failed, 0 skipped - including all eight batch 5 checks and the schema conformance check - and the browser suite reports 168 passed, up from 152, with the four new pages green on chromium, firefox, webkit and mobile-chromium. All four workflows are green on `4d21494` and on `1c73cd2`
 
 Local integration runs are advisory: this workstation has no Redis, so
 `TestPostgresAndRedis` fails locally by design, and the API's five-second
