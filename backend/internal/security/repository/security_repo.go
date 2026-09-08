@@ -953,8 +953,11 @@ func (r *securityRepository) ResetFailedLoginAttempts(ctx context.Context, key s
 
 func (r *securityRepository) GetPrivacySettings(ctx context.Context, userID uuid.UUID) (*models.PrivacySettings, error) {
 	if r.db != nil {
+		// privacy_preferences is owned by the privacy module. This module used to
+		// read four columns of its own invention from it, so the query always
+		// failed and the answer came from a process map instead.
 		query := `
-			SELECT user_id, profile_visibility, search_engine_indexing, data_sharing_analytics, data_sharing_personalized_ads, updated_at
+			SELECT user_id, profile_visibility, discover_in_search, analytics_consent, marketing_consent, updated_at
 			FROM privacy_preferences
 			WHERE user_id = $1
 		`
@@ -995,21 +998,26 @@ func (r *securityRepository) UpsertPrivacySettings(ctx context.Context, userID u
 	now := time.Now()
 
 	if r.db != nil {
+		// Same table, its own column names, and the error was discarded: saving a
+		// privacy switch reported success, wrote nothing, and the value came back
+		// from memory until the next restart.
 		query := `
 			INSERT INTO privacy_preferences (
-				id, user_id, profile_visibility, search_engine_indexing, data_sharing_analytics, data_sharing_personalized_ads, created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+				user_id, profile_visibility, discover_in_search, analytics_consent, marketing_consent, updated_at
+			) VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (user_id) DO UPDATE SET
 				profile_visibility = EXCLUDED.profile_visibility,
-				search_engine_indexing = EXCLUDED.search_engine_indexing,
-				data_sharing_analytics = EXCLUDED.data_sharing_analytics,
-				data_sharing_personalized_ads = EXCLUDED.data_sharing_personalized_ads,
+				discover_in_search = EXCLUDED.discover_in_search,
+				analytics_consent = EXCLUDED.analytics_consent,
+				marketing_consent = EXCLUDED.marketing_consent,
 				updated_at = EXCLUDED.updated_at
 		`
-		_, _ = r.db.Exec(ctx, query,
-			uuid.New(), userID, vis, settings.SearchEngineIndexing,
-			settings.AnalyticsOptIn, settings.PersonalizationOptIn, now, now,
-		)
+		if _, err := r.db.Exec(ctx, query,
+			userID, vis, settings.SearchEngineIndexing,
+			settings.AnalyticsOptIn, settings.PersonalizationOptIn, now,
+		); err != nil {
+			return nil, fmt.Errorf("save privacy settings: %w", err)
+		}
 	}
 
 	r.mu.Lock()
