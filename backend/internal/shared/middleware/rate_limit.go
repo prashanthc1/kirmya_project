@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -113,20 +114,50 @@ func RateLimiter(rate float64, capacity float64) gin.HandlerFunc {
 	limiter := newIPRateLimiter(rate, capacity)
 	limitHeader := strconv.FormatFloat(capacity, 'f', -1, 64)
 
+	// Each limiter gets its own key prefix so the /auth bucket cannot drain the
+	// newsletter one, matching the per-instance separation of the local
+	// limiters. The prefix is derived from the limiter's own shape rather than
+	// from a caller-supplied name, so a new limiter cannot silently collide
+	// with an existing one by reusing a label.
+	sharedPrefix := fmt.Sprintf("ratelimit:{%g:%g}:", rate, capacity)
+
 	return func(c *gin.Context) {
-		allowed, remaining, retryAfter := limiter.allow(c.ClientIP(), time.Now())
+		clientIP := c.ClientIP()
 
-		c.Header("X-RateLimit-Limit", limitHeader)
-		c.Header("X-RateLimit-Remaining", strconv.Itoa(int(remaining)))
-
-		if allowed {
-			c.Next()
-			return
+		// The shared bucket is authoritative when Redis is configured and
+		// reachable: with several replicas the process-local buckets each grant
+		// the full allowance to the same client, so the documented limit is
+		// multiplied by the replica count.
+		//
+		// A broker failure falls back to the local limiter rather than failing
+		// closed. Denying every request because Redis hiccuped would lock users
+		// out of sign-in, which is a worse outcome than a briefly looser limit.
+		if client := sharedLimiterClient; client != nil {
+			shared := &sharedLimiter{client: client, rate: rate, capacity: capacity, prefix: sharedPrefix}
+			if allowed, remaining, retryAfter, consulted := shared.allow(c.Request.Context(), clientIP, time.Now()); consulted {
+				respondToRateLimit(c, limitHeader, allowed, remaining, retryAfter)
+				return
+			}
 		}
 
-		c.Header("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
-		c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-			"error": "Rate limit exceeded. Try again later.",
-		})
+		allowed, remaining, retryAfter := limiter.allow(clientIP, time.Now())
+		respondToRateLimit(c, limitHeader, allowed, remaining, retryAfter)
 	}
+}
+
+// respondToRateLimit applies one limiter decision, so the shared and local
+// paths cannot drift in the headers or the status they return.
+func respondToRateLimit(c *gin.Context, limitHeader string, allowed bool, remaining float64, retryAfter time.Duration) {
+	c.Header("X-RateLimit-Limit", limitHeader)
+	c.Header("X-RateLimit-Remaining", strconv.Itoa(int(remaining)))
+
+	if allowed {
+		c.Next()
+		return
+	}
+
+	c.Header("Retry-After", strconv.Itoa(int(retryAfter.Seconds())))
+	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+		"error": "Rate limit exceeded. Try again later.",
+	})
 }

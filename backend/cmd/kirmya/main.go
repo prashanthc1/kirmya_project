@@ -253,6 +253,7 @@ import (
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/database"
 	"kirmya/internal/shared/mailer"
+	"kirmya/internal/shared/middleware"
 	persistencePkg "kirmya/internal/shared/persistence"
 )
 
@@ -429,7 +430,28 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	commHandler := commHttp.NewCommunityHandler(commService)
 
 	msgRepository := msgRepo.NewMessagingRepository(dbPool)
-	psBroker := pubsub.NewInMemoryPubSub()
+	// Realtime fan-out. The in-memory broker only reaches subscribers inside
+	// this process, so with more than one API replica a message published here
+	// never arrives for a user connected elsewhere. Which broker is in use is
+	// logged because running several replicas on the in-memory one is broken in
+	// a way that only shows up as users not receiving messages.
+	// Rate limits are enforced across replicas when Redis is configured.
+	// Process-local buckets each grant the full allowance to the same client, so
+	// with N replicas a documented "5 sign-in attempts per minute" admits 5N.
+	if sharedLimiterClient := cachePkg.SharedRedisClient(appCache); sharedLimiterClient != nil {
+		middleware.ConfigureSharedRateLimiting(sharedLimiterClient)
+		slog.Info("rate limits are shared across replicas")
+	} else {
+		slog.Warn("rate limits are per-process; with more than one replica the effective limit is " +
+			"multiplied by the replica count. Configure REDIS_URL or REDIS_HOST to share them.")
+	}
+
+	psBroker, brokerKind := pubsub.FromEnv()
+	slog.Info("realtime broker configured", slog.String("kind", brokerKind))
+	if brokerKind != "redis" {
+		slog.Warn("realtime delivery is process-local; messaging and live notifications will not " +
+			"reach users connected to another replica. Configure REDIS_URL or REDIS_HOST before scaling out.")
+	}
 	msgService := msgSvc.NewMessagingService(msgRepository, psBroker)
 	msgHandler := msgHttp.NewMessagingHandler(msgService)
 
