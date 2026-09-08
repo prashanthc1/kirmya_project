@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type RecruiterHandler struct {
@@ -124,7 +125,7 @@ func (h *RecruiterHandler) GetJobByID(c *gin.Context) {
 
 	job, err := h.service.GetJobByID(c.Request.Context(), userID, jobID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, job)
@@ -156,9 +157,8 @@ func (h *RecruiterHandler) updateJobStatusHelper(c *gin.Context, status string) 
 		return
 	}
 
-	err = h.service.UpdateJobStatus(c.Request.Context(), userID, jobID, status)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.service.UpdateJobStatus(c.Request.Context(), userID, jobID, status); err != nil {
+		respondRecruiterError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Job status updated", "status": status})
@@ -178,39 +178,42 @@ func (h *RecruiterHandler) GetJobMatches(c *gin.Context) {
 		return
 	}
 
-	candIDStr := c.Query("candidateId")
-	candID := uuid.MustParse("c1111111-1111-1111-1111-111111111111")
-	if candIDStr != "" {
-		if parsed, e := uuid.Parse(candIDStr); e == nil {
-			candID = parsed
-		}
+	// The candidate is required. This used to fall back to a hard-coded id and
+	// answer with a match for someone who does not exist.
+	candID, err := uuid.Parse(c.Query("candidateId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "candidateId is required"})
+		return
 	}
 
 	match, err := h.service.GetCandidateMatch(c.Request.Context(), userID, jobID, candID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, match)
+	httpx.JSONList(c, http.StatusOK, match)
 }
 
 func (h *RecruiterHandler) GetPipeline(c *gin.Context) {
-	jobIDStr := c.Param("jobId")
-	if jobIDStr == "" {
-		jobIDStr = "11111111-1111-1111-1111-111111111111"
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
 	}
-	jobID, err := uuid.Parse(jobIDStr)
+	// The job is required. It used to default to a hard-coded id when the path
+	// did not carry one, which answered with a pipeline belonging to nobody.
+	jobID, err := uuid.Parse(c.Param("jobId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
 		return
 	}
 
-	list, err := h.service.GetPipeline(c.Request.Context(), jobID)
+	list, err := h.service.GetPipeline(c.Request.Context(), userID, jobID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, list)
+	httpx.JSONList(c, http.StatusOK, list)
 }
 
 func (h *RecruiterHandler) UpdatePipelineStage(c *gin.Context) {
@@ -377,7 +380,7 @@ func (h *RecruiterHandler) GetApplicationDetail(c *gin.Context) {
 
 	detail, err := h.service.GetOwnedApplicationDetail(c.Request.Context(), userID, appID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, detail)
@@ -453,15 +456,23 @@ func (h *RecruiterHandler) UpdateJobOfferStatus(c *gin.Context) {
 }
 
 func (h *RecruiterHandler) GetAIEvaluation(c *gin.Context) {
-	appIDStr := c.Param("id")
-	appID, _ := uuid.Parse(appIDStr)
-
-	resp, err := h.service.GetAIEvaluation(c.Request.Context(), appID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	appID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid application ID"})
+		return
+	}
+
+	resp, err := h.service.GetAIEvaluation(c.Request.Context(), userID, appID)
+	if err != nil {
+		respondRecruiterError(c, err)
+		return
+	}
+	httpx.JSONList(c, http.StatusOK, resp)
 }
 
 func (h *RecruiterHandler) GetMessageTemplates(c *gin.Context) {
@@ -485,16 +496,20 @@ func (h *RecruiterHandler) GetTeamMembers(c *gin.Context) {
 }
 
 func (h *RecruiterHandler) GetStageHistory(c *gin.Context) {
-	appIDStr := c.Param("id")
-	appID, err := uuid.Parse(appIDStr)
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
+	appID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid application ID"})
 		return
 	}
 
-	history, err := h.service.GetStageHistory(c.Request.Context(), appID)
+	history, err := h.service.GetStageHistory(c.Request.Context(), userID, appID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
 	httpx.JSONList(c, http.StatusOK, history)
@@ -572,16 +587,20 @@ func (h *RecruiterHandler) CreateCandidateEvaluation(c *gin.Context) {
 }
 
 func (h *RecruiterHandler) GetCandidateEvaluations(c *gin.Context) {
-	appIDStr := c.Param("id")
-	appID, err := uuid.Parse(appIDStr)
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
+	appID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid application ID"})
 		return
 	}
 
-	evals, err := h.service.GetCandidateEvaluations(c.Request.Context(), appID)
+	evals, err := h.service.GetCandidateEvaluations(c.Request.Context(), userID, appID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
 	httpx.JSONList(c, http.StatusOK, evals)
@@ -608,4 +627,15 @@ func (h *RecruiterHandler) getUserID(c *gin.Context) (uuid.UUID, error) {
 		}
 	}
 	return uuid.Nil, errors.New("unauthorized context")
+}
+
+// respondRecruiterError keeps "does not exist" and "belongs to another
+// recruiter" indistinguishable, and keeps a database error message out of the
+// response. Both used to answer 500 with the driver's own text.
+func respondRecruiterError(c *gin.Context, err error) {
+	if errors.Is(err, service.ErrNotFound) || errors.Is(err, pgx.ErrNoRows) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "request failed"})
 }

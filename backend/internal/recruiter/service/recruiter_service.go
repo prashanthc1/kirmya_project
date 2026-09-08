@@ -1,6 +1,7 @@
 package service
 
 import (
+	"strings"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"kirmya/internal/recruiter/repository"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type RecruiterService struct {
@@ -18,6 +20,36 @@ type RecruiterService struct {
 
 func NewRecruiterService(repo *repository.RecruiterRepository) *RecruiterService {
 	return &RecruiterService{repo: repo}
+}
+
+// ErrNotFound is returned for a record that does not exist and for one that
+// belongs to another recruiter. The delivery layer answers 404 for both, so a
+// probe cannot tell the two apart.
+var ErrNotFound = errors.New("not found")
+
+// requireOwnedJob fails unless this user posted the job.
+func (s *RecruiterService) requireOwnedJob(ctx context.Context, userID, jobID uuid.UUID) error {
+	owned, err := s.repo.JobOwnedBy(ctx, userID, jobID)
+	if err != nil {
+		return err
+	}
+	if !owned {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// requireOwnedApplication fails unless the application was made to a job this
+// user posted.
+func (s *RecruiterService) requireOwnedApplication(ctx context.Context, userID, applicationID uuid.UUID) error {
+	owned, err := s.repo.ApplicationOwnedBy(ctx, userID, applicationID)
+	if err != nil {
+		return err
+	}
+	if !owned {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (s *RecruiterService) GetOrCreateProfile(ctx context.Context, userID uuid.UUID, companyName string) (*models.RecruiterOrgProfile, error) {
@@ -129,13 +161,23 @@ func (s *RecruiterService) CreateJob(ctx context.Context, userID uuid.UUID, payl
 
 func (s *RecruiterService) GetJobByID(ctx context.Context, userID, jobID uuid.UUID) (*models.RecruiterJob, error) {
 	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	job, err := s.repo.GetJobByID(ctx, userID, jobID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
 	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, uuid.Nil, p.CompanyName, "Job Viewed")
-	return s.repo.GetJobByID(ctx, jobID)
+	return job, nil
 }
 
 func (s *RecruiterService) UpdateJobStatus(ctx context.Context, userID, jobID uuid.UUID, status string) error {
 	p, _ := s.GetOrCreateProfile(ctx, userID, "")
-	err := s.repo.UpdateJobStatus(ctx, jobID, status)
+	err := s.repo.UpdateJobStatus(ctx, userID, jobID, status)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrNotFound
+	}
 	if err == nil {
 		_ = s.repo.LogActivity(ctx, &models.RecruiterActivity{
 			ID:           uuid.New(),
@@ -162,51 +204,16 @@ func (s *RecruiterService) GetJobs(ctx context.Context, userID uuid.UUID) ([]mod
 	return s.repo.GetJobs(ctx, p.ID)
 }
 
-func (s *RecruiterService) GetPipeline(ctx context.Context, jobID uuid.UUID) ([]models.CandidatePipeline, error) {
-	list, err := s.repo.GetPipeline(ctx, jobID)
-	if err == nil && len(list) > 0 {
-		return list, nil
+func (s *RecruiterService) GetPipeline(ctx context.Context, userID, jobID uuid.UUID) ([]models.CandidatePipeline, error) {
+	if err := s.requireOwnedJob(ctx, userID, jobID); err != nil {
+		return nil, err
 	}
-
-	now := time.Now()
-	return []models.CandidatePipeline{
-		{
-			ID:                   uuid.New(),
-			JobID:                jobID,
-			CandidateID:          uuid.MustParse("c1111111-1111-1111-1111-111111111111"),
-			CandidateName:        "Sarah Chen",
-			CandidateEmail:       "sarah.chen@example.com",
-			CandidateAvatar:      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-			Stage:                "New",
-			Notes:                "Strong background in Go microservices and React architecture.",
-			InterviewScheduledAt: nil,
-			UpdatedAt:            now,
-		},
-		{
-			ID:                   uuid.New(),
-			JobID:                jobID,
-			CandidateID:          uuid.MustParse("c2222222-2222-2222-2222-222222222222"),
-			CandidateName:        "Tariq Al-Mansoor",
-			CandidateEmail:       "tariq.mansoor@example.com",
-			CandidateAvatar:      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-			Stage:                "Shortlisted",
-			Notes:                "Passed preliminary screening. High match score 94%.",
-			InterviewScheduledAt: nil,
-			UpdatedAt:            now,
-		},
-		{
-			ID:                   uuid.New(),
-			JobID:                jobID,
-			CandidateID:          uuid.MustParse("c3333333-3333-3333-3333-333333333333"),
-			CandidateName:        "Elena Rostova",
-			CandidateEmail:       "elena.rostova@example.com",
-			CandidateAvatar:      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-			Stage:                "Interview",
-			Notes:                "Scheduled for Technical Architecture Round.",
-			InterviewScheduledAt: &now,
-			UpdatedAt:            now,
-		},
-	}, nil
+	// An empty pipeline is an empty pipeline. This used to answer with three
+	// invented candidates - names, addresses, avatars and a "94% match" -
+	// whenever the real query returned nothing, so every recruiter saw the same
+	// three people who do not exist, and a failed query looked like a full
+	// pipeline.
+	return s.repo.GetPipeline(ctx, jobID)
 }
 
 func (s *RecruiterService) UpdatePipelineStage(ctx context.Context, userID, pipelineID uuid.UUID, payload *models.UpdateStagePayload) error {
@@ -285,23 +292,44 @@ func (s *RecruiterService) GetCandidates(ctx context.Context, userID uuid.UUID) 
 	}, nil
 }
 
+// GetCandidateMatch answers for one candidate on one of the caller's jobs,
+// using the same stated-skill comparison as GetAIEvaluation. The previous
+// implementation returned a fixed 96% for "Sarah Chen" whatever was asked.
 func (s *RecruiterService) GetCandidateMatch(ctx context.Context, userID, jobID, candidateID uuid.UUID) (*models.CandidateMatchAnalysisDTO, error) {
-	return &models.CandidateMatchAnalysisDTO{
+	if err := s.requireOwnedJob(ctx, userID, jobID); err != nil {
+		return nil, err
+	}
+	in, err := s.repo.JobCandidateMatchInputs(ctx, jobID, candidateID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	match := scoreSkillOverlap(in.JobSkills, in.CandidateSkills)
+	dto := &models.CandidateMatchAnalysisDTO{
 		JobID:               jobID,
 		CandidateID:         candidateID,
-		CandidateName:       "Sarah Chen",
-		OverallMatchScore:   96,
-		SkillsMatch:         98,
-		ExperienceMatch:     95,
-		EducationMatch:      90,
-		LocationMatch:       100,
-		RoleMatch:           95,
-		CareerAlignment:     94,
-		MissingRequirements: []string{"Kafka Streaming (Minor)"},
-		PotentialConcerns:   []string{"High market demand; competitive compensation expected."},
-		TransferableSkills:  []string{"PostgreSQL GIN Index Tuning", "Distributed Microservices Architecture", "Team Mentorship"},
-		ExplanationNotes:    "Candidate displays exceptional alignment with core Go microservices requirement and cloud infrastructure management.",
-	}, nil
+		CandidateName:       in.CandidateName,
+		OverallMatchScore:   match.score,
+		SkillsMatch:         match.score,
+		MissingRequirements: match.missing,
+		TransferableSkills:  match.matched,
+		PotentialConcerns:   []string{},
+	}
+	if len(in.JobSkills) == 0 || len(in.CandidateSkills) == 0 {
+		dto.ExplanationNotes = "Insufficient data: a skill match needs both the job's required skills and the candidate's listed skills."
+		dto.OverallMatchScore = 0
+		dto.SkillsMatch = 0
+		return dto, nil
+	}
+	if in.JobLocation != "" && in.CandidateLocation != "" && strings.EqualFold(strings.TrimSpace(in.JobLocation), strings.TrimSpace(in.CandidateLocation)) {
+		dto.LocationMatch = 100
+	}
+	dto.ExplanationNotes = fmt.Sprintf("Stated-skill comparison: %d of %d required skills are listed on the profile. No model or predictive score is involved.",
+		len(match.matched), len(in.JobSkills))
+	return dto, nil
 }
 
 func (s *RecruiterService) SaveCandidate(ctx context.Context, candidateID, userID uuid.UUID) error {
@@ -511,21 +539,79 @@ func (s *RecruiterService) UpdateJobOfferStatus(ctx context.Context, userID, off
 	return s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, offerID, p.CompanyName, fmt.Sprintf("Offer Status Updated to %s", status))
 }
 
-func (s *RecruiterService) GetAIEvaluation(ctx context.Context, appID uuid.UUID) (*models.AIEvaluationResponse, error) {
-	return &models.AIEvaluationResponse{
+// GetAIEvaluation scores an application against the job it was made to, from
+// the skills both records actually state.
+//
+// It used to return one hard-coded response for every application on the
+// platform: "Sarah Chen", 96%, "Hire", with invented strengths and risks. A
+// recruiter reading it was reading nothing about the candidate in front of
+// them. There is no model behind this endpoint, so it does not pretend to be
+// one: the score is the share of the job's stated skills the candidate's
+// profile lists, the gaps are the skills that are missing, and the method is
+// named in the response. It makes no hire recommendation.
+func (s *RecruiterService) GetAIEvaluation(ctx context.Context, userID, appID uuid.UUID) (*models.AIEvaluationResponse, error) {
+	if err := s.requireOwnedApplication(ctx, userID, appID); err != nil {
+		return nil, err
+	}
+	in, err := s.repo.ApplicationMatchInputs(ctx, appID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	match := scoreSkillOverlap(in.JobSkills, in.CandidateSkills)
+	resp := &models.AIEvaluationResponse{
 		ApplicationID:     appID,
-		CandidateName:     "Sarah Chen",
-		OverallMatchScore: 96,
-		Recommendation:    "Hire",
-		SummaryOverview:   "Exceptional fit for Senior Microservices Golang Architect position with 8+ years experience in high-throughput cloud systems.",
-		SkillGaps:         []string{"Kafka (Minor)"},
-		Strengths:         []string{"Golang Microservices", "PostgreSQL Optimization", "Kubernetes Orchestration", "System Design"},
-		RiskFactors:       []string{"Immediate notice requirement due to layoff; high offer acceleration required."},
-		SuggestedQuestions: []string{
-			"How do you profile memory allocations in high-concurrency Go services?",
-			"Describe a scenario where you resolved deadlocks in PostgreSQL pool transactions.",
-		},
-	}, nil
+		CandidateName:     in.CandidateName,
+		OverallMatchScore: match.score,
+		Recommendation:    "",
+		SkillGaps:         match.missing,
+		Strengths:         match.matched,
+		RiskFactors:       []string{},
+		SuggestedQuestions: []string{},
+	}
+	if len(in.JobSkills) == 0 || len(in.CandidateSkills) == 0 {
+		resp.SummaryOverview = "Insufficient data: a skill match needs both the job's required skills and the candidate's listed skills."
+		resp.OverallMatchScore = 0
+		return resp, nil
+	}
+	resp.SummaryOverview = fmt.Sprintf("Skill overlap: the profile lists %d of the %d skills this job states. Computed from the stored records, not from a model.",
+		len(match.matched), len(in.JobSkills))
+	for _, skill := range match.missing {
+		resp.SuggestedQuestions = append(resp.SuggestedQuestions, fmt.Sprintf("Ask about experience with %s, which the job requires and the profile does not list.", skill))
+	}
+	return resp, nil
+}
+
+type skillOverlap struct {
+	score   int
+	matched []string
+	missing []string
+}
+
+// scoreSkillOverlap compares two skill lists case-insensitively. The score is
+// the percentage of required skills present; with no required skills it is 0
+// and the caller reports insufficient data rather than a perfect match.
+func scoreSkillOverlap(required, held []string) skillOverlap {
+	out := skillOverlap{matched: []string{}, missing: []string{}}
+	if len(required) == 0 {
+		return out
+	}
+	have := make(map[string]bool, len(held))
+	for _, skill := range held {
+		have[strings.ToLower(strings.TrimSpace(skill))] = true
+	}
+	for _, skill := range required {
+		if have[strings.ToLower(strings.TrimSpace(skill))] {
+			out.matched = append(out.matched, skill)
+		} else {
+			out.missing = append(out.missing, skill)
+		}
+	}
+	out.score = len(out.matched) * 100 / len(required)
+	return out
 }
 
 func (s *RecruiterService) GetMessageTemplates(ctx context.Context, userID uuid.UUID) ([]models.MessageTemplateDTO, error) {
@@ -554,32 +640,21 @@ func (s *RecruiterService) GetMessageTemplates(ctx context.Context, userID uuid.
 	}, nil
 }
 
+// GetTeamMembers lists the recruiters in the caller's organization. It used to
+// return two colleagues who do not exist, with addresses at kirmya.ae, for
+// every recruiter on the platform.
 func (s *RecruiterService) GetTeamMembers(ctx context.Context, userID uuid.UUID) ([]models.TeamMemberDTO, error) {
-	return []models.TeamMemberDTO{
-		{
-			ID:            uuid.New(),
-			UserID:        userID,
-			Name:          "Rashid Al-Maktoum",
-			Email:         "recruiter@kirmya.ae",
-			RecruiterRole: "Organization Owner",
-			Department:    "Talent Acquisition",
-			Status:        "Active",
-			JoinedAt:      time.Now().Add(-180 * 24 * time.Hour),
-		},
-		{
-			ID:            uuid.New(),
-			UserID:        uuid.New(),
-			Name:          "Amira Al-Farsi",
-			Email:         "amira@kirmya.ae",
-			RecruiterRole: "Hiring Manager",
-			Department:    "Engineering",
-			Status:        "Active",
-			JoinedAt:      time.Now().Add(-90 * 24 * time.Hour),
-		},
-	}, nil
+	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.TeamMembers(ctx, p.OrgID)
 }
 
-func (s *RecruiterService) GetStageHistory(ctx context.Context, applicationID uuid.UUID) ([]models.ApplicationStageHistoryDTO, error) {
+func (s *RecruiterService) GetStageHistory(ctx context.Context, userID, applicationID uuid.UUID) ([]models.ApplicationStageHistoryDTO, error) {
+	if err := s.requireOwnedApplication(ctx, userID, applicationID); err != nil {
+		return nil, err
+	}
 	return s.repo.GetStageHistory(ctx, applicationID)
 }
 
@@ -682,6 +757,9 @@ func (s *RecruiterService) CreateCandidateEvaluation(ctx context.Context, userID
 	return eval, nil
 }
 
-func (s *RecruiterService) GetCandidateEvaluations(ctx context.Context, applicationID uuid.UUID) ([]models.CandidateEvaluationDTO, error) {
+func (s *RecruiterService) GetCandidateEvaluations(ctx context.Context, userID, applicationID uuid.UUID) ([]models.CandidateEvaluationDTO, error) {
+	if err := s.requireOwnedApplication(ctx, userID, applicationID); err != nil {
+		return nil, err
+	}
 	return s.repo.GetCandidateEvaluations(ctx, applicationID)
 }

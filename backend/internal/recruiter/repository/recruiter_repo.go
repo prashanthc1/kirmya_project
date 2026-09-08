@@ -42,6 +42,131 @@ func (r *RecruiterRepository) GetOwnedApplications(ctx context.Context, recruite
 	return items, rows.Err()
 }
 
+// MatchInputs is what a match score is computed from: the job's stated skills
+// and location, and the candidate's own. Nothing here is inferred.
+type MatchInputs struct {
+	CandidateID       uuid.UUID
+	CandidateName     string
+	JobID             uuid.UUID
+	JobTitle          string
+	JobSkills         []string
+	JobLocation       string
+	CandidateSkills   []string
+	CandidateLocation string
+	CandidateTitle    string
+}
+
+// ApplicationMatchInputs reads the records a deterministic match is computed
+// from. It returns pgx.ErrNoRows when the application does not exist.
+func (r *RecruiterRepository) ApplicationMatchInputs(ctx context.Context, applicationID uuid.UUID) (*MatchInputs, error) {
+	if r.db == nil {
+		return nil, errors.New("candidate match requires PostgreSQL")
+	}
+	var in MatchInputs
+	var jobSkills, candidateSkills []byte
+	err := r.db.QueryRow(ctx, `
+		SELECT a.candidate_id,
+		       COALESCE(NULLIF(TRIM(a.contact_name), ''), NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), 'Candidate'),
+		       j.id, j.title, COALESCE(j.skills, '[]'::jsonb), COALESCE(j.location, ''),
+		       COALESCE(p.location, ''), COALESCE(p.job_title, ''),
+		       COALESCE((SELECT jsonb_agg(us.name) FROM user_skills us WHERE us.profile_id = p.id), '[]'::jsonb)
+		FROM job_applications a
+		JOIN jobs j ON j.id = a.job_id
+		JOIN users u ON u.id = a.candidate_id
+		LEFT JOIN profiles p ON p.user_id = a.candidate_id
+		WHERE a.id = $1`, applicationID).
+		Scan(&in.CandidateID, &in.CandidateName, &in.JobID, &in.JobTitle, &jobSkills, &in.JobLocation,
+			&in.CandidateLocation, &in.CandidateTitle, &candidateSkills)
+	if err != nil {
+		return nil, err
+	}
+	_ = json.Unmarshal(jobSkills, &in.JobSkills)
+	_ = json.Unmarshal(candidateSkills, &in.CandidateSkills)
+	return &in, nil
+}
+
+// JobCandidateMatchInputs is ApplicationMatchInputs for a candidate who may not
+// have applied: the job's stated skills against that candidate's profile.
+func (r *RecruiterRepository) JobCandidateMatchInputs(ctx context.Context, jobID, candidateID uuid.UUID) (*MatchInputs, error) {
+	if r.db == nil {
+		return nil, errors.New("candidate match requires PostgreSQL")
+	}
+	in := MatchInputs{JobID: jobID, CandidateID: candidateID}
+	var jobSkills, candidateSkills []byte
+	err := r.db.QueryRow(ctx, `
+		SELECT j.title, COALESCE(j.skills, '[]'::jsonb), COALESCE(j.location, ''),
+		       COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), 'Candidate'),
+		       COALESCE(p.location, ''), COALESCE(p.job_title, ''),
+		       COALESCE((SELECT jsonb_agg(us.name) FROM user_skills us WHERE us.profile_id = p.id), '[]'::jsonb)
+		FROM jobs j
+		JOIN users u ON u.id = $2
+		LEFT JOIN profiles p ON p.user_id = u.id
+		WHERE j.id = $1`, jobID, candidateID).
+		Scan(&in.JobTitle, &jobSkills, &in.JobLocation, &in.CandidateName, &in.CandidateLocation, &in.CandidateTitle, &candidateSkills)
+	if err != nil {
+		return nil, err
+	}
+	_ = json.Unmarshal(jobSkills, &in.JobSkills)
+	_ = json.Unmarshal(candidateSkills, &in.CandidateSkills)
+	return &in, nil
+}
+
+// TeamMembers lists the recruiters sharing this organization, from the rows
+// that record their membership.
+func (r *RecruiterRepository) TeamMembers(ctx context.Context, orgID uuid.UUID) ([]models.TeamMemberDTO, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter team requires PostgreSQL")
+	}
+	rows, err := r.db.Query(ctx, `
+		SELECT rop.id, rop.user_id,
+		       COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), u.email),
+		       u.email, COALESCE(rop.recruiter_role, 'Recruiter'), COALESCE(rop.department, ''),
+		       rop.created_at
+		FROM recruiter_organization_profiles rop
+		JOIN users u ON u.id = rop.user_id
+		WHERE rop.org_id = $1
+		ORDER BY rop.created_at ASC`, orgID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	list := []models.TeamMemberDTO{}
+	for rows.Next() {
+		var m models.TeamMemberDTO
+		if err := rows.Scan(&m.ID, &m.UserID, &m.Name, &m.Email, &m.RecruiterRole, &m.Department, &m.JoinedAt); err != nil {
+			return nil, err
+		}
+		m.Status = "Active"
+		list = append(list, m)
+	}
+	return list, rows.Err()
+}
+
+// JobOwnedBy reports whether this user posted the job. jobs.recruiter_id is the
+// posting user, which is what job_applications and the public board join on.
+func (r *RecruiterRepository) JobOwnedBy(ctx context.Context, userID, jobID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		return false, errors.New("recruiter job ownership requires PostgreSQL")
+	}
+	var owned bool
+	err := r.db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM jobs WHERE id = $1 AND recruiter_id = $2)`, jobID, userID).Scan(&owned)
+	return owned, err
+}
+
+// ApplicationOwnedBy reports whether the application was made to a job this
+// user posted.
+func (r *RecruiterRepository) ApplicationOwnedBy(ctx context.Context, userID, applicationID uuid.UUID) (bool, error) {
+	if r.db == nil {
+		return false, errors.New("recruiter application ownership requires PostgreSQL")
+	}
+	var owned bool
+	err := r.db.QueryRow(ctx, `SELECT EXISTS(
+	        SELECT 1 FROM job_applications a JOIN jobs j ON j.id = a.job_id
+	        WHERE a.id = $1 AND j.recruiter_id = $2)`, applicationID, userID).Scan(&owned)
+	return owned, err
+}
+
 func (r *RecruiterRepository) GetOwnedApplication(ctx context.Context, recruiterID, appID uuid.UUID) (*models.JobApplicationDTO, error) {
 	items, err := r.GetOwnedApplications(ctx, recruiterID, "", "")
 	if err != nil {
@@ -373,7 +498,7 @@ func (r *RecruiterRepository) CreateJob(ctx context.Context, ownerUserID uuid.UU
 }
 
 // GetJobByID retrieves job details.
-func (r *RecruiterRepository) GetJobByID(ctx context.Context, jobID uuid.UUID) (*models.RecruiterJob, error) {
+func (r *RecruiterRepository) GetJobByID(ctx context.Context, ownerUserID, jobID uuid.UUID) (*models.RecruiterJob, error) {
 	if r.db == nil {
 		return &models.RecruiterJob{
 			ID:               jobID,
@@ -400,9 +525,13 @@ func (r *RecruiterRepository) GetJobByID(ctx context.Context, jobID uuid.UUID) (
 	}
 
 	var j models.RecruiterJob
-	query := `SELECT id, recruiter_id, title, description, department, location, salary_range, status, created_at 
-	          FROM recruiter_jobs WHERE id = $1`
-	err := r.db.QueryRow(ctx, query, jobID).Scan(&j.ID, &j.RecruiterID, &j.Title, &j.Description, &j.Department, &j.Location, &j.SalaryRange, &j.Status, &j.CreatedAt)
+	// Scoped to the posting recruiter. Without the second predicate any signed-in
+	// recruiter could read another company's posting, drafts included, by id.
+	query := `SELECT rj.id, rj.recruiter_id, rj.title, rj.description, rj.department, rj.location, rj.salary_range, rj.status, rj.created_at
+	          FROM recruiter_jobs rj
+	          JOIN jobs j ON j.id = rj.id
+	          WHERE rj.id = $1 AND j.recruiter_id = $2`
+	err := r.db.QueryRow(ctx, query, jobID, ownerUserID).Scan(&j.ID, &j.RecruiterID, &j.Title, &j.Description, &j.Department, &j.Location, &j.SalaryRange, &j.Status, &j.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -410,7 +539,7 @@ func (r *RecruiterRepository) GetJobByID(ctx context.Context, jobID uuid.UUID) (
 }
 
 // UpdateJobStatus updates status (Active, Published, Paused, Closed, Archived).
-func (r *RecruiterRepository) UpdateJobStatus(ctx context.Context, jobID uuid.UUID, status string) error {
+func (r *RecruiterRepository) UpdateJobStatus(ctx context.Context, ownerUserID, jobID uuid.UUID, status string) error {
 	if r.db == nil {
 		return nil
 	}
@@ -419,10 +548,17 @@ func (r *RecruiterRepository) UpdateJobStatus(ctx context.Context, jobID uuid.UU
 	if canonStatus == "published" {
 		canonStatus = "active"
 	}
-	_, _ = r.db.Exec(ctx, `UPDATE jobs SET status = $1, updated_at = NOW() WHERE id = $2`, canonStatus, jobID)
+	// The canonical row decides ownership: a status change on a job this user
+	// did not post updates nothing and reports it as not found.
+	tag, err := r.db.Exec(ctx, `UPDATE jobs SET status = $1, updated_at = NOW() WHERE id = $2 AND recruiter_id = $3`, canonStatus, jobID, ownerUserID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
 
-	query := `UPDATE recruiter_jobs SET status = $1 WHERE id = $2`
-	_, err := r.db.Exec(ctx, query, status, jobID)
+	_, err = r.db.Exec(ctx, `UPDATE recruiter_jobs SET status = $1 WHERE id = $2`, status, jobID)
 	return err
 }
 
