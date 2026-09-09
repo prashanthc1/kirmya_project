@@ -223,24 +223,47 @@ tests against the production artifact — 0 failures and 0 skips throughout.
 projects could not run on the workstation and CI remains the authority for them;
 none is waived.
 
-The batch found four defects, all in the release path: the Go vulnerability gate
-accepted a scan that had never reached the vulnerability database; the browser
-suite drove `next start` while production runs the standalone server; the
-frontend image built and ran on a Node major no check had exercised, and no
-workflow built that image at all; and an unused panicking identity helper
-(R04). All four are fixed.
+The batch found six defects. Four are in the release path: the Go vulnerability
+gate accepted a scan that had never reached the vulnerability database; the
+browser suite drove `next start` while production runs the standalone server;
+the frontend image built and ran on a Node major no check had exercised, and no
+workflow built that image at all; and an unused panicking identity helper (R04).
+
+Two are in the product, and both are the class earlier batches recorded as
+closed - data invented and presented as real. **F23:** both recommendation
+candidate queries had been erroring on every request since they were written
+(`column u.deleted_at does not exist`, `could not determine data type of
+parameter $1`), the service discarded the errors and served fixtures, so every
+account was recommended invented people, invented communities, invented job
+postings and a constant feed "insight" scored 95 and attributed to their
+verified skills. Found by reading the PostgreSQL log of a green CI run; fixed,
+and covered by a test verified to fail against the unfixed build. **F24:**
+fourteen files under `frontend/src` still present invented people as real and
+ten make no API call at all, so reachable authenticated pages - recruiter
+candidates and offers, the employer applications list, the admin console,
+onboarding suggestions, the networking client - render fiction. F24 is **not
+fixed**: each screen is step 10 domain work needing its own journey evidence. A
+ratchet stops it spreading and enumerates every file with its owner.
+
+Five of the six are fixed. F24 is open, and is the one release blocker that is a
+code defect.
 
 Restore and rollback are now rehearsed rather than described — 6.1s recovery
 with no data loss, and the previous release serving the hiring journey against
-this candidate's schema. **All 22 findings are closed**, and every historical
-residual is resolved or has a stated reason for staying open (R02 needs a
-product decision, R05 needs a startup check, R07 needs a provider decision).
+this candidate's schema. **All 22 prior findings are closed**, and every
+historical residual is resolved or has a stated reason for staying open (R02
+needs a product decision, R05 needs a startup check, R07 needs a provider
+decision). The two findings this pass raised are F23, closed, and F24, open.
 
 **No module was promoted.** 10C, 10D, 10E and 10H remain open, 10A, 10B, 10F and
-10G remain in progress, nothing is `verified`, and the release verdict is
-**HOLD for broad public launch**: approved for a controlled internal release
-once object storage, email and an alerting destination are configured. The
-remaining blockers are access, configuration and product decisions, not code.
+10G remain in progress, and nothing is `verified`. The release verdict is **HOLD
+for broad public launch, and no release at all that exposes the recruiter,
+employer, admin, onboarding or networking screens to real users** while F24
+stands. A controlled internal release of the hiring journey - the one surface
+with evidence behind it in HTTP tests, in the browser against the production
+artifact, against a restored database and under the previous release binary - is
+supportable once object storage, email and an alerting destination are
+configured.
 
 **Owner:** QA/release lead with product and operations owners. **Dependencies:** steps 1–11.
 

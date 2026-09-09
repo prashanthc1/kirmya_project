@@ -5566,5 +5566,41 @@
       "F03",
       "F04"
     ]
+  },
+  {
+    "id": "F23",
+    "title": "Recommendation queries never executed; fixtures served in their place",
+    "priority": "P1",
+    "status": "verified",
+    "evidence_class": "found and closed by the batch 6 acceptance pass on 2026-09-09; covered by backend/test/ci/batch6_recommendations_test.go, verified to fail against the unfixed build",
+    "owner": "Domain engineering lead",
+    "owner_assignment": "responsible role; individual not assigned",
+    "workstream": "Full-platform domain acceptance",
+    "plan_steps": "10, 12",
+    "scope": "affected feature before broad release; all required for full-platform acceptance",
+    "impact": "Every account was recommended two people who do not exist, two invented communities and three job postings at employers that do not exist, plus a constant feed insight scored 95 and attributed to the reader's verified profile skills.",
+    "action": "",
+    "acceptance": "",
+    "sources": "",
+    "acceptance_evidence": "",
+    "related_issues": ""
+  },
+  {
+    "id": "F24",
+    "title": "Invented people are live on fourteen frontend surfaces",
+    "priority": "P1",
+    "status": "open",
+    "evidence_class": "found by the batch 6 acceptance pass on 2026-09-09; enumerated in frontend/src/test/invented-identities.test.ts; not fixed",
+    "owner": "Frontend experience lead with hiring and admin domain leads",
+    "owner_assignment": "responsible roles; individuals not assigned",
+    "workstream": "Full-platform domain acceptance",
+    "plan_steps": "10A, 10B, 10F",
+    "scope": "release blocker for the recruiter, employer, admin, onboarding and networking surfaces",
+    "impact": "Ten reachable authenticated pages render candidates, colleagues, applicants, admin accounts and connection suggestions that do not exist, with employers, match ratings and resume URLs, and make no API call at all. Four API clients fall back to the same data.",
+    "action": "",
+    "acceptance": "",
+    "sources": "",
+    "acceptance_evidence": "",
+    "related_issues": ""
   }
 ]

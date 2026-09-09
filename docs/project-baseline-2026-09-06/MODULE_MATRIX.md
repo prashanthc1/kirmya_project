@@ -107,7 +107,7 @@ UI, API, service, storage, provider, owned and foreign cases, and restart.
 | | |
 |---|---|
 | `verified` | **0 modules.** No module has had its full journey checked end to end. |
-| `in progress` | The 10 modules batch 5 promoted, unchanged: company, recruiter, networking, notification, mentorship, onboarding, endorsement, security, compliance, admin. |
+| `in progress` | The 10 modules batch 5 promoted: company, recruiter, networking, notification, mentorship, onboarding, endorsement, security, compliance, admin — plus `recommendation`, whose server side was repaired in this batch. |
 | `unverified` / `open` | Everything else, unchanged. |
 
 What every module row *does* now have, from the batch 6 candidate:
@@ -131,3 +131,34 @@ exist, opens already signed in, and its sign-in button authenticates nobody. See
 [`mobile/README.md`](../../mobile/README.md). The API half — device registration
 scoped to `(user_id, device_id)` and a push that refuses a body naming somebody
 else — is implemented and covered by CI.
+
+### Correction: invented people are still live on fourteen surfaces
+
+Batch 5 recorded that the fabricated candidates, colleagues, endorsers and
+suggestions were gone — *"All of it is gone."* That is true of the server for
+the modules it named, and true of the public homepage. It is **not** true of the
+web client.
+
+Scanning `frontend/src` for the specific fabricated identities finds fourteen
+files still carrying them. Ten make no API call at all, so they render fiction
+to every viewer of a reachable authenticated page; four are API clients that
+fall back to it. The list, with the group and responsible role for each, is in
+`frontend/src/test/invented-identities.test.ts` and in the
+[batch 6 acceptance record](../BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md).
+
+The rows below stay where they are, and the reason is now specific rather than
+general:
+
+| Module | Status | What is still invented |
+|---|---|---|
+| recruiter | in progress | `/recruiter/candidates` and `/recruiter/offers`, and the pipeline, team, offer and message components: candidates and colleagues who do not exist, with employers, match ratings and résumé URLs. No API calls. |
+| company (employer portal) | in progress | `/employer/applications` lists an invented applicant. |
+| admin | in progress | The dashboard and user management present invented accounts; `features/admin/services/adminApi.ts` falls back to them. |
+| onboarding | in progress | `ConnectionsStep` suggests invented people to every new user. |
+| networking | in progress | `features/networking/services/networkingApi.ts` answers connection recommendations and people search from arrays compiled into the bundle — the defect batch 5 fixed in the mentorship client, still present here. |
+| compliance, trust_safety | unverified | An invented reviewer and an invented moderator in their clients' fallbacks. |
+| recommendation | unverified → **in progress** | Fixed in batch 6: both candidate queries had never executed, the errors were discarded, and fixtures were served in their place. Now real, or empty. Covered by `backend/test/ci/batch6_recommendations_test.go`. |
+
+No module moves to `verified` on the strength of a guard. The guard stops the
+problem spreading; wiring these screens to real data and exercising their
+journeys is the step 10 work that remains.

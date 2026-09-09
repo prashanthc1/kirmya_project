@@ -4,12 +4,19 @@
 
 ## Verdict
 
-**HOLD for broad public launch. Approved for a controlled internal release once
-object storage, email and an alerting destination are configured.**
+**HOLD for broad public launch. Not approved for any release that exposes the
+recruiter, employer, admin, onboarding or networking screens to real users.**
+
+A controlled internal release of the **hiring journey** — publish, discover,
+account, document, apply, review, interview — is supportable once object
+storage, email and an alerting destination are configured. That journey is the
+one with real evidence behind it, in HTTP tests, in the browser against the
+production artifact, against a restored database and under the previous release
+binary.
 
 The engineering gates are green on one candidate and every one of them was run,
-not quoted. The hold is unchanged because the reasons for it are unchanged, and
-they are not code:
+not quoted. Most of what keeps the hold in place is not code — it is access,
+configuration and product decisions. One item is code, and this batch found it:
 
 - Four of the eight step 10 domain groups have never had a journey exercised end
   to end. 10C, 10D, 10E and 10H are **open**; 10A, 10B, 10F and 10G are **in
@@ -19,6 +26,13 @@ they are not code:
   container's own disk.
 - The standalone mobile client cannot be built and authenticates nobody.
 - Nothing pages a person when readiness flips.
+- **Fourteen authenticated frontend surfaces still present invented people as
+  real** — recruiter candidates, offers, pipeline, team and messages; the
+  employer applications list; the admin console; onboarding suggestions; the
+  networking client; privacy and trust/safety reviewers. Nine of them make no
+  API call at all. This batch found it, guarded against it spreading, and did
+  not fix it: each screen is step 10 domain work needing its own journey
+  evidence. This is the one release blocker that is a code defect.
 
 **This release does not close the full-platform scope, and this document does
 not claim it does.** What it closes is step 12's verification work: every check
@@ -44,7 +58,7 @@ suites on PostgreSQL 18.3 and Redis 7.4.8.
 |---|---|---|
 | Frontend lint | `npm --prefix frontend run lint` | **0 errors**, 126 warnings |
 | Frontend typecheck | `next typegen && tsc --noEmit` | **0 errors** |
-| Frontend unit | `vitest run` | **60 files, 567 tests, 567 passed, 0 skipped** |
+| Frontend unit | `vitest run` | **61 files, 569 tests, 569 passed, 0 skipped** |
 | Frontend production build | `next build` (`output: 'standalone'`) | pass |
 | Backend vet | `go vet ./...` | clean |
 | Backend modules | `go mod verify` | all modules verified |
@@ -55,7 +69,7 @@ suites on PostgreSQL 18.3 and Redis 7.4.8.
 | Migrations, clean database | `tools/ci-migrate` | **98 applied**, second run 0 newly applied |
 | Migration failure and concurrency | `go test ./internal/shared/database/...` | **4 passed, 0 skipped** |
 | SQL and authorization negative controls | `scripts/ci/negative-gates.mjs` | both deliberately broken fixtures **rejected** |
-| Real-API integration | `go test -tags=ciintegration ./test/ci` against the running API | **37 tests (58 with subtests), 0 failed, 0 skipped** |
+| Real-API integration | `go test -tags=ciintegration ./test/ci` against the running API | **38 tests (59 with subtests), 0 failed, 0 skipped** |
 | Restart durability | `POST_RESTART=1 … TestBatch3RestartReadback` after a real restart | pass |
 | Company ownership and isolation | `go test ./internal/company/service` | **154 passed, 0 skipped** (the 12 database tests ran) |
 | Report gate negative controls | `node --test scripts/ci/*.test.mjs` | pass — failure, skip, empty, malformed and missing evidence all rejected |
@@ -88,8 +102,9 @@ standalone mobile client cannot be built at all — see
 
 ## 2. What this batch found
 
-Four defects, all in the release path rather than in the product, which is where
-a step-12 pass should find them.
+Six defects. Four are in the release path, which is where a step-12 pass should
+expect to find them. Two are in the product, and both are the same defect class
+earlier batches recorded as closed: data invented and presented as real.
 
 ### The Go vulnerability gate passed a scan that consulted no vulnerability data
 
@@ -155,6 +170,77 @@ and then starts it and requires `/signin` to answer. A `frontend/.dockerignore`
 was added at the same time: the builder runs `COPY . .`, so without it a local
 `node_modules` or `.next` overwrites what the deps and builder stages produced
 and the image depends on whichever machine built it.
+
+### Recommendations served invented people, communities and jobs, because the real queries had never once run
+
+Found by reading the PostgreSQL service log of a **green** CI run. Two queries
+were erroring on every request and had been since they were written:
+
+```
+ERROR:  column u.deleted_at does not exist
+ERROR:  could not determine data type of parameter $1
+```
+
+`users` has no `deleted_at` — it carries `status` — and the communities query
+bound one argument while referring to `$2`. Neither error ever surfaced, because
+`RecommendationService` discarded them (`candidates, _ = s.repo.Get…`) and then
+substituted fixtures whenever the list came back empty. So
+`/api/v1/recommendations/people` answered **every** account with "Tariq
+Al-Mansoor, Principal Infrastructure Architect" and "Dr. Reem Al-Nuaimi",
+complete with the names of the connections they supposedly shared with the
+caller; `/communities` answered with two invented communities and their member
+counts; the job stream answered with three postings at employers that do not
+exist; and `/feed` opened with a fixed "AI Career Optimization Insight" scored
+95 and attributed to the reader's verified profile skills.
+
+Fixed: the join uses `u.status = 'active'`, the limit is `$1`, the errors
+propagate, the fixtures are deleted, and an account with nothing to recommend
+gets an empty list.
+
+Fixing the queries then exposed a defect the fixtures had been hiding:
+`communities.slug` is nullable and nothing writes one, so the first real
+community made the endpoint answer 500 (`cannot scan NULL into *string`). It is
+`COALESCE`d, as the neighbouring columns already were; the web client already
+falls back to the community id.
+
+`backend/test/ci/batch6_recommendations_test.go` covers all of it against the
+running API. Verified to fail against a build from before the fix — the invented
+names came back and the real community did not — and to pass after. The unit
+tests that asserted the fixtures are replaced by ones asserting the opposite.
+
+### Invented people are still live on fourteen frontend surfaces
+
+Batch 5 recorded that the fabricated candidates, colleagues and suggestions were
+gone: *"All of it is gone."* Scanning for the specific fabricated identities
+shows that is not true of the web client. **Fourteen files under
+`frontend/src` still carry them. Ten make no API call at all** and render
+fiction to every viewer of a reachable authenticated page; the remaining four
+are API clients that fall back to it:
+
+| Surface | What it presents |
+|---|---|
+| `/recruiter/candidates` | Two candidates who do not exist, with employers, a "96% AI match rating" and résumé URLs at `kirmya.com/resumes/…`. No API call. |
+| `/recruiter/offers`, `OfferManager`, `PipelineBoard`, `TeamManagement`, `MessageCenter` | Invented candidates, colleagues and message threads. No API calls. |
+| `/employer/applications` | An invented applicant. |
+| `AdminDashboard`, `UserManagement`, `features/admin/services/adminApi.ts` | Invented accounts in the admin console. |
+| `components/onboarding/ConnectionsStep` | Invented people suggested to a new user. |
+| `features/networking/services/networkingApi.ts` | Connection recommendations and people search answered from arrays compiled into the bundle rather than from the API — the same defect as the mentorship client batch 5 rewrote. |
+| `features/privacy/services/privacyApi.ts`, `features/trust_safety/services/trustSafetyApi.ts` | An invented reviewer and an invented moderator. |
+
+**This batch did not fix them, and says so rather than quietly carrying the
+earlier claim forward.** Wiring fourteen screens to real data is step 10 domain
+work — 10A recruiter and employer, 10B networking and onboarding, 10F admin,
+privacy and trust/safety — and each needs its own journey evidence before the
+screen can be enabled. Writing it blind in a release-acceptance pass would
+produce exactly the unverified code the plan forbids.
+
+What this batch did instead is stop it spreading.
+`frontend/src/test/invented-identities.test.ts` scans every `.ts`/`.tsx` file
+under `src` (comments stripped, so a file that documents what it removed is not
+flagged) and fails when an invented identity appears anywhere outside an
+explicit quarantine list carrying the group and the responsible role. The list
+may only shrink. Verified by adding one of the names to `src/app/page.tsx`: the
+test failed naming that file, and passed again once it was removed.
 
 ### R04: a panicking identity helper nobody called
 
@@ -245,13 +331,13 @@ against the document that last claimed it.
 | F05 | **closed** | `TestSavedJobPersistsDurably` passes. |
 | F06 | **closed** | The production build issues no doubled `/api/v1` requests — browser test, now also against the standalone server. |
 | F07 | **closed for the web client.** Open for the unbuildable mobile prototype | `the production bundle carries no synthetic bearer identity` passes. `mobile/src/api/client.ts` still sends a constant bearer; it is excluded from the release and documented. |
-| F08 | **closed** | `landing-honesty.test.tsx` in the passing unit suite. |
+| F08 | **closed as written** — the landing page — but the defect class it belongs to is **not** closed platform-wide | `landing-honesty.test.tsx` passes: the public homepage invents nothing. Fourteen authenticated surfaces still do, and the recommendation API did until this batch. See section 2. |
 | F09 | **closed** | `TestNewsletterSubscriptionIsStoredAndRevocable` passes. |
 | F10 | **closed** | `public-indexing.spec.ts` passes in the browser suite, including against the standalone server. |
 | F11 | **closed** | The integration job is required, runs 98 real migrations and 37 real-API tests, and its result gate rejects a skip. Re-proved here: `{"pass":58,"fail":0,"skip":0}`. |
 | F12 | **closed, and hardened this batch** | Scanner failures block. The one remaining way a scan could report clean without data is the govulncheck gate described above, now fixed. |
 | F13 | **closed** | Query, scan and iteration errors propagate; covered by the integration suite. |
-| F14 | **closed** | Counted funnel metrics with an explicit insufficient-data state. |
+| F14 | **closed as written** — application analytics | Counted funnel metrics with an explicit insufficient-data state. The equivalent fabrication in the recommendation feed - a fixed insight scored 95, attributed to the reader's verified skills - was still live and is closed in this batch. |
 | F15 | **closed** | 24 axe checks over the core journey in both modes at two widths: 0 serious or critical. Re-run here, still 0. |
 | F16 | **closed** | Redis pub/sub and the shared Lua token bucket; their tests ran with a real Redis in this batch (`internal/messaging/pubsub`, `internal/shared/middleware`), 0 skips. |
 | F17 | **closed** | `TestJobApplyAliasAcceptsPathIdentifier` passes. |
@@ -317,9 +403,14 @@ about.
 | `docs/operations/RELEASE_OPERATIONS_HANDBOOK.md` | One authoritative operations document; supersedes the aspirational ones. |
 | `docs/operations/CONFIGURATION_AND_PROVIDERS.md` | Every configuration key read out of the code that consumes it. |
 | `mobile/README.md` | Say exactly why the mobile client is excluded. |
+| `backend/internal/recommendation/{repository,service}` | Two queries that had never run, two discarded errors, three fixture substitutions and a constant "insight" scored 95. |
+| `backend/test/ci/batch6_recommendations_test.go` | Covers the above against the running API; verified to fail against the unfixed build. |
+| `frontend/src/test/invented-identities.test.ts` | A ratchet: no new surface may present an invented person, and the quarantine list may only shrink. |
 
-No product behaviour changed. Every change is in the release path, the
-documentation, or dead code.
+Two of these change product behaviour, and deliberately: the recommendation
+endpoints now return what the database holds, which for a new deployment is
+nothing, instead of returning people and jobs that do not exist. Everything else
+is in the release path, the documentation, or dead code.
 
 ## 7. Explicitly excluded from this release
 
@@ -362,6 +453,11 @@ In the order they have to be solved. None is a code defect.
    a statement about production and should be made with the owner present.
 5. **A production-scale restore.** The 6.1-second figure must not be quoted as
    an RTO until it is re-run against a production-sized snapshot.
-6. **The four open domain groups.** 10C needs a provider decision; 10D, 10E and
+6. **The fourteen frontend surfaces that invent people.** Listed in section 2
+   and enumerated in `frontend/src/test/invented-identities.test.ts`. Until each
+   is wired to real data and its journey exercised, those screens must not be
+   shown to real users. This is the highest-priority remaining product work: it
+   is not a missing feature, it is the product asserting things that are false.
+7. **The four open domain groups.** 10C needs a provider decision; 10D, 10E and
    10H need the journeys the plan specifies. Only then is "full platform" a
    phrase this project can use.
