@@ -90,3 +90,44 @@ storage, provider, owned and foreign cases, restart - checked end to end.
 | admin | unverified | in progress | Console answered from bundled samples on failure; now surfaces the failure. Every admin route refuses anonymous and non-admin callers (155 routes checked) |
 | community, event, freelance, learning, organization, trust_safety, verification, referral, enterprise_hiring, workforce_intelligence, recommendation_engine, ai_job_match, career_ai, career_companion, resume_analysis, recruiter_ai, assessment, messaging, interview, data_operations, landing | unverified | unverified | Their list contract and, where applicable, their repository reads were corrected in this batch, but no journey in them was exercised end to end |
 | mobile, native_mobile, native-client | unverified | unverified | Not started in this batch |
+
+## Batch 6 acceptance review — 9 September 2026
+
+Step 12 asks that every module row carry current evidence covering permissions,
+persistence, failure/retry behaviour and the promised user outcome. This review
+checked the rows against the [batch 6 acceptance record](../BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md)
+and **promoted nothing**.
+
+Step 12 is a verification pass over what earlier batches committed. It re-ran
+every gate on one candidate and it rehearsed restore and rollback; it did not
+exercise a journey that had not been exercised before, so it cannot turn an
+`unverified` or `in progress` row into a `verified` one. The bar is unchanged:
+UI, API, service, storage, provider, owned and foreign cases, and restart.
+
+| | |
+|---|---|
+| `verified` | **0 modules.** No module has had its full journey checked end to end. |
+| `in progress` | The 10 modules batch 5 promoted, unchanged: company, recruiter, networking, notification, mentorship, onboarding, endorsement, security, compliance, admin. |
+| `unverified` / `open` | Everything else, unchanged. |
+
+What every module row *does* now have, from the batch 6 candidate:
+
+- **Permissions.** Every admin route refuses an anonymous and a non-admin caller (155 routes). Recruiter jobs, pipelines, applications and evaluations are scoped to `jobs.recruiter_id`, and a foreign id answers 404. Analytics route groups authenticate and verify organization membership. Identity resolves from the verified account everywhere: 0 remaining `GetString("user_id")` sites.
+- **Persistence.** 98 migrations apply on a clean database and are idempotent on a second run. Repository SQL is checked against the migrated schema by a required CI test. A restart read-back test proves business data survives an API restart.
+- **Failure and retry.** Query, scan and iteration errors propagate as stable API errors rather than as empty data. Notification delivery retries and dead-letters, does not double-send under concurrent workers, and dead-letters an unconfigured channel rather than claiming success. Deletion-worker failures are recorded outside the rolled-back transaction.
+- **The promised user outcome.** The hiring journey — publication, discovery, account, document, application, recruiter review, interview — passes in HTTP tests and in the browser against the production artifact, and again against a restored database, and again under the previous release binary on the migrated schema.
+
+What no row has, and what keeps them all short of `verified`: a browser or
+device acceptance pass over the module's own screens, and for 10C, 10D, 10E and
+10H, a configured provider or a completed lifecycle. Those are named per group
+in the acceptance record.
+
+### 10H, restated with evidence
+
+`mobile`, `native_mobile` and `native-client` stay `unverified` and the reason is
+now written down rather than inferred: the standalone client has no native
+projects, no lockfile, no bundler configuration, imports a package that does not
+exist, opens already signed in, and its sign-in button authenticates nobody. See
+[`mobile/README.md`](../../mobile/README.md). The API half — device registration
+scoped to `(user_id, device_id)` and a push that refuses a body naming somebody
+else — is implemented and covered by CI.

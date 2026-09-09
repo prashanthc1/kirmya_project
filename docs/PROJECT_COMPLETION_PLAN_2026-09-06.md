@@ -209,6 +209,39 @@ performance measurements were taken.
 
 ## Step 12 — Final full-platform acceptance and handover
 
+**Delivery batch 6, 9 September 2026 — items 1, 2 and 4 are done; item 3 is done
+except at production scale; item 5 was not authorised.** Recorded in
+[batch 6 release acceptance](BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md).
+
+Every required check ran on one candidate, `19da324`: lint, typecheck, 567 unit
+tests, the production build, `go vet`, 822 backend tests against a real
+PostgreSQL and Redis, 98 migrations, the SQL and authorization negative
+controls, 37 real-API integration tests, a restart read-back, the OpenAPI
+contract over all 961 registered routes, the npm dependency gate, and 96 browser
+tests against the production artifact — 0 failures and 0 skips throughout.
+`govulncheck`, Trivy, the container builds and the firefox/webkit browser
+projects could not run on the workstation and CI remains the authority for them;
+none is waived.
+
+The batch found four defects, all in the release path: the Go vulnerability gate
+accepted a scan that had never reached the vulnerability database; the browser
+suite drove `next start` while production runs the standalone server; the
+frontend image built and ran on a Node major no check had exercised, and no
+workflow built that image at all; and an unused panicking identity helper
+(R04). All four are fixed.
+
+Restore and rollback are now rehearsed rather than described — 6.1s recovery
+with no data loss, and the previous release serving the hiring journey against
+this candidate's schema. **All 22 findings are closed**, and every historical
+residual is resolved or has a stated reason for staying open (R02 needs a
+product decision, R05 needs a startup check, R07 needs a provider decision).
+
+**No module was promoted.** 10C, 10D, 10E and 10H remain open, 10A, 10B, 10F and
+10G remain in progress, nothing is `verified`, and the release verdict is
+**HOLD for broad public launch**: approved for a controlled internal release
+once object storage, email and an alerting destination are configured. The
+remaining blockers are access, configuration and product decisions, not code.
+
 **Owner:** QA/release lead with product and operations owners. **Dependencies:** steps 1–11.
 
 1. Run required lint/type/unit/integration/contract/security/build checks on one release SHA; run cross-module browser and supported-device suites against those built artifacts.
@@ -218,6 +251,15 @@ performance measurements were taken.
 5. Promote in controlled stages, verify post-deployment journeys and monitor for agreed rollback triggers. Record the final release decision and remaining explicitly excluded enhancements.
 
 **Exit:** all 20 current findings are closed for the full-platform scope, historical residuals are resolved or evidenced as already fixed, all committed domains pass acceptance, and operational owners can support and recover the release.
+
+**Exit status after batch 6: partly met.** Findings and residuals are closed or
+have a stated reason for staying open. Recovery is demonstrated: restore and
+rollback are both rehearsed, and the [operations handbook](operations/RELEASE_OPERATIONS_HANDBOOK.md)
+and [configuration requirements](operations/CONFIGURATION_AND_PROVIDERS.md)
+give operators the procedures and the exact keys. **Not met:** committed domains
+do not all pass acceptance — four groups have never been exercised end to end —
+and support cannot be provided as promised until an alerting destination, object
+storage and email exist. Those are the conditions on the hold.
 
 ## Execution order and estimation
 
