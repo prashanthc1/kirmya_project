@@ -57,7 +57,7 @@ This document establishes the official frontend architecture for the Kirmya Prof
 ---
 
 ## 6. Executive Summary
-Kirmya's frontend is built on **Next.js** using the **App Router** layout model, with UI components written in **React**, compiled in **TypeScript**, and styled using **MUI v6**. To maintain high visual quality, the frontend relies on tokenized MUI HSL palettes and dynamic RTL caches (for bilingual English/Arabic layout support), avoiding Tailwind CSS. 
+Kirmya's frontend is built on **Next.js** using the **App Router** layout model, with UI components written in **React**, compiled in **TypeScript**, and styled primarily using **MUI v6** with its theme tokens; CSS Modules are used where static styling, keyframes or complex selectors suit them better (see [Styling and UI decisions](../frontend/styling-and-ui-decisions.md)). Tailwind CSS is not adopted. 
 
 State management is split between **Zustand** (for local states and sessions) and **TanStack Query** (for API request caching). Access guards and Next.js middleware manage role-based page rendering and JWT redirects. 
 
@@ -224,6 +224,19 @@ graph TD
 ---
 
 ### 7.5 MUI v6 Theme and Bidirectional Localization System
+
+> **Amended 9 September 2026.** MUI v6 remains the default and Tailwind is
+> still not adopted, but "everything is MUI and `sx`" is no longer the rule.
+> Choose the technique the requirement needs — MUI component, theme token,
+> `sx`, or a CSS Module — per
+> [Styling and UI decisions](../frontend/styling-and-ui-decisions.md), which
+> also records where MUI is a poor fit in this codebase and why.
+>
+> The RTL cache described below is **specified but not currently wired up**.
+> Treat it as the intended design, not as shipped behaviour, and write
+> logical-direction CSS (`marginInlineStart`, not `marginLeft`) so that turning
+> it on stays cheap.
+
 The UI utilizes the **MUI v6 Theme Engine** with dynamic cache swaps to support Arabic RTL layouts without Tailwind CSS.
 
 - **Bidirectional Style Setup**: The application uses a custom cache provider to switch between LTR and RTL orientations:

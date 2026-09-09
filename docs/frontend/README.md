@@ -7,7 +7,8 @@ Welcome to the Next.js Frontend Architecture, MUI v6 Glassmorphic Design System,
 - [`frontend-architecture-audit.md`](frontend-architecture-audit.md): Complete audit of Next.js routes, components, and zero-Tailwind compliance.
 - [`frontend-architecture.md`](frontend-architecture.md): High-level frontend architecture, data fetching pipelines, and state isolation.
 - [`frontend-development-guide.md`](frontend-development-guide.md): Developer guide, feature module directories, and component conventions.
-- [`design-system.md`](design-system.md): Centralized MUI v6 theme tokens, glassmorphism styling, and color palettes.
+- [`styling-and-ui-decisions.md`](styling-and-ui-decisions.md): **Start here for styling.** When to use an MUI component, a theme token, `sx`, or a CSS Module; where MUI does not fit this codebase; and the constraints that hold whichever you choose.
+- [`design-system.md`](design-system.md): **Superseded** — stale palette and prescribes the glassmorphism the navigation brief rules out. Kept only so references to it are recognisable as stale.
 - [`component-guidelines.md`](component-guidelines.md): Reusable component hierarchy, props contracts, and variants.
 - [`accessibility-guide.md`](accessibility-guide.md): WCAG 2.2 AA compliance standards, keyboard navigation, and ARIA attributes.
 - [`accessibility.md`](accessibility.md): Focus trap management, color contrast standards, and screen reader live regions.

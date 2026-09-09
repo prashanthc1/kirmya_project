@@ -9,7 +9,7 @@ Welcome to the comprehensive documentation directory for the Kirmya AI Career Co
 - [**Implementation & Verification Walkthrough**](walkthrough.md): Full platform implementation status, subsystem breakdown, and latest test verification metrics.
 - [**Backend Architecture Guide**](backend-architecture.md): Modular Monolith design, Gin HTTP handlers, domain service layer, and fail-closed persistence.
 - [**REST API & OpenAPI 3.0 Contract**](api.md): Endpoint standards, standardized error format, authentication requirements, and Swagger UI.
-- [**Frontend Architecture & Design System**](frontend/): MUI v6 Glassmorphism design tokens, accessibility standards (WCAG AA), and API client centralization.
+- [**Frontend Architecture & Styling**](frontend/): styling decisions (MUI, theme tokens, `sx`, CSS Modules — and where each fits), accessibility standards (WCAG AA), and API client centralization. Styling starts at [styling-and-ui-decisions.md](frontend/styling-and-ui-decisions.md).
 - [**System Health & Diagnostics**](system-health-diagnostics.md): Health probe contracts (`/health/live`, `/health/ready`, `/health/dependencies`) and telemetry.
 
 ---
