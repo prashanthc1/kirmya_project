@@ -934,4 +934,3 @@ func (s *securityService) DetectFraud(ctx context.Context, entityType string, en
 func (s *securityService) GetFraudAlerts(ctx context.Context) ([]models.FraudAlert, error) {
 	return s.repo.GetFraudAlerts(ctx)
 }
-

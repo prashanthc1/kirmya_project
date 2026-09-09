@@ -8,17 +8,17 @@ import (
 
 // SearchFilters represents the recruiter facets filters.
 type SearchFilters struct {
-	Skills            []string `json:"skills"`
-	ExperienceMin     int      `json:"experienceMin"`
-	ExperienceMax     int      `json:"experienceMax"`
-	Location          string   `json:"location"`
-	Availability      string   `json:"availability"`
-	SalaryMin         int      `json:"salaryMin"`
-	SalaryMax         int      `json:"salaryMax"`
-	Education         string   `json:"education"`
-	Certifications    []string `json:"certifications"`
-	Industry          string   `json:"industry"`
-	JobTitle          string   `json:"jobTitle"`
+	Skills         []string `json:"skills"`
+	ExperienceMin  int      `json:"experienceMin"`
+	ExperienceMax  int      `json:"experienceMax"`
+	Location       string   `json:"location"`
+	Availability   string   `json:"availability"`
+	SalaryMin      int      `json:"salaryMin"`
+	SalaryMax      int      `json:"salaryMax"`
+	Education      string   `json:"education"`
+	Certifications []string `json:"certifications"`
+	Industry       string   `json:"industry"`
+	JobTitle       string   `json:"jobTitle"`
 }
 
 // SearchCriteria wraps text queries with facet parameters.
@@ -29,17 +29,17 @@ type SearchCriteria struct {
 
 // CandidateSearchResult represents an advanced search record result.
 type CandidateSearchResult struct {
-	CandidateID    uuid.UUID `json:"candidateId"`
-	Name           string    `json:"name"`
-	Email          string    `json:"email"`
-	Headline       string    `json:"headline"`
-	Summary        string    `json:"summary"`
-	Location       string    `json:"location"`
-	Skills         []string  `json:"skills"`
-	ExperienceYrs  int       `json:"experienceYrs"`
-	SalaryExpect   int       `json:"salaryExpect"`
-	Availability   string    `json:"availability"`
-	MatchScore     int       `json:"matchScore"` // Percentage matching rating
+	CandidateID   uuid.UUID `json:"candidateId"`
+	Name          string    `json:"name"`
+	Email         string    `json:"email"`
+	Headline      string    `json:"headline"`
+	Summary       string    `json:"summary"`
+	Location      string    `json:"location"`
+	Skills        []string  `json:"skills"`
+	ExperienceYrs int       `json:"experienceYrs"`
+	SalaryExpect  int       `json:"salaryExpect"`
+	Availability  string    `json:"availability"`
+	MatchScore    int       `json:"matchScore"` // Percentage matching rating
 }
 
 // SavedCandidate represents bookmarked profiles grouped by list names.

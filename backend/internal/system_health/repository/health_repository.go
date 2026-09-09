@@ -50,16 +50,16 @@ func (r *HealthRepository) ListActiveIncidents(ctx context.Context) ([]models.He
 		now := time.Now()
 		return []models.HealthIncident{
 			{
-				ID:           uuid.MustParse("e0e0e0e0-0000-0000-0000-000000000001"),
+				ID:            uuid.MustParse("e0e0e0e0-0000-0000-0000-000000000001"),
 				ComponentName: "opensearch",
-				Severity:     "degraded",
-				Status:       "investigating",
-				FailureType:  "SearchLatencySpike",
-				ErrorMessage: "OpenSearch latency elevated, fallback database search active",
-				FirstSeenAt:  now.Add(-15 * time.Minute),
-				LastSeenAt:   now.Add(-1 * time.Minute),
-				DedupCount:   3,
-				CreatedAt:    now.Add(-15 * time.Minute),
+				Severity:      "degraded",
+				Status:        "investigating",
+				FailureType:   "SearchLatencySpike",
+				ErrorMessage:  "OpenSearch latency elevated, fallback database search active",
+				FirstSeenAt:   now.Add(-15 * time.Minute),
+				LastSeenAt:    now.Add(-1 * time.Minute),
+				DedupCount:    3,
+				CreatedAt:     now.Add(-15 * time.Minute),
 			},
 		}, nil
 	}

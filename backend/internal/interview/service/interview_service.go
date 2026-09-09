@@ -21,16 +21,16 @@ type InterviewEvent struct {
 }
 
 type ReminderItem struct {
-	InterviewID    uuid.UUID `json:"interview_id"`
-	RoundID        *uuid.UUID `json:"round_id,omitempty"`
-	Title          string    `json:"title"`
-	RoundName      string    `json:"round_name,omitempty"`
-	CandidateID    uuid.UUID `json:"candidate_id"`
-	ScheduledStart time.Time `json:"scheduled_start"`
-	ScheduledEnd   time.Time `json:"scheduled_end"`
-	MeetingLink    string    `json:"meeting_link"`
-	MinutesRemaining int     `json:"minutes_remaining"`
-	Role           string    `json:"role"`
+	InterviewID      uuid.UUID  `json:"interview_id"`
+	RoundID          *uuid.UUID `json:"round_id,omitempty"`
+	Title            string     `json:"title"`
+	RoundName        string     `json:"round_name,omitempty"`
+	CandidateID      uuid.UUID  `json:"candidate_id"`
+	ScheduledStart   time.Time  `json:"scheduled_start"`
+	ScheduledEnd     time.Time  `json:"scheduled_end"`
+	MeetingLink      string     `json:"meeting_link"`
+	MinutesRemaining int        `json:"minutes_remaining"`
+	Role             string     `json:"role"`
 }
 
 type InterviewService interface {

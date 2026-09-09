@@ -64,27 +64,27 @@ type pgxComplianceRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
-	consents        map[uuid.UUID][]domain.ConsentRecord
-	requests        map[uuid.UUID]*domain.DataRequest
-	events          map[uuid.UUID][]domain.AuditEvent
-	inventory       []domain.DataInventoryItem
-	retention       map[string]*domain.RetentionPolicyItem
-	legalHolds      map[uuid.UUID]*domain.LegalHoldItem
-	accessReviews   []domain.DataAccessReviewItem
-	processors      []domain.ThirdPartyProcessorItem
-	qualityChecks   []domain.DataQualityCheckItem
-	incidents       []domain.PrivacyIncidentItem
-	policyVersions  []domain.PolicyVersionItem
+	consents       map[uuid.UUID][]domain.ConsentRecord
+	requests       map[uuid.UUID]*domain.DataRequest
+	events         map[uuid.UUID][]domain.AuditEvent
+	inventory      []domain.DataInventoryItem
+	retention      map[string]*domain.RetentionPolicyItem
+	legalHolds     map[uuid.UUID]*domain.LegalHoldItem
+	accessReviews  []domain.DataAccessReviewItem
+	processors     []domain.ThirdPartyProcessorItem
+	qualityChecks  []domain.DataQualityCheckItem
+	incidents      []domain.PrivacyIncidentItem
+	policyVersions []domain.PolicyVersionItem
 }
 
 func NewComplianceRepository(pool *pgxpool.Pool) ComplianceRepository {
 	repo := &pgxComplianceRepository{
-		pool:           pool,
-		consents:       make(map[uuid.UUID][]domain.ConsentRecord),
-		requests:       make(map[uuid.UUID]*domain.DataRequest),
-		events:         make(map[uuid.UUID][]domain.AuditEvent),
-		retention:      make(map[string]*domain.RetentionPolicyItem),
-		legalHolds:     make(map[uuid.UUID]*domain.LegalHoldItem),
+		pool:       pool,
+		consents:   make(map[uuid.UUID][]domain.ConsentRecord),
+		requests:   make(map[uuid.UUID]*domain.DataRequest),
+		events:     make(map[uuid.UUID][]domain.AuditEvent),
+		retention:  make(map[string]*domain.RetentionPolicyItem),
+		legalHolds: make(map[uuid.UUID]*domain.LegalHoldItem),
 	}
 	repo.seedDefaultData()
 	return repo
@@ -953,14 +953,14 @@ func (r *pgxComplianceRepository) GetComplianceOverview(ctx context.Context) (*d
 	}
 
 	return &domain.ComplianceOverview{
-		GDPRCompliant:                   true,
-		CCPACompliant:                   true,
-		TotalDataSubjectRequests:        totalRequests,
-		CompletedDSRCount:               completedRequests,
-		ActiveLegalHolds:                risk.ActiveLegalHoldCount,
-		ActiveRetentionPolicies:         len(r.retention),
+		GDPRCompliant:                  true,
+		CCPACompliant:                  true,
+		TotalDataSubjectRequests:       totalRequests,
+		CompletedDSRCount:              completedRequests,
+		ActiveLegalHolds:               risk.ActiveLegalHoldCount,
+		ActiveRetentionPolicies:        len(r.retention),
 		AverageDSROrderFulfillmentDays: 1.2,
-		RiskSummary:                     *risk,
+		RiskSummary:                    *risk,
 	}, nil
 }
 

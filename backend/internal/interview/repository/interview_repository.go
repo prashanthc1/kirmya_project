@@ -22,11 +22,11 @@ type InterviewRepository interface {
 	GetInterviewByID(ctx context.Context, id uuid.UUID) (*domain.Interview, error)
 	ListInterviews(ctx context.Context, candidateID, organizerID *uuid.UUID, status string) ([]domain.Interview, error)
 	UpdateInterviewStatus(ctx context.Context, id uuid.UUID, status string) error
-	
+
 	CreateRound(ctx context.Context, round *domain.InterviewRound) error
 	UpdateRoundStatus(ctx context.Context, roundID uuid.UUID, status string) error
 	GetRoundsByInterviewID(ctx context.Context, interviewID uuid.UUID) ([]domain.InterviewRound, error)
-	
+
 	AddParticipant(ctx context.Context, participant *domain.InterviewParticipant) error
 	UpdateRSVPStatus(ctx context.Context, participantID uuid.UUID, rsvp string) error
 	GetParticipantsByInterviewID(ctx context.Context, interviewID uuid.UUID) ([]domain.InterviewParticipant, error)

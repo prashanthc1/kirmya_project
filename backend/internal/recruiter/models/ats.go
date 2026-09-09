@@ -7,26 +7,26 @@ import (
 )
 
 type JobApplicationDTO struct {
-	ID                 uuid.UUID `json:"id"`
-	JobID              uuid.UUID `json:"jobId"`
-	JobTitle           string    `json:"jobTitle"`
-	CandidateID        uuid.UUID `json:"candidateId"`
-	CandidateName      string    `json:"candidateName"`
-	CandidateEmail     string    `json:"candidateEmail"`
-	CandidateHeadline  string    `json:"candidateHeadline"`
-	CandidateAvatar    string    `json:"candidateAvatar"`
-	CandidateLocation  string    `json:"candidateLocation"`
-	ExperienceYears    int       `json:"experienceYears"`
-	Skills             []string  `json:"skills"`
-	AIMatchScore       int       `json:"aiMatchScore"`
-	CurrentStage       string    `json:"currentStage"`
-	RecruiterID        uuid.UUID `json:"recruiterId"`
-	AssignedRecruiter  string    `json:"assignedRecruiter"`
-	Rating             int       `json:"rating"`
-	CoverLetter        string    `json:"coverLetter"`
-	ResumeURL          string    `json:"resumeUrl"`
-	AppliedAt          time.Time `json:"appliedAt"`
-	UpdatedAt          time.Time `json:"updatedAt"`
+	ID                uuid.UUID `json:"id"`
+	JobID             uuid.UUID `json:"jobId"`
+	JobTitle          string    `json:"jobTitle"`
+	CandidateID       uuid.UUID `json:"candidateId"`
+	CandidateName     string    `json:"candidateName"`
+	CandidateEmail    string    `json:"candidateEmail"`
+	CandidateHeadline string    `json:"candidateHeadline"`
+	CandidateAvatar   string    `json:"candidateAvatar"`
+	CandidateLocation string    `json:"candidateLocation"`
+	ExperienceYears   int       `json:"experienceYears"`
+	Skills            []string  `json:"skills"`
+	AIMatchScore      int       `json:"aiMatchScore"`
+	CurrentStage      string    `json:"currentStage"`
+	RecruiterID       uuid.UUID `json:"recruiterId"`
+	AssignedRecruiter string    `json:"assignedRecruiter"`
+	Rating            int       `json:"rating"`
+	CoverLetter       string    `json:"coverLetter"`
+	ResumeURL         string    `json:"resumeUrl"`
+	AppliedAt         time.Time `json:"appliedAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
 type ApplicationStageHistoryDTO struct {
@@ -111,15 +111,15 @@ type ATSBulkActionPayload struct {
 }
 
 type AIEvaluationResponse struct {
-	ApplicationID       uuid.UUID `json:"applicationId"`
-	CandidateName       string    `json:"candidateName"`
-	OverallMatchScore   int       `json:"overallMatchScore"`
-	Recommendation      string    `json:"recommendation"` // 'Hire', 'Consider', 'Reject'
-	SummaryOverview     string    `json:"summaryOverview"`
-	SkillGaps           []string  `json:"skillGaps"`
-	Strengths           []string  `json:"strengths"`
-	RiskFactors         []string  `json:"riskFactors"`
-	SuggestedQuestions  []string  `json:"suggestedQuestions"`
+	ApplicationID      uuid.UUID `json:"applicationId"`
+	CandidateName      string    `json:"candidateName"`
+	OverallMatchScore  int       `json:"overallMatchScore"`
+	Recommendation     string    `json:"recommendation"` // 'Hire', 'Consider', 'Reject'
+	SummaryOverview    string    `json:"summaryOverview"`
+	SkillGaps          []string  `json:"skillGaps"`
+	Strengths          []string  `json:"strengths"`
+	RiskFactors        []string  `json:"riskFactors"`
+	SuggestedQuestions []string  `json:"suggestedQuestions"`
 }
 
 // CandidateEvaluationPayload is the request for creating a candidate evaluation.

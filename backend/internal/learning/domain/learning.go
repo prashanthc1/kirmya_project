@@ -8,18 +8,18 @@ import (
 
 // Course Categories
 const (
-	CategoryTechnology        = "Technology"
-	CategoryManagement        = "Management"
-	CategorySoftSkills        = "Soft skills"
-	CategoryInterviewPrep     = "Interview preparation"
-	CategoryCertifications    = "Industry certifications"
+	CategoryTechnology     = "Technology"
+	CategoryManagement     = "Management"
+	CategorySoftSkills     = "Soft skills"
+	CategoryInterviewPrep  = "Interview preparation"
+	CategoryCertifications = "Industry certifications"
 )
 
 // Course Providers
 const (
-	ProviderKirmya     = "kirmya"
-	ProviderCoursera   = "coursera"
-	ProviderUdemy      = "udemy"
+	ProviderKirmya      = "kirmya"
+	ProviderCoursera    = "coursera"
+	ProviderUdemy       = "udemy"
 	ProviderPluralsight = "pluralsight"
 )
 
@@ -88,14 +88,14 @@ type Certificate struct {
 }
 
 type SkillAssessment struct {
-	ID                 uuid.UUID  `json:"id"`
-	UserID             uuid.UUID  `json:"user_id"`
-	Domain             string     `json:"domain"`
-	Score              int        `json:"score"`
-	ReadinessLevel     string     `json:"readiness_level"`
+	ID                uuid.UUID  `json:"id"`
+	UserID            uuid.UUID  `json:"user_id"`
+	Domain            string     `json:"domain"`
+	Score             int        `json:"score"`
+	ReadinessLevel    string     `json:"readiness_level"`
 	RecommendedPathID *uuid.UUID `json:"recommended_path_id,omitempty"`
-	AnswersJSON        string     `json:"answers_json,omitempty"`
-	CreatedAt          time.Time  `json:"created_at"`
+	AnswersJSON       string     `json:"answers_json,omitempty"`
+	CreatedAt         time.Time  `json:"created_at"`
 }
 
 type SubmitAssessmentRequest struct {

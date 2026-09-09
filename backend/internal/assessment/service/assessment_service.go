@@ -117,7 +117,7 @@ func (s *assessmentService) SubmitAssessment(ctx context.Context, userID uuid.UU
 			if err != nil {
 				slog.Error("AI practical evaluation failed", slog.String("error", err.Error()))
 				evalRes = &evaluator.AIEvaluationResult{
-					PracticalScore: 75,
+					PracticalScore:  75,
 					CritiqueSummary: "Standard evaluation applied.",
 				}
 			}
@@ -177,20 +177,20 @@ func (s *assessmentService) SubmitAssessment(ctx context.Context, userID uuid.UU
 	}
 
 	result := &domain.UserAssessmentResult{
-		ID:                 uuid.New(),
-		UserID:             userID,
-		UserName:           userName,
-		AssessmentID:       assessmentID,
-		AssessmentTitle:    assessment.Title,
-		ScorePercentage:    scorePct,
-		MCQScore:           mcqScorePct,
-		PracticalAIScore:   practicalScorePct,
-		PercentileRank:     percentile,
-		Passed:             passed,
-		TimeTakenSeconds:   req.TimeTakenSeconds,
-		AIFeedbackSummary:  critiqueText,
-		EarnedBadge:        earnedBadge,
-		CompletedAt:        time.Now(),
+		ID:                uuid.New(),
+		UserID:            userID,
+		UserName:          userName,
+		AssessmentID:      assessmentID,
+		AssessmentTitle:   assessment.Title,
+		ScorePercentage:   scorePct,
+		MCQScore:          mcqScorePct,
+		PracticalAIScore:  practicalScorePct,
+		PercentileRank:    percentile,
+		Passed:            passed,
+		TimeTakenSeconds:  req.TimeTakenSeconds,
+		AIFeedbackSummary: critiqueText,
+		EarnedBadge:       earnedBadge,
+		CompletedAt:       time.Now(),
 	}
 
 	if err := s.repo.SaveUserResult(ctx, result); err != nil {

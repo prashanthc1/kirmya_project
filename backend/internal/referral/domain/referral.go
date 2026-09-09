@@ -15,8 +15,8 @@ const (
 	RefStatusAccepted      = "accepted"
 	RefStatusSubmittedATS  = "submitted_to_ats"
 	RefStatusInterviewing  = "interviewing"
-	RefStatusHired        = "hired"
-	RefStatusRejected     = "rejected"
+	RefStatusHired         = "hired"
+	RefStatusRejected      = "rejected"
 )
 
 type ReferralRequest struct {

@@ -162,4 +162,3 @@ var (
 	_ dto.ResetPasswordRequest
 	_ swagger.ErrorResponse
 )
-

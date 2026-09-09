@@ -46,16 +46,16 @@ type ProfessionalRecommendation struct {
 }
 
 type ProfessionalReference struct {
-	ID            uuid.UUID `json:"id"`
-	CandidateID   uuid.UUID `json:"candidate_id"`
-	RefereeName   string    `json:"referee_name"`
-	RefereeTitle  string    `json:"referee_title"`
-	CompanyName   string    `json:"company_name"`
-	RefereeEmail  string    `json:"referee_email"`
-	RefereePhone  string    `json:"referee_phone"`
-	Relationship  string    `json:"relationship"`
-	Status        string    `json:"status"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID           uuid.UUID `json:"id"`
+	CandidateID  uuid.UUID `json:"candidate_id"`
+	RefereeName  string    `json:"referee_name"`
+	RefereeTitle string    `json:"referee_title"`
+	CompanyName  string    `json:"company_name"`
+	RefereeEmail string    `json:"referee_email"`
+	RefereePhone string    `json:"referee_phone"`
+	Relationship string    `json:"relationship"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 type EndorseSkillPayload struct {

@@ -114,11 +114,11 @@ type RewriteRequest struct {
 
 // TailorJobResponse payload.
 type TailorJobResponse struct {
-	MatchScore               int      `json:"matchScore"`
-	RelevantSkills           []string `json:"relevantSkills"`
-	RelevantExperience       []string `json:"relevantExperience"`
-	RelevantAchievements     []string `json:"relevantAchievements"`
-	RecommendedTalkingPoints []string `json:"recommendedTalkingPoints"`
+	MatchScore               int        `json:"matchScore"`
+	RelevantSkills           []string   `json:"relevantSkills"`
+	RelevantExperience       []string   `json:"relevantExperience"`
+	RelevantAchievements     []string   `json:"relevantAchievements"`
+	RecommendedTalkingPoints []string   `json:"recommendedTalkingPoints"`
 	SuggestedCoverLetterID   *uuid.UUID `json:"suggestedCoverLetterId,omitempty"`
 }
 
@@ -155,4 +155,3 @@ type TailorCoverLetterPayload struct {
 type CreateVersionPayload struct {
 	VersionTag string `json:"versionTag"`
 }
-

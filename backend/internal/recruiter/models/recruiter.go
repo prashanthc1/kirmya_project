@@ -35,57 +35,57 @@ type OnboardingPayload struct {
 
 // RecruiterJob represents jobs posted by recruiters with full fields.
 type RecruiterJob struct {
-	ID                  uuid.UUID                    `json:"id"`
-	OrgID               uuid.UUID                    `json:"orgId"`
-	RecruiterID         uuid.UUID                    `json:"recruiterId"`
-	HiringManagerID     *uuid.UUID                   `json:"hiringManagerId,omitempty"`
-	Title               string                       `json:"title"`
-	Department          string                       `json:"department"`
-	EmploymentType      string                       `json:"employmentType"` // Full-time, Part-time, Contract, Internship
-	WorkplaceType       string                       `json:"workplaceType"`  // On-site, Hybrid, Remote
-	Location            string                       `json:"location"`
-	SalaryRange         string                       `json:"salaryRange"`
-	Currency            string                       `json:"currency"`
-	ExperienceLevel     string                       `json:"experienceLevel"` // Entry, Mid, Senior, Lead, Executive
-	RequiredSkills      []string                     `json:"requiredSkills"`
-	PreferredSkills     []string                     `json:"preferredSkills"`
-	Education           string                       `json:"education"`
-	Certifications      []string                     `json:"certifications"`
-	Description         string                       `json:"description"`
-	Responsibilities    string                       `json:"responsibilities"`
-	Qualifications      string                       `json:"qualifications"`
-	Benefits            string                       `json:"benefits"`
-	Deadline            string                       `json:"deadline"`
-	OpeningsCount       int                          `json:"openingsCount"`
-	Status              string                       `json:"status"` // 'Draft', 'Active', 'Paused', 'Closed', 'Archived'
-	ApplicantsCount     int                          `json:"applicantsCount"`
-	ViewsCount          int                          `json:"viewsCount"`
-	Questions           []JobApplicationQuestionDTO `json:"questions,omitempty"`
-	CreatedAt           time.Time                    `json:"createdAt"`
-	UpdatedAt           time.Time                    `json:"updatedAt"`
+	ID               uuid.UUID                   `json:"id"`
+	OrgID            uuid.UUID                   `json:"orgId"`
+	RecruiterID      uuid.UUID                   `json:"recruiterId"`
+	HiringManagerID  *uuid.UUID                  `json:"hiringManagerId,omitempty"`
+	Title            string                      `json:"title"`
+	Department       string                      `json:"department"`
+	EmploymentType   string                      `json:"employmentType"` // Full-time, Part-time, Contract, Internship
+	WorkplaceType    string                      `json:"workplaceType"`  // On-site, Hybrid, Remote
+	Location         string                      `json:"location"`
+	SalaryRange      string                      `json:"salaryRange"`
+	Currency         string                      `json:"currency"`
+	ExperienceLevel  string                      `json:"experienceLevel"` // Entry, Mid, Senior, Lead, Executive
+	RequiredSkills   []string                    `json:"requiredSkills"`
+	PreferredSkills  []string                    `json:"preferredSkills"`
+	Education        string                      `json:"education"`
+	Certifications   []string                    `json:"certifications"`
+	Description      string                      `json:"description"`
+	Responsibilities string                      `json:"responsibilities"`
+	Qualifications   string                      `json:"qualifications"`
+	Benefits         string                      `json:"benefits"`
+	Deadline         string                      `json:"deadline"`
+	OpeningsCount    int                         `json:"openingsCount"`
+	Status           string                      `json:"status"` // 'Draft', 'Active', 'Paused', 'Closed', 'Archived'
+	ApplicantsCount  int                         `json:"applicantsCount"`
+	ViewsCount       int                         `json:"viewsCount"`
+	Questions        []JobApplicationQuestionDTO `json:"questions,omitempty"`
+	CreatedAt        time.Time                   `json:"createdAt"`
+	UpdatedAt        time.Time                   `json:"updatedAt"`
 }
 
 type CreateJobPayload struct {
-	Title            string                       `json:"title" binding:"required"`
-	Department       string                       `json:"department"`
-	EmploymentType   string                       `json:"employmentType"`
-	WorkplaceType    string                       `json:"workplaceType"`
-	Location         string                       `json:"location"`
-	SalaryRange      string                       `json:"salaryRange"`
-	Currency         string                       `json:"currency"`
-	ExperienceLevel  string                       `json:"experienceLevel"`
-	RequiredSkills   []string                     `json:"requiredSkills"`
-	PreferredSkills  []string                     `json:"preferredSkills"`
-	Education        string                       `json:"education"`
-	Certifications   []string                     `json:"certifications"`
-	Description      string                       `json:"description" binding:"required"`
-	Responsibilities string                       `json:"responsibilities"`
-	Qualifications   string                       `json:"qualifications"`
-	Benefits         string                       `json:"benefits"`
-	Deadline         string                       `json:"deadline"`
-	OpeningsCount    int                          `json:"openingsCount"`
-	HiringManagerID  string                       `json:"hiringManagerId"`
-	Status           string                       `json:"status"` // 'Active', 'Draft'
+	Title            string                      `json:"title" binding:"required"`
+	Department       string                      `json:"department"`
+	EmploymentType   string                      `json:"employmentType"`
+	WorkplaceType    string                      `json:"workplaceType"`
+	Location         string                      `json:"location"`
+	SalaryRange      string                      `json:"salaryRange"`
+	Currency         string                      `json:"currency"`
+	ExperienceLevel  string                      `json:"experienceLevel"`
+	RequiredSkills   []string                    `json:"requiredSkills"`
+	PreferredSkills  []string                    `json:"preferredSkills"`
+	Education        string                      `json:"education"`
+	Certifications   []string                    `json:"certifications"`
+	Description      string                      `json:"description" binding:"required"`
+	Responsibilities string                      `json:"responsibilities"`
+	Qualifications   string                      `json:"qualifications"`
+	Benefits         string                      `json:"benefits"`
+	Deadline         string                      `json:"deadline"`
+	OpeningsCount    int                         `json:"openingsCount"`
+	HiringManagerID  string                      `json:"hiringManagerId"`
+	Status           string                      `json:"status"` // 'Active', 'Draft'
 	Questions        []JobApplicationQuestionDTO `json:"questions"`
 }
 
@@ -233,34 +233,34 @@ type TeamMemberDTO struct {
 }
 
 type RecruiterDashboardOverview struct {
-	ActiveJobsCount       int                    `json:"activeJobsCount"`
-	DraftJobsCount        int                    `json:"draftJobsCount"`
-	TotalApplicantsCount  int                    `json:"totalApplicantsCount"`
-	NewCandidatesCount    int                    `json:"newCandidatesCount"`
-	ShortlistedCount      int                    `json:"shortlistedCount"`
-	InterviewsScheduled   int                    `json:"interviewsScheduled"`
-	OffersCount           int                    `json:"offersCount"`
-	SuccessfulHiresCount  int                    `json:"successfulHiresCount"`
-	ExpiringJobsCount     int                    `json:"expiringJobsCount"`
-	RecentJobs            []RecruiterJob         `json:"recentJobs"`
-	UpcomingInterviews    []InterviewItem        `json:"upcomingInterviews"`
-	RecentActivities      []RecruiterActivity    `json:"recentActivities"`
+	ActiveJobsCount      int                 `json:"activeJobsCount"`
+	DraftJobsCount       int                 `json:"draftJobsCount"`
+	TotalApplicantsCount int                 `json:"totalApplicantsCount"`
+	NewCandidatesCount   int                 `json:"newCandidatesCount"`
+	ShortlistedCount     int                 `json:"shortlistedCount"`
+	InterviewsScheduled  int                 `json:"interviewsScheduled"`
+	OffersCount          int                 `json:"offersCount"`
+	SuccessfulHiresCount int                 `json:"successfulHiresCount"`
+	ExpiringJobsCount    int                 `json:"expiringJobsCount"`
+	RecentJobs           []RecruiterJob      `json:"recentJobs"`
+	UpcomingInterviews   []InterviewItem     `json:"upcomingInterviews"`
+	RecentActivities     []RecruiterActivity `json:"recentActivities"`
 }
 
 type RecruiterAnalytics struct {
-	TotalJobsActive      int                 `json:"totalJobsActive"`
-	TotalCandidatesCount int                 `json:"totalCandidatesCount"`
-	ApplicationsCount    int                 `json:"applicationsCount"`
-	ConversionRate       float64             `json:"conversionRate"`
-	ShortlistRate        float64             `json:"shortlistRate"`
-	InterviewRate        float64             `json:"interviewRate"`
-	OfferRate            float64             `json:"offerRate"`
-	HireRate             float64             `json:"hireRate"`
-	TimeToFirstReviewDays int                `json:"timeToFirstReviewDays"`
-	TimeToInterviewDays  int                 `json:"timeToInterviewDays"`
-	TimeToHireDays       int                 `json:"timeToHireDays"`
-	StageDistribution    map[string]int      `json:"stageDistribution"`
-	ApplicationTrends    []map[string]any    `json:"applicationTrends"`
-	CandidateSources     []map[string]any    `json:"candidateSources"`
-	RecentActivities     []RecruiterActivity `json:"recentActivities"`
+	TotalJobsActive       int                 `json:"totalJobsActive"`
+	TotalCandidatesCount  int                 `json:"totalCandidatesCount"`
+	ApplicationsCount     int                 `json:"applicationsCount"`
+	ConversionRate        float64             `json:"conversionRate"`
+	ShortlistRate         float64             `json:"shortlistRate"`
+	InterviewRate         float64             `json:"interviewRate"`
+	OfferRate             float64             `json:"offerRate"`
+	HireRate              float64             `json:"hireRate"`
+	TimeToFirstReviewDays int                 `json:"timeToFirstReviewDays"`
+	TimeToInterviewDays   int                 `json:"timeToInterviewDays"`
+	TimeToHireDays        int                 `json:"timeToHireDays"`
+	StageDistribution     map[string]int      `json:"stageDistribution"`
+	ApplicationTrends     []map[string]any    `json:"applicationTrends"`
+	CandidateSources      []map[string]any    `json:"candidateSources"`
+	RecentActivities      []RecruiterActivity `json:"recentActivities"`
 }

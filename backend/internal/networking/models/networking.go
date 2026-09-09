@@ -61,11 +61,11 @@ type ConnectionFollow struct {
 
 // RecommendationDismissal stores dismissed suggested connections.
 type RecommendationDismissal struct {
-	ID                  uuid.UUID `json:"id"`
-	UserID              uuid.UUID `json:"userId"`
+	ID                uuid.UUID `json:"id"`
+	UserID            uuid.UUID `json:"userId"`
 	RecommendedUserID uuid.UUID `json:"recommendedUserId"`
-	Reason              string    `json:"reason"`
-	CreatedAt           time.Time `json:"createdAt"`
+	Reason            string    `json:"reason"`
+	CreatedAt         time.Time `json:"createdAt"`
 }
 
 // NetworkReport represents safety/abuse reports.
@@ -91,8 +91,8 @@ type ConnectionRecommendation struct {
 	CurrentCompany    string    `json:"currentCompany"`
 	MutualCount       int       `json:"mutualCount"`
 	MutualConnections []string  `json:"mutualConnections"`
-	MatchScore        int       `json:"matchScore"` // 0-100 match score
-	Reason            string    `json:"reason"`     // E.g., "3 mutual connections", "Works in your industry"
+	MatchScore        int       `json:"matchScore"`       // 0-100 match score
+	Reason            string    `json:"reason"`           // E.g., "3 mutual connections", "Works in your industry"
 	ConnectionStatus  string    `json:"connectionStatus"` // none, pending_sent, pending_received, connected, blocked
 	IsFollowing       bool      `json:"isFollowing"`
 }
@@ -248,4 +248,3 @@ type SaveLabelDTO struct {
 	TargetUserID uuid.UUID `json:"targetUserId" binding:"required"`
 	Label        string    `json:"label" binding:"required"`
 }
-

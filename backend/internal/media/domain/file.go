@@ -8,15 +8,15 @@ import (
 
 // File categories
 const (
-	CategoryAvatar              = "avatar"
-	CategoryCover               = "cover"
-	CategoryResume              = "resume"
-	CategoryApplicationDocument = "application_document"
-	CategoryMessageAttachment   = "message_attachment"
-	CategoryCompanyLogo         = "company_logo"
-	CategoryCommunityMedia      = "community_media"
+	CategoryAvatar               = "avatar"
+	CategoryCover                = "cover"
+	CategoryResume               = "resume"
+	CategoryApplicationDocument  = "application_document"
+	CategoryMessageAttachment    = "message_attachment"
+	CategoryCompanyLogo          = "company_logo"
+	CategoryCommunityMedia       = "community_media"
 	CategoryVerificationEvidence = "verification_evidence"
-	CategoryGeneral             = "general"
+	CategoryGeneral              = "general"
 )
 
 // File visibility levels

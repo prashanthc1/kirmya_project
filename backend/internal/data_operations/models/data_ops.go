@@ -39,13 +39,13 @@ const (
 	StrategySkipDuplicates   ImportStrategy = "skip_duplicates"
 	StrategyRejectDuplicates ImportStrategy = "reject_duplicates"
 
-	ExportTypeUserData        ExportType = "user_personal_data"
-	ExportTypeAdminUsers      ExportType = "admin_users"
-	ExportTypeAdminJobs       ExportType = "admin_jobs"
-	ExportTypeAdminApps       ExportType = "admin_applications"
+	ExportTypeUserData         ExportType = "user_personal_data"
+	ExportTypeAdminUsers       ExportType = "admin_users"
+	ExportTypeAdminJobs        ExportType = "admin_jobs"
+	ExportTypeAdminApps        ExportType = "admin_applications"
 	ExportTypeAdminCommunities ExportType = "admin_communities"
-	ExportTypeAdminReports    ExportType = "admin_reports"
-	ExportTypeAdminAnalytics  ExportType = "admin_analytics"
+	ExportTypeAdminReports     ExportType = "admin_reports"
+	ExportTypeAdminAnalytics   ExportType = "admin_analytics"
 
 	ExportFormatZIP  ExportFormat = "zip"
 	ExportFormatCSV  ExportFormat = "csv"
@@ -58,17 +58,17 @@ const (
 	ExportStatusCancelled  ExportStatus = "cancelled"
 	ExportStatusExpired    ExportStatus = "expired"
 
-	BulkStatusUpdate  BulkOperationType = "bulk_status_update"
-	BulkArchive       BulkOperationType = "bulk_archive"
-	BulkAssignment    BulkOperationType = "bulk_assignment"
-	BulkModeration    BulkOperationType = "bulk_moderation"
-	BulkNotification  BulkOperationType = "bulk_notification"
+	BulkStatusUpdate BulkOperationType = "bulk_status_update"
+	BulkArchive      BulkOperationType = "bulk_archive"
+	BulkAssignment   BulkOperationType = "bulk_assignment"
+	BulkModeration   BulkOperationType = "bulk_moderation"
+	BulkNotification BulkOperationType = "bulk_notification"
 
-	ScopeJobs        BulkTargetScope = "jobs"
+	ScopeJobs         BulkTargetScope = "jobs"
 	ScopeApplications BulkTargetScope = "applications"
 	ScopeUsers        BulkTargetScope = "users"
 	ScopeReports      BulkTargetScope = "reports"
-	ScopeSupport     BulkTargetScope = "support_tickets"
+	ScopeSupport      BulkTargetScope = "support_tickets"
 
 	BulkStatusPending    BulkOperationStatus = "pending"
 	BulkStatusPreview    BulkOperationStatus = "preview"
@@ -79,25 +79,25 @@ const (
 )
 
 type DataImport struct {
-	ID               uuid.UUID              `json:"id" db:"id"`
-	ImportType       ImportType             `json:"importType" db:"import_type"`
-	Status           ImportStatus           `json:"status" db:"status"`
-	Strategy         ImportStrategy         `json:"strategy" db:"strategy"`
-	OriginalFilename string                 `json:"originalFilename" db:"original_filename"`
-	FileSizeBytes    int64                  `json:"fileSizeBytes" db:"file_size_bytes"`
-	MIMEType         string                 `json:"mimeType" db:"mime_type"`
-	ColumnMapping    map[string]string      `json:"columnMapping" db:"column_mapping"`
-	TotalRows        int                    `json:"totalRows" db:"total_rows"`
-	ProcessedRows    int                    `json:"processedRows" db:"processed_rows"`
-	SuccessfulRows   int                    `json:"successfulRows" db:"successful_rows"`
-	FailedRows       int                    `json:"failedRows" db:"failed_rows"`
-	SkippedRows      int                    `json:"skippedRows" db:"skipped_rows"`
-	ErrorReportURL   string                 `json:"errorReportUrl,omitempty" db:"error_report_url"`
-	RequestedBy      uuid.UUID              `json:"requestedBy" db:"requested_by"`
-	StartedAt        *time.Time             `json:"startedAt,omitempty" db:"started_at"`
-	CompletedAt      *time.Time             `json:"completedAt,omitempty" db:"completed_at"`
-	ExpiresAt        time.Time              `json:"expiresAt" db:"expires_at"`
-	CreatedAt        time.Time              `json:"createdAt" db:"created_at"`
+	ID               uuid.UUID         `json:"id" db:"id"`
+	ImportType       ImportType        `json:"importType" db:"import_type"`
+	Status           ImportStatus      `json:"status" db:"status"`
+	Strategy         ImportStrategy    `json:"strategy" db:"strategy"`
+	OriginalFilename string            `json:"originalFilename" db:"original_filename"`
+	FileSizeBytes    int64             `json:"fileSizeBytes" db:"file_size_bytes"`
+	MIMEType         string            `json:"mimeType" db:"mime_type"`
+	ColumnMapping    map[string]string `json:"columnMapping" db:"column_mapping"`
+	TotalRows        int               `json:"totalRows" db:"total_rows"`
+	ProcessedRows    int               `json:"processedRows" db:"processed_rows"`
+	SuccessfulRows   int               `json:"successfulRows" db:"successful_rows"`
+	FailedRows       int               `json:"failedRows" db:"failed_rows"`
+	SkippedRows      int               `json:"skippedRows" db:"skipped_rows"`
+	ErrorReportURL   string            `json:"errorReportUrl,omitempty" db:"error_report_url"`
+	RequestedBy      uuid.UUID         `json:"requestedBy" db:"requested_by"`
+	StartedAt        *time.Time        `json:"startedAt,omitempty" db:"started_at"`
+	CompletedAt      *time.Time        `json:"completedAt,omitempty" db:"completed_at"`
+	ExpiresAt        time.Time         `json:"expiresAt" db:"expires_at"`
+	CreatedAt        time.Time         `json:"createdAt" db:"created_at"`
 }
 
 type ImportErrorRecord struct {
@@ -178,13 +178,13 @@ type PreviewImportRequest struct {
 }
 
 type ImportPreviewResult struct {
-	DetectedColumns []string                 `json:"detectedColumns"`
-	MappedFields    map[string]string        `json:"mappedFields"`
-	SampleRows      []map[string]string      `json:"sampleRows"`
-	TotalRows       int                      `json:"totalRows"`
-	ValidRowsCount  int                      `json:"validRowsCount"`
-	InvalidRowsCount int                     `json:"invalidRowsCount"`
-	DuplicateCount  int                      `json:"duplicateCount"`
+	DetectedColumns  []string                 `json:"detectedColumns"`
+	MappedFields     map[string]string        `json:"mappedFields"`
+	SampleRows       []map[string]string      `json:"sampleRows"`
+	TotalRows        int                      `json:"totalRows"`
+	ValidRowsCount   int                      `json:"validRowsCount"`
+	InvalidRowsCount int                      `json:"invalidRowsCount"`
+	DuplicateCount   int                      `json:"duplicateCount"`
 	ValidationErrors []map[string]interface{} `json:"validationErrors"`
 }
 

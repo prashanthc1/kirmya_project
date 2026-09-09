@@ -263,4 +263,3 @@ func TestPrivacyFiltering(t *testing.T) {
 	assert.Empty(t, p.Licenses)
 	assert.Empty(t, p.Publications)
 }
-

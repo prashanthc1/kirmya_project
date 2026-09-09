@@ -1,9 +1,9 @@
 package http
 
 import (
-	"net/http"
 	"kirmya/internal/candidate_search/models"
 	"kirmya/internal/candidate_search/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

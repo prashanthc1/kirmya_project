@@ -351,20 +351,20 @@ func (h *AdminHandler) CreateAnnouncement(c *gin.Context) {
 // GetObservabilitySummary returns real-time system performance telemetry.
 func (h *AdminHandler) GetObservabilitySummary(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status":                "healthy",
-		"environment":           "production",
-		"timestamp":             time.Now().Format(time.RFC3339),
-		"api_requests_per_min":  1420,
-		"error_rate_pct":        0.04,
-		"api_p50_latency_ms":    12,
-		"api_p95_latency_ms":    34,
-		"api_p99_latency_ms":    42,
-		"db_pool_active":        8,
-		"db_pool_idle":          24,
-		"redis_hit_ratio_pct":   94.5,
-		"worker_queue_depth":    0,
-		"active_websockets":     1420,
-		"active_incidents_cnt":  0,
+		"status":               "healthy",
+		"environment":          "production",
+		"timestamp":            time.Now().Format(time.RFC3339),
+		"api_requests_per_min": 1420,
+		"error_rate_pct":       0.04,
+		"api_p50_latency_ms":   12,
+		"api_p95_latency_ms":   34,
+		"api_p99_latency_ms":   42,
+		"db_pool_active":       8,
+		"db_pool_idle":         24,
+		"redis_hit_ratio_pct":  94.5,
+		"worker_queue_depth":   0,
+		"active_websockets":    1420,
+		"active_incidents_cnt": 0,
 	})
 }
 
@@ -387,12 +387,12 @@ func (h *AdminHandler) GetObservabilityHealth(c *gin.Context) {
 // GetObservabilityMetrics returns detailed telemetry metrics.
 func (h *AdminHandler) GetObservabilityMetrics(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"http_requests_total":             142500,
-		"http_errors_total":               57,
-		"db_queries_total":                450200,
-		"redis_ops_total":                 890100,
-		"worker_jobs_processed":           12400,
-		"websocket_messages_total":        89200,
+		"http_requests_total":      142500,
+		"http_errors_total":        57,
+		"db_queries_total":         450200,
+		"redis_ops_total":          890100,
+		"worker_jobs_processed":    12400,
+		"websocket_messages_total": 89200,
 	})
 }
 

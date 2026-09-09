@@ -116,4 +116,3 @@ func (s *recommendationService) GetDailyMetrics(ctx context.Context) ([]domain.R
 func (s *recommendationService) GetCareerGapAnalysis(ctx context.Context, userID uuid.UUID) (*domain.CareerGapAnalysis, error) {
 	return s.repo.GetCareerGapAnalysis(ctx, userID)
 }
-

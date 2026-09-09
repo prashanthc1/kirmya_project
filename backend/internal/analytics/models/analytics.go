@@ -53,14 +53,14 @@ type UserPersonalAnalytics struct {
 
 // RecruiterHiringAnalytics metrics for recruiter workspace.
 type RecruiterHiringAnalytics struct {
-	JobsPostedCount        int               `json:"jobs_posted_count"`
-	ApplicationsCount      int               `json:"applications_count"`
-	CandidatesViewedCount  int               `json:"candidates_viewed_count"`
-	InterviewsCount        int               `json:"interviews_count"`
-	OffersCount            int               `json:"offers_count"`
-	HiresCount             int               `json:"hires_count"`
-	AvgTimeToReviewHours   float64           `json:"avg_time_to_review_hours"`
-	ApplicationFunnel      []FunnelStageItem `json:"application_funnel"`
+	JobsPostedCount       int               `json:"jobs_posted_count"`
+	ApplicationsCount     int               `json:"applications_count"`
+	CandidatesViewedCount int               `json:"candidates_viewed_count"`
+	InterviewsCount       int               `json:"interviews_count"`
+	OffersCount           int               `json:"offers_count"`
+	HiresCount            int               `json:"hires_count"`
+	AvgTimeToReviewHours  float64           `json:"avg_time_to_review_hours"`
+	ApplicationFunnel     []FunnelStageItem `json:"application_funnel"`
 }
 
 // CompanyOverviewAnalytics metrics for company.
@@ -91,18 +91,18 @@ type CohortItem struct {
 
 // AdminAnalyticsOverview metrics across the platform.
 type AdminAnalyticsOverview struct {
-	TotalUsers              int     `json:"total_users"`
-	ActiveUsersDAU          int     `json:"active_users_dau"`
-	ActiveUsersMAU          int     `json:"active_users_mau"`
-	NewUsersToday           int     `json:"new_users_today"`
-	VerifiedUsers           int     `json:"verified_users"`
-	TotalJobs               int     `json:"total_jobs"`
-	TotalApplications       int     `json:"total_applications"`
-	TotalConnections        int     `json:"total_connections"`
-	TotalMessages           int     `json:"total_messages"`
-	TotalAIRequests         int     `json:"total_ai_requests"`
-	TotalSafetyReports      int     `json:"total_safety_reports"`
-	EventProcessingLatency  float64 `json:"event_processing_latency_ms"`
+	TotalUsers             int     `json:"total_users"`
+	ActiveUsersDAU         int     `json:"active_users_dau"`
+	ActiveUsersMAU         int     `json:"active_users_mau"`
+	NewUsersToday          int     `json:"new_users_today"`
+	VerifiedUsers          int     `json:"verified_users"`
+	TotalJobs              int     `json:"total_jobs"`
+	TotalApplications      int     `json:"total_applications"`
+	TotalConnections       int     `json:"total_connections"`
+	TotalMessages          int     `json:"total_messages"`
+	TotalAIRequests        int     `json:"total_ai_requests"`
+	TotalSafetyReports     int     `json:"total_safety_reports"`
+	EventProcessingLatency float64 `json:"event_processing_latency_ms"`
 	DataFreshnessTimestamp string  `json:"data_freshness_timestamp"`
 }
 
@@ -135,7 +135,6 @@ type JobMarketAnalytics struct {
 	TopSkillsRequested   []SkillDemandItem `json:"top_skills_requested"`
 }
 
-
 // ApplicationFunnelAnalytics details job seeker conversion pipeline.
 type ApplicationFunnelAnalytics struct {
 	TotalViews        int               `json:"total_views"`
@@ -167,12 +166,12 @@ type MessagingMetadataAnalytics struct {
 
 // NotificationAnalytics details multi-channel notification performance.
 type NotificationAnalytics struct {
-	TotalSent         int     `json:"total_sent"`
-	TotalDelivered    int     `json:"total_delivered"`
-	TotalFailed       int     `json:"total_failed"`
-	DeliveryRate      float64 `json:"delivery_rate_pct"`
-	ClickThroughRate  float64 `json:"click_through_rate_pct"`
-	DeadLetterCount   int     `json:"dead_letter_count"`
+	TotalSent        int     `json:"total_sent"`
+	TotalDelivered   int     `json:"total_delivered"`
+	TotalFailed      int     `json:"total_failed"`
+	DeliveryRate     float64 `json:"delivery_rate_pct"`
+	ClickThroughRate float64 `json:"click_through_rate_pct"`
+	DeadLetterCount  int     `json:"dead_letter_count"`
 }
 
 // RecommendationAnalytics details recommendation engine conversion.
@@ -188,47 +187,47 @@ type RecommendationAnalytics struct {
 
 // ZeroResultSearchItem tracks terms yielding zero search results.
 type ZeroResultSearchItem struct {
-	QueryTerm   string    `json:"query_term"`
-	SearchCount int       `json:"search_count"`
+	QueryTerm    string    `json:"query_term"`
+	SearchCount  int       `json:"search_count"`
 	LastSearched time.Time `json:"last_searched"`
 }
 
 // SearchAnalytics details platform search activity & discovery gaps.
 type SearchAnalytics struct {
-	TotalSearches     int                    `json:"total_searches"`
-	PopularTerms      []string               `json:"popular_terms"`
+	TotalSearches      int                    `json:"total_searches"`
+	PopularTerms       []string               `json:"popular_terms"`
 	ZeroResultSearches []ZeroResultSearchItem `json:"zero_result_searches"`
-	SearchToViewRate  float64                `json:"search_to_view_rate_pct"`
-	SearchToApplyRate float64                `json:"search_to_apply_rate_pct"`
+	SearchToViewRate   float64                `json:"search_to_view_rate_pct"`
+	SearchToApplyRate  float64                `json:"search_to_apply_rate_pct"`
 }
 
 // ScheduledReportConfig defines recurring admin report execution.
 type ScheduledReportConfig struct {
-	ID             uuid.UUID `json:"id" db:"id"`
-	Title          string    `json:"title" db:"title"`
-	CronExpression string    `json:"cron_expression" db:"cron_expression"`
-	ReportType     string    `json:"report_type" db:"report_type"`
-	ExportFormat   string    `json:"export_format" db:"export_format"`
-	Recipients     []string  `json:"recipients" db:"recipients"`
+	ID             uuid.UUID              `json:"id" db:"id"`
+	Title          string                 `json:"title" db:"title"`
+	CronExpression string                 `json:"cron_expression" db:"cron_expression"`
+	ReportType     string                 `json:"report_type" db:"report_type"`
+	ExportFormat   string                 `json:"export_format" db:"export_format"`
+	Recipients     []string               `json:"recipients" db:"recipients"`
 	FilterParams   map[string]interface{} `json:"filter_params" db:"filter_params"`
-	IsActive       bool      `json:"is_active" db:"is_active"`
-	CreatedBy      uuid.UUID `json:"created_by" db:"created_by"`
-	LastRunAt      *time.Time`json:"last_run_at,omitempty" db:"last_run_at"`
-	NextRunAt      *time.Time`json:"next_run_at,omitempty" db:"next_run_at"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
+	IsActive       bool                   `json:"is_active" db:"is_active"`
+	CreatedBy      uuid.UUID              `json:"created_by" db:"created_by"`
+	LastRunAt      *time.Time             `json:"last_run_at,omitempty" db:"last_run_at"`
+	NextRunAt      *time.Time             `json:"next_run_at,omitempty" db:"next_run_at"`
+	CreatedAt      time.Time              `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at" db:"updated_at"`
 }
 
 // AnalyticsExportJob represents asynchronous data export request.
 type AnalyticsExportJob struct {
-	ID            uuid.UUID  `json:"id" db:"id"`
-	AdminID       uuid.UUID  `json:"admin_id" db:"admin_id"`
-	ExportFormat  string     `json:"export_format" db:"export_format"`
-	Status        string     `json:"status" db:"status"`
-	DownloadURL   string     `json:"download_url,omitempty" db:"download_url"`
-	ExpiresAt     time.Time  `json:"expires_at" db:"expires_at"`
-	FileSizeBytes int64      `json:"file_size_bytes" db:"file_size_bytes"`
-	CreatedAt     time.Time  `json:"created_at" db:"created_at"`
+	ID            uuid.UUID `json:"id" db:"id"`
+	AdminID       uuid.UUID `json:"admin_id" db:"admin_id"`
+	ExportFormat  string    `json:"export_format" db:"export_format"`
+	Status        string    `json:"status" db:"status"`
+	DownloadURL   string    `json:"download_url,omitempty" db:"download_url"`
+	ExpiresAt     time.Time `json:"expires_at" db:"expires_at"`
+	FileSizeBytes int64     `json:"file_size_bytes" db:"file_size_bytes"`
+	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
 
 // SanitizeCSVCell prevents CSV formula injection by stripping leading =, +, -, or @.
@@ -331,5 +330,3 @@ type DataRetentionConfig struct {
 	PurgeRawEvents      bool `json:"purge_raw_events"`
 	KeepDailyAggregates bool `json:"keep_daily_aggregates"`
 }
-
-

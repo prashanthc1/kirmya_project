@@ -738,6 +738,7 @@ func swaggerGetObservabilityIncidents() {}
 // @Security     BearerAuth
 // @Router       /api/v1/admin/observability/dependencies [get]
 func swaggerGetObservabilityDependencies() {}
+
 // Anchor symbols for compilation check
 var (
 	_ models.BackgroundJobItem

@@ -49,9 +49,9 @@ type Question struct {
 }
 
 type UserAnswerSubmission struct {
-	QuestionID       uuid.UUID `json:"question_id"`
-	SelectedOption   *int      `json:"selected_option,omitempty"`
-	PracticalResponse string   `json:"practical_response,omitempty"`
+	QuestionID        uuid.UUID `json:"question_id"`
+	SelectedOption    *int      `json:"selected_option,omitempty"`
+	PracticalResponse string    `json:"practical_response,omitempty"`
 }
 
 type SubmitTestRequest struct {
@@ -60,20 +60,20 @@ type SubmitTestRequest struct {
 }
 
 type UserAssessmentResult struct {
-	ID                 uuid.UUID   `json:"id"`
-	UserID             uuid.UUID   `json:"user_id"`
-	UserName           string      `json:"user_name"`
-	AssessmentID       uuid.UUID   `json:"assessment_id"`
-	AssessmentTitle    string      `json:"assessment_title"`
-	ScorePercentage    int         `json:"score_percentage"`
-	MCQScore           int         `json:"mcq_score"`
-	PracticalAIScore   int         `json:"practical_ai_score"`
-	PercentileRank     int         `json:"percentile_rank"`
-	Passed             bool        `json:"passed"`
-	TimeTakenSeconds   int         `json:"time_taken_seconds"`
-	AIFeedbackSummary  string      `json:"ai_feedback_summary"`
-	EarnedBadge        *SkillBadge `json:"earned_badge,omitempty"`
-	CompletedAt        time.Time   `json:"completed_at"`
+	ID                uuid.UUID   `json:"id"`
+	UserID            uuid.UUID   `json:"user_id"`
+	UserName          string      `json:"user_name"`
+	AssessmentID      uuid.UUID   `json:"assessment_id"`
+	AssessmentTitle   string      `json:"assessment_title"`
+	ScorePercentage   int         `json:"score_percentage"`
+	MCQScore          int         `json:"mcq_score"`
+	PracticalAIScore  int         `json:"practical_ai_score"`
+	PercentileRank    int         `json:"percentile_rank"`
+	Passed            bool        `json:"passed"`
+	TimeTakenSeconds  int         `json:"time_taken_seconds"`
+	AIFeedbackSummary string      `json:"ai_feedback_summary"`
+	EarnedBadge       *SkillBadge `json:"earned_badge,omitempty"`
+	CompletedAt       time.Time   `json:"completed_at"`
 }
 
 type SkillBadge struct {

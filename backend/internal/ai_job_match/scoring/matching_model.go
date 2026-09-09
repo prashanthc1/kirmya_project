@@ -77,13 +77,13 @@ func (m *MatchingModel) CalculateMatchScore(candidate *domain.CandidateProfile, 
 
 	// Machine Learning Feature Vector Dataset Extractor
 	featureVector := map[string]interface{}{
-		"skills_overlap_ratio":   float64(len(matchedSkills)) / float64(len(job.RequiredSkills)+1),
-		"exp_years_delta":        candidate.YearsExperience - job.MinExperience,
-		"salary_match_ratio":     float64(job.SalaryOffered) / float64(candidate.MinSalaryExpect+1),
-		"is_remote_compatible":   job.IsRemoteAllowed || candidate.IsRemotePreferred,
-		"learning_progress_cnt":  len(candidate.CompletedCourses),
-		"raw_overall_score":      overallScore,
-		"model_version":          "v1.2.0-xgboost-ready",
+		"skills_overlap_ratio":  float64(len(matchedSkills)) / float64(len(job.RequiredSkills)+1),
+		"exp_years_delta":       candidate.YearsExperience - job.MinExperience,
+		"salary_match_ratio":    float64(job.SalaryOffered) / float64(candidate.MinSalaryExpect+1),
+		"is_remote_compatible":  job.IsRemoteAllowed || candidate.IsRemotePreferred,
+		"learning_progress_cnt": len(candidate.CompletedCourses),
+		"raw_overall_score":     overallScore,
+		"model_version":         "v1.2.0-xgboost-ready",
 	}
 
 	match := &domain.AIJobMatch{

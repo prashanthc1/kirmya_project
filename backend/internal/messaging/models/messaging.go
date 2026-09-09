@@ -16,13 +16,13 @@ type Conversation struct {
 	CreatedAt       time.Time `json:"createdAt"`
 
 	// Per-user participant state
-	IsArchived        bool      `json:"isArchived,omitempty"`
-	IsMuted           bool      `json:"isMuted,omitempty"`
-	IsPinned          bool      `json:"isPinned,omitempty"`
-	UnreadCount       int       `json:"unreadCount"`
-	ParticipantName   string    `json:"participantName,omitempty"`
-	ParticipantAvatar string    `json:"participantAvatar,omitempty"`
-	ParticipantStatus string    `json:"participantStatus,omitempty"` // online, offline
+	IsArchived        bool   `json:"isArchived,omitempty"`
+	IsMuted           bool   `json:"isMuted,omitempty"`
+	IsPinned          bool   `json:"isPinned,omitempty"`
+	UnreadCount       int    `json:"unreadCount"`
+	ParticipantName   string `json:"participantName,omitempty"`
+	ParticipantAvatar string `json:"participantAvatar,omitempty"`
+	ParticipantStatus string `json:"participantStatus,omitempty"` // online, offline
 }
 
 // ConversationParticipant tracks settings per participant room.
@@ -155,4 +155,3 @@ type ReportMessagePayload struct {
 	Reason         string     `json:"reason" binding:"required"`
 	Details        string     `json:"details,omitempty"`
 }
-

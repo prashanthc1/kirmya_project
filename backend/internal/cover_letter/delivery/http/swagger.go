@@ -254,4 +254,3 @@ var (
 	_ models.CoverLetter
 	_ swagger.ErrorResponse
 )
-

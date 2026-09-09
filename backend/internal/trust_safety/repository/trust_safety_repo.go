@@ -874,11 +874,11 @@ func (r *trustSafetyRepository) GetModeratorWorkloads(ctx context.Context) ([]mo
 		admin1 := uuid.MustParse("88888888-8888-8888-8888-888888888888")
 		result = []models.ModeratorWorkload{
 			{
-				AdminID:                admin1,
-				AssignedCasesCount:     5,
-				PendingAppealsCount:    2,
+				AdminID:               admin1,
+				AssignedCasesCount:    5,
+				PendingAppealsCount:   2,
 				AverageResolutionMins: 24.5,
-				SLAStatus:              "on_track",
+				SLAStatus:             "on_track",
 			},
 		}
 	}

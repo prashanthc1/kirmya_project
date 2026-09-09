@@ -1066,4 +1066,3 @@ func (h *ManagementHandler) ExportCompanyData(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, exp)
 }
-

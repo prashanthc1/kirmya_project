@@ -64,10 +64,10 @@ func (h *SystemHealthHandler) GetPublicStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"overallStatus":   summary.Status,
-		"isMaintenance":   summary.IsMaintenance,
+		"overallStatus":    summary.Status,
+		"isMaintenance":    summary.IsMaintenance,
 		"publicComponents": publicComponents,
-		"checkedAt":       summary.CheckedAt,
+		"checkedAt":        summary.CheckedAt,
 	})
 }
 

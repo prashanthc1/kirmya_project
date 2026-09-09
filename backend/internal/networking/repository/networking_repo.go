@@ -58,7 +58,6 @@ func NewNetworkingRepository(db *pgxpool.Pool) *NetworkingRepository {
 	return r
 }
 
-
 // Connection Requests
 func (r *NetworkingRepository) CreateRequest(ctx context.Context, req *models.ConnectionRequest) error {
 	if r.db == nil {
@@ -449,7 +448,6 @@ func (r *NetworkingRepository) IsFollowing(ctx context.Context, followerID, foll
 	}
 	return count > 0, nil
 }
-
 
 // Recommendation Dismissal
 func (r *NetworkingRepository) DismissRecommendation(ctx context.Context, userID, targetID uuid.UUID, reason string) error {
@@ -1090,4 +1088,3 @@ func (r *NetworkingRepository) GetFollowers(ctx context.Context, userID uuid.UUI
 	}
 	return list, nil
 }
-

@@ -125,4 +125,3 @@ var (
 	_ models.Plan
 	_ swagger.ErrorResponse
 )
-

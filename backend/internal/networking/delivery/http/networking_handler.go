@@ -655,4 +655,3 @@ func (h *NetworkingHandler) GetFollowers(c *gin.Context) {
 	}
 	httpx.JSONList(c, http.StatusOK, results)
 }
-

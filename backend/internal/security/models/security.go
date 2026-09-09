@@ -216,15 +216,15 @@ type SecurityAlert struct {
 
 // SecurityRule represents real-time dynamic traffic enforcement rule.
 type SecurityRule struct {
-	RuleID             string    `json:"rule_id"`
-	Name               string    `json:"name"`
-	Category           string    `json:"category"`
-	ThresholdCount     int       `json:"threshold_count"`
+	RuleID            string    `json:"rule_id"`
+	Name              string    `json:"name"`
+	Category          string    `json:"category"`
+	ThresholdCount    int       `json:"threshold_count"`
 	TimeWindowSeconds int       `json:"time_window_seconds"`
-	Action             string    `json:"action"` // log, rate_limit, require_mfa, temporary_restrict, block
-	IsEnabled          bool      `json:"is_enabled"`
-	UpdatedBy          string    `json:"updated_by"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	Action            string    `json:"action"` // log, rate_limit, require_mfa, temporary_restrict, block
+	IsEnabled         bool      `json:"is_enabled"`
+	UpdatedBy         string    `json:"updated_by"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }
 
 // AccountRiskScore represents user risk score (0-100) and factors.
@@ -253,7 +253,7 @@ type FraudAlert struct {
 	ID         uuid.UUID `json:"id"`
 	EntityType string    `json:"entity_type"` // user, job_posting, application, message
 	EntityID   string    `json:"entity_id"`
-	FraudType  string    `json:"fraud_type"`  // fake_job, mass_application, spam_messaging, registration_burst
+	FraudType  string    `json:"fraud_type"` // fake_job, mass_application, spam_messaging, registration_burst
 	Score      int       `json:"score"`
 	Reasons    []string  `json:"reasons"`
 	Status     string    `json:"status"` // New, Investigating, Mitigated, Resolved, False Positive
@@ -262,10 +262,10 @@ type FraudAlert struct {
 
 // UpdateSecurityRulePayload payload for updating a security rule.
 type UpdateSecurityRulePayload struct {
-	ThresholdCount     *int    `json:"threshold_count,omitempty"`
+	ThresholdCount    *int    `json:"threshold_count,omitempty"`
 	TimeWindowSeconds *int    `json:"time_window_seconds,omitempty"`
-	Action             *string `json:"action,omitempty"`
-	IsEnabled          *bool   `json:"is_enabled,omitempty"`
+	Action            *string `json:"action,omitempty"`
+	IsEnabled         *bool   `json:"is_enabled,omitempty"`
 }
 
 // UpdateSecurityAlertPayload payload for updating an alert.
@@ -280,4 +280,3 @@ type ResolveAlertPayload struct {
 	ResolutionNotes string `json:"resolution_notes" binding:"required"`
 	Status          string `json:"status"` // Resolved or False Positive
 }
-

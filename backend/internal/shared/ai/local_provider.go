@@ -155,9 +155,9 @@ func (p *LocalDeterministicProvider) GenerateStructured(ctx context.Context, req
 
 	case "job_match":
 		jsonResult = map[string]interface{}{
-			"overall_score": 86,
-			"match_tier":    "strong_match",
-			"explanation":   "Strong alignment between your backend engineering experience and role requirements. Core competencies in Go, SQL, and microservices matched.",
+			"overall_score":  86,
+			"match_tier":     "strong_match",
+			"explanation":    "Strong alignment between your backend engineering experience and role requirements. Core competencies in Go, SQL, and microservices matched.",
 			"matched_skills": []string{"Go", "PostgreSQL", "Docker", "REST"},
 			"missing_skills": []string{"Kafka", "Kubernetes"},
 			"recommended_actions": []map[string]string{
@@ -194,8 +194,8 @@ func (p *LocalDeterministicProvider) GenerateStructured(ctx context.Context, req
 
 	default:
 		jsonResult = map[string]interface{}{
-			"status":      "success",
-			"summary":     "Deterministic evaluation complete.",
+			"status":       "success",
+			"summary":      "Deterministic evaluation complete.",
 			"action_items": []string{"Review profile details", "Complete skill assessments"},
 		}
 	}

@@ -93,31 +93,31 @@ func (s *InterviewPrepService) seedStarterQuestions(ctx context.Context, prep *m
 		Q, Cat, Diff, Situation, Task, Action, Result string
 	}{
 		{
-			Q:          fmt.Sprintf("Tell me about yourself and why you're interested in the %s position at %s.", prep.JobTitle, prep.CompanyName),
-			Cat:        "General",
-			Diff:       "Beginner",
-			Situation:  fmt.Sprintf("I have built a strong career background aligned with %s.", prep.JobTitle),
-			Task:       "Targeting a role where I can drive high impact.",
-			Action:     fmt.Sprintf("Researched %s's mission and engineering/business goals.", prep.CompanyName),
-			Result:     "Ready to bring proven skills to deliver immediate results.",
+			Q:         fmt.Sprintf("Tell me about yourself and why you're interested in the %s position at %s.", prep.JobTitle, prep.CompanyName),
+			Cat:       "General",
+			Diff:      "Beginner",
+			Situation: fmt.Sprintf("I have built a strong career background aligned with %s.", prep.JobTitle),
+			Task:      "Targeting a role where I can drive high impact.",
+			Action:    fmt.Sprintf("Researched %s's mission and engineering/business goals.", prep.CompanyName),
+			Result:    "Ready to bring proven skills to deliver immediate results.",
 		},
 		{
-			Q:          "Describe a challenging situation at work and how you overcame it.",
-			Cat:        "Behavioral",
-			Diff:       "Intermediate",
-			Situation:  "Facing tight deadlines with incomplete project specs.",
-			Task:       "Deliver a robust solution without delaying launch.",
-			Action:     "Aligned key stakeholders, clarified trade-offs, and broke execution into iterative sprints.",
-			Result:     "Delivered on schedule with 99.9% uptime and positive feedback.",
+			Q:         "Describe a challenging situation at work and how you overcame it.",
+			Cat:       "Behavioral",
+			Diff:      "Intermediate",
+			Situation: "Facing tight deadlines with incomplete project specs.",
+			Task:      "Deliver a robust solution without delaying launch.",
+			Action:    "Aligned key stakeholders, clarified trade-offs, and broke execution into iterative sprints.",
+			Result:    "Delivered on schedule with 99.9% uptime and positive feedback.",
 		},
 		{
-			Q:          "How do you prioritize competing deadlines under pressure?",
-			Cat:        "Situational",
-			Diff:       "Intermediate",
-			Situation:  "Multiple high-priority tasks requiring urgent resolution.",
-			Task:       "Ensure business continuity and high quality across deliverables.",
-			Action:     "Categorized tasks by business impact and urgency using an Eisenhower matrix.",
-			Result:     "Completed critical roadmap milestones without burnout or technical debt.",
+			Q:         "How do you prioritize competing deadlines under pressure?",
+			Cat:       "Situational",
+			Diff:      "Intermediate",
+			Situation: "Multiple high-priority tasks requiring urgent resolution.",
+			Task:      "Ensure business continuity and high quality across deliverables.",
+			Action:    "Categorized tasks by business impact and urgency using an Eisenhower matrix.",
+			Result:    "Completed critical roadmap milestones without burnout or technical debt.",
 		},
 	}
 
@@ -232,42 +232,42 @@ func (s *InterviewPrepService) GenerateQuestions(ctx context.Context, userID uui
 		{
 			QStr: fmt.Sprintf("Tell me about a time you solved a complex technical or operational challenge relevant to %s at %s.", jobTitle, company),
 			Cat:  "Technical", Diff: difficulty,
-			Sit:  fmt.Sprintf("While working on a scalable system for %s.", jobTitle),
-			Tsk:  "Eliminate bottleneck and optimize system throughput.",
-			Act:  "Analyzed execution metrics, refactored core loops, and added caching.",
-			Res:  "Reduced latency by 45% and improved user satisfaction.",
+			Sit: fmt.Sprintf("While working on a scalable system for %s.", jobTitle),
+			Tsk: "Eliminate bottleneck and optimize system throughput.",
+			Act: "Analyzed execution metrics, refactored core loops, and added caching.",
+			Res: "Reduced latency by 45% and improved user satisfaction.",
 		},
 		{
 			QStr: "Describe a situation where you had a disagreement with a team member or leader. How did you resolve it?",
 			Cat:  "Behavioral", Diff: difficulty,
-			Sit:  "Differing technical architectural opinions on project structure.",
-			Tsk:  "Reach consensus without delaying sprint milestones.",
-			Act:  "Organized a data-driven review session comparing benchmarks and maintainability.",
-			Res:  "Agreed on a hybrid approach, maintaining team harmony and code quality.",
+			Sit: "Differing technical architectural opinions on project structure.",
+			Tsk: "Reach consensus without delaying sprint milestones.",
+			Act: "Organized a data-driven review session comparing benchmarks and maintainability.",
+			Res: "Agreed on a hybrid approach, maintaining team harmony and code quality.",
 		},
 		{
 			QStr: fmt.Sprintf("How do you ensure high quality and standard compliance when delivering under tight deadlines for %s?", jobTitle),
 			Cat:  "Situational", Diff: difficulty,
-			Sit:  "High-visibility launch deadline approaching rapidly.",
-			Tsk:  "Maintain strict quality assurance without missing the ship date.",
-			Act:  "Implemented automated CI/CD pipelines, focused testing on critical user paths, and conducted pair code reviews.",
-			Res:  "Shipped feature zero critical bugs on release day.",
+			Sit: "High-visibility launch deadline approaching rapidly.",
+			Tsk: "Maintain strict quality assurance without missing the ship date.",
+			Act: "Implemented automated CI/CD pipelines, focused testing on critical user paths, and conducted pair code reviews.",
+			Res: "Shipped feature zero critical bugs on release day.",
 		},
 		{
 			QStr: fmt.Sprintf("Give an example of how you mentor junior team members or foster technical growth in your team for %s.", jobTitle),
 			Cat:  "Leadership", Diff: difficulty,
-			Sit:  "New team members joining during rapid team scaling.",
-			Tsk:  "Accelerate onboarding and knowledge transfer.",
-			Act:  "Created comprehensive documentation, pair programming schedules, and weekly 1-on-1 feedback sessions.",
-			Res:  "Reduced onboarding ramp-up time from 4 weeks to 10 days.",
+			Sit: "New team members joining during rapid team scaling.",
+			Tsk: "Accelerate onboarding and knowledge transfer.",
+			Act: "Created comprehensive documentation, pair programming schedules, and weekly 1-on-1 feedback sessions.",
+			Res: "Reduced onboarding ramp-up time from 4 weeks to 10 days.",
 		},
 		{
 			QStr: fmt.Sprintf("Why do you specifically want to work as a %s at %s, and how does your career vision align with our goals?", jobTitle, company),
 			Cat:  "Culture Fit", Diff: difficulty,
-			Sit:  fmt.Sprintf("Following %s's innovation and industry impact.", company),
-			Tsk:  "Align personal professional trajectory with company values.",
-			Act:  "Studied company engineering blogs and core principles.",
-			Res:  "Eager to contribute immediately to core initiatives.",
+			Sit: fmt.Sprintf("Following %s's innovation and industry impact.", company),
+			Tsk: "Align personal professional trajectory with company values.",
+			Act: "Studied company engineering blogs and core principles.",
+			Res: "Eager to contribute immediately to core initiatives.",
 		},
 	}
 
@@ -555,19 +555,39 @@ func (s *InterviewPrepService) evaluateAnswerText(question, answer string) (rel,
 
 	// STAR structure boost
 	starCount := 0
-	if hasS { starCount++ }
-	if hasT { starCount++ }
-	if hasA { starCount++ }
-	if hasR { starCount++ }
+	if hasS {
+		starCount++
+	}
+	if hasT {
+		starCount++
+	}
+	if hasA {
+		starCount++
+	}
+	if hasR {
+		starCount++
+	}
 	structSc += starCount * 9
 
 	// Cap at 100
-	if rel > 98 { rel = 98 }
-	if clar > 98 { clar = 98 }
-	if conf > 98 { conf = 98 }
-	if tech > 98 { tech = 98 }
-	if comm > 98 { comm = 98 }
-	if structSc > 98 { structSc = 98 }
+	if rel > 98 {
+		rel = 98
+	}
+	if clar > 98 {
+		clar = 98
+	}
+	if conf > 98 {
+		conf = 98
+	}
+	if tech > 98 {
+		tech = 98
+	}
+	if comm > 98 {
+		comm = 98
+	}
+	if structSc > 98 {
+		structSc = 98
+	}
 
 	overall = (rel + clar + conf + tech + comm + structSc) / 6
 
@@ -726,24 +746,36 @@ func (s *InterviewPrepService) recalculateReadinessScore(ctx context.Context, us
 		overall = (overall + avgScore) / 2
 	}
 
-	if overall > 98 { overall = 98 }
-	if tech > 98 { tech = 98 }
-	if behav > 98 { behav = 98 }
-	if comm > 98 { comm = 98 }
-	if roleFit > 98 { roleFit = 98 }
-	if companyKnow > 98 { companyKnow = 98 }
+	if overall > 98 {
+		overall = 98
+	}
+	if tech > 98 {
+		tech = 98
+	}
+	if behav > 98 {
+		behav = 98
+	}
+	if comm > 98 {
+		comm = 98
+	}
+	if roleFit > 98 {
+		roleFit = 98
+	}
+	if companyKnow > 98 {
+		companyKnow = 98
+	}
 
 	score := &models.InterviewReadinessScore{
-		UserID:                   userID,
-		OverallReadiness:         overall,
-		TechnicalReadiness:       tech,
-		BehavioralReadiness:      behav,
-		CommunicationReadiness:   comm,
-		RoleFitReadiness:         roleFit,
+		UserID:                    userID,
+		OverallReadiness:          overall,
+		TechnicalReadiness:        tech,
+		BehavioralReadiness:       behav,
+		CommunicationReadiness:    comm,
+		RoleFitReadiness:          roleFit,
 		CompanyKnowledgeReadiness: companyKnow,
-		TotalMockSessions:        mockCount,
-		TotalQuestionsPracticed:  practicedQCount,
-		UpdatedAt:                time.Now(),
+		TotalMockSessions:         mockCount,
+		TotalQuestionsPracticed:   practicedQCount,
+		UpdatedAt:                 time.Now(),
 	}
 
 	return s.repo.SaveReadinessScore(ctx, score)

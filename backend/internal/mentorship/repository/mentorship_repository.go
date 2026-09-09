@@ -59,13 +59,13 @@ type MentorshipRepository interface {
 
 type MemoryMentorshipRepository struct {
 	mu          sync.RWMutex
-	profiles    map[string]*models.MentorProfile    // Key: ID
-	userToProf  map[string]string                   // Key: UserID -> Profile ID
-	requests    map[string]*models.MentorshipRequest// Key: ID
-	mentorships map[string]*models.Mentorship       // Key: ID
-	goals       map[string]*models.MentorshipGoal   // Key: ID
-	sessions    map[string]*models.MentorshipSession// Key: ID
-	feedbacks   map[string]*models.MentorshipFeedback// Key: ID
+	profiles    map[string]*models.MentorProfile      // Key: ID
+	userToProf  map[string]string                     // Key: UserID -> Profile ID
+	requests    map[string]*models.MentorshipRequest  // Key: ID
+	mentorships map[string]*models.Mentorship         // Key: ID
+	goals       map[string]*models.MentorshipGoal     // Key: ID
+	sessions    map[string]*models.MentorshipSession  // Key: ID
+	feedbacks   map[string]*models.MentorshipFeedback // Key: ID
 }
 
 func NewMemoryMentorshipRepository() *MemoryMentorshipRepository {

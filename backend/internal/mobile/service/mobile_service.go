@@ -82,13 +82,13 @@ func (s *mobileService) GetMobileConfig(ctx context.Context) (*domain.MobileConf
 		},
 		APIVersion: "v1",
 		Endpoints: map[string]string{
-			"auth_login":         "/api/v1/auth/login",
-			"career_assistant":   "/api/v1/ai/career",
-			"resume_score":       "/api/v1/ai/resume",
-			"referrals":          "/api/v1/referrals",
-			"events":             "/api/v1/events",
-			"presigned_upload":   "/api/v1/mobile/uploads/presign",
-			"register_device":    "/api/v1/mobile/devices",
+			"auth_login":       "/api/v1/auth/login",
+			"career_assistant": "/api/v1/ai/career",
+			"resume_score":     "/api/v1/ai/resume",
+			"referrals":        "/api/v1/referrals",
+			"events":           "/api/v1/events",
+			"presigned_upload": "/api/v1/mobile/uploads/presign",
+			"register_device":  "/api/v1/mobile/devices",
 		},
 	}, nil
 }
@@ -106,11 +106,11 @@ func (s *mobileService) GetOpenAPIDocs(ctx context.Context) (map[string]interfac
 			{"url": "https://api.kirmya.dev/api/v1", "description": "Production Mobile Server"},
 		},
 		"paths": map[string]interface{}{
-			"/auth/login": map[string]interface{}{"post": map[string]string{"summary": "Authenticate user & issue Bearer JWT"}},
-			"/mobile/devices": map[string]interface{}{"post": map[string]string{"summary": "Register mobile device & FCM/APNs push token"}},
+			"/auth/login":             map[string]interface{}{"post": map[string]string{"summary": "Authenticate user & issue Bearer JWT"}},
+			"/mobile/devices":         map[string]interface{}{"post": map[string]string{"summary": "Register mobile device & FCM/APNs push token"}},
 			"/mobile/uploads/presign": map[string]interface{}{"post": map[string]string{"summary": "Request presigned URL for mobile uploads"}},
-			"/referrals/requests": map[string]interface{}{"get": map[string]string{"summary": "Discover referral requests"}},
-			"/events": map[string]interface{}{"get": map[string]string{"summary": "List professional networking events & webinars"}},
+			"/referrals/requests":     map[string]interface{}{"get": map[string]string{"summary": "Discover referral requests"}},
+			"/events":                 map[string]interface{}{"get": map[string]string{"summary": "List professional networking events & webinars"}},
 		},
 	}, nil
 }

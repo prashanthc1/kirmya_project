@@ -212,4 +212,3 @@ func (h *RecommendationHandler) UpdatePreferences(c *gin.Context) {
 
 	c.JSON(http.StatusOK, updated)
 }
-

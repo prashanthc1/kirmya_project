@@ -8,23 +8,23 @@ import (
 
 // Community represents a professional career group workspace.
 type Community struct {
-	ID             uuid.UUID `json:"id"`
-	Title          string    `json:"title"`
-	Description    string    `json:"description"`
-	Category       string    `json:"category"` // trending, industry, location
-	Location       string    `json:"location"`
-	Visibility     string    `json:"visibility"` // public, private, invite_only
-	IsPrivate      bool      `json:"isPrivate"`
-	LogoUrl        string    `json:"logoUrl"`
-	CoverImageUrl  string    `json:"coverImageUrl"`
-	Rules          []string  `json:"rules"`
-	Topics         []string  `json:"topics"`
-	Skills         []string  `json:"skills"`
-	OwnerID        uuid.UUID `json:"ownerId"`
-	MemberCount    int       `json:"memberCount"`
-	PostCount      int       `json:"postCount"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
+	ID            uuid.UUID `json:"id"`
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	Category      string    `json:"category"` // trending, industry, location
+	Location      string    `json:"location"`
+	Visibility    string    `json:"visibility"` // public, private, invite_only
+	IsPrivate     bool      `json:"isPrivate"`
+	LogoUrl       string    `json:"logoUrl"`
+	CoverImageUrl string    `json:"coverImageUrl"`
+	Rules         []string  `json:"rules"`
+	Topics        []string  `json:"topics"`
+	Skills        []string  `json:"skills"`
+	OwnerID       uuid.UUID `json:"ownerId"`
+	MemberCount   int       `json:"memberCount"`
+	PostCount     int       `json:"postCount"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 // CommunityRole maps access control properties.

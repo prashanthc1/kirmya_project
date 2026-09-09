@@ -106,10 +106,10 @@ type TailorJobRequest struct {
 
 // TailorJobResponse.
 type TailorJobResponse struct {
-	MatchScore         int      `json:"matchScore"`
-	MissingKeywords    []string `json:"missingKeywords"`
-	MissingSkills      []string `json:"missingSkills"`
-	RecommendedChanges []string `json:"recommendedChanges"`
+	MatchScore         int        `json:"matchScore"`
+	MissingKeywords    []string   `json:"missingKeywords"`
+	MissingSkills      []string   `json:"missingSkills"`
+	RecommendedChanges []string   `json:"recommendedChanges"`
 	TailoredResumeID   *uuid.UUID `json:"tailoredResumeId,omitempty"`
 }
 

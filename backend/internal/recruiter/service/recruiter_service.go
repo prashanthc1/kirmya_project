@@ -1,10 +1,10 @@
 package service
 
 import (
-	"strings"
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"kirmya/internal/recruiter/models"
@@ -556,13 +556,13 @@ func (s *RecruiterService) GetAIEvaluation(ctx context.Context, userID, appID uu
 
 	match := scoreSkillOverlap(in.JobSkills, in.CandidateSkills)
 	resp := &models.AIEvaluationResponse{
-		ApplicationID:     appID,
-		CandidateName:     in.CandidateName,
-		OverallMatchScore: match.score,
-		Recommendation:    "",
-		SkillGaps:         match.missing,
-		Strengths:         match.matched,
-		RiskFactors:       []string{},
+		ApplicationID:      appID,
+		CandidateName:      in.CandidateName,
+		OverallMatchScore:  match.score,
+		Recommendation:     "",
+		SkillGaps:          match.missing,
+		Strengths:          match.matched,
+		RiskFactors:        []string{},
 		SuggestedQuestions: []string{},
 	}
 	if len(in.JobSkills) == 0 || len(in.CandidateSkills) == 0 {

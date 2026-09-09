@@ -8,25 +8,25 @@ import (
 
 // RegisterRequest represents payload for sign up supporting both snake_case & camelCase.
 type RegisterRequest struct {
-	FirstName              string `json:"firstName"`
-	FirstNameSnake         string `json:"first_name"`
-	LastName               string `json:"lastName"`
-	LastNameSnake          string `json:"last_name"`
-	Email                  string `json:"email" binding:"required,email"`
-	Password               string `json:"password" binding:"required,min=12"`
-	ConfirmPassword        string `json:"confirmPassword"`
-	Country                string `json:"country"`
-	CurrentLocation        string `json:"currentLocation"`
-	LocationSnake          string `json:"location"`
-	JobTitle               string `json:"jobTitle"`
-	JobTitleSnake          string `json:"job_title"`
-	EmploymentStatus       string `json:"employmentStatus"`
+	FirstName               string `json:"firstName"`
+	FirstNameSnake          string `json:"first_name"`
+	LastName                string `json:"lastName"`
+	LastNameSnake           string `json:"last_name"`
+	Email                   string `json:"email" binding:"required,email"`
+	Password                string `json:"password" binding:"required,min=12"`
+	ConfirmPassword         string `json:"confirmPassword"`
+	Country                 string `json:"country"`
+	CurrentLocation         string `json:"currentLocation"`
+	LocationSnake           string `json:"location"`
+	JobTitle                string `json:"jobTitle"`
+	JobTitleSnake           string `json:"job_title"`
+	EmploymentStatus        string `json:"employmentStatus"`
 	ProfessionalStatusSnake string `json:"professional_status"`
-	AcceptTerms            bool   `json:"acceptTerms"`
-	AcceptTermsSnake       bool   `json:"accept_terms"`
-	AcceptPrivacy          bool   `json:"acceptPrivacy"`
-	AcceptPrivacySnake     bool   `json:"accept_privacy"`
-	SubscribeCareerUpdates bool   `json:"subscribeCareerUpdates"`
+	AcceptTerms             bool   `json:"acceptTerms"`
+	AcceptTermsSnake        bool   `json:"accept_terms"`
+	AcceptPrivacy           bool   `json:"acceptPrivacy"`
+	AcceptPrivacySnake      bool   `json:"accept_privacy"`
+	SubscribeCareerUpdates  bool   `json:"subscribeCareerUpdates"`
 }
 
 // NormalizeFields ensures field values from both camelCase and snake_case inputs are populated.

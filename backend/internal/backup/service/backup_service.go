@@ -211,15 +211,15 @@ func (s *BackupService) ConfirmProductionRestore(ctx context.Context, adminID uu
 	}
 
 	return map[string]interface{}{
-		"restoreJobId":       uuid.New().String(),
-		"backupId":           backup.ID.String(),
-		"status":             "pre_restore_snapshot_created",
-		"targetEnvironment":  req.TargetEnvironment,
-		"authorizedBy":       adminID.String(),
-		"initiatedAt":        time.Now().Format(time.RFC3339),
-		"message":            "Production restore pipeline initiated safely. Pre-restore snapshot created. Rollback point locked.",
-		"recoveryPointTime":  backup.CreatedAt.Format(time.RFC3339),
-		"estimatedDuration":  "4 minutes",
+		"restoreJobId":      uuid.New().String(),
+		"backupId":          backup.ID.String(),
+		"status":            "pre_restore_snapshot_created",
+		"targetEnvironment": req.TargetEnvironment,
+		"authorizedBy":      adminID.String(),
+		"initiatedAt":       time.Now().Format(time.RFC3339),
+		"message":           "Production restore pipeline initiated safely. Pre-restore snapshot created. Rollback point locked.",
+		"recoveryPointTime": backup.CreatedAt.Format(time.RFC3339),
+		"estimatedDuration": "4 minutes",
 	}, nil
 }
 

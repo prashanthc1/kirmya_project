@@ -8,36 +8,36 @@ import (
 
 // UserProfile represents the complete candidate identity, header, and portfolio.
 type UserProfile struct {
-	ID                         uuid.UUID            `json:"id"`
-	UserID                     uuid.UUID            `json:"userId"`
-	Username                   string               `json:"username"`
-	FirstName                  string               `json:"firstName,omitempty"`
-	LastName                   string               `json:"lastName,omitempty"`
-	AvatarURL                  string               `json:"avatarUrl"`
-	CoverURL                   string               `json:"coverUrl"`
-	Headline                   string               `json:"headline"`
-	Summary                    string               `json:"summary"`
-	Location                   string               `json:"location"`
-	Country                    string               `json:"country"`
-	Industry                   string               `json:"industry"`
-	CurrentPosition            string               `json:"currentPosition"`
-	AvailabilityStatus         string               `json:"availabilityStatus"` // open_to_work, available_for_freelance, looking_for_networking, hiring
-	OpenToWork                 bool                 `json:"openToWork"`
-	OpenToRecruiters           bool                 `json:"openToRecruiters"`
-	TargetRoles                []string             `json:"targetRoles"`
-	PreferredLocations         []string             `json:"preferredLocations"`
-	ProfileCompletedPercentage int                  `json:"profileCompletedPercentage"`
-	Volunteering               string               `json:"volunteering"`
-	Publications               string               `json:"publications"`
-	Licenses                   string               `json:"licenses"`
-	VerificationStatus         string               `json:"verificationStatus"` // unverified, pending, verified, rejected
-	VerificationNotes          string               `json:"verificationNotes,omitempty"`
-	IsRestricted               bool                 `json:"isRestricted"`
-	IsPrivate                  bool                 `json:"isPrivate"`
-	ProfileViewsCount          int                  `json:"profileViewsCount"`
-	SearchAppearancesCount     int                  `json:"searchAppearancesCount"`
-	CreatedAt                  time.Time            `json:"createdAt"`
-	UpdatedAt                  time.Time            `json:"updatedAt"`
+	ID                         uuid.UUID `json:"id"`
+	UserID                     uuid.UUID `json:"userId"`
+	Username                   string    `json:"username"`
+	FirstName                  string    `json:"firstName,omitempty"`
+	LastName                   string    `json:"lastName,omitempty"`
+	AvatarURL                  string    `json:"avatarUrl"`
+	CoverURL                   string    `json:"coverUrl"`
+	Headline                   string    `json:"headline"`
+	Summary                    string    `json:"summary"`
+	Location                   string    `json:"location"`
+	Country                    string    `json:"country"`
+	Industry                   string    `json:"industry"`
+	CurrentPosition            string    `json:"currentPosition"`
+	AvailabilityStatus         string    `json:"availabilityStatus"` // open_to_work, available_for_freelance, looking_for_networking, hiring
+	OpenToWork                 bool      `json:"openToWork"`
+	OpenToRecruiters           bool      `json:"openToRecruiters"`
+	TargetRoles                []string  `json:"targetRoles"`
+	PreferredLocations         []string  `json:"preferredLocations"`
+	ProfileCompletedPercentage int       `json:"profileCompletedPercentage"`
+	Volunteering               string    `json:"volunteering"`
+	Publications               string    `json:"publications"`
+	Licenses                   string    `json:"licenses"`
+	VerificationStatus         string    `json:"verificationStatus"` // unverified, pending, verified, rejected
+	VerificationNotes          string    `json:"verificationNotes,omitempty"`
+	IsRestricted               bool      `json:"isRestricted"`
+	IsPrivate                  bool      `json:"isPrivate"`
+	ProfileViewsCount          int       `json:"profileViewsCount"`
+	SearchAppearancesCount     int       `json:"searchAppearancesCount"`
+	CreatedAt                  time.Time `json:"createdAt"`
+	UpdatedAt                  time.Time `json:"updatedAt"`
 
 	WorkExperiences []UserWorkExperience `json:"workExperiences,omitempty"`
 	Educations      []UserEducation      `json:"educations,omitempty"`
@@ -50,21 +50,21 @@ type UserProfile struct {
 
 // UserWorkExperience represents employment history.
 type UserWorkExperience struct {
-	ID               uuid.UUID  `json:"id"`
-	ProfileID        uuid.UUID  `json:"profileId"`
-	Company          string     `json:"company"`
-	JobTitle         string     `json:"jobTitle"`
-	EmploymentType   string     `json:"employmentType"`
-	Location         string     `json:"location"`
-	StartDate        time.Time  `json:"startDate"`
-	EndDate          *time.Time `json:"endDate,omitempty"`
-	IsCurrentJob     bool       `json:"isCurrentJob"`
-	Description      string     `json:"description"`
-	SkillsUsed       []string   `json:"skillsUsed"`
-	Achievements     string     `json:"achievements"`
-	SortOrder        int        `json:"sortOrder"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	UpdatedAt        time.Time  `json:"updatedAt"`
+	ID             uuid.UUID  `json:"id"`
+	ProfileID      uuid.UUID  `json:"profileId"`
+	Company        string     `json:"company"`
+	JobTitle       string     `json:"jobTitle"`
+	EmploymentType string     `json:"employmentType"`
+	Location       string     `json:"location"`
+	StartDate      time.Time  `json:"startDate"`
+	EndDate        *time.Time `json:"endDate,omitempty"`
+	IsCurrentJob   bool       `json:"isCurrentJob"`
+	Description    string     `json:"description"`
+	SkillsUsed     []string   `json:"skillsUsed"`
+	Achievements   string     `json:"achievements"`
+	SortOrder      int        `json:"sortOrder"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
 }
 
 // UserEducation represents academic degrees and credentials.
@@ -237,4 +237,3 @@ type ResumeConsistencyDTO struct {
 	TitleDiscrepancies []string `json:"titleDiscrepancies"`
 	IsConsistent       bool     `json:"isConsistent"`
 }
-

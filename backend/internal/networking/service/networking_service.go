@@ -656,4 +656,3 @@ func (s *NetworkingService) GetFollowing(ctx context.Context, userID uuid.UUID) 
 func (s *NetworkingService) GetFollowers(ctx context.Context, userID uuid.UUID) ([]netModels.PeopleSearchResult, error) {
 	return s.repo.GetFollowers(ctx, userID)
 }
-

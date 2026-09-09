@@ -506,4 +506,3 @@ func (h *SecurityHandler) GetAccountRiskScore(c *gin.Context) {
 
 	c.JSON(http.StatusOK, score)
 }
-

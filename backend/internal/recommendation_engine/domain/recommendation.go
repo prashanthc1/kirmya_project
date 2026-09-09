@@ -46,12 +46,12 @@ type Event struct {
 }
 
 type ModelWeights struct {
-	ID        uuid.UUID         `json:"id"`
-	ModelName string            `json:"model_name"`
-	Version   string            `json:"version"`
+	ID        uuid.UUID          `json:"id"`
+	ModelName string             `json:"model_name"`
+	Version   string             `json:"version"`
 	Weights   map[string]float64 `json:"weights"`
-	IsActive  bool              `json:"is_active"`
-	TrainedAt time.Time         `json:"trained_at"`
+	IsActive  bool               `json:"is_active"`
+	TrainedAt time.Time          `json:"trained_at"`
 }
 
 type UserPreference struct {
@@ -86,19 +86,19 @@ type UpdatePreferencesPayload struct {
 }
 
 type RecommendationConfig struct {
-	ID                 uuid.UUID `json:"id" db:"id"`
-	ModelName          string    `json:"modelName" db:"model_name"`
-	AlgorithmVersion   string    `json:"algorithmVersion" db:"algorithm_version"`
-	SkillMatchWeight   float64   `json:"skillMatchWeight" db:"skill_match_weight"`
-	TitleMatchWeight   float64   `json:"titleMatchWeight" db:"title_match_weight"`
-	LocationMatchWeight float64  `json:"locationMatchWeight" db:"location_match_weight"`
-	IndustryMatchWeight float64  `json:"industryMatchWeight" db:"industry_match_weight"`
-	DiversityPenalty   float64   `json:"diversityPenalty" db:"diversity_penalty"`
-	CandidatePoolLimit int       `json:"candidatePoolLimit" db:"candidate_pool_limit"`
-	MinScoreThreshold  int       `json:"minScoreThreshold" db:"min_score_threshold"`
-	IsActive           bool      `json:"isActive" db:"is_active"`
-	CreatedAt          time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt          time.Time `json:"updatedAt" db:"updated_at"`
+	ID                  uuid.UUID `json:"id" db:"id"`
+	ModelName           string    `json:"modelName" db:"model_name"`
+	AlgorithmVersion    string    `json:"algorithmVersion" db:"algorithm_version"`
+	SkillMatchWeight    float64   `json:"skillMatchWeight" db:"skill_match_weight"`
+	TitleMatchWeight    float64   `json:"titleMatchWeight" db:"title_match_weight"`
+	LocationMatchWeight float64   `json:"locationMatchWeight" db:"location_match_weight"`
+	IndustryMatchWeight float64   `json:"industryMatchWeight" db:"industry_match_weight"`
+	DiversityPenalty    float64   `json:"diversityPenalty" db:"diversity_penalty"`
+	CandidatePoolLimit  int       `json:"candidatePoolLimit" db:"candidate_pool_limit"`
+	MinScoreThreshold   int       `json:"minScoreThreshold" db:"min_score_threshold"`
+	IsActive            bool      `json:"isActive" db:"is_active"`
+	CreatedAt           time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt           time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 type RecommendationMetricsDaily struct {
@@ -118,7 +118,7 @@ type RecommendationMetricsDaily struct {
 type SkillRecommendation struct {
 	SkillName       string `json:"skillName"`
 	Category        string `json:"category"`
-	DemandScore     int    `json:"demandScore"`     // 0-100
+	DemandScore     int    `json:"demandScore"` // 0-100
 	RelevanceReason string `json:"relevanceReason"`
 	TargetJobsCount int    `json:"targetJobsCount"`
 }
@@ -131,4 +131,3 @@ type CareerGapAnalysis struct {
 	GapSeverity      string                `json:"gapSeverity"` // Low, Medium, High
 	SuggestedActions []string              `json:"suggestedActions"`
 }
-

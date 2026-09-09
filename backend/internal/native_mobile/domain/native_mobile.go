@@ -53,34 +53,34 @@ type RefreshTokenPayload struct {
 }
 
 type PushNotificationPayload struct {
-	UserID  uuid.UUID              `json:"user_id"`
-	Title   string                 `json:"title" binding:"required"`
-	Body    string                 `json:"body" binding:"required"`
-	Data    map[string]interface{} `json:"data,omitempty"`
-	Badge   int                    `json:"badge,omitempty"`
+	UserID uuid.UUID              `json:"user_id"`
+	Title  string                 `json:"title" binding:"required"`
+	Body   string                 `json:"body" binding:"required"`
+	Data   map[string]interface{} `json:"data,omitempty"`
+	Badge  int                    `json:"badge,omitempty"`
 }
 
 // Compact Mobile API DTOs
 type MobileUserProfile struct {
-	UserID          uuid.UUID `json:"user_id"`
-	FullName        string    `json:"full_name"`
-	Headline        string    `json:"headline"`
-	AvatarURL       string    `json:"avatar_url"`
-	IsVerified      bool      `json:"is_verified"`
-	UnreadMessages  int       `json:"unread_messages"`
-	UnreadNotifs    int       `json:"unread_notifications"`
-	ActiveRole      string    `json:"active_role"`
+	UserID         uuid.UUID `json:"user_id"`
+	FullName       string    `json:"full_name"`
+	Headline       string    `json:"headline"`
+	AvatarURL      string    `json:"avatar_url"`
+	IsVerified     bool      `json:"is_verified"`
+	UnreadMessages int       `json:"unread_messages"`
+	UnreadNotifs   int       `json:"unread_notifications"`
+	ActiveRole     string    `json:"active_role"`
 }
 
 type MobileJobItem struct {
-	JobID        uuid.UUID `json:"job_id"`
-	Title        string    `json:"title"`
-	Company      string    `json:"company"`
-	Location     string    `json:"location"`
-	Salary       string    `json:"salary"`
-	MatchScore   int       `json:"match_score"`
-	IsRemote     bool      `json:"is_remote"`
-	PostedTime   string    `json:"posted_time"`
+	JobID      uuid.UUID `json:"job_id"`
+	Title      string    `json:"title"`
+	Company    string    `json:"company"`
+	Location   string    `json:"location"`
+	Salary     string    `json:"salary"`
+	MatchScore int       `json:"match_score"`
+	IsRemote   bool      `json:"is_remote"`
+	PostedTime string    `json:"posted_time"`
 }
 
 type MobileApplicationItem struct {

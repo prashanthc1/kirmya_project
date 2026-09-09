@@ -8,31 +8,31 @@ import (
 
 // BillingStatusResponse represents the status response when billing feature flags are checked.
 type BillingStatusResponse struct {
-	BillingEnabled        bool   `json:"billing_enabled"`
-	SubscriptionsEnabled  bool   `json:"subscriptions_enabled"`
-	CheckoutEnabled       bool   `json:"checkout_enabled"`
+	BillingEnabled         bool   `json:"billing_enabled"`
+	SubscriptionsEnabled   bool   `json:"subscriptions_enabled"`
+	CheckoutEnabled        bool   `json:"checkout_enabled"`
 	PremiumFeaturesEnabled bool   `json:"premium_features_enabled"`
-	StripeEnabled         bool   `json:"stripe_enabled"`
-	Message               string `json:"message"`
+	StripeEnabled          bool   `json:"stripe_enabled"`
+	Message                string `json:"message"`
 }
 
 // Plan represents a billing or pricing plan.
 type Plan struct {
-	ID               uuid.UUID              `json:"id" db:"id"`
-	Name             string                 `json:"name" db:"name"`
-	Slug             string                 `json:"slug" db:"slug"`
-	Description      string                 `json:"description" db:"description"`
-	PlanType         string                 `json:"plan_type" db:"plan_type"` // free, recurring, custom
-	Currency         string                 `json:"currency" db:"currency"`
-	BillingInterval  string                 `json:"billing_interval" db:"billing_interval"` // monthly, yearly, one_time, custom
-	PriceCents       int                    `json:"price_cents" db:"price_cents"`
-	TrialPeriodDays  int                    `json:"trial_period_days" db:"trial_period_days"`
-	IsActive         bool                   `json:"is_active" db:"is_active"`
-	IsPublic         bool                   `json:"is_public" db:"is_public"`
-	Features         map[string]interface{} `json:"features" db:"features"`
-	Limits           map[string]interface{} `json:"limits" db:"limits"`
-	CreatedAt        time.Time              `json:"created_at" db:"created_at"`
-	UpdatedAt        time.Time              `json:"updated_at" db:"updated_at"`
+	ID              uuid.UUID              `json:"id" db:"id"`
+	Name            string                 `json:"name" db:"name"`
+	Slug            string                 `json:"slug" db:"slug"`
+	Description     string                 `json:"description" db:"description"`
+	PlanType        string                 `json:"plan_type" db:"plan_type"` // free, recurring, custom
+	Currency        string                 `json:"currency" db:"currency"`
+	BillingInterval string                 `json:"billing_interval" db:"billing_interval"` // monthly, yearly, one_time, custom
+	PriceCents      int                    `json:"price_cents" db:"price_cents"`
+	TrialPeriodDays int                    `json:"trial_period_days" db:"trial_period_days"`
+	IsActive        bool                   `json:"is_active" db:"is_active"`
+	IsPublic        bool                   `json:"is_public" db:"is_public"`
+	Features        map[string]interface{} `json:"features" db:"features"`
+	Limits          map[string]interface{} `json:"limits" db:"limits"`
+	CreatedAt       time.Time              `json:"created_at" db:"created_at"`
+	UpdatedAt       time.Time              `json:"updated_at" db:"updated_at"`
 }
 
 // Entitlement represents a granular feature entitlement.
