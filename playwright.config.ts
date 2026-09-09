@@ -35,7 +35,18 @@ export default defineConfig({
     { name: 'a11y-mobile', use: { ...devices['Pixel 7'] }, testMatch: /accessibility\.spec\.ts/ },
   ],
   webServer: {
-    command: 'npm --prefix frontend run start -- --hostname 127.0.0.1',
+    /*
+     * The production artifact, served the way the image serves it.
+     *
+     * frontend/next.config.mjs sets `output: 'standalone'` and
+     * frontend/Dockerfile runs `node server.js` from that tree. `next start`
+     * announces that it does not work with that configuration and serves
+     * through a different path, so a suite driven by `next start` was verifying
+     * a server no deployment runs. This launcher copies the static assets and
+     * `public/` beside the standalone server, exactly as the Dockerfile does,
+     * and starts the same entry point.
+     */
+    command: 'node scripts/ci/start-standalone.mjs',
     url: 'http://127.0.0.1:3000/signin',
     reuseExistingServer: false,
     timeout: 120_000,
