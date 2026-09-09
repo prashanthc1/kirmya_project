@@ -1,4 +1,26 @@
-# Kirmya MUI v6 Design System & Glassmorphism Tokens
+# Design system — superseded
+
+> **This document is out of date and was wrong in two ways. Do not follow it.**
+>
+> - Its palette is incorrect. It lists the primary as `#2563eb`/`#3b82f6`; the
+>   theme actually uses `#4f46e5`/`#818cf8`, chosen and contrast-measured
+>   during the F15 accessibility work.
+> - It prescribes glassmorphism — translucent cards and
+>   `backdropFilter: blur(16px)` — as the house style. The navigation brief
+>   later asked for the opposite: calm, minimal, no glass effects. That brief
+>   is the newer decision.
+>
+> **Colour, spacing, radius and elevation:** read `frontend/src/theme/`, which
+> is the only source of truth. The palette carries its measured contrast
+> ratios in comments.
+>
+> **When to use MUI, theme tokens, `sx`, or a CSS Module:** see
+> [Styling and UI decisions](styling-and-ui-decisions.md).
+
+The original contents are kept below so that references to them can be
+recognised as stale rather than merely missing.
+
+---
 
 ## Centralized Design Tokens (`src/theme/theme.ts`)
 
