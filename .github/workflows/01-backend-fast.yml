@@ -93,7 +93,15 @@ jobs:
         run: |
           mkdir -p ../artifacts
           set -o pipefail
-          go test -json ./... 2>&1 | tee ../artifacts/go-unit.json
+          # This job runs without PostgreSQL or Redis, so the packages below
+          # could only report their database- and broker-backed tests as
+          # skipped, and the results gate is fail-closed on skips. They run
+          # for real against live services in 03 (shared/database) and in
+          # 04 (company/service, messaging/pubsub, shared/middleware,
+          # test/integration); keep those workflows in step when moving a
+          # package in or out of this list.
+          packages=$(go list ./... | grep -vE '/(internal/company/service|internal/messaging/pubsub|internal/shared/database|internal/shared/middleware|test/integration)$')
+          go test -json $packages 2>&1 | tee ../artifacts/go-unit.json
         env:
           ALLOW_NO_DB: "true"
 

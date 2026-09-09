@@ -112,12 +112,19 @@ jobs:
       - name: Company SQL Ownership Regression Tests
         run: cd backend && go test -json ./internal/company/service -count=1 > ../artifacts/company.json
 
+      - name: Database And Redis Backed Package Tests
+        # These packages gate their tests on DATABASE_URL and REDIS_HOST, so
+        # they can only skip in 01 Backend Fast Checks, which has no services.
+        # This job supplies both, so here they actually execute.
+        run: cd backend && go test -json ./internal/messaging/pubsub ./internal/shared/middleware ./test/integration -count=1 > ../artifacts/service-backed.json
+
       - name: Reject Missing Tests Or Mandatory Skips
         if: always()
         run: |
           node scripts/ci/check-results.mjs go artifacts/integration.json
           node scripts/ci/check-results.mjs go artifacts/company.json
           node scripts/ci/check-results.mjs go artifacts/restart-readback.json
+          node scripts/ci/check-results.mjs go artifacts/service-backed.json
 
       - name: Collect Service Diagnostics
         if: always()
