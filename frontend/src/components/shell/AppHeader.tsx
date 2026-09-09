@@ -38,6 +38,8 @@ import ThemeToggle from '../landing/ThemeToggle';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../shared/routes';
 import { PRIMARY_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '../../shared/navigation';
+import { isItemActive, isWithin } from '../../shared/navigation/matchRoute';
+import { canAccessPlatformAdmin } from '../../shared/permissions';
 import { tokens } from '../../theme/tokens';
 
 export interface AppHeaderProps {
@@ -55,7 +57,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
   const isDark = theme.palette.mode === 'dark';
   const pathname = usePathname();
   const router = useRouter();
-  const { user, authenticated, notificationsCount, logout } = useAuth();
+  const { user, authenticated, notificationsCount, permissions, logout } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
@@ -101,7 +103,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
   };
 
   const isRecruiter = user?.roleId === 'recruiter' || user?.roleId === 'company_admin';
-  const isAdmin = user?.roleId === 'platform_admin' || user?.roleId === 'admin';
+  // Centralised, and matching the role set the API's own RequireAdmin() uses.
+  // Written out here it missed super_admin entirely, so an account the server
+  // would have admitted was shown no way in.
+  const isAdmin = canAccessPlatformAdmin({ permissions, role: user?.roleId });
 
   return (
     <Box
@@ -165,6 +170,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
         >
           <SearchIcon sx={{ color: 'text.secondary', fontSize: 20, mr: 1 }} />
           <InputBase
+            type="search"
             placeholder="Search jobs, people, skills..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -178,15 +184,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
           direction="row"
           alignItems="center"
           spacing={0.5}
+          component="nav"
+          // The landmark a screen reader jumps to. The bottom bar carries the
+          // same name, and never at the same time: it is display:none above
+          // this breakpoint, which removes it from the accessibility tree.
+          aria-label="Primary"
           sx={{ display: { xs: 'none', md: 'flex' } }}
         >
           {navItems.map((item) => {
-            const isActive = Boolean(pathname && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))));
+            // Segment-aware, so /network does not claim /networking and Feed
+            // lights only on /feed itself.
+            const isActive = Boolean(pathname && isItemActive(pathname, item));
             return (
               <Button
                 key={item.id}
                 component={Link}
                 href={item.href}
+                // Weight and colour say "you are here" to someone looking at
+                // the screen. aria-current says it to everyone else.
+                aria-current={isActive ? 'page' : undefined}
                 startIcon={
                   item.badgeKey === 'notifications' && notificationsCount > 0 ? (
                     <Badge badgeContent={notificationsCount > 99 ? '99+' : notificationsCount} color="error">
@@ -224,6 +240,30 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
 
           {authenticated && user ? (
             <>
+              {/*
+                Notifications is a global action, not a destination, so it sits
+                here beside search and the account menu rather than taking one
+                of the five slots in the primary navigation. It was in that row
+                before, which is how the row came to hold everything.
+              */}
+              <Tooltip title="Notifications">
+                <IconButton
+                  component={Link}
+                  href={ROUTES.NOTIFICATIONS}
+                  aria-label={
+                    notificationsCount > 0
+                      ? `Notifications, ${notificationsCount} unread`
+                      : 'Notifications'
+                  }
+                  aria-current={pathname && isWithin(pathname, ROUTES.NOTIFICATIONS) ? 'page' : undefined}
+                  sx={{ p: 1 }}
+                >
+                  <Badge badgeContent={notificationsCount} color="error" max={99}>
+                    <NotificationsNoneIcon fontSize="small" />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+
               <Tooltip title="Account menu">
                 <IconButton
                   onClick={handleUserMenuOpen}
@@ -293,13 +333,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                 {isAdmin && (
                   <MenuItem
                     component={Link}
-                    href={ROUTES.ADMIN.DASHBOARD}
+                    href={ROUTES.ADMIN.ROOT}
                     onClick={handleUserMenuClose}
                   >
                     <ListItemIcon>
                       <ShieldOutlinedIcon fontSize="small" color="error" />
                     </ListItemIcon>
-                    <ListItemText primary="Admin Center" sx={{ color: 'error.main', fontWeight: 600 }} />
+                    <ListItemText primary="Kirmya administration" sx={{ color: 'error.main', fontWeight: 600 }} />
                   </MenuItem>
                 )}
 

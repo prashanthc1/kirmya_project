@@ -27,6 +27,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 import { CompanyDetail } from '../../features/company/types';
 import { canOpenDashboard } from '../../features/company/permissions';
+import { routes } from '../../shared/routes';
 import { HiringChip, VerifiedBadge } from './CompanyBadges';
 import CompanyFollow from './CompanyFollow';
 
@@ -160,10 +161,17 @@ export const CompanyHeader: React.FC<CompanyHeaderProps> = ({
               isAuthenticated={isAuthenticated}
               onRequireSignIn={onRequireSignIn}
             />
+            {/*
+              Management is entity-scoped. This used to point at
+              /company/dashboard?company=slug - one console told which company
+              to show by a query parameter, so the address did not carry the
+              authority it needed and editing the parameter was the whole of
+              "switching companies". The slug is the route now.
+            */}
             {showDashboardLink && (
               <Button
                 component={NextLink}
-                href={`/company/dashboard?company=${company.slug}`}
+                href={routes.company.admin.home(company.slug)}
                 variant="outlined"
                 startIcon={<SettingsIcon />}
               >

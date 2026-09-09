@@ -41,18 +41,29 @@ const signInSchema = z.object({
 
 type SignInFormInputs = z.infer<typeof signInSchema>;
 
-// Validate returnUrl to avoid open redirects
-function getSafeReturnUrl(returnUrl: string | null): string {
+/**
+ * Where to go after signing in, given a caller-supplied returnUrl.
+ *
+ * Only a path within this application is honoured. Anything else falls back to
+ * the feed rather than being followed, because a sign-in form that forwards to
+ * an attacker-chosen address is how a credential page becomes a phishing hop.
+ *
+ * `//evil.example` and `https://evil.example` were already refused. `/\evil.example`
+ * was not, and several browsers normalise a leading `/\` to a scheme-relative
+ * URL - so it is refused too, along with anything carrying a control character
+ * that could be used to smuggle one past this check.
+ *
+ * Exported for its tests: the rule is small enough to read and important enough
+ * to pin.
+ */
+export function getSafeReturnUrl(returnUrl: string | null): string {
   if (!returnUrl) return ROUTES.FEED;
-  // Disallow absolute URLs, scheme-relative URLs, or protocol specifications
-  if (
-    returnUrl.startsWith('/') &&
-    !returnUrl.startsWith('//') &&
-    !returnUrl.includes('://')
-  ) {
-    return returnUrl;
-  }
-  return ROUTES.FEED;
+  if (!returnUrl.startsWith('/')) return ROUTES.FEED;
+  if (returnUrl.startsWith('//') || returnUrl.startsWith('/\\')) return ROUTES.FEED;
+  if (returnUrl.includes('://')) return ROUTES.FEED;
+  // A newline, tab or NUL in a location is a parser-confusion tool, never a path.
+  if (/[\u0000-\u001f\u007f]/.test(returnUrl)) return ROUTES.FEED;
+  return returnUrl;
 }
 
 export const SignInForm: React.FC = () => {
@@ -99,7 +110,9 @@ export const SignInForm: React.FC = () => {
         } else if (userRole.includes('admin') || userRole === 'platform_admin') {
           router.push(ROUTES.ADMIN.ROOT);
         } else if (userRole.includes('company')) {
-          router.push(ROUTES.COMPANY_DASHBOARD);
+          // Management is entity-scoped now; the directory is where a company
+          // administrator picks which of their companies to open.
+          router.push(ROUTES.COMPANIES);
         } else if (userRole.includes('recruiter')) {
           router.push(ROUTES.RECRUITER.DASHBOARD);
         } else {

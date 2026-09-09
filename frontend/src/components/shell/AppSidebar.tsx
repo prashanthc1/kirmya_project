@@ -31,6 +31,7 @@ import { usePathname } from 'next/navigation';
 
 import { tokens } from '../../theme/tokens';
 import { RECRUITER_NAV_ITEMS, ADMIN_NAV_ITEMS, NavItem } from '../../shared/navigation';
+import { isItemActive } from '../../shared/navigation/matchRoute';
 
 export interface AppSidebarProps {
   variant?: 'recruiter' | 'admin';
@@ -126,7 +127,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ variant = 'recruiter' })
       {/* Navigation Links */}
       <List disablePadding>
         {items.map((item) => {
-          const isActive = Boolean(pathname && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))));
+          const isActive = Boolean(pathname && isItemActive(pathname, item));
           const icon = getIcon(item.iconName);
 
           const buttonContent = (

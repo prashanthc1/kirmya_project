@@ -131,7 +131,7 @@ export function InterviewDashboard({
 
           <Button
             component={Link}
-            href="/dashboard/applications"
+            href="/applications"
             variant="contained"
             sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 700, textTransform: 'none' }}
           >

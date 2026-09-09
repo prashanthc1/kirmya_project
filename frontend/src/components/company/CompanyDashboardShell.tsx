@@ -53,7 +53,8 @@ export interface DashboardContext {
 }
 
 interface NavItem {
-  href: string;
+  /** Path segment under /companies/[slug]/admin. Empty for the overview. */
+  segment: string;
   label: string;
   icon: React.ReactNode;
   permission: CompanyPermission | CompanyPermission[];
@@ -61,49 +62,49 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   {
-    href: '/company/dashboard',
+    segment: '',
     label: 'Overview',
     icon: <SpaceDashboardOutlinedIcon fontSize="small" />,
     permission: 'company:view',
   },
   {
-    href: '/company/dashboard/profile',
+    segment: 'profile',
     label: 'Profile',
     icon: <BusinessOutlinedIcon fontSize="small" />,
     permission: ['company:edit', 'branding:edit'],
   },
   {
-    href: '/company/dashboard/jobs',
+    segment: 'jobs',
     label: 'Jobs',
     icon: <WorkOutlineIcon fontSize="small" />,
     permission: 'job:view',
   },
   {
-    href: '/company/dashboard/people',
+    segment: 'people',
     label: 'People',
     icon: <GroupsOutlinedIcon fontSize="small" />,
     permission: 'team:view',
   },
   {
-    href: '/company/dashboard/recruiters',
+    segment: 'recruiters',
     label: 'Recruiters',
     icon: <BadgeOutlinedIcon fontSize="small" />,
     permission: 'recruiter:view',
   },
   {
-    href: '/company/dashboard/analytics',
+    segment: 'analytics',
     label: 'Analytics',
     icon: <InsightsOutlinedIcon fontSize="small" />,
     permission: 'analytics:view',
   },
   {
-    href: '/company/dashboard/verification',
+    segment: 'verification',
     label: 'Verification',
     icon: <VerifiedUserOutlinedIcon fontSize="small" />,
     permission: 'verification:view',
   },
   {
-    href: '/company/dashboard/settings',
+    segment: 'settings',
     label: 'Settings',
     icon: <SettingsOutlinedIcon fontSize="small" />,
     permission: 'settings:edit',
@@ -177,7 +178,7 @@ export const CompanyDashboardShell: React.FC<CompanyDashboardShellProps> = ({
           <Box sx={{ mt: 2 }}>
             <Button
               component={NextLink}
-              href={`/signin?redirect=${encodeURIComponent('/company/dashboard')}`}
+              href={`/signin?redirect=${encodeURIComponent('/companies')}`}
               variant="contained"
               size="small"
             >
@@ -310,12 +311,18 @@ export const CompanyDashboardShell: React.FC<CompanyDashboardShellProps> = ({
 
           <Stack spacing={0.5}>
             {visibleNav.map((item) => {
-              const selected = pathname === item.href;
+              // Management is addressed by company, so each entry is built
+              // from the active company's slug rather than from a shared path
+              // plus a ?company= parameter that any viewer could edit.
+              const href = item.segment
+                ? `/companies/${encodeURIComponent(active.company.slug)}/admin/${item.segment}`
+                : `/companies/${encodeURIComponent(active.company.slug)}/admin`;
+              const selected = pathname === href;
               return (
                 <Button
-                  key={item.href}
+                  key={href}
                   component={NextLink}
-                  href={`${item.href}?company=${active.company.slug}`}
+                  href={href}
                   startIcon={item.icon}
                   aria-current={selected ? 'page' : undefined}
                   sx={{
@@ -340,7 +347,7 @@ export const CompanyDashboardShell: React.FC<CompanyDashboardShellProps> = ({
 
           <Button
             component={NextLink}
-            href={`/company/${active.company.slug}`}
+            href={`/companies/${encodeURIComponent(active.company.slug)}`}
             size="small"
             fullWidth
             variant="outlined"

@@ -256,6 +256,8 @@ import (
 	"kirmya/internal/shared/mailer"
 	"kirmya/internal/shared/middleware"
 	persistencePkg "kirmya/internal/shared/persistence"
+
+	"github.com/google/uuid"
 )
 
 // The block below is the document-level half of the OpenAPI contract: the title,
@@ -485,6 +487,13 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 
 	authRepository := authRepo.NewAuthRepository(dbPool)
 	authService := authSvc.NewAuthService(authRepository)
+	// /auth/me reported a hardcoded 3 unread notifications to every account.
+	// The badge in the navigation reads that number, so it is counted from the
+	// same rows /notifications serves.
+	authService.WithUnreadNotificationCounter(func(ctx context.Context, userID uuid.UUID) (int, error) {
+		count, err := notifyRepository.GetUnreadCount(ctx, userID)
+		return int(count), err
+	})
 	// The resolved cookie policy is logged once at boot. A refresh cookie the
 	// browser silently refuses — Secure over plain HTTP, SameSite=None without
 	// Secure — is otherwise invisible from the server side, and it presents as

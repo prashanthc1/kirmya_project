@@ -35,6 +35,7 @@ import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
 import Link from 'next/link';
+import { routes } from '../../shared/routes';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { Community } from '../../features/community/types';
@@ -194,6 +195,20 @@ export const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community, onJ
                 sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 600, textTransform: 'none' }}
               >
                 Invite
+              </Button>
+            )}
+
+            {/* The contextual route into this community's management. */}
+            {isAdmin && (
+              <Button
+                component={Link}
+                href={routes.community.admin.home(String(community.id))}
+                variant="outlined"
+                size="small"
+                startIcon={<SettingsOutlinedIcon fontSize="small" />}
+                sx={{ borderRadius: `${tokens.radius.sm}px`, fontWeight: 600, textTransform: 'none' }}
+              >
+                Manage
               </Button>
             )}
 

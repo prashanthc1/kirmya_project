@@ -171,9 +171,11 @@ describe('CompanyHeader within the profile', () => {
     );
 
     await screen.findByTestId('tab-content');
+    // Management is entity-scoped: the company is the route, not a query
+    // parameter on a shared console.
     expect(await screen.findByRole('link', { name: 'Manage' })).toHaveAttribute(
       'href',
-      '/company/dashboard?company=northwind-logistics'
+      '/companies/northwind-logistics/admin'
     );
   });
 

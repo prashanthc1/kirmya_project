@@ -22,6 +22,7 @@ import (
 	"kirmya/internal/shared/authcookie"
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/mailer"
+	"kirmya/internal/shared/middleware"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -88,6 +89,17 @@ type AuthService struct {
 	// apart — which is how a 30-day Remember Me session came to be reissued as a
 	// 7-day one on its first refresh.
 	policy authcookie.Config
+
+	// unreadNotifications counts the caller's unread notifications for
+	// /auth/me. Optional: a deployment that has not wired it reports zero
+	// rather than a number nobody counted.
+	unreadNotifications func(ctx context.Context, userID uuid.UUID) (int, error)
+}
+
+// WithUnreadNotificationCounter supplies the counter behind the /auth/me badge.
+func (s *AuthService) WithUnreadNotificationCounter(count func(ctx context.Context, userID uuid.UUID) (int, error)) *AuthService {
+	s.unreadNotifications = count
+	return s
 }
 
 func NewAuthService(repo *repository.AuthRepository) *AuthService {
@@ -930,14 +942,34 @@ func (s *AuthService) GetUserMe(ctx context.Context, userID uuid.UUID) (*dto.Use
 	permissions := []string{
 		"profile:read", "profile:write", "messaging:access", "jobs:browse", "network:connect",
 	}
-	if u.RoleID == "admin" {
-		permissions = append(permissions, "admin:access", "users:manage")
+	// The admin permission has to be granted to the same role set the API gates
+	// administrative routes on. It used to be granted only to RoleID "admin", so
+	// a super_admin or platform_admin - both of which RequireAdmin() lets
+	// through - was told by /auth/me that they had no administrative access, and
+	// the web client hid the console from someone the server would have served.
+	for _, adminRole := range middleware.AdminRoles() {
+		if u.RoleID == adminRole {
+			permissions = append(permissions, "admin:access", "users:manage")
+			break
+		}
+	}
+
+	// The unread count was the literal 3 for every account on every request. A
+	// badge is a claim about the reader's own data, so it is either counted or
+	// it is zero; it is never decorative.
+	var unread int
+	if s.unreadNotifications != nil {
+		if n, err := s.unreadNotifications(ctx, u.ID); err != nil {
+			slog.Warn("unread notification count unavailable", "error", err)
+		} else {
+			unread = n
+		}
 	}
 
 	return &dto.UserMeDTO{
 		User:               userDTO,
 		Permissions:        permissions,
-		NotificationsCount: 3,
+		NotificationsCount: unread,
 	}, nil
 }
 

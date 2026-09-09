@@ -107,8 +107,8 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ company, membe
             <Typography variant="body2" color="text.secondary">
               Public address:
             </Typography>
-            <MuiLink component={NextLink} href={`/company/${company.slug}`} underline="hover">
-              /company/{company.slug}
+            <MuiLink component={NextLink} href={`/companies/${encodeURIComponent(company.slug)}`} underline="hover">
+              /companies/{company.slug}
             </MuiLink>
             <Chip size="small" variant="outlined" label="Fixed at creation" />
           </Stack>
@@ -124,7 +124,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ company, membe
           {membership.permissions.includes('verification:view') && (
             <Button
               component={NextLink}
-              href="/company/dashboard/verification"
+              href={`/companies/${encodeURIComponent(company.slug)}/admin/verification`}
               size="small"
               variant="outlined"
               sx={{ textTransform: 'none' }}
@@ -142,7 +142,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ company, membe
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <Button
             component={NextLink}
-            href="/company/dashboard/people"
+            href={`/companies/${encodeURIComponent(company.slug)}/admin/people`}
             size="small"
             variant="outlined"
             sx={{ textTransform: 'none' }}
@@ -151,7 +151,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ company, membe
           </Button>
           <Button
             component={NextLink}
-            href="/company/dashboard/recruiters"
+            href={`/companies/${encodeURIComponent(company.slug)}/admin/recruiters`}
             size="small"
             variant="outlined"
             sx={{ textTransform: 'none' }}

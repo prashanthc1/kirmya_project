@@ -94,7 +94,7 @@ export default function GlobalRouteError({
             </Button>
             <Button
               component={NextLink}
-              href="/dashboard"
+              href="/feed"
               variant="outlined"
               size="large"
               sx={{ px: 4, borderRadius: '12px' }}

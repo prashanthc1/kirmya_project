@@ -24,7 +24,7 @@ const RECOVERY_LINKS = [
   { href: '/jobs/match', label: 'Job matches' },
   { href: '/jobs/recommendations', label: 'Recommended for you' },
   { href: '/companies', label: 'Companies hiring' },
-  { href: '/dashboard', label: 'Your dashboard' },
+  { href: '/feed', label: 'Your feed' },
   { href: '/', label: 'Home' },
 ];
 

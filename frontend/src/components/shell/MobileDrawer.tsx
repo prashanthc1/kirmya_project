@@ -138,6 +138,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
         >
           <SearchIcon sx={{ color: 'text.secondary', fontSize: 20, mr: 1 }} />
           <InputBase
+            type="search"
             placeholder="Search Kirmya..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
