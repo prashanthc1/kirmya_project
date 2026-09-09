@@ -53,17 +53,45 @@ func (m *captureMailer) Send(to, subject, htmlBody string) error {
 // "a verification email was sent" are the same observation.
 const resetSubject = "Reset your Kirmya password"
 
+// last returns the most recent reset email, waiting briefly for one to arrive.
+//
+// ForgotPassword dispatches the send in a goroutine so that an unreachable mail
+// host cannot hang the HTTP request, which means the email is not in the
+// mailbox the instant the call returns. The wait is what absorbs that; the
+// assertion is unchanged, and a flow that sends no email still fails here.
 func (m *captureMailer) last(t *testing.T) capturedEmail {
 	t.Helper()
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	for i := len(m.sent) - 1; i >= 0; i-- {
-		if m.sent[i].subject == resetSubject {
-			return m.sent[i]
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		m.mu.Lock()
+		for i := len(m.sent) - 1; i >= 0; i-- {
+			if m.sent[i].subject == resetSubject {
+				found := m.sent[i]
+				m.mu.Unlock()
+				return found
+			}
 		}
+		m.mu.Unlock()
+
+		if time.Now().After(deadline) {
+			t.Fatal("no password reset email was sent")
+			return capturedEmail{}
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
-	t.Fatal("no password reset email was sent")
-	return capturedEmail{}
+}
+
+// waitForCount waits for at least n reset emails, so a test that counts them is
+// not racing the dispatch goroutine either.
+func (m *captureMailer) waitForCount(t *testing.T, n int) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for m.count() < n {
+		if time.Now().After(deadline) {
+			t.Fatalf("waited for %d reset emails, saw %d", n, m.count())
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
 }
 
 func (m *captureMailer) count() int {
@@ -135,11 +163,18 @@ func newResetFixture(t *testing.T) *resetFixture {
 }
 
 // request runs ForgotPassword and returns the token from the resulting email.
+//
+// The count is taken first and waited on afterwards because the send is
+// dispatched in a goroutine: reading "the last reset email" straight after the
+// call can return the previous request's message, which made a test comparing
+// two successive tokens see one token twice.
 func (f *resetFixture) request(t *testing.T) string {
 	t.Helper()
+	before := f.mail.count()
 	if err := f.svc.ForgotPassword(f.ctx, &dto.ForgotPasswordRequest{Email: fixtureEmail}, "127.0.0.1", "go-test"); err != nil {
 		t.Fatalf("ForgotPassword: %v", err)
 	}
+	f.mail.waitForCount(t, before+1)
 	return tokenFromEmail(t, f.mail.last(t).body)
 }
 
@@ -335,6 +370,9 @@ func TestPerAccountThrottle(t *testing.T) {
 		}
 	}
 
+	// The allowed sends are dispatched asynchronously, so wait for them before
+	// asserting that no more than the allowance arrived.
+	f.mail.waitForCount(t, maxResetsPerUser)
 	if got := f.mail.count(); got != maxResetsPerUser {
 		t.Errorf("%d reset emails were sent, want the %d the per-account throttle allows", got, maxResetsPerUser)
 	}

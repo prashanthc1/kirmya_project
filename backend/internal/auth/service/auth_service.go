@@ -791,7 +791,30 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req *dto.ForgotPasswor
 		CreatedAt: time.Now().UTC(),
 	})
 
-	_ = s.sendPasswordResetEmail(u, rawToken)
+	// Delivered off the request path, deliberately.
+	//
+	// This ran inline, and when the mail host was unreachable the handler sat
+	// on a TCP connect that had no deadline: the browser gave up after fifteen
+	// seconds and told the user to check their own connection, while the
+	// goroutine went on blocking for another two minutes.
+	//
+	// Sending here also made the response time an oracle. A request for an
+	// address with no account returns above without touching the mailer, so a
+	// slow answer meant the account existed — which is the very thing the
+	// uniform response at the top of this function exists to hide.
+	go func() {
+		defer func() {
+			// A panic in a detached goroutine takes the process with it, and
+			// this one runs after the response has already gone out.
+			if r := recover(); r != nil {
+				slog.Error("Password reset email dispatch panicked",
+					slog.String("user_id", u.ID.String()),
+					slog.Any("panic", r))
+			}
+		}()
+		s.sendPasswordResetEmail(u, rawToken)
+	}()
+
 	return nil
 }
 
