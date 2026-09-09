@@ -56,13 +56,19 @@ export const PersonalCareerAnalytics: React.FC = () => {
   }, []);
 
   const loadData = async () => {
-    const [usrData, learnData] = await Promise.all([
-      analyticsApi.getUserAnalytics(),
-      analyticsApi.getLearningAnalytics(),
-    ]);
+    try {
+      const [usrData, learnData] = await Promise.all([
+        analyticsApi.getUserAnalytics(),
+        analyticsApi.getLearningAnalytics(),
+      ]);
 
-    if (usrData) setAnalytics(usrData);
-    if (learnData) setLearning(learnData);
+      if (usrData) setAnalytics(usrData);
+      if (learnData) setLearning(learnData);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PersonalCareerAnalytics.tsx: loadData failed', error);
+    }
   };
 
   return (

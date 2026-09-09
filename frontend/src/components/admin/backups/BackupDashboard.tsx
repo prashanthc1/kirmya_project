@@ -39,6 +39,7 @@ export default function BackupDashboard() {
   const [backups, setBackups] = useState<BackupRecord[]>([]);
   const [tiers, setTiers] = useState<DataTierClassification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [triggering, setTriggering] = useState(false);
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [restoreModalOpen, setRestoreModalOpen] = useState(false);
@@ -46,6 +47,7 @@ export default function BackupDashboard() {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [hData, bData, tData] = await Promise.all([
         backupApi.getHealthSummary(),
@@ -55,6 +57,12 @@ export default function BackupDashboard() {
       setHealth(hData);
       setBackups(bData);
       setTiers(tData);
+    } catch (error) {
+      // "No backups listed" and "we could not ask about backups" are opposite
+      // findings for an operator. Clearing health keeps the first from being
+      // read as the second.
+      setHealth(null);
+      setLoadError(error instanceof Error ? error.message : 'The request failed.');
     } finally {
       setLoading(false);
     }
@@ -75,8 +83,14 @@ export default function BackupDashboard() {
   };
 
   const handleVerify = async (id: string) => {
-    await backupApi.verifyBackup(id);
-    await loadData();
+    try {
+      await backupApi.verifyBackup(id);
+      await loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('BackupDashboard.tsx: handleVerify failed', error);
+    }
   };
 
   return (
@@ -120,6 +134,13 @@ export default function BackupDashboard() {
         </Box>
 
         {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+
+        {loadError && !loading && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            Backup status could not be loaded. An empty list below means the API did not answer, not
+            that no backups exist. {loadError}
+          </Alert>
+        )}
 
         {/* Top Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>

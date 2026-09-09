@@ -53,7 +53,13 @@ export default function MentorDetailPage() {
   }, [mentorId]);
 
   const handleSendRequest = async (payload: any) => {
-    await mentorshipApi.createMentorshipRequest(payload);
+    try {
+      await mentorshipApi.createMentorshipRequest(payload);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleSendRequest failed', error);
+    }
   };
 
   if (loading) {

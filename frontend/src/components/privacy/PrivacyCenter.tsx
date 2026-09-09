@@ -69,16 +69,28 @@ export const PrivacyCenter: React.FC<PrivacyCenterProps> = ({ initialTab = 0 }) 
   }, []);
 
   const handleToggle = async (key: keyof PrivacySettings) => {
-    const updatedValue = !prefs[key];
-    const updated = await securityApi.updatePrivacySettings({ [key]: updatedValue });
-    setPrefs(updated);
-    setSaveAlert(true);
+    try {
+      const updatedValue = !prefs[key];
+      const updated = await securityApi.updatePrivacySettings({ [key]: updatedValue });
+      setPrefs(updated);
+      setSaveAlert(true);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PrivacyCenter.tsx: handleToggle failed', error);
+    }
   };
 
   const handleSelectChange = async (key: keyof PrivacySettings, val: string) => {
-    const updated = await securityApi.updatePrivacySettings({ [key]: val as any });
-    setPrefs(updated);
-    setSaveAlert(true);
+    try {
+      const updated = await securityApi.updatePrivacySettings({ [key]: val as any });
+      setPrefs(updated);
+      setSaveAlert(true);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PrivacyCenter.tsx: handleSelectChange failed', error);
+    }
   };
 
   return (

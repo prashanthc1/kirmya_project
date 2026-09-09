@@ -10,6 +10,7 @@ import {
   Chip,
   Stack,
   Skeleton,
+  Alert,
   useTheme,
 } from '@mui/material';
 import SecurityIcon from '@mui/icons-material/Security';
@@ -26,6 +27,7 @@ export default function TrustSafetyAnalyticsCard() {
   const isDark = theme.palette.mode === 'dark';
   const [data, setData] = useState<TrustSafetyAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     loadTrustSafety();
@@ -33,9 +35,15 @@ export default function TrustSafetyAnalyticsCard() {
 
   const loadTrustSafety = async () => {
     setLoading(true);
-    const ts = await analyticsApi.getTrustSafetyAnalytics();
-    setData(ts);
-    setLoading(false);
+    setFailed(false);
+    try {
+      const ts = await analyticsApi.getTrustSafetyAnalytics();
+      setData(ts);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getThreatBadge = (level: string) => {
@@ -61,16 +69,26 @@ export default function TrustSafetyAnalyticsCard() {
     );
   }
 
-  const ts = data || {
-    total_reports_count: 142,
-    resolved_reports_count: 136,
-    avg_resolution_time_mins: 18.5,
-    user_restrictions_count: 12,
-    permanent_bans_count: 3,
-    security_threat_level: 'low',
-    flagged_content_count: 28,
-    spam_score_avg: 1.2,
-  };
+  /*
+   * A threat level is a claim about the platform's safety, and this asserted
+   * one from a literal: whenever the call failed the card reported 142 reports,
+   * 3 permanent bans and "Threat Level: LOW". Nobody had measured any of it.
+   */
+  if (failed || !data) {
+    return (
+      <Card sx={{ borderRadius: 4, p: 3, bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
+          Trust &amp; Safety Moderation Metrics
+        </Typography>
+        <Alert severity="warning">
+          Moderation metrics are unavailable. No figures and no threat level are shown, because
+          none were measured.
+        </Alert>
+      </Card>
+    );
+  }
+
+  const ts = data;
 
   return (
     <Card

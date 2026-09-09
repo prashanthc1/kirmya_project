@@ -16,50 +16,86 @@ import {
   Divider,
 } from '@mui/material';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import { recruiterApi } from '../../features/recruiter/api';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 interface Props {
-  interviewId?: string;
-  candidateName?: string;
+  interviewId: string;
+  candidateName: string;
   onSubmitted?: () => void;
 }
 
+/*
+ * An interviewer's own scorecard.
+ *
+ * This form arrived filled in. Every score was pre-set to 5 of 5, the
+ * recommendation to "Strong Hire", and the written assessment to a paragraph
+ * praising a candidate's "exceptional mastery of Go microservices
+ * architecture, memory allocation profiling, and PostgreSQL GIN index
+ * optimization" - an opinion about a person the interviewer had never met,
+ * ready to be submitted under their name. `interviewId` and `candidateName`
+ * defaulted to "int_101" and "Sarah Chen", so the page rendered it for a
+ * candidate who does not exist.
+ *
+ * Submitting did not call the API. It waited one second and announced "Feedback
+ * Submitted! Your structured interview evaluation has been recorded in the
+ * candidate scorecards pipeline." Nothing was recorded.
+ *
+ * The scores now start unset, the assessment starts empty, the identifiers are
+ * required, and submitting is a real request whose failure is shown.
+ */
 export const InterviewFeedback: React.FC<Props> = ({
-  interviewId = 'int_101',
-  candidateName = 'Sarah Chen',
+  interviewId,
+  candidateName,
   onSubmitted,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
   const [scores, setScores] = useState({
-    technical: 5,
-    communication: 5,
-    problemSolving: 5,
-    cultureFit: 5,
-    leadership: 4,
-    overall: 5,
+    technical: 0,
+    communication: 0,
+    problemSolving: 0,
+    cultureFit: 0,
+    leadership: 0,
+    overall: 0,
   });
 
-  const [recommendation, setRecommendation] = useState<'Strong Hire' | 'Hire' | 'Maybe' | 'No Hire'>('Strong Hire');
-  const [comments, setComments] = useState(
-    'Candidate demonstrated exceptional mastery of Go microservices architecture, memory allocation profiling, and PostgreSQL GIN index optimization. Excellent communication skills.'
-  );
+  const [recommendation, setRecommendation] = useState<'Strong Hire' | 'Hire' | 'Maybe' | 'No Hire'>('Maybe');
+  const [comments, setComments] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleRatingChange = (field: keyof typeof scores, val: number | null) => {
-    setScores((prev) => ({ ...prev, [field]: val || 5 }));
+    setScores((prev) => ({ ...prev, [field]: val ?? 0 }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    setSubmitError(null);
+    try {
+      await recruiterApi.submitInterviewFeedback({
+        interview_id: interviewId,
+        technical_score: scores.technical,
+        communication_score: scores.communication,
+        problem_solving_score: scores.problemSolving,
+        culture_fit_score: scores.cultureFit,
+        leadership_score: scores.leadership,
+        overall_score: scores.overall,
+        recommendation,
+        comments,
+      });
       setSuccess(true);
-      if (onSubmitted) onSubmitted();
-    }, 1000);
+      onSubmitted?.();
+    } catch (err) {
+      setSubmitError(
+        `Your scorecard was not submitted.${err instanceof Error ? ` ${err.message}` : ''}`
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -86,6 +122,12 @@ export const InterviewFeedback: React.FC<Props> = ({
           </Typography>
         </Box>
       </Box>
+
+      {submitError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {submitError}
+        </Alert>
+      )}
 
       {success ? (
         <Box sx={{ textAlign: 'center', py: 4 }}>

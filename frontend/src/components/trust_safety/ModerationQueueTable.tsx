@@ -78,17 +78,29 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
   }, []);
 
   const handleClaim = async (caseId: string) => {
-    await trustSafetyApi.claimCase(caseId);
-    setStatusMsg(`Case ${caseId} successfully claimed.`);
-    loadCases();
+    try {
+      await trustSafetyApi.claimCase(caseId);
+      setStatusMsg(`Case ${caseId} successfully claimed.`);
+      loadCases();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('ModerationQueueTable.tsx: handleClaim failed', error);
+    }
   };
 
   const handleAssignSubmit = async () => {
-    if (!assignCaseModal) return;
-    await trustSafetyApi.assignCase(assignCaseModal.id, assigneeId, assignTeam);
-    setStatusMsg(`Case ${assignCaseModal.case_number || assignCaseModal.id} assigned to ${assigneeId} (${assignTeam}).`);
-    setAssignCaseModal(null);
-    loadCases();
+    try {
+      if (!assignCaseModal) return;
+      await trustSafetyApi.assignCase(assignCaseModal.id, assigneeId, assignTeam);
+      setStatusMsg(`Case ${assignCaseModal.case_number || assignCaseModal.id} assigned to ${assigneeId} (${assignTeam}).`);
+      setAssignCaseModal(null);
+      loadCases();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('ModerationQueueTable.tsx: handleAssignSubmit failed', error);
+    }
   };
 
   const getPriorityBadge = (priority: SafetyCase['priority']) => {

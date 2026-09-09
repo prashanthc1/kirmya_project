@@ -14,6 +14,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  Alert,
+  CircularProgress,
   useTheme,
 } from '@mui/material';
 import EventIcon from '@mui/icons-material/Event';
@@ -21,6 +23,7 @@ import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
 import AddIcon from '@mui/icons-material/Add';
 import GlassCard from '../landing/GlassCard';
 import { InterviewItem } from '../../features/recruiter/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { recruiterApi } from '../../features/recruiter/api';
 
 interface InterviewSchedulerProps {
@@ -28,45 +31,61 @@ interface InterviewSchedulerProps {
   onScheduled?: () => void;
 }
 
-const mockInterviews: InterviewItem[] = [
-  {
-    id: 'int_1',
-    jobId: '11111111-1111-1111-1111-111111111111',
-    candidateId: 'c1111111-1111-1111-1111-111111111111',
-    candidateName: 'Sarah Chen',
-    type: 'Video',
-    scheduledAt: '2026-08-15T10:00:00Z',
-    durationMinutes: 45,
-    meetingLink: 'https://meet.google.com/abc-defg-hij',
-    notes: 'Technical Systems Architecture Round',
-  },
-];
-
-export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ interviews = mockInterviews, onScheduled }) => {
+/*
+ * The recruiter's scheduled interviews, from the API.
+ *
+ * The default for `interviews` was a fabricated list of one - a video interview
+ * with "Sarah Chen" on 15 August at a Google Meet link that does not exist -
+ * and the page that renders this component passed no interviews, so that is
+ * what every recruiter saw. The new-interview form was pre-filled with the
+ * same candidate and two hardcoded identifiers, so submitting it unchanged
+ * would have scheduled a real interview against them.
+ */
+export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ interviews, onScheduled }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [openModal, setOpenModal] = useState(false);
 
-  const [form, setForm] = useState({
-    candidateName: 'Sarah Chen',
-    jobId: '11111111-1111-1111-1111-111111111111',
-    candidateId: 'c1111111-1111-1111-1111-111111111111',
-    type: 'Video',
-    scheduledAt: '2026-08-05T10:00',
-    durationMinutes: 45,
-    meetingLink: 'https://meet.google.com/abc-defg-hij',
-    notes: 'Technical Systems Architecture Deep Dive',
+  const queryClient = useQueryClient();
+  const {
+    data: fetched = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['recruiter', 'interviews'],
+    queryFn: () => recruiterApi.getInterviews(),
+    enabled: interviews === undefined,
   });
+  const rows = interviews ?? fetched;
+
+  const [form, setForm] = useState({
+    candidateName: '',
+    jobId: '',
+    candidateId: '',
+    type: 'Video',
+    scheduledAt: '',
+    durationMinutes: 45,
+    meetingLink: '',
+    notes: '',
+  });
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     try {
       await recruiterApi.scheduleInterview(form);
       setOpenModal(false);
+      await queryClient.invalidateQueries({ queryKey: ['recruiter', 'interviews'] });
       onScheduled?.();
-    } catch {
-      setOpenModal(false);
-      onScheduled?.();
+    } catch (err) {
+      // A refused request used to close the dialog and call `onScheduled`,
+      // which is what a scheduled interview does. Nobody was told the
+      // interview had not been booked.
+      setSubmitError(
+        `The interview was not scheduled.${err instanceof Error ? ` ${err.message}` : ''}`
+      );
     }
   };
 
@@ -76,7 +95,7 @@ export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ intervie
         <Stack direction="row" spacing={1.5} alignItems="center">
           <EventIcon sx={{ color: '#ec4899', fontSize: 28 }} />
           <Typography variant="h5" sx={{ fontWeight: 900 }}>
-            Scheduled Interviews ({interviews.length})
+            Scheduled Interviews ({rows.length})
           </Typography>
         </Stack>
 
@@ -91,7 +110,27 @@ export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ intervie
       </Stack>
 
       <Grid container spacing={2.5}>
-        {interviews.map((item) => (
+        {isLoading && (
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ py: 2 }} role="status" aria-live="polite">
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">Loading your interviews…</Typography>
+          </Stack>
+        )}
+
+        {isError && !isLoading && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Your interviews could not be loaded.
+            {error instanceof Error ? ` ${error.message}` : ''}
+          </Alert>
+        )}
+
+        {!isLoading && !isError && rows.length === 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            No interviews are scheduled.
+          </Typography>
+        )}
+
+        {rows.map((item) => (
           <Grid item xs={12} md={6} key={item.id}>
             <Paper
               elevation={0}
@@ -146,6 +185,11 @@ export const InterviewScheduler: React.FC<InterviewSchedulerProps> = ({ intervie
       <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}>
         <DialogTitle sx={{ fontWeight: 900 }}>Schedule New Interview Session</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {submitError}
+            </Alert>
+          )}
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2} sx={{ pt: 1 }}>
               <Grid item xs={12} sm={6}>

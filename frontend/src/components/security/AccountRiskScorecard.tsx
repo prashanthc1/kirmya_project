@@ -62,12 +62,18 @@ export const AccountRiskScorecard: React.FC = () => {
   };
 
   const handleReassess = async () => {
-    if (!selectedUserId) return;
-    setReassessing(true);
-    const updated = await securityApi.reassessAccountRisk(selectedUserId);
-    setScores((prev) => prev.map((s) => (s.user_id === updated.user_id ? updated : s)));
-    setCurrentScore(updated);
-    setReassessing(false);
+    try {
+      if (!selectedUserId) return;
+      setReassessing(true);
+      const updated = await securityApi.reassessAccountRisk(selectedUserId);
+      setScores((prev) => prev.map((s) => (s.user_id === updated.user_id ? updated : s)));
+      setCurrentScore(updated);
+      setReassessing(false);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AccountRiskScorecard.tsx: handleReassess failed', error);
+    }
   };
 
   const getRiskColor = (level?: AccountRiskScore['risk_level']) => {

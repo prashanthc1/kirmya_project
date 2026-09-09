@@ -75,33 +75,45 @@ export const CommunityModerationDesk: React.FC<CommunityModerationDeskProps> = (
   };
 
   const handleResolveActionSubmit = async () => {
-    if (!selectedAction) return;
-    await communityApi.takeModerationAction(communityId, selectedAction.id, actionType, notes);
-    setActions(
-      actions.map((a) =>
-        a.id === selectedAction.id
-          ? {
-              ...a,
-              actionTaken: actionType,
-              notes,
-              status: actionType === 'dismiss' ? 'dismissed' : 'resolved',
-              moderatorName: 'Current User',
-            }
-          : a
-      )
-    );
-    setOpenDialog(false);
-    if (onActionResolved) onActionResolved();
+    try {
+      if (!selectedAction) return;
+      await communityApi.takeModerationAction(communityId, selectedAction.id, actionType, notes);
+      setActions(
+        actions.map((a) =>
+          a.id === selectedAction.id
+            ? {
+                ...a,
+                actionTaken: actionType,
+                notes,
+                status: actionType === 'dismiss' ? 'dismissed' : 'resolved',
+                moderatorName: 'Current User',
+              }
+            : a
+        )
+      );
+      setOpenDialog(false);
+      if (onActionResolved) onActionResolved();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityModerationDesk.tsx: handleResolveActionSubmit failed', error);
+    }
   };
 
   const handleApproveJoin = async (requestId: string, approve: boolean) => {
-    await communityApi.approveMembership(communityId, requestId, approve);
-    setJoinRequests(
-      joinRequests.map((r) =>
-        r.id === requestId ? { ...r, status: approve ? 'approved' : 'rejected' } : r
-      )
-    );
-    if (onActionResolved) onActionResolved();
+    try {
+      await communityApi.approveMembership(communityId, requestId, approve);
+      setJoinRequests(
+        joinRequests.map((r) =>
+          r.id === requestId ? { ...r, status: approve ? 'approved' : 'rejected' } : r
+        )
+      );
+      if (onActionResolved) onActionResolved();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityModerationDesk.tsx: handleApproveJoin failed', error);
+    }
   };
 
   return (

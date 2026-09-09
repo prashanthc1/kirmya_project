@@ -42,7 +42,7 @@ func setupTestRouter() (*gin.Engine, *SearchHandler, uuid.UUID, string) {
 	testToken := generateTestToken(testUserID)
 
 	repo := repository.NewSearchRepository(nil)
-	svc := service.NewSearchService(repo, nil, nil)
+	svc := service.NewSearchService(repo, nil, nil, nil)
 	handler := NewSearchHandler(svc)
 
 	api := r.Group("/api/v1")

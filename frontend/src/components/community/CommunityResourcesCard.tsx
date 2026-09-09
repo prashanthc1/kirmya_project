@@ -62,20 +62,26 @@ export const CommunityResourcesCard: React.FC<CommunityResourcesCardProps> = ({
   };
 
   const handleShareSubmit = async () => {
-    if (!title || !url) return;
-    const created = await communityApi.createResource(communityId, {
-      title,
-      description,
-      category,
-      url,
-      fileType,
-    });
-    setResources([created, ...resources]);
-    setOpenModal(false);
-    setTitle('');
-    setDescription('');
-    setUrl('');
-    if (onResourceAdded) onResourceAdded();
+    try {
+      if (!title || !url) return;
+      const created = await communityApi.createResource(communityId, {
+        title,
+        description,
+        category,
+        url,
+        fileType,
+      });
+      setResources([created, ...resources]);
+      setOpenModal(false);
+      setTitle('');
+      setDescription('');
+      setUrl('');
+      if (onResourceAdded) onResourceAdded();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityResourcesCard.tsx: handleShareSubmit failed', error);
+    }
   };
 
   return (

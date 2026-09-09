@@ -1,26 +1,50 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Paper, Stack, useTheme } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { Box, Typography, Paper, Stack, Alert, CircularProgress, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EventIcon from '@mui/icons-material/Event';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import HistoryIcon from '@mui/icons-material/History';
+import { applicationsApi } from '../../features/applications/api';
 
 interface ApplicationTimelineProps {
   applicationId: string;
 }
 
-export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = () => {
+/*
+ * The audit history of one application, from the API.
+ *
+ * This component took an `applicationId` and ignored it. Every application
+ * anyone opened showed the same four events compiled into the file: submitted
+ * by "Sarah Chen", shortlisted by "Rashid Al-Maktoum" at "96% AI match",
+ * interviewed by "Amira Al-Farsi", offer issued. Dated to the day. Headed
+ * "Application Activity & Audit History".
+ *
+ * `GET /applications/:id/timeline` has served this all along.
+ */
+function iconFor(status: string) {
+  const s = status.toLowerCase();
+  if (s.includes('offer')) return <LocalOfferIcon sx={{ color: '#8b5cf6' }} />;
+  if (s.includes('interview')) return <EventIcon sx={{ color: '#f59e0b' }} />;
+  return <CheckCircleIcon sx={{ color: '#6366f1' }} />;
+}
+
+export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = ({ applicationId }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const events = [
-    { title: 'Application Submitted', date: 'Jul 28, 2026 at 10:15 AM', user: 'Candidate (Sarah Chen)', note: 'Submitted via Kirmya Job Board', icon: <CheckCircleIcon sx={{ color: '#6366f1' }} /> },
-    { title: 'Screening Passed & Shortlisted', date: 'Jul 29, 2026 at 02:30 PM', user: 'Recruiter (Rashid Al-Maktoum)', note: '96% AI match rating verified.', icon: <CheckCircleIcon sx={{ color: '#10b981' }} /> },
-    { title: 'Technical Interview Scheduled', date: 'Jul 30, 2026 at 11:00 AM', user: 'Hiring Manager (Amira Al-Farsi)', note: 'Scheduled for Aug 5, 2026.', icon: <EventIcon sx={{ color: '#f59e0b' }} /> },
-    { title: 'Job Offer Issued', date: 'Aug 01, 2026 at 04:45 PM', user: 'HR Director', note: 'Offer package sent via email.', icon: <LocalOfferIcon sx={{ color: '#8b5cf6' }} /> },
-  ];
+  const {
+    data: events = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['application', applicationId, 'timeline'],
+    queryFn: () => applicationsApi.getApplicationTimeline(applicationId),
+    enabled: Boolean(applicationId),
+  });
 
   return (
     <Box sx={{ py: 2 }}>
@@ -31,10 +55,32 @@ export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = () => {
         </Typography>
       </Stack>
 
+      {isLoading && (
+        <Stack direction="row" spacing={2} alignItems="center" role="status" aria-live="polite">
+          <CircularProgress size={20} />
+          <Typography variant="body2" color="text.secondary">
+            Loading this application&apos;s history…
+          </Typography>
+        </Stack>
+      )}
+
+      {isError && !isLoading && (
+        <Alert severity="error">
+          This application&apos;s history could not be loaded.
+          {error instanceof Error ? ` ${error.message}` : ''}
+        </Alert>
+      )}
+
+      {!isLoading && !isError && events.length === 0 && (
+        <Typography variant="body2" color="text.secondary">
+          Nothing has happened on this application yet.
+        </Typography>
+      )}
+
       <Stack spacing={2.5}>
-        {events.map((ev, idx) => (
+        {events.map((ev) => (
           <Paper
-            key={idx}
+            key={ev.id}
             elevation={0}
             sx={{
               p: 2,
@@ -44,7 +90,7 @@ export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = () => {
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="flex-start">
-              {ev.icon}
+              {iconFor(ev.status)}
               <Box sx={{ flexGrow: 1 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                   <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
@@ -54,12 +100,16 @@ export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = () => {
                     {ev.date}
                   </Typography>
                 </Stack>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.2 }}>
-                  By: {ev.user}
-                </Typography>
-                <Typography variant="body2" sx={{ fontSize: '0.85rem', mt: 0.8 }}>
-                  &quot;{ev.note}&quot;
-                </Typography>
+                {ev.moved_by && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.2 }}>
+                    By: {ev.moved_by}
+                  </Typography>
+                )}
+                {ev.description && (
+                  <Typography variant="body2" sx={{ fontSize: '0.85rem', mt: 0.8 }}>
+                    {ev.description}
+                  </Typography>
+                )}
               </Box>
             </Stack>
           </Paper>

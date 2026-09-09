@@ -13,6 +13,7 @@ import {
   Grid,
   Paper,
   Chip,
+  Alert,
   IconButton,
   useTheme,
 } from '@mui/material';
@@ -53,8 +54,19 @@ export const OfferManager: React.FC<OfferManagerProps> = ({
     contractType: 'Full-time',
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  /*
+   * A refused offer used to close the dialog and call `onOfferCreated`, which
+   * is the same thing the success path does. The recruiter was told an offer
+   * had been issued to a named candidate, at a stated salary, when the server
+   * had rejected it. A failure keeps the dialog open and says so.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
     try {
       await atsApi.createJobOffer({
         application_id: applicationId,
@@ -68,9 +80,12 @@ export const OfferManager: React.FC<OfferManagerProps> = ({
       });
       onOfferCreated?.();
       onClose();
-    } catch {
-      onOfferCreated?.();
-      onClose();
+    } catch (error) {
+      setSubmitError(
+        `The offer was not issued.${error instanceof Error ? ` ${error.message}` : ''}`
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -84,6 +99,11 @@ export const OfferManager: React.FC<OfferManagerProps> = ({
       </DialogTitle>
 
       <DialogContent>
+        {submitError && (
+          <Alert severity="error" sx={{ mt: 1, borderRadius: '12px' }}>
+            {submitError}
+          </Alert>
+        )}
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2.5} sx={{ pt: 1 }}>
             <Grid item xs={12}>
@@ -125,8 +145,8 @@ export const OfferManager: React.FC<OfferManagerProps> = ({
             <Button variant="text" onClick={onClose} sx={{ fontWeight: 700 }}>
               Cancel
             </Button>
-            <Button type="submit" variant="contained" startIcon={<SendIcon />} sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none', py: 1.2, px: 3 }}>
-              Issue Formal Offer Letter
+            <Button type="submit" variant="contained" disabled={submitting} startIcon={<SendIcon />} sx={{ borderRadius: '12px', fontWeight: 800, textTransform: 'none', py: 1.2, px: 3 }}>
+              {submitting ? 'Issuing…' : 'Issue Formal Offer Letter'}
             </Button>
           </Stack>
         </form>

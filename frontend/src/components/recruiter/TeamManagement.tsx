@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { recruiterApi } from '../../features/recruiter/api';
 import {
   Box,
   Card,
@@ -13,12 +15,14 @@ import {
   Button,
   TextField,
   MenuItem,
+  Tooltip,
+  Alert,
+  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   IconButton,
-  Alert,
   useTheme,
 } from '@mui/material';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
@@ -38,12 +42,32 @@ export const TeamManagement: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const [members, setMembers] = useState<TeamMember[]>([
-    { id: '1', name: 'Rashid Al-Maktoum', email: 'rashid@emaar.ae', role: 'Organization Owner', department: 'Talent Acquisition', status: 'Active' },
-    { id: '2', name: 'Amira Al-Farsi', email: 'amira@emaar.ae', role: 'Recruiter Admin', department: 'HR Operations', status: 'Active' },
-    { id: '3', name: 'Sarah Chen', email: 'sarah.recruiter@emaar.ae', role: 'Recruiter', department: 'Engineering Hiring', status: 'Active' },
-    { id: '4', name: 'Tariq Al-Mansoor', email: 'tariq.hm@emaar.ae', role: 'Hiring Manager', department: 'Facilities', status: 'Active' },
-  ]);
+  /*
+   * The recruiting team, from the API.
+   *
+   * These were four colleagues in component state - Rashid Al-Maktoum, Amira
+   * Al-Farsi, Sarah Chen, Tariq Al-Mansoor, all at emaar.ae - shown to every
+   * recruiter as their own team.
+   *
+   * `GET /recruiter/team` is the only endpoint this surface has. There is no
+   * invite, no role change and no removal, so those controls are disabled and
+   * say why rather than editing a local array and looking like they worked.
+   */
+  const {
+    data: members = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['recruiter', 'team'],
+    queryFn: async (): Promise<TeamMember[]> => {
+      const rows = await recruiterApi.getTeamMembers();
+      return (rows ?? []) as TeamMember[];
+    },
+  });
+
+  const MANAGEMENT_UNAVAILABLE =
+    'Team changes are made by a company owner from the company workspace. This view is read-only.';
 
   const [openInvite, setOpenInvite] = useState(false);
   const [formData, setFormData] = useState<Partial<TeamMember>>({
@@ -62,27 +86,8 @@ export const TeamManagement: React.FC = () => {
     'Viewer',
   ];
 
-  const handleRoleChange = (id: string, newRole: any) => {
-    setMembers(members.map((m) => (m.id === id ? { ...m, role: newRole } : m)));
-  };
-
-  const handleRemove = (id: string) => {
-    setMembers(members.filter((m) => m.id !== id));
-  };
-
-  const handleInvite = () => {
-    if (!formData.email) return;
-    const item: TeamMember = {
-      id: `tm_${Date.now()}`,
-      name: formData.name || formData.email.split('@')[0],
-      email: formData.email,
-      role: (formData.role as any) || 'Recruiter',
-      department: formData.department || 'Talent Acquisition',
-      status: 'Invited',
-    };
-    setMembers([...members, item]);
-    setOpenInvite(false);
-  };
+  // No handlers: the three actions they backed had no endpoint behind them and
+  // only edited this component's copy of the list.
 
   return (
     <Box>
@@ -129,6 +134,29 @@ export const TeamManagement: React.FC = () => {
         </Alert>
 
         <Grid container spacing={2.5}>
+          {isLoading && (
+            <Grid item xs={12}>
+              <Stack direction="row" spacing={2} alignItems="center" sx={{ py: 3 }} role="status" aria-live="polite">
+                <CircularProgress size={20} />
+                <Typography variant="body2" color="text.secondary">Loading your team…</Typography>
+              </Stack>
+            </Grid>
+          )}
+          {isError && !isLoading && (
+            <Grid item xs={12}>
+              <Alert severity="error">
+                Your team could not be loaded.
+                {error instanceof Error ? ` ${error.message}` : ''}
+              </Alert>
+            </Grid>
+          )}
+          {!isLoading && !isError && members.length === 0 && (
+            <Grid item xs={12}>
+              <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                No one else is on this recruiting team yet.
+              </Typography>
+            </Grid>
+          )}
           {members.map((m) => (
             <Grid item xs={12} md={6} key={m.id}>
               <Paper
@@ -159,22 +187,30 @@ export const TeamManagement: React.FC = () => {
                 </Stack>
 
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <TextField
-                    select
-                    size="small"
-                    value={m.role}
-                    onChange={(e) => handleRoleChange(m.id, e.target.value)}
-                    sx={{ minWidth: 160 }}
-                  >
-                    {roles.map((r) => (
-                      <MenuItem key={r} value={r}>
-                        {r}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <IconButton color="error" size="small" onClick={() => handleRemove(m.id)}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  <Tooltip title={MANAGEMENT_UNAVAILABLE}>
+                    <span>
+                      <TextField
+                        select
+                        size="small"
+                        value={m.role}
+                        disabled
+                        sx={{ minWidth: 160 }}
+                      >
+                        {roles.map((r) => (
+                          <MenuItem key={r} value={r}>
+                            {r}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={MANAGEMENT_UNAVAILABLE}>
+                    <span>
+                      <IconButton color="error" size="small" disabled>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
                 </Stack>
               </Paper>
             </Grid>
@@ -222,9 +258,13 @@ export const TeamManagement: React.FC = () => {
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
           <Button onClick={() => setOpenInvite(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleInvite} sx={{ fontWeight: 800 }}>
-            Send Invite
-          </Button>
+          <Tooltip title={MANAGEMENT_UNAVAILABLE}>
+            <span>
+              <Button variant="contained" disabled sx={{ fontWeight: 800 }}>
+                Send Invite
+              </Button>
+            </span>
+          </Tooltip>
         </DialogActions>
       </Dialog>
     </Box>

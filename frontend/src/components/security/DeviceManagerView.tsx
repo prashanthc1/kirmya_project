@@ -36,23 +36,35 @@ export const DeviceManagerView: React.FC = () => {
   }, []);
 
   const handleToggleTrust = async (id: string, currentStatus: string) => {
-    const isCurrentlyTrusted = currentStatus === 'trusted';
-    const nextStatus: DeviceItem['trusted_status'] = isCurrentlyTrusted ? 'revoked' : 'trusted';
+    try {
+      const isCurrentlyTrusted = currentStatus === 'trusted';
+      const nextStatus: DeviceItem['trusted_status'] = isCurrentlyTrusted ? 'revoked' : 'trusted';
 
-    const ok = await securityApi.toggleDeviceTrust(id, !isCurrentlyTrusted);
-    if (ok) {
-      setDevices(
-        devices.map((d) => (d.id === id ? { ...d, trusted_status: nextStatus } : d))
-      );
-      setMessage(`Device status updated to ${nextStatus}.`);
+      const ok = await securityApi.toggleDeviceTrust(id, !isCurrentlyTrusted);
+      if (ok) {
+        setDevices(
+          devices.map((d) => (d.id === id ? { ...d, trusted_status: nextStatus } : d))
+        );
+        setMessage(`Device status updated to ${nextStatus}.`);
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DeviceManagerView.tsx: handleToggleTrust failed', error);
     }
   };
 
   const handleRemove = async (id: string) => {
-    const ok = await securityApi.removeDevice(id);
-    if (ok) {
-      setDevices(devices.filter((d) => d.id !== id));
-      setMessage('Device removed from registered devices.');
+    try {
+      const ok = await securityApi.removeDevice(id);
+      if (ok) {
+        setDevices(devices.filter((d) => d.id !== id));
+        setMessage('Device removed from registered devices.');
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DeviceManagerView.tsx: handleRemove failed', error);
     }
   };
 

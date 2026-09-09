@@ -120,33 +120,11 @@ export const applicationsApi = {
   },
 
   getAnalytics: async (): Promise<{ stats: ApplicationStatsDTO; analytics: CareerAnalyticsDTO }> => {
-    try {
-      const res = await apiClient.get<{ stats: ApplicationStatsDTO; analytics: CareerAnalyticsDTO }>(
-        '/applications/analytics'
-      );
-      return res.data;
-    } catch {
-      return {
-        stats: {
-          total_applications: 0,
-          active_applications: 0,
-          interviews_scheduled: 0,
-          offers_received: 0,
-          rejected_applications: 0,
-          response_rate: 0,
-        },
-        analytics: {
-          applications_sent: 0,
-          interview_rate: 0,
-          response_rate: 0,
-          time_to_response_days: 0,
-          most_applied_roles: [],
-          most_applied_companies: [],
-          application_trend: [],
-          status_funnel: [],
-        },
-      };
-    }
+    const res = await apiClient.get<{ stats: ApplicationStatsDTO; analytics: CareerAnalyticsDTO }>(
+      '/applications/analytics'
+    );
+    return res.data;
+    
   },
 
   getAIInsights: async (): Promise<AIApplicationInsightsDTO | undefined> => {

@@ -14,8 +14,12 @@ import {
   FormControlLabel,
   Checkbox,
   useTheme,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { recruiterApi } from '../../features/recruiter/api';
 import LockIcon from '@mui/icons-material/Lock';
 import GroupIcon from '@mui/icons-material/Group';
 import SendIcon from '@mui/icons-material/Send';
@@ -23,48 +27,61 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 interface NotesPanelProps {
   applicationId: string;
+  candidateId: string;
+  candidateName: string;
 }
 
-export const NotesPanel: React.FC<NotesPanelProps> = () => {
+/*
+ * The recruiting team's notes on this candidate, from the API.
+ *
+ * Two notes lived in component state and were shown on every application: one
+ * from "Rashid Al-Maktoum" on a candidate's "depth in Go concurrency
+ * primitives", one marked private from "Amira Al-Farsi" quoting salary
+ * expectations of $85k-$105k. Neither person exists. The panel took an
+ * `applicationId` and ignored it, so both notes appeared against every
+ * candidate any recruiter opened, including the salary one.
+ *
+ * Worse, a note the recruiter wrote themselves was appended to that array
+ * under the byline "Rashid Al-Maktoum" and never sent anywhere.
+ *
+ * `GET` and `POST /recruiter/candidates/:id/notes` are the real thing, and the
+ * server records the author.
+ */
+export const NotesPanel: React.FC<NotesPanelProps> = ({ applicationId, candidateId }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
+  const queryClient = useQueryClient();
   const [noteText, setNoteText] = useState('');
-  const [isPrivate, setIsPrivate] = useState(false);
-  const [notes, setNotes] = useState([
-    {
-      id: 'n1',
-      author: 'Rashid Al-Maktoum',
-      text: 'Candidate demonstrated exceptional depth in Go concurrency primitives and memory profiling during preliminary screening.',
-      isPrivate: false,
-      date: 'Jul 29, 2026 at 03:15 PM',
+
+  const {
+    data: notes = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['recruiter', 'candidate', candidateId, 'notes'],
+    queryFn: () => recruiterApi.getCandidateNotes(candidateId),
+    enabled: Boolean(candidateId),
+  });
+
+  const addNote = useMutation({
+    mutationFn: () =>
+      recruiterApi.createCandidateNote(candidateId, {
+        note: noteText,
+        application_id: applicationId,
+      }),
+    onSuccess: async () => {
+      setNoteText('');
+      await queryClient.invalidateQueries({
+        queryKey: ['recruiter', 'candidate', candidateId, 'notes'],
+      });
     },
-    {
-      id: 'n2',
-      author: 'Amira Al-Farsi',
-      text: 'Comp expectations are within budget range ($85k-$105k). Recommend advancing to Technical Architecture Round.',
-      isPrivate: true,
-      date: 'Jul 30, 2026 at 09:30 AM',
-    },
-  ]);
+  });
 
   const handleAddNote = () => {
     if (!noteText.trim()) return;
-    setNotes([
-      ...notes,
-      {
-        id: String(Date.now()),
-        author: 'Rashid Al-Maktoum',
-        text: noteText,
-        isPrivate: isPrivate,
-        date: new Date().toLocaleString(),
-      },
-    ]);
-    setNoteText('');
-  };
-
-  const handleDelete = (id: string) => {
-    setNotes(notes.filter((n) => n.id !== id));
+    addNote.mutate();
   };
 
   return (
@@ -81,24 +98,20 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
           multiline
           rows={3}
           fullWidth
-          placeholder="Add recruiter note or mention team members (@amira)..."
+          placeholder="Add a note for your hiring team…"
           value={noteText}
           onChange={(e) => setNoteText(e.target.value)}
           sx={{ mb: 1.5 }}
         />
 
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <FormControlLabel
-            control={<Checkbox checked={isPrivate} onChange={(e) => setIsPrivate(e.target.checked)} color="primary" />}
-            label={
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                {isPrivate ? <LockIcon fontSize="small" color="error" /> : <GroupIcon fontSize="small" color="primary" />}
-                <Typography variant="caption" sx={{ fontWeight: 700 }}>
-                  {isPrivate ? 'Private Note (Recruiter Only)' : 'Visible to Hiring Team'}
-                </Typography>
-              </Stack>
-            }
-          />
+          {/* A "Private Note (Recruiter Only)" checkbox used to sit here. The
+              notes endpoint has no visibility field, so the choice was never
+              sent and every note was team-visible whichever way it was set.
+              Promising a candidate's salary expectations are recruiter-only
+              when they are not is the kind of thing that has to be removed
+              rather than left looking as if it works. */}
+          <span />
 
           <Button variant="contained" endIcon={<SendIcon />} onClick={handleAddNote} sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none' }}>
             Add Note
@@ -107,38 +120,56 @@ export const NotesPanel: React.FC<NotesPanelProps> = () => {
       </Paper>
 
       <Stack spacing={2}>
+        {isLoading && (
+          <Stack direction="row" spacing={2} alignItems="center" role="status" aria-live="polite">
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">Loading notes…</Typography>
+          </Stack>
+        )}
+
+        {isError && !isLoading && (
+          <Alert severity="error">
+            These notes could not be loaded.
+            {error instanceof Error ? ` ${error.message}` : ''}
+          </Alert>
+        )}
+
+        {addNote.isError && (
+          <Alert severity="error">
+            Your note was not saved.
+            {addNote.error instanceof Error ? ` ${addNote.error.message}` : ''}
+          </Alert>
+        )}
+
+        {!isLoading && !isError && notes.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            No one has left a note on this candidate yet.
+          </Typography>
+        )}
+
         {notes.map((n) => (
           <Paper key={n.id} elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem', fontWeight: 800 }}>
-                  {n.author[0]}
+                  {n.recruiterName?.[0] ?? '?'}
                 </Avatar>
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                    {n.author}
+                    {n.recruiterName}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {n.date}
+                    {n.createdAt}
                   </Typography>
                 </Box>
               </Stack>
 
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Chip
-                  label={n.isPrivate ? 'Private' : 'Hiring Team'}
-                  size="small"
-                  color={n.isPrivate ? 'error' : 'primary'}
-                  sx={{ fontSize: '0.65rem', fontWeight: 800 }}
-                />
-                <IconButton size="small" color="error" onClick={() => handleDelete(n.id)}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Stack>
+              {/* Deleting a note had no endpoint and only removed it from
+                  this component's copy of the list. */}
             </Stack>
 
             <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
-              &quot;{n.text}&quot;
+              {n.note}
             </Typography>
           </Paper>
         ))}

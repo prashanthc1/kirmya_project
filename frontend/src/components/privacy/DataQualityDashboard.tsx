@@ -53,14 +53,21 @@ export const DataQualityDashboard: React.FC = () => {
   }, []);
 
   const loadData = async () => {
-    setLoading(true);
-    const [checksData, scoreData] = await Promise.all([
-      privacyApi.getDataQualityChecks(),
-      privacyApi.getOverallQualityScore(),
-    ]);
-    setChecks(checksData);
-    setScore(scoreData);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [checksData, scoreData] = await Promise.all([
+        privacyApi.getDataQualityChecks(),
+        privacyApi.getOverallQualityScore(),
+      ]);
+      setChecks(checksData);
+      setScore(scoreData);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataQualityDashboard.tsx: loadData failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

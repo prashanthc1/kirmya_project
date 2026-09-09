@@ -101,24 +101,36 @@ export const CommunityMemberDirectory: React.FC<CommunityMemberDirectoryProps> =
   };
 
   const handleAssignRoleSubmit = async () => {
-    if (!selectedMember) return;
-    await communityApi.assignRole(communityId, selectedMember.userId, newRole);
-    setMembers(
-      members.map((m) => (m.userId === selectedMember.userId ? { ...m, role: newRole } : m))
-    );
-    setToastMessage(`Assigned role ${newRole} to ${selectedMember.name}`);
-    setOpenRoleDialog(false);
-    handleMenuClose();
-    if (onMemberUpdated) onMemberUpdated();
+    try {
+      if (!selectedMember) return;
+      await communityApi.assignRole(communityId, selectedMember.userId, newRole);
+      setMembers(
+        members.map((m) => (m.userId === selectedMember.userId ? { ...m, role: newRole } : m))
+      );
+      setToastMessage(`Assigned role ${newRole} to ${selectedMember.name}`);
+      setOpenRoleDialog(false);
+      handleMenuClose();
+      if (onMemberUpdated) onMemberUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityMemberDirectory.tsx: handleAssignRoleSubmit failed', error);
+    }
   };
 
   const handleRemoveMember = async () => {
-    if (!selectedMember) return;
-    await communityApi.removeMember(communityId, selectedMember.userId);
-    setMembers(members.filter((m) => m.userId !== selectedMember.userId));
-    setToastMessage(`Removed ${selectedMember.name} from group.`);
-    handleMenuClose();
-    if (onMemberUpdated) onMemberUpdated();
+    try {
+      if (!selectedMember) return;
+      await communityApi.removeMember(communityId, selectedMember.userId);
+      setMembers(members.filter((m) => m.userId !== selectedMember.userId));
+      setToastMessage(`Removed ${selectedMember.name} from group.`);
+      handleMenuClose();
+      if (onMemberUpdated) onMemberUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityMemberDirectory.tsx: handleRemoveMember failed', error);
+    }
   };
 
   return (

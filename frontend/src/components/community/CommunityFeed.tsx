@@ -89,35 +89,53 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   };
 
   const handleToggleLike = async (post: CommunityPost) => {
-    const res = await communityApi.likePost(communityId, post.id);
-    setPosts(
-      posts.map((p) =>
-        p.id === post.id ? { ...p, likesCount: res.likesCount, userLiked: res.userLiked } : p
-      )
-    );
+    try {
+      const res = await communityApi.likePost(communityId, post.id);
+      setPosts(
+        posts.map((p) =>
+          p.id === post.id ? { ...p, likesCount: res.likesCount, userLiked: res.userLiked } : p
+        )
+      );
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleToggleLike failed', error);
+    }
   };
 
   const handleToggleComments = async (postId: string) => {
-    const current = expandedComments[postId];
-    setExpandedComments({ ...expandedComments, [postId]: !current });
-    if (!current && !commentsMap[postId]) {
-      const fetched = await communityApi.getComments(communityId, postId);
-      setCommentsMap((prev) => ({ ...prev, [postId]: fetched }));
+    try {
+      const current = expandedComments[postId];
+      setExpandedComments({ ...expandedComments, [postId]: !current });
+      if (!current && !commentsMap[postId]) {
+        const fetched = await communityApi.getComments(communityId, postId);
+        setCommentsMap((prev) => ({ ...prev, [postId]: fetched }));
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleToggleComments failed', error);
     }
   };
 
   const handleAddComment = async (postId: string) => {
-    const text = commentInputs[postId];
-    if (!text || !text.trim()) return;
-    const newCmt = await communityApi.addComment(communityId, postId, text.trim());
-    setCommentsMap((prev) => ({
-      ...prev,
-      [postId]: [...(prev[postId] || []), newCmt],
-    }));
-    setPosts(
-      posts.map((p) => (p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p))
-    );
-    setCommentInputs({ ...commentInputs, [postId]: '' });
+    try {
+      const text = commentInputs[postId];
+      if (!text || !text.trim()) return;
+      const newCmt = await communityApi.addComment(communityId, postId, text.trim());
+      setCommentsMap((prev) => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), newCmt],
+      }));
+      setPosts(
+        posts.map((p) => (p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p))
+      );
+      setCommentInputs({ ...commentInputs, [postId]: '' });
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleAddComment failed', error);
+    }
   };
 
   const handleMenuOpen = (e: React.MouseEvent<HTMLButtonElement>, post: CommunityPost) => {
@@ -131,35 +149,59 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
   };
 
   const handleTogglePin = async () => {
-    if (!activePost) return;
-    const newPinned = !activePost.isPinned;
-    await communityApi.pinPost(communityId, activePost.id, newPinned);
-    setPosts(posts.map((p) => (p.id === activePost.id ? { ...p, isPinned: newPinned } : p)));
-    handleMenuClose();
-    if (onPostUpdated) onPostUpdated();
+    try {
+      if (!activePost) return;
+      const newPinned = !activePost.isPinned;
+      await communityApi.pinPost(communityId, activePost.id, newPinned);
+      setPosts(posts.map((p) => (p.id === activePost.id ? { ...p, isPinned: newPinned } : p)));
+      handleMenuClose();
+      if (onPostUpdated) onPostUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleTogglePin failed', error);
+    }
   };
 
   const handleToggleLock = async () => {
-    if (!activePost) return;
-    const newLocked = !activePost.isLocked;
-    await communityApi.lockPost(communityId, activePost.id, newLocked);
-    setPosts(posts.map((p) => (p.id === activePost.id ? { ...p, isLocked: newLocked } : p)));
-    handleMenuClose();
-    if (onPostUpdated) onPostUpdated();
+    try {
+      if (!activePost) return;
+      const newLocked = !activePost.isLocked;
+      await communityApi.lockPost(communityId, activePost.id, newLocked);
+      setPosts(posts.map((p) => (p.id === activePost.id ? { ...p, isLocked: newLocked } : p)));
+      handleMenuClose();
+      if (onPostUpdated) onPostUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleToggleLock failed', error);
+    }
   };
 
   const handleDeletePost = async () => {
-    if (!activePost) return;
-    await communityApi.deletePost(communityId, activePost.id);
-    setPosts(posts.filter((p) => p.id !== activePost.id));
-    handleMenuClose();
-    if (onPostUpdated) onPostUpdated();
+    try {
+      if (!activePost) return;
+      await communityApi.deletePost(communityId, activePost.id);
+      setPosts(posts.filter((p) => p.id !== activePost.id));
+      handleMenuClose();
+      if (onPostUpdated) onPostUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleDeletePost failed', error);
+    }
   };
 
   const handleReportPost = async () => {
-    if (!activePost) return;
-    await communityApi.reportContent(communityId, activePost.id, 'post', 'Inappropriate content');
-    handleMenuClose();
+    try {
+      if (!activePost) return;
+      await communityApi.reportContent(communityId, activePost.id, 'post', 'Inappropriate content');
+      handleMenuClose();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityFeed.tsx: handleReportPost failed', error);
+    }
   };
 
   return (

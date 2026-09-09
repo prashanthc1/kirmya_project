@@ -11,6 +11,7 @@ import {
   LinearProgress,
   Stack,
   Skeleton,
+  Alert,
   useTheme,
 } from '@mui/material';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -29,6 +30,7 @@ export default function PerformanceDashboard() {
   const isDark = theme.palette.mode === 'dark';
   const [data, setData] = useState<SystemPerformanceAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     loadPerformance();
@@ -36,9 +38,17 @@ export default function PerformanceDashboard() {
 
   const loadPerformance = async () => {
     setLoading(true);
-    const perf = await analyticsApi.getPerformanceAnalytics();
-    setData(perf);
-    setLoading(false);
+    setFailed(false);
+    try {
+      const perf = await analyticsApi.getPerformanceAnalytics();
+      setData(perf);
+    } catch {
+      // Without this the rejection left the card on its skeleton for ever,
+      // because setLoading(false) was never reached.
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusChip = (status: string) => {
@@ -59,18 +69,29 @@ export default function PerformanceDashboard() {
     );
   }
 
-  const perf = data || {
-    p50_latency_ms: 12.4,
-    p95_latency_ms: 45.2,
-    p99_latency_ms: 88.6,
-    api_request_rate_rps: 1240,
-    db_latency_ms: 3.8,
-    redis_latency_ms: 0.9,
-    search_latency_ms: 14.2,
-    otel_exporter_status: 'healthy',
-    active_worker_threads: 32,
-    error_rate_pct: 0.04,
-  };
+  /*
+   * No measurement, no numbers.
+   *
+   * This read `data || { p50_latency_ms: 12.4, ..., api_request_rate_rps: 1240,
+   * otel_exporter_status: 'healthy' }`, so whenever the telemetry call failed
+   * the card presented a healthy system with sub-millisecond Redis latency.
+   * That is the defect the server-side health report had - reporting healthy
+   * from constants - reproduced on the page that displays it.
+   */
+  if (failed || !data) {
+    return (
+      <Card sx={{ borderRadius: 3, p: 3, bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(16px)' }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
+          System Performance Telemetry
+        </Typography>
+        <Alert severity="warning">
+          Telemetry is unavailable. No performance figures are shown, because none were measured.
+        </Alert>
+      </Card>
+    );
+  }
+
+  const perf = data;
 
   return (
     <Card

@@ -29,19 +29,26 @@ export const AccountDeletionModal: React.FC<AccountDeletionModalProps> = ({ open
   const [loading, setLoading] = useState(false);
 
   const handleConfirmDeletion = async () => {
-    if (confirmPhrase !== 'DELETE MY ACCOUNT') return;
+    try {
+      if (confirmPhrase !== 'DELETE MY ACCOUNT') return;
 
-    setLoading(true);
-    const res = await securityApi.requestAccountDeletion(reason, password);
-    setLoading(false);
+      setLoading(true);
+      const res = await securityApi.requestAccountDeletion(reason, password);
 
-    if (res.success) {
-      setStatusMessage(
-        `Account deletion scheduled. A ${res.grace_period_days}-day grace period has begun. You can cancel deletion anytime by logging back in.`
-      );
-      setTimeout(() => {
-        onClose();
-      }, 2500);
+      if (res.success) {
+        setStatusMessage(
+          `Account deletion scheduled. A ${res.grace_period_days}-day grace period has begun. You can cancel deletion anytime by logging back in.`
+        );
+        setTimeout(() => {
+          onClose();
+        }, 2500);
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AccountDeletionModal.tsx: handleConfirmDeletion failed', error);
+    } finally {
+      setLoading(false);
     }
   };
 

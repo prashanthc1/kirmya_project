@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getTheme } from '../theme';
 
 import AdminMainPage from '../app/admin/page';
@@ -57,7 +58,17 @@ vi.mock('../context/AuthContext', () => ({
 const theme = getTheme('light');
 
 const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+  // A fresh client per render, with retries off: a component that fetches must
+  // not carry another test's cache, and a failed query must settle rather than
+  // retry three times past the end of the test.
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>{ui}</ThemeProvider>
+    </QueryClientProvider>
+  );
 };
 
 describe('Admin, Moderation, Trust & Safety Experience (Prompt 29/50)', () => {

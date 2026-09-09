@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { onboardingApi } from '../../features/onboarding/api';
+import { networkingApi } from '../../features/networking/services/networkingApi';
 import {
   Box,
   Typography,
@@ -31,15 +34,50 @@ export const ConnectionsStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
 
   const [connected, setConnected] = useState<{ [key: string]: boolean }>({});
 
-  const connections = [
-    { id: 'u1', name: 'Sarah Chen', title: 'Staff Recruiter', company: 'Stripe', roleType: 'Recruiter', avatar: 'S' },
-    { id: 'u2', name: 'Tariq Al-Mansoor', title: 'Facilities Director', company: 'Emaar Properties', roleType: 'Mentor', avatar: 'T' },
-    { id: 'u3', name: 'Elena Rostova', title: 'Lead AI Engineer', company: 'Nexus AI', roleType: 'Expert', avatar: 'E' },
-    { id: 'u4', name: 'Hyperion Labs Talent Team', title: 'Corporate Employer Page', company: 'Hyperion Labs', roleType: 'Company', avatar: 'H' },
-  ];
+  /*
+   * People this account could actually connect with.
+   *
+   * These were four literals: "Sarah Chen, Staff Recruiter at Stripe",
+   * "Tariq Al-Mansoor at Emaar Properties", "Elena Rostova at Nexus AI" and a
+   * "Hyperion Labs Talent Team" page - none of whom exist, all presented to
+   * every new user as recommended connections at real named employers, with a
+   * Connect button that only coloured itself in.
+   *
+   * Batch 5 replaced the server's version of this with a real query. This is
+   * the client half.
+   */
+  const {
+    data: suggestions = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['onboarding', 'connections'],
+    queryFn: () => onboardingApi.getRecommendedConnections(),
+  });
 
-  const toggleConnect = (id: string) => {
-    setConnected((prev) => ({ ...prev, [id]: !prev[id] }));
+  const connections = suggestions.map((person) => ({
+    id: person.id,
+    name: person.name,
+    title: person.title,
+    company: person.company,
+    roleType: person.role_type,
+    avatar: (person.name || '?').charAt(0).toUpperCase(),
+  }));
+
+  const connect = useMutation({
+    mutationFn: (userId: string) => networkingApi.sendRequest(userId),
+  });
+
+  const toggleConnect = async (id: string) => {
+    if (connected[id]) return;
+    try {
+      await connect.mutateAsync(id);
+      // Marked only once the request was accepted by the server.
+      setConnected((prev) => ({ ...prev, [id]: true }));
+    } catch {
+      // Left unconnected: the invitation was not sent, so the button must not
+      // say it was.
+    }
   };
 
   return (
@@ -53,6 +91,36 @@ export const ConnectionsStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
         </Typography>
 
         <Grid container spacing={2.5} sx={{ mb: 4 }}>
+          {isLoading && (
+
+            <Typography variant="body2" color="text.secondary" role="status" aria-live="polite">
+
+              Finding people to introduce you to…
+
+            </Typography>
+
+          )}
+
+          {isError && !isLoading && (
+
+            <Typography variant="body2" color="text.secondary">
+
+              Suggestions could not be loaded. You can skip this and connect with people later.
+
+            </Typography>
+
+          )}
+
+          {!isLoading && !isError && connections.length === 0 && (
+
+            <Typography variant="body2" color="text.secondary">
+
+              No suggestions yet. As more people join, you will see them here.
+
+            </Typography>
+
+          )}
+
           {connections.map((conn) => {
             const isC = !!connected[conn.id];
             return (

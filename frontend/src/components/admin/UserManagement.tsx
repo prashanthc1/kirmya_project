@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Typography,
@@ -16,6 +17,8 @@ import {
   Button,
   TextField,
   Stack,
+  Alert,
+  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -29,16 +32,51 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 
 import ImpersonationDialog from './ImpersonationDialog';
+import { adminApi } from '../../features/admin/services/adminApi';
 
 export const UserManagement: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const [users, setUsers] = useState([
-    { id: 'u1', email: 'tariq@kirmya.com', fullName: 'Tariq Al-Mansoor', status: 'Active', verificationStatus: 'Verified', role: 'JobSeeker', createdAt: '2026-01-15' },
-    { id: 'u2', email: 'john.doe@spammatch.com', fullName: 'John Doe', status: 'Suspended', verificationStatus: 'Unverified', role: 'JobSeeker', createdAt: '2026-08-01' },
-    { id: 'u3', email: 'sarah.recruiter@techcorp.com', fullName: 'Sarah Jenkins', status: 'Active', verificationStatus: 'Verified', role: 'Recruiter', createdAt: '2026-03-10' },
-  ]);
+  /*
+   * The accounts this console governs.
+   *
+   * These were three literals in component state - "Tariq Al-Mansoor",
+   * "John Doe", "Sarah Jenkins" - shown to every administrator on a platform
+   * with none of them on it, and the suspend button edited that array. An
+   * administrator could suspend a user who does not exist and watch it work.
+   *
+   * Now the list is the API's, and so is the outcome of every action.
+   */
+  const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
+
+  const {
+    data: users = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['admin', 'users', search],
+    queryFn: () => adminApi.listUsers(search ? { search } : undefined),
+  });
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+
+  const restrict = useMutation({
+    mutationFn: (input: { id: string; isRestricted: boolean; reason: string }) =>
+      adminApi.restrictUser(input.id, { isRestricted: input.isRestricted, reason: input.reason }),
+    onSuccess: invalidate,
+  });
+
+  const verify = useMutation({
+    mutationFn: (input: { id: string; notes: string }) =>
+      adminApi.verifyUser(input.id, { status: 'verified', notes: input.notes }),
+    onSuccess: invalidate,
+  });
+
+  const pendingAction = restrict.isPending || verify.isPending;
+  const actionError = restrict.error || verify.error;
 
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [actionReason, setActionReason] = useState('');
@@ -54,16 +92,23 @@ export const UserManagement: React.FC = () => {
     setDialogOpen(true);
   };
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!selectedUser) return;
-    if (actionType === 'suspend') {
-      setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? { ...u, status: 'Suspended' } : u)));
-    } else if (actionType === 'unsuspend') {
-      setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? { ...u, status: 'Active' } : u)));
-    } else if (actionType === 'verify') {
-      setUsers((prev) => prev.map((u) => (u.id === selectedUser.id ? { ...u, verificationStatus: 'Verified' } : u)));
+    try {
+      if (actionType === 'verify') {
+        await verify.mutateAsync({ id: selectedUser.id, notes: actionReason });
+      } else {
+        await restrict.mutateAsync({
+          id: selectedUser.id,
+          isRestricted: actionType === 'suspend',
+          reason: actionReason,
+        });
+      }
+      setDialogOpen(false);
+    } catch {
+      // Kept open, with the error shown, because the account was not changed.
+      // Closing on a failure is what let the console report work it never did.
     }
-    setDialogOpen(false);
   };
 
   return (
@@ -88,6 +133,9 @@ export const UserManagement: React.FC = () => {
           <TextField
             placeholder="Search users by name, email, or ID..."
             fullWidth
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            inputProps={{ 'aria-label': 'Search users' }}
             InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
           />
         </Stack>
@@ -105,7 +153,42 @@ export const UserManagement: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((u) => (
+              {/*
+                Three honest states in place of a list that was always full.
+                An administrator has to be able to tell "no accounts match" from
+                "the directory could not be read"; a fabricated row answers both
+                questions wrongly.
+              */}
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <Stack direction="row" spacing={2} alignItems="center" sx={{ py: 3 }} role="status" aria-live="polite">
+                      <CircularProgress size={20} />
+                      <Typography variant="body2" color="text.secondary">Loading accounts…</Typography>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              )}
+              {isError && !isLoading && (
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <Alert severity="error" sx={{ my: 2 }}>
+                      The user directory could not be loaded.
+                      {error instanceof Error ? ` ${error.message}` : ''}
+                    </Alert>
+                  </TableCell>
+                </TableRow>
+              )}
+              {!isLoading && !isError && users.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+                      {search ? 'No accounts match that search.' : 'No accounts yet.'}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+              {users.map((u: any) => (
                 <TableRow key={u.id} hover>
                   <TableCell>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{u.fullName}</Typography>
@@ -203,17 +286,25 @@ export const UserManagement: React.FC = () => {
             onChange={(e) => setActionReason(e.target.value)}
             placeholder="Specify policy violation details or identity verification document ID..."
           />
+          {/* The API refused. The dialog stays open and says so, because the
+              account was not changed and the administrator needs to know. */}
+          {actionError ? (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              The account was not changed.
+              {actionError instanceof Error ? ` ${actionError.message}` : ''}
+            </Alert>
+          ) : null}
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
             color={actionType === 'suspend' ? 'error' : 'primary'}
-            disabled={!actionReason}
+            disabled={!actionReason || pendingAction}
             onClick={handleConfirmAction}
             sx={{ fontWeight: 800 }}
           >
-            Confirm Action
+            {pendingAction ? 'Working…' : 'Confirm Action'}
           </Button>
         </DialogActions>
       </Dialog>

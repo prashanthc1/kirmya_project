@@ -36,60 +36,24 @@ import SafetyHubPage from '../app/safety/page';
 import UserSettingsAppealsPage from '../app/settings/trust-safety/appeals/page';
 
 describe('Trust & Safety API Client Suite', () => {
-  it('fetches safety cases and queue items', async () => {
-    const cases = await trustSafetyApi.getSafetyCases();
-    expect(Array.isArray(cases)).toBe(true);
-    expect(cases.length).toBeGreaterThan(0);
-    expect(cases[0]).toHaveProperty('risk_score');
-  });
-
-  it('claims a moderation case', async () => {
-    const claimed = await trustSafetyApi.claimCase('case-101');
-    expect(claimed).toBeDefined();
-    expect(claimed.status).toBe('claimed');
-  });
-
-  it('assigns a moderation case to assignee and team', async () => {
-    const assigned = await trustSafetyApi.assignCase('case-101', 'mod-tier2', 'tier-2-moderation');
-    expect(assigned).toBeDefined();
-    expect(assigned.assigned_to).toBe('mod-tier2');
-  });
-
-  it('executes moderation action and returns decision record', async () => {
-    const decision = await trustSafetyApi.takeModerationAction({
-      case_id: 'case-101',
-      action: 'warning',
-      reason: 'Policy Violation',
-    });
-    expect(decision).toBeDefined();
-    expect(decision.action).toBe('warn');
-  });
-
-  it('fetches safety policies and updates policy matrix', async () => {
-    const policies = await trustSafetyApi.getSafetyPolicies();
-    expect(policies.length).toBeGreaterThan(0);
-    const updated = await trustSafetyApi.updateSafetyPolicy(policies[0].id, { title: 'Updated Policy Title' });
-    expect(updated.title).toBe('Updated Policy Title');
-  });
-
-  it('handles user appeals submission and resolution', async () => {
-    const appeal = await trustSafetyApi.submitAppeal({
-      decision_id: 'dec-101',
-      reason: 'False Positive Flag',
-      explanation: 'Official credentials provided.',
-    });
-    expect(appeal.status).toBe('submitted');
-
-    const resolved = await trustSafetyApi.resolveAppeal(appeal.id, 'approved', 'Approved after identity review');
-    expect(resolved.status).toBe('approved');
-  });
-
-  it('fetches safety metrics summary and moderator workload', async () => {
-    const metrics = await trustSafetyApi.getSafetyMetrics();
-    expect(metrics.total_reports).toBeGreaterThan(0);
-
-    const workloads = await trustSafetyApi.getModeratorWorkloads();
-    expect(workloads.length).toBeGreaterThan(0);
+  /*
+   * These asserted the fixtures the client returned when its request failed:
+   * a case with a risk_score, a claim that came back "claimed", a policy
+   * matrix. None of it came from the API - the suite disables the network, so
+   * every one of those calls failed and the catch block answered.
+   *
+   * A moderation console that reports a case as claimed when the claim did not
+   * reach the server is worse than one that reports an error, so the fallbacks
+   * are gone. What these now pin is that the failure is reported.
+   */
+  it('report a failed request rather than answering with invented data', async () => {
+    await expect(trustSafetyApi.getSafetyCases()).rejects.toThrow();
+    await expect(trustSafetyApi.claimCase('case-101')).rejects.toThrow();
+    await expect(
+      trustSafetyApi.assignCase('case-101', 'mod-tier2', 'tier-2-moderation')
+    ).rejects.toThrow();
+    await expect(trustSafetyApi.getSafetyPolicies()).rejects.toThrow();
+    await expect(trustSafetyApi.getSafetyMetrics()).rejects.toThrow();
   });
 });
 

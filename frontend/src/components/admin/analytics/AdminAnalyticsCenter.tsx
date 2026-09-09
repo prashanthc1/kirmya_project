@@ -73,39 +73,57 @@ export const AdminAnalyticsCenter: React.FC = () => {
   }, [dateRange]);
 
   const loadAllData = async () => {
-    const [ov, ug, ch, fn, jm, af, ms, sr, rep] = await Promise.all([
-      analyticsApi.getAdminOverview(),
-      analyticsApi.getAdminUserGrowth(),
-      analyticsApi.getCohortGrid(),
-      analyticsApi.getActivationFunnel(),
-      analyticsApi.getAdminJobMarket(),
-      analyticsApi.getAdminApplicationFunnel(),
-      analyticsApi.getAdminMessaging(),
-      analyticsApi.getAdminSearch(),
-      analyticsApi.getScheduledReports(),
-    ]);
+    try {
+      const [ov, ug, ch, fn, jm, af, ms, sr, rep] = await Promise.all([
+        analyticsApi.getAdminOverview(),
+        analyticsApi.getAdminUserGrowth(),
+        analyticsApi.getCohortGrid(),
+        analyticsApi.getActivationFunnel(),
+        analyticsApi.getAdminJobMarket(),
+        analyticsApi.getAdminApplicationFunnel(),
+        analyticsApi.getAdminMessaging(),
+        analyticsApi.getAdminSearch(),
+        analyticsApi.getScheduledReports(),
+      ]);
 
-    setOverview(ov);
-    setUserGrowth(ug);
-    setCohortData(ch);
-    setFunnelData(fn);
-    setJobMarket(jm);
-    setAppFunnel(af);
-    setMessaging(ms);
-    setSearchData(sr);
-    setScheduledReports(rep);
+      setOverview(ov);
+      setUserGrowth(ug);
+      setCohortData(ch);
+      setFunnelData(fn);
+      setJobMarket(jm);
+      setAppFunnel(af);
+      setMessaging(ms);
+      setSearchData(sr);
+      setScheduledReports(rep);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AdminAnalyticsCenter.tsx: loadAllData failed', error);
+    }
   };
 
   const handleTriggerExport = async (format: string) => {
-    const res = await analyticsApi.requestExport(format);
-    setExportNotice(`Export job #${res.export.id} queued successfully! Format: ${format.toUpperCase()}`);
-    setTimeout(() => setExportNotice(null), 4000);
+    try {
+      const res = await analyticsApi.requestExport(format);
+      setExportNotice(`Export job #${res.export.id} queued successfully! Format: ${format.toUpperCase()}`);
+      setTimeout(() => setExportNotice(null), 4000);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AdminAnalyticsCenter.tsx: handleTriggerExport failed', error);
+    }
   };
 
   const handleRunCleanup = async () => {
-    const res = await analyticsApi.triggerRetentionCleanup(90);
-    setCleanupNotice(`${res.message} (${res.deleted_records} obsolete records purged).`);
-    setTimeout(() => setCleanupNotice(null), 5000);
+    try {
+      const res = await analyticsApi.triggerRetentionCleanup(90);
+      setCleanupNotice(`${res.message} (${res.deleted_records} obsolete records purged).`);
+      setTimeout(() => setCleanupNotice(null), 5000);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AdminAnalyticsCenter.tsx: handleRunCleanup failed', error);
+    }
   };
 
   return (

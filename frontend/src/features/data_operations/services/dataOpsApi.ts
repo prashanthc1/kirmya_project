@@ -95,12 +95,9 @@ export const dataOpsApi = {
   },
 
   async getUserExportHistory(): Promise<DataExport[]> {
-    try {
-      const res = await apiClient.get<DataExport[]>('/settings/data-export/history');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<DataExport[]>('/settings/data-export/history');
+    return res.data;
+    
   },
 
   // Admin Imports
@@ -125,12 +122,9 @@ export const dataOpsApi = {
   },
 
   async listAdminImports(): Promise<DataImport[]> {
-    try {
-      const res = await apiClient.get<DataImport[]>('/admin/data-operations/imports');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<DataImport[]>('/admin/data-operations/imports');
+    return res.data;
+    
   },
 
   // Admin Exports
@@ -146,12 +140,9 @@ export const dataOpsApi = {
   },
 
   async listAdminExports(): Promise<DataExport[]> {
-    try {
-      const res = await apiClient.get<DataExport[]>('/admin/data-operations/exports');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<DataExport[]>('/admin/data-operations/exports');
+    return res.data;
+    
   },
 
   // Bulk Operations
@@ -167,21 +158,15 @@ export const dataOpsApi = {
   },
 
   async listBulkOperations(): Promise<BulkOperation[]> {
-    try {
-      const res = await apiClient.get<BulkOperation[]>('/admin/data-operations/bulk-operations');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<BulkOperation[]>('/admin/data-operations/bulk-operations');
+    return res.data;
+    
   },
 
   // Migrations
   async listDataMigrations(): Promise<DataMigration[]> {
-    try {
-      const res = await apiClient.get<DataMigration[]>('/admin/data-operations/migrations');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<DataMigration[]>('/admin/data-operations/migrations');
+    return res.data;
+    
   },
 };

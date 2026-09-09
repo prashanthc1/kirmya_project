@@ -44,16 +44,22 @@ export const MFASetupDialog: React.FC<MFASetupDialogProps> = ({ open, onClose })
   }, [open]);
 
   const handleVerify = async () => {
-    if (code.length !== 6) {
-      setStatus('Code must be 6 digits.');
-      return;
-    }
-    const ok = await securityApi.verifyMFA(code);
-    if (ok) {
-      setStatus('Two-Factor Authentication activated successfully!');
-      setActiveStep(2);
-    } else {
-      setStatus('Invalid TOTP verification code. Please check your authenticator app.');
+    try {
+      if (code.length !== 6) {
+        setStatus('Code must be 6 digits.');
+        return;
+      }
+      const ok = await securityApi.verifyMFA(code);
+      if (ok) {
+        setStatus('Two-Factor Authentication activated successfully!');
+        setActiveStep(2);
+      } else {
+        setStatus('Invalid TOTP verification code. Please check your authenticator app.');
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('MFASetupDialog.tsx: handleVerify failed', error);
     }
   };
 

@@ -52,34 +52,47 @@ export const CommunitySettingsTab: React.FC<CommunitySettingsTabProps> = ({
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const handleSave = async () => {
-    setSaving(true);
-    const parsedRules = rules
-      .split('\n')
-      .map((r) => r.trim())
-      .filter((r) => r.length > 0);
+    try {
+      setSaving(true);
+      const parsedRules = rules
+        .split('\n')
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
 
-    const updates: Partial<Community> = {
-      title,
-      description,
-      category,
-      location,
-      avatarUrl,
-      coverImageUrl,
-      isPrivate,
-      postingPermission,
-      rules: parsedRules,
-    };
+      const updates: Partial<Community> = {
+        title,
+        description,
+        category,
+        location,
+        avatarUrl,
+        coverImageUrl,
+        isPrivate,
+        postingPermission,
+        rules: parsedRules,
+      };
 
-    const updated = await communityApi.updateCommunity(community.id, updates);
-    setSaving(false);
-    setToastMsg('Community settings successfully saved.');
-    if (onSave) onSave(updated);
+      const updated = await communityApi.updateCommunity(community.id, updates);
+      setToastMsg('Community settings successfully saved.');
+      if (onSave) onSave(updated);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunitySettingsTab.tsx: handleSave failed', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
-    await communityApi.deleteCommunity(community.id);
-    setOpenDeleteDialog(false);
-    if (onDelete) onDelete();
+    try {
+      await communityApi.deleteCommunity(community.id);
+      setOpenDeleteDialog(false);
+      if (onDelete) onDelete();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunitySettingsTab.tsx: handleDeleteConfirm failed', error);
+    }
   };
 
   return (

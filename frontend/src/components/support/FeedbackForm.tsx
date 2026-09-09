@@ -25,20 +25,32 @@ export const FeedbackForm: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmitFeature = async () => {
-    if (!title || !description) return;
-    await supportApi.createFeatureRequest({ title, category, description });
-    setSuccess('Thank you! Your feature request has been submitted for review.');
-    setTitle('');
-    setDescription('');
+    try {
+      if (!title || !description) return;
+      await supportApi.createFeatureRequest({ title, category, description });
+      setSuccess('Thank you! Your feature request has been submitted for review.');
+      setTitle('');
+      setDescription('');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('FeedbackForm.tsx: handleSubmitFeature failed', error);
+    }
   };
 
   const handleSubmitBug = async () => {
-    if (!title || !description) return;
-    await supportApi.createBugReport({ title, description, steps_to_reproduce: steps });
-    setSuccess('Bug report logged successfully. Our engineering team has been notified.');
-    setTitle('');
-    setDescription('');
-    setSteps('');
+    try {
+      if (!title || !description) return;
+      await supportApi.createBugReport({ title, description, steps_to_reproduce: steps });
+      setSuccess('Bug report logged successfully. Our engineering team has been notified.');
+      setTitle('');
+      setDescription('');
+      setSteps('');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('FeedbackForm.tsx: handleSubmitBug failed', error);
+    }
   };
 
   return (

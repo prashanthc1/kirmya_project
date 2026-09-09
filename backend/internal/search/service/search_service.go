@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"time"
 
@@ -49,7 +51,14 @@ type searchService struct {
 	cache                  cache.MultiTierCache
 }
 
-func NewSearchService(repo repository.SearchRepository, searchAdapter adapter.SearchEngineAdapter, c cache.Cache) SearchService {
+// NewSearchService wires candidate search to the database.
+//
+// The candidate engine was constructed here with a literal nil pool, so the
+// engine named "postgresql-tsvector-v2" never reached PostgreSQL in any
+// environment. It took its "mock candidates fallback for testing and
+// development" branch in production, and every recruiter who searched for
+// candidates was shown the same invented people.
+func NewSearchService(repo repository.SearchRepository, searchAdapter adapter.SearchEngineAdapter, c cache.Cache, db *pgxpool.Pool) SearchService {
 	var multiCache cache.MultiTierCache
 	if c != nil {
 		multiCache = cache.NewMultiTierCache(c)
@@ -57,7 +66,7 @@ func NewSearchService(repo repository.SearchRepository, searchAdapter adapter.Se
 	return &searchService{
 		repo:                   repo,
 		searchAdapter:          searchAdapter,
-		candidateSearchAdapter: adapter.NewPostgreSQLCandidateSearchEngine(nil),
+		candidateSearchAdapter: adapter.NewPostgreSQLCandidateSearchEngine(db),
 		cache:                  multiCache,
 	}
 }
@@ -185,7 +194,6 @@ func (s *searchService) ReindexEntities(ctx context.Context, entityType, entityI
 	}
 }
 
-
 func (s *searchService) GetSuggestions(ctx context.Context, query string) ([]domain.SearchSuggestion, error) {
 	qLower := strings.ToLower(strings.TrimSpace(query))
 
@@ -249,48 +257,38 @@ func (s *searchService) GetFilterFacets(ctx context.Context) (map[string][]strin
 	}, nil
 }
 
+// GetCandidateDetail answers for the candidate that was asked for. It used to
+// run an unfiltered search and return whichever candidate came back first, so
+// every id on the platform resolved to the same person.
 func (s *searchService) GetCandidateDetail(ctx context.Context, candidateID uuid.UUID) (*domain.CandidateSearchResultItem, error) {
-	res, err := s.SearchCandidates(ctx, domain.CandidateSearchQuery{})
-	if err != nil || len(res.Candidates) == 0 {
-		return nil, err
-	}
-	return &res.Candidates[0], nil
+	return s.candidateSearchAdapter.CandidateByID(ctx, candidateID)
 }
 
+// Saving a candidate has no store behind it. These returned nil - the same
+// value a successful save returns - so the console reported the candidate
+// saved, and the saved list was an unfiltered search that returned candidates
+// nobody had saved. Reporting a write that did not happen is worse than
+// refusing it.
+var errCandidateShortlistUnavailable = errors.New("saving a candidate is not available: no shortlist store is configured")
+
 func (s *searchService) SaveCandidate(ctx context.Context, recruiterID, candidateID uuid.UUID) error {
-	return nil
+	return errCandidateShortlistUnavailable
 }
 
 func (s *searchService) UnsaveCandidate(ctx context.Context, recruiterID, candidateID uuid.UUID) error {
-	return nil
+	return errCandidateShortlistUnavailable
 }
 
 func (s *searchService) GetSavedCandidates(ctx context.Context, recruiterID uuid.UUID) ([]domain.CandidateSearchResultItem, error) {
-	res, _ := s.SearchCandidates(ctx, domain.CandidateSearchQuery{})
-	return res.Candidates, nil
+	return nil, errCandidateShortlistUnavailable
 }
 
+// GetSavedSearches returned two literal searches - "Senior Golang Engineers
+// (Dubai)" on a daily alert and "Facilities Operations Directors" on a weekly
+// one - to every recruiter, including one who had saved none, with alert
+// frequencies nothing acts on.
 func (s *searchService) GetSavedSearches(ctx context.Context, recruiterID uuid.UUID) ([]domain.SavedSearchDTO, error) {
-	return []domain.SavedSearchDTO{
-		{
-			ID:             uuid.New(),
-			RecruiterID:    recruiterID,
-			SearchName:     "Senior Golang Engineers (Dubai)",
-			Query:          "Golang Microservices",
-			Filters:        map[string]interface{}{"location": "Dubai, UAE", "min_exp": 5},
-			AlertFrequency: "Daily",
-			CreatedAt:      time.Now().Add(-24 * time.Hour),
-		},
-		{
-			ID:             uuid.New(),
-			RecruiterID:    recruiterID,
-			SearchName:     "Facilities Operations Directors",
-			Query:          "Facilities Management",
-			Filters:        map[string]interface{}{"location": "Abu Dhabi, UAE"},
-			AlertFrequency: "Weekly",
-			CreatedAt:      time.Now().Add(-72 * time.Hour),
-		},
-	}, nil
+	return []domain.SavedSearchDTO{}, nil
 }
 
 func (s *searchService) CreateSavedSearch(ctx context.Context, recruiterID uuid.UUID, searchName, query string, filters map[string]interface{}, frequency string) (*domain.SavedSearchDTO, error) {

@@ -22,9 +22,18 @@ export interface PipelineCandidate {
   applicationId: string;
   candidateId: string;
   candidateName: string;
-  candidateHeadline: string;
+  /** Absent where the pipeline endpoint does not serve one. */
+  candidateHeadline?: string;
   candidateAvatar: string;
-  matchScore: number;
+  /**
+   * Only ever set by something that computed one.
+   *
+   * The pipeline endpoint serves no score, and this card used to render
+   * "{matchScore}% MATCH" from a literal on every candidate - 96%, 94%, 91% -
+   * next to an AI sparkle, which reads as a measurement. The chip is now
+   * rendered only when a score is actually supplied.
+   */
+  matchScore?: number;
   stage: string;
   appliedDate: string;
   interviewScheduledAt?: string;
@@ -92,13 +101,15 @@ export const PipelineCard: React.FC<Props> = ({ candidate, onMoveStage, onViewDe
       </Stack>
 
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-        <Chip
-          icon={<AutoAwesomeIcon sx={{ fontSize: '12px !important' }} />}
-          label={`${candidate.matchScore}% MATCH`}
-          size="small"
-          color="primary"
-          sx={{ fontWeight: 900, fontSize: '0.65rem', height: 20 }}
-        />
+        {typeof candidate.matchScore === 'number' && (
+          <Chip
+            icon={<AutoAwesomeIcon sx={{ fontSize: '12px !important' }} />}
+            label={`${candidate.matchScore}% MATCH`}
+            size="small"
+            color="primary"
+            sx={{ fontWeight: 900, fontSize: '0.65rem', height: 20 }}
+          />
+        )}
         {candidate.interviewScheduledAt && (
           <Chip
             icon={<EventIcon sx={{ fontSize: '12px !important' }} />}

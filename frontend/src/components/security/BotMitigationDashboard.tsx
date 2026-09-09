@@ -50,14 +50,21 @@ export const BotMitigationDashboard: React.FC = () => {
   const [strictScraperBlock, setStrictScraperBlock] = useState(false);
 
   const fetchData = async () => {
-    setLoading(true);
-    const [signalsData, statsData] = await Promise.all([
-      securityApi.getBotDetectionSignals(),
-      securityApi.getBotMitigationStats(),
-    ]);
-    setSignals(signalsData);
-    setStats(statsData);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [signalsData, statsData] = await Promise.all([
+        securityApi.getBotDetectionSignals(),
+        securityApi.getBotMitigationStats(),
+      ]);
+      setSignals(signalsData);
+      setStats(statsData);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('BotMitigationDashboard.tsx: fetchData failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

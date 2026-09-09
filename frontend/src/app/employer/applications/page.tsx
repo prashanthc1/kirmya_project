@@ -1,5 +1,7 @@
 'use client';
 
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { recruiterApi } from '@/features/recruiter/api';
 import React from 'react';
 import {
   Alert,
@@ -27,6 +29,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -51,63 +54,6 @@ interface ApplicationItem {
   experience: string;
 }
 
-const MOCK_APPLICATIONS: ApplicationItem[] = [
-  {
-    id: 'app-1',
-    candidateName: 'Alex Rivera',
-    candidateEmail: 'alex.rivera@example.com',
-    jobTitle: 'Senior Full Stack Engineer',
-    jobId: 'job-101',
-    stage: 'screening',
-    appliedDate: '2026-08-12',
-    matchScore: 94,
-    experience: '6 years',
-  },
-  {
-    id: 'app-2',
-    candidateName: 'Samantha Chen',
-    candidateEmail: 'samantha.chen@example.com',
-    jobTitle: 'Lead Product Manager',
-    jobId: 'job-102',
-    stage: 'interview',
-    appliedDate: '2026-08-10',
-    matchScore: 88,
-    experience: '8 years',
-  },
-  {
-    id: 'app-3',
-    candidateName: 'Michael Vance',
-    candidateEmail: 'michael.v@example.com',
-    jobTitle: 'DevOps / Infrastructure Specialist',
-    jobId: 'job-103',
-    stage: 'new',
-    appliedDate: '2026-08-14',
-    matchScore: 91,
-    experience: '5 years',
-  },
-  {
-    id: 'app-4',
-    candidateName: 'Elena Rostova',
-    candidateEmail: 'elena.rostova@example.com',
-    jobTitle: 'Senior Full Stack Engineer',
-    jobId: 'job-101',
-    stage: 'offer',
-    appliedDate: '2026-08-01',
-    matchScore: 96,
-    experience: '7 years',
-  },
-  {
-    id: 'app-5',
-    candidateName: 'David Miller',
-    candidateEmail: 'david.m@example.com',
-    jobTitle: 'UX/UI Designer',
-    jobId: 'job-104',
-    stage: 'rejected',
-    appliedDate: '2026-08-05',
-    matchScore: 72,
-    experience: '3 years',
-  },
-];
 
 const STAGE_CHIPS: Record<ApplicationItem['stage'], { label: string; color: 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'error' | 'warning' }> = {
   new: { label: 'New', color: 'info' },
@@ -122,7 +68,38 @@ export default function EmployerApplicationsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [stageFilter, setStageFilter] = React.useState('');
   const [selectedApp, setSelectedApp] = React.useState<ApplicationItem | null>(null);
-  const [applications, setApplications] = React.useState<ApplicationItem[]>(MOCK_APPLICATIONS);
+  /*
+   * The applications this employer has actually received.
+   *
+   * This list was four literals - Alex Rivera, Elena Rostova and two more -
+   * with match scores, shown to every employer including one with no postings.
+   * Moving a candidate between stages edited that array and nothing else.
+   */
+  const queryClient = useQueryClient();
+  const {
+    data: applications = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['employer', 'applications'],
+    queryFn: async (): Promise<ApplicationItem[]> => {
+      const rows = await recruiterApi.getApplications();
+      return (rows ?? []).map((row: any) => ({
+        id: row.id,
+        candidateName: row.candidateName,
+        candidateEmail: row.candidateEmail,
+        jobTitle: row.jobTitle,
+        jobId: row.jobId,
+        stage: (row.currentStage || 'new') as ApplicationItem['stage'],
+        appliedDate: row.appliedAt ?? '',
+        // The endpoint supplies a score; absent means no score is shown rather
+        // than a number invented to fill the column.
+        matchScore: row.aiMatchScore,
+        experience: row.experienceYears ? `${row.experienceYears} years` : '',
+      }));
+    },
+  });
 
   const filtered = applications.filter((app) => {
     const matchesSearch =
@@ -133,12 +110,20 @@ export default function EmployerApplicationsPage() {
     return matchesSearch && matchesStage;
   });
 
-  const updateStage = (id: string, nextStage: ApplicationItem['stage']) => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, stage: nextStage } : app))
-    );
-    if (selectedApp && selectedApp.id === id) {
-      setSelectedApp((prev) => (prev ? { ...prev, stage: nextStage } : null));
+  const stageMutation = useMutation({
+    mutationFn: (input: { id: string; stage: string }) =>
+      recruiterApi.updateApplicationStage(input.id, input.stage),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employer', 'applications'] }),
+  });
+
+  const updateStage = async (id: string, nextStage: ApplicationItem['stage']) => {
+    try {
+      await stageMutation.mutateAsync({ id, stage: nextStage });
+      if (selectedApp && selectedApp.id === id) {
+        setSelectedApp((prev) => (prev ? { ...prev, stage: nextStage } : null));
+      }
+    } catch {
+      // The stage did not change on the server, so it does not change here.
     }
   };
 
@@ -208,6 +193,40 @@ export default function EmployerApplicationsPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
+                    {isLoading && (
+
+                      <Stack direction="row" spacing={2} alignItems="center" sx={{ py: 3 }} role="status" aria-live="polite">
+
+                        <CircularProgress size={20} />
+
+                        <Typography variant="body2" color="text.secondary">Loading applications…</Typography>
+
+                      </Stack>
+
+                    )}
+
+                    {isError && !isLoading && (
+
+                      <Alert severity="error" sx={{ my: 2 }}>
+
+                        Applications could not be loaded.
+
+                        {error instanceof Error ? ` ${error.message}` : ''}
+
+                      </Alert>
+
+                    )}
+
+                    {!isLoading && !isError && filtered.length === 0 && (
+
+                      <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+
+                        {searchTerm || stageFilter ? 'No applications match these filters.' : 'No applications yet.'}
+
+                      </Typography>
+
+                    )}
+
                     {filtered.map((app) => (
                       <TableRow key={app.id} hover>
                         <TableCell>

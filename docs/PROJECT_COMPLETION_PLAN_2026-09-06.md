@@ -238,28 +238,40 @@ account was recommended invented people, invented communities, invented job
 postings and a constant feed "insight" scored 95 and attributed to their
 verified skills. Found by reading the PostgreSQL log of a green CI run; fixed,
 and covered by a test verified to fail against the unfixed build. **F24:**
-fourteen files under `frontend/src` still present invented people as real and
-ten make no API call at all, so reachable authenticated pages - recruiter
-candidates and offers, the employer applications list, the admin console,
-onboarding suggestions, the networking client - render fiction. F24 is **not
-fixed**: each screen is step 10 domain work needing its own journey evidence. A
-ratchet stops it spreading and enumerates every file with its owner.
+fourteen files under `frontend/src` presented invented people as real and ten
+made no API call at all, so reachable authenticated pages - recruiter candidates
+and offers, the employer applications list, the admin console, onboarding
+suggestions, the networking client - rendered fiction.
 
-Five of the six are fixed. F24 is open, and is the one release blocker that is a
-code defect.
+F24 was recorded as not fixed and has **since been fixed**, together with two
+further findings that closing it uncovered. **F25:** nine more reachable
+components carried the same fabrications, missed because the ratchet's name list
+was drawn from the fourteen files F24 named; two of them reported writes that
+never happened, including an interview scorecard that arrived pre-filled with
+5-of-5 scores and an assessment of a candidate the interviewer had never met.
+**F26:** the fabrication was on the server as well - the candidate search engine
+was constructed with a `nil` database pool, so it never reached PostgreSQL in
+any environment and always served three invented people, and the recruiter
+dashboard's counts were literals. Three backend tests asserted that behaviour,
+one on the exact name and match score.
+
+All six of this pass's findings are fixed, and so are F25 and F26. No release
+blocker that is a code defect remains.
 
 Restore and rollback are now rehearsed rather than described — 6.1s recovery
 with no data loss, and the previous release serving the hiring journey against
 this candidate's schema. **All 22 prior findings are closed**, and every
 historical residual is resolved or has a stated reason for staying open (R02
 needs a product decision, R05 needs a startup check, R07 needs a provider
-decision). The two findings this pass raised are F23, closed, and F24, open.
+decision). The findings this pass raised are F23, F24 and - from the work that closed F24
+- F25 and F26. All four are closed.
 
 **No module was promoted.** 10C, 10D, 10E and 10H remain open, 10A, 10B, 10F and
 10G remain in progress, and nothing is `verified`. The release verdict is **HOLD
-for broad public launch, and no release at all that exposes the recruiter,
-employer, admin, onboarding or networking screens to real users** while F24
-stands. A controlled internal release of the hiring journey - the one surface
+for broad public launch**. The code defect that made the stronger prohibition
+necessary is fixed, so those screens no longer assert things that are false;
+what they still lack is the end-to-end journey evidence step 10 requires, which
+is why no module was promoted. A controlled internal release of the hiring journey - the one surface
 with evidence behind it in HTTP tests, in the browser against the production
 artifact, against a restored database and under the previous release binary - is
 supportable once object storage, email and an alerting destination are

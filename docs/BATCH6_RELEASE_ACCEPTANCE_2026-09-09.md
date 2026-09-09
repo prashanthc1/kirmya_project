@@ -15,8 +15,9 @@ production artifact, against a restored database and under the previous release
 binary.
 
 The engineering gates are green on one candidate and every one of them was run,
-not quoted. Most of what keeps the hold in place is not code — it is access,
-configuration and product decisions. One item is code, and this batch found it:
+not quoted. What keeps the hold in place is now entirely access, configuration
+and product decisions: the one code defect this batch found, F24, has since been
+fixed, and so have the two further findings that closing it uncovered.
 
 - Four of the eight step 10 domain groups have never had a journey exercised end
   to end. 10C, 10D, 10E and 10H are **open**; 10A, 10B, 10F and 10G are **in
@@ -26,13 +27,11 @@ configuration and product decisions. One item is code, and this batch found it:
   container's own disk.
 - The standalone mobile client cannot be built and authenticates nobody.
 - Nothing pages a person when readiness flips.
-- **Fourteen authenticated frontend surfaces still present invented people as
-  real** — recruiter candidates, offers, pipeline, team and messages; the
-  employer applications list; the admin console; onboarding suggestions; the
-  networking client; privacy and trust/safety reviewers. Nine of them make no
-  API call at all. This batch found it, guarded against it spreading, and did
-  not fix it: each screen is step 10 domain work needing its own journey
-  evidence. This is the one release blocker that is a code defect.
+- Invented people were live across the recruiter, employer, admin, onboarding
+  and networking surfaces. **This is now fixed** — see
+  [F24, F25 and F26](#f24) below — but the fix is recent and the domain groups
+  it touches still lack end-to-end journey evidence, which is why 10A, 10B and
+  10F remain *in progress* rather than verified.
 
 **This release does not close the full-platform scope, and this document does
 not claim it does.** What it closes is step 12's verification work: every check
@@ -435,9 +434,145 @@ inside a completion claim.
    instead is a reviewable handoff: the handbook, the configuration
    requirements, and the two rehearsal scripts.
 
+## 7a. Addendum — F24 closed, and what closing it found
+
+*Added 9 September 2026, after the acceptance pass above.*
+
+### F24 — invented people on fourteen frontend surfaces
+
+<a id="f24"></a>
+
+The acceptance pass found this and deliberately did not fix it. It has now been
+fixed.
+
+All **120 fabricating catch blocks** were removed from **14 API clients**. The
+pattern throughout was the same: a request failed, the client swallowed the
+error and returned a compiled-in object, and the screen rendered it as data.
+`networkingApi.ts` went from 698 lines to 242 with its `mockState` deleted.
+Thirteen of the fourteen files are clear; the fourteenth,
+`privacyApi.ts`, keeps its fixtures behind `isTestEnv`, so they are dead code in
+a production build and no reader can reach them. It stays listed in the
+quarantine rather than exempted, so the seam remains visible.
+
+Removing the fallbacks exposed what they had been hiding: **107 unguarded
+`await` sites** that had never needed error handling because the client never
+threw. Left alone these would have replaced invented data with a permanent
+spinner, or reported a write as successful that had not happened. Each was given
+a stated failure.
+
+Two new tests hold the line: `api-clients-do-not-invent.test.ts` and the
+extended `invented-identities.test.ts` ratchet, whose quarantine list may only
+shrink.
+
+### F25 — nine surfaces the audit missed
+
+<a id="f25"></a>
+
+F24 named fourteen files. The ratchet that guarded it drew its name list from
+those fourteen, and so did not include the two recruiter personas — Rashid
+Al-Maktoum and Amira Al-Farsi. Nine further reachable components were carrying
+them.
+
+Most were display fabrications of the same kind: `ApplicationTimeline` took an
+application id, ignored it, and showed every recruiter the same four-event audit
+history ending in an offer that was never issued; `CandidateProfile` showed the
+same person, with the same "96% MATCH" chip and "Verified Profile" badge, for
+every candidate id.
+
+Two were worse than display, and both were reporting writes that never happened:
+
+- **`InterviewFeedback`** arrived filled in. Every score was pre-set to 5 of 5,
+  the recommendation to "Strong Hire", and the written assessment to a paragraph
+  praising a candidate's "exceptional mastery of Go microservices architecture"
+  — an opinion about a person the interviewer had never met, ready to submit
+  under their name. Submitting did not call the API at all: it waited one second
+  and announced "Feedback Submitted! Your structured interview evaluation has
+  been recorded in the candidate scorecards pipeline."
+- **`RecruiterNotes` and `ats/NotesPanel`** attributed a recruiter's own note to
+  a colleague who does not exist and appended it to local state. It appeared on
+  screen and was gone on reload.
+
+Alongside these, `ats/OfferManager` closed its dialog and called
+`onOfferCreated` — the success path — when the server refused the offer, and the
+offers page fed it four hardcoded identifiers, so "Create New Offer" would have
+posted a real salary offer against placeholder ids for a candidate nobody had
+selected.
+
+Controls with nothing behind them were removed rather than left looking
+functional: note pinning and deletion, and a "Private Note (Recruiter Only)"
+checkbox whose value the notes endpoint has no field for — so a recruiter's
+note about salary expectations was team-visible whichever way they set it.
+
+### F26 — the fabrication was on the server too
+
+<a id="f26"></a>
+
+Wiring the frontend to the API surfaced the more serious finding. The API was
+fabricating as well, so a frontend fix alone would have replaced browser-side
+fiction with server-side fiction and made it harder to see.
+
+`NewSearchService` constructed the candidate engine — the one that reports its
+name as `postgresql-tsvector-v2` — with a **literal `nil` pool**. Its database
+branch was therefore unreachable in every environment, and what production
+served was the branch commented "Mock candidates fallback for testing and
+development": three invented people with resume URLs under `kirmya.com` that
+resolve to nothing and AI match scores of 96, 94 and 91.
+
+Also fabricated:
+
+| Method | What it did |
+|---|---|
+| `searchService.GetCandidateDetail` | ran an unfiltered search and returned the first result, so every candidate id resolved to the same person |
+| `searchService.SaveCandidate` / `UnsaveCandidate` | returned `nil` — the value a successful save returns — with no store behind them |
+| `searchService.GetSavedCandidates` | returned an unfiltered search, so it listed candidates nobody had saved |
+| `searchService.GetSavedSearches` | returned two literal saved searches with alert frequencies nothing acts on |
+| `RecruiterService.GetCandidates` | returned two invented candidates, ignoring the database |
+| `RecruiterService.GetDashboardOverview` | returned literal counts — 142 applicants, 3 offers, 12 successful hires — to every recruiter, including one who had posted nothing |
+| the search engine's own database path | stamped the same three skills and a fixed 92% "AI match" onto every real row, and returned literal facet counts |
+
+**Three backend tests asserted this behaviour**, one of them checking that the
+first candidate is named exactly `"Sarah Chen"` and that her match score is
+exactly `96`. They passed for as long as the fabrication was what production
+served. All three were rewritten to assert refusal.
+
+The fixes: the real pool reaches the engine; the mock fallback is gone and the
+engine fails without a database; `CandidateByID` reads the candidate that was
+asked for, under the same privacy filters as a search; the recruiter's candidate
+list and lookup became queries over **the people who have applied to that
+recruiter's jobs**, so the endpoint is not a read of the whole member directory;
+the dashboard is counted from the caller's own records; saving a candidate is
+refused rather than reported done.
+
+Fields nothing records — a candidate's years of experience, availability, match
+score, verification status, work history, education, certifications — are left
+unset rather than filled with a plausible number.
+
+### Evidence for the addendum
+
+| Check | Result |
+|---|---|
+| Frontend unit (`vitest`) | **598 passed, 66 files**, 0 failed, 0 skipped, no unhandled rejections |
+| Frontend typecheck (`tsc --noEmit`) | clean |
+| Frontend lint (`eslint`) | **0 errors**, 127 warnings (pre-existing) |
+| Frontend production build | clean, all routes emitted |
+| Browser (`playwright`) | **124 passed**, 0 failed, 0 skipped, against a real API and PostgreSQL |
+| Backend build / vet / unit | clean; full `go test ./...` passes |
+| Real-database integration (`-tags=ciintegration`) | `ok kirmya/test/ci 36.9s` |
+| Company service against PostgreSQL | `ok kirmya/internal/company/service` |
+
+**Browser coverage is narrower here than in CI, and this is a sandbox limit, not
+a result.** This environment ships Playwright browser revision 1194 while the
+repo pins `@playwright/test` 1.63.0, which wants 1243, and the download is
+blocked. The four chromium-based projects were run against the installed binary;
+**Firefox and WebKit could not be run locally at all**. CI installs its own
+browsers and runs all six projects, so those two engines are covered there and
+not here.
+
 ## 8. Blockers before a public launch
 
-In the order they have to be solved. None is a code defect.
+In the order they have to be solved. None is a code defect: the three that
+were — F24, and F25 and F26 which closing it uncovered — are fixed and
+evidenced in the [addendum](#7a-addendum--f24-closed-and-what-closing-it-found).
 
 1. **Object storage.** Configure `STORAGE_*` before any real candidate uploads a
    résumé. Today documents go to a container's own disk, which does not survive a
@@ -453,11 +588,14 @@ In the order they have to be solved. None is a code defect.
    a statement about production and should be made with the owner present.
 5. **A production-scale restore.** The 6.1-second figure must not be quoted as
    an RTO until it is re-run against a production-sized snapshot.
-6. **The fourteen frontend surfaces that invent people.** Listed in section 2
-   and enumerated in `frontend/src/test/invented-identities.test.ts`. Until each
-   is wired to real data and its journey exercised, those screens must not be
-   shown to real users. This is the highest-priority remaining product work: it
-   is not a missing feature, it is the product asserting things that are false.
+6. **Journey evidence for the recruiter and ATS screens.** The surfaces that
+   invented people are fixed (F24, F25, F26 in the [addendum](#7a-addendum--f24-closed-and-what-closing-it-found)),
+   and the ratchet keeps them fixed. What is still missing is the step 10
+   evidence: each screen now reads from a real endpoint, but its journey has not
+   been exercised end to end, so 10A, 10B and 10F stay *in progress*. Two
+   endpoints these screens depend on do not exist at all and the screens say so
+   rather than filling the gap — there is no endpoint that lists a recruiter's
+   offers, and none that returns a candidate's work history or education.
 7. **The four open domain groups.** 10C needs a provider decision; 10D, 10E and
    10H need the journeys the plan specifies. Only then is "full platform" a
    phrase this project can use.

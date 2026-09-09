@@ -49,9 +49,11 @@ export default function SystemHealthStudio() {
   const [mReason, setMReason] = useState('Scheduled system maintenance & infrastructure health drill');
   const [actionLoading, setActionLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [hSummary, incList, recList] = await Promise.all([
         systemHealthApi.getAdminHealthSummary(),
@@ -61,6 +63,12 @@ export default function SystemHealthStudio() {
       setHealth(hSummary);
       setIncidents(incList);
       setRecoveries(recList);
+    } catch (error) {
+      // Health is the one screen that must never guess. With no answer from
+      // the API it says so; it does not leave the last state on screen or
+      // fall back to a reassuring default.
+      setHealth(null);
+      setLoadError(error instanceof Error ? error.message : 'The request failed.');
     } finally {
       setLoading(false);
     }
@@ -142,6 +150,13 @@ export default function SystemHealthStudio() {
 
         {successMsg && <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccessMsg(null)}>{successMsg}</Alert>}
         {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />}
+
+        {loadError && !loading && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            Platform health is unknown: the health API could not be reached. Treat this as no signal,
+            not as a healthy platform. {loadError}
+          </Alert>
+        )}
 
         {/* System Health Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>

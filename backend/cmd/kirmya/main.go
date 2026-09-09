@@ -609,7 +609,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		}
 		searchEngineAdapter = searchAdapter.NewOpenSearchAdapter(openSearchURL, searchEngineAdapter)
 	}
-	searchService := searchSvc.NewSearchService(searchRepository, searchEngineAdapter, appCache)
+	searchService := searchSvc.NewSearchService(searchRepository, searchEngineAdapter, appCache, dbPool)
 	searchHandler := searchHttp.NewSearchHandler(searchService)
 
 	cSearchRepository := candidateSearchRepo.NewSearchRepository(dbPool)

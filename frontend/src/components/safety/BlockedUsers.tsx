@@ -50,9 +50,15 @@ export const BlockedUsers: React.FC = () => {
   }, []);
 
   const handleUnblock = async (id: string, blockedId: string) => {
-    await safetyApi.unblockUser(blockedId);
-    setBlocks((prev) => prev.filter((b) => b.id !== id && b.blocked_id !== blockedId));
-    setMessage('Account unblocked successfully. Communication channels restored.');
+    try {
+      await safetyApi.unblockUser(blockedId);
+      setBlocks((prev) => prev.filter((b) => b.id !== id && b.blocked_id !== blockedId));
+      setMessage('Account unblocked successfully. Communication channels restored.');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('BlockedUsers.tsx: handleUnblock failed', error);
+    }
   };
 
   const filteredBlocks = blocks.filter(

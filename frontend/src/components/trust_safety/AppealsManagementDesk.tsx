@@ -63,12 +63,18 @@ export const AppealsManagementDesk: React.FC = () => {
   }, []);
 
   const handleResolveSubmit = async () => {
-    if (!resolveModal) return;
-    await trustSafetyApi.resolveAppeal(resolveModal.id, resolutionStatus, resolutionNotes);
-    setStatusMsg(`Appeal ${resolveModal.id} has been ${resolutionStatus.toUpperCase()}.`);
-    setResolveModal(null);
-    setResolutionNotes('');
-    loadAppeals();
+    try {
+      if (!resolveModal) return;
+      await trustSafetyApi.resolveAppeal(resolveModal.id, resolutionStatus, resolutionNotes);
+      setStatusMsg(`Appeal ${resolveModal.id} has been ${resolutionStatus.toUpperCase()}.`);
+      setResolveModal(null);
+      setResolutionNotes('');
+      loadAppeals();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AppealsManagementDesk.tsx: handleResolveSubmit failed', error);
+    }
   };
 
   const getStatusChip = (status: SafetyAppeal['status']) => {

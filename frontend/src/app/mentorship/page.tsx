@@ -61,43 +61,79 @@ export default function MentorshipDashboardPage() {
   const activeMentorship = mentorships[0];
 
   const handleUpdateGoal = async (goalId: string, updates: any) => {
-    if (!activeMentorship) return;
-    await mentorshipApi.updateGoal(activeMentorship.id, goalId, updates);
-    const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
-    setMentorships([updated, ...mentorships.slice(1)]);
+    try {
+      if (!activeMentorship) return;
+      await mentorshipApi.updateGoal(activeMentorship.id, goalId, updates);
+      const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
+      setMentorships([updated, ...mentorships.slice(1)]);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleUpdateGoal failed', error);
+    }
   };
 
   const handleAddGoal = async (newGoal: any) => {
-    if (!activeMentorship) return;
-    await mentorshipApi.createGoal(activeMentorship.id, newGoal);
-    const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
-    setMentorships([updated, ...mentorships.slice(1)]);
+    try {
+      if (!activeMentorship) return;
+      await mentorshipApi.createGoal(activeMentorship.id, newGoal);
+      const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
+      setMentorships([updated, ...mentorships.slice(1)]);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleAddGoal failed', error);
+    }
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!activeMentorship) return;
-    await mentorshipApi.deleteGoal(activeMentorship.id, goalId);
-    const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
-    setMentorships([updated, ...mentorships.slice(1)]);
+    try {
+      if (!activeMentorship) return;
+      await mentorshipApi.deleteGoal(activeMentorship.id, goalId);
+      const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
+      setMentorships([updated, ...mentorships.slice(1)]);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleDeleteGoal failed', error);
+    }
   };
 
   const handleScheduleSession = async (sessionData: any) => {
-    if (!activeMentorship) return;
-    await mentorshipApi.scheduleSession(activeMentorship.id, sessionData);
-    const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
-    setMentorships([updated, ...mentorships.slice(1)]);
+    try {
+      if (!activeMentorship) return;
+      await mentorshipApi.scheduleSession(activeMentorship.id, sessionData);
+      const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
+      setMentorships([updated, ...mentorships.slice(1)]);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleScheduleSession failed', error);
+    }
   };
 
   const handleUpdateSessionStatus = async (sessionId: string, status: any) => {
-    if (!activeMentorship) return;
-    await mentorshipApi.updateSession(activeMentorship.id, sessionId, { status });
-    const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
-    setMentorships([updated, ...mentorships.slice(1)]);
+    try {
+      if (!activeMentorship) return;
+      await mentorshipApi.updateSession(activeMentorship.id, sessionId, { status });
+      const updated = await mentorshipApi.getMentorshipById(activeMentorship.id);
+      setMentorships([updated, ...mentorships.slice(1)]);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleUpdateSessionStatus failed', error);
+    }
   };
 
   const handleSaveMentorProfile = async (updates: any) => {
-    const updated = await mentorshipApi.updateMentorProfile(updates);
-    setUserMentorProfile(updated);
+    try {
+      const updated = await mentorshipApi.updateMentorProfile(updates);
+      setUserMentorProfile(updated);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleSaveMentorProfile failed', error);
+    }
   };
 
   if (loading) {

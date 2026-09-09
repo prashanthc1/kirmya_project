@@ -36,15 +36,28 @@ export const PolicyVersionTable: React.FC = () => {
   }, []);
 
   const loadPolicies = async () => {
-    setLoading(true);
-    const data = await privacyApi.getPolicyVersions();
-    setPolicies(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getPolicyVersions();
+      setPolicies(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PolicyVersionTable.tsx: loadPolicies failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePublish = async (id: string) => {
-    const updated = await privacyApi.publishPolicyVersion(id);
-    setPolicies((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    try {
+      const updated = await privacyApi.publishPolicyVersion(id);
+      setPolicies((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PolicyVersionTable.tsx: handlePublish failed', error);
+    }
   };
 
   return (

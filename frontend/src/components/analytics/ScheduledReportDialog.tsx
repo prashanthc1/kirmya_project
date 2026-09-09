@@ -41,39 +41,46 @@ export default function ScheduledReportDialog({ open, onClose, onCreated }: Sche
   ];
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      setErrorMsg('Report title is required.');
-      return;
+    try {
+      if (!title.trim()) {
+        setErrorMsg('Report title is required.');
+        return;
+      }
+      if (!cronExpression.trim()) {
+        setErrorMsg('Cron expression schedule is required.');
+        return;
+      }
+
+      setSubmitting(true);
+      setErrorMsg(null);
+
+      const recipients = recipientsInput
+        .split(',')
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
+
+      const payload = {
+        title,
+        report_type: reportType,
+        cron_expression: cronExpression,
+        export_format: exportFormat,
+        recipients,
+      };
+
+      const res = await analyticsApi.createScheduledReport(payload);
+      if (onCreated) {
+        onCreated(res);
+      }
+      onClose();
+      // Reset form
+      setTitle('');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      setErrorMsg(error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setSubmitting(false);
     }
-    if (!cronExpression.trim()) {
-      setErrorMsg('Cron expression schedule is required.');
-      return;
-    }
-
-    setSubmitting(true);
-    setErrorMsg(null);
-
-    const recipients = recipientsInput
-      .split(',')
-      .map((r) => r.trim())
-      .filter((r) => r.length > 0);
-
-    const payload = {
-      title,
-      report_type: reportType,
-      cron_expression: cronExpression,
-      export_format: exportFormat,
-      recipients,
-    };
-
-    const res = await analyticsApi.createScheduledReport(payload);
-    setSubmitting(false);
-    if (onCreated) {
-      onCreated(res);
-    }
-    onClose();
-    // Reset form
-    setTitle('');
   };
 
   return (

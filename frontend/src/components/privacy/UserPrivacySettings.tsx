@@ -58,8 +58,14 @@ export const UserPrivacySettings: React.FC = () => {
   }, []);
 
   const loadUserRequests = async () => {
-    const data = await privacyApi.getDataSubjectRequests();
-    setRequests(data);
+    try {
+      const data = await privacyApi.getDataSubjectRequests();
+      setRequests(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserPrivacySettings.tsx: loadUserRequests failed', error);
+    }
   };
 
   const handleSaveConsent = () => {
@@ -68,19 +74,26 @@ export const UserPrivacySettings: React.FC = () => {
   };
 
   const handleSubmitRequest = async () => {
-    setSubmitting(true);
-    const newReq = await privacyApi.createDataSubjectRequest({
-      userId: 'current-user-id',
-      userEmail: 'user@example.com',
-      requestType,
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      notes: requestNotes,
-    });
-    setRequests((prev) => [newReq, ...prev]);
-    setSubmitting(false);
-    setSubmitSuccess(true);
-    setOpenRequestModal(false);
-    setRequestNotes('');
+    try {
+      setSubmitting(true);
+      const newReq = await privacyApi.createDataSubjectRequest({
+        userId: 'current-user-id',
+        userEmail: 'user@example.com',
+        requestType,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        notes: requestNotes,
+      });
+      setRequests((prev) => [newReq, ...prev]);
+      setSubmitSuccess(true);
+      setOpenRequestModal(false);
+      setRequestNotes('');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserPrivacySettings.tsx: handleSubmitRequest failed', error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

@@ -56,10 +56,17 @@ export const SecurityRulesConfig: React.FC = () => {
   const [severity, setSeverity] = useState<SecurityRule['severity']>('high');
 
   const fetchRules = async () => {
-    setLoading(true);
-    const data = await securityApi.getSecurityRules();
-    setRules(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await securityApi.getSecurityRules();
+      setRules(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityRulesConfig.tsx: fetchRules failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -67,8 +74,14 @@ export const SecurityRulesConfig: React.FC = () => {
   }, []);
 
   const handleToggleRule = async (ruleId: string, currentEnabled: boolean) => {
-    const updated = await securityApi.toggleSecurityRule(ruleId, !currentEnabled);
-    setRules((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+    try {
+      const updated = await securityApi.toggleSecurityRule(ruleId, !currentEnabled);
+      setRules((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityRulesConfig.tsx: handleToggleRule failed', error);
+    }
   };
 
   const handleOpenEdit = (rule: SecurityRule) => {
@@ -81,15 +94,21 @@ export const SecurityRulesConfig: React.FC = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingRule) return;
-    const updated = await securityApi.updateSecurityRule(editingRule.id, {
-      threshold,
-      time_window_seconds: timeWindowSeconds,
-      action,
-      severity,
-    });
-    setRules((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-    setEditModalOpen(false);
+    try {
+      if (!editingRule) return;
+      const updated = await securityApi.updateSecurityRule(editingRule.id, {
+        threshold,
+        time_window_seconds: timeWindowSeconds,
+        action,
+        severity,
+      });
+      setRules((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setEditModalOpen(false);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityRulesConfig.tsx: handleSaveEdit failed', error);
+    }
   };
 
   const getActionChip = (act: SecurityRule['action']) => {

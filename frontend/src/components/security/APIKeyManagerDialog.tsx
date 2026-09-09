@@ -45,15 +45,21 @@ export const APIKeyManagerDialog: React.FC<APIKeyManagerDialogProps> = ({ open, 
   };
 
   const handleGenerate = async () => {
-    if (!name) return;
-    const selectedScopes = Object.entries(scopes)
-      .filter(([, active]) => active)
-      .map(([s]) => s)
-      .join(',');
+    try {
+      if (!name) return;
+      const selectedScopes = Object.entries(scopes)
+        .filter(([, active]) => active)
+        .map(([s]) => s)
+        .join(',');
 
-    const res = await securityApi.createAPIKey({ name, scopes: selectedScopes });
-    setGeneratedSecret(res.secret);
-    if (onKeyCreated) onKeyCreated();
+      const res = await securityApi.createAPIKey({ name, scopes: selectedScopes });
+      setGeneratedSecret(res.secret);
+      if (onKeyCreated) onKeyCreated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('APIKeyManagerDialog.tsx: handleGenerate failed', error);
+    }
   };
 
   const handleClose = () => {

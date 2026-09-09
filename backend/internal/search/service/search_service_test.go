@@ -10,8 +10,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestSearchCandidatesFlow(t *testing.T) {
-	svc := NewSearchService(nil, nil, nil)
+// Candidate search reads PostgreSQL, so with no database it fails.
+//
+// This test used to assert that a service built with no database returns
+// results, that the first is named "Sarah Chen", and that her AI match score
+// is exactly 96. It was a test of the fabrication, and it passed for as long
+// as the fabrication was what production served.
+func TestSearchCandidatesNeedsADatabase(t *testing.T) {
+	svc := NewSearchService(nil, nil, nil, nil)
 
 	q := domain.CandidateSearchQuery{
 		Query:       "Golang Microservices",
@@ -21,26 +27,25 @@ func TestSearchCandidatesFlow(t *testing.T) {
 		Limit:       10,
 	}
 
-	resp, err := svc.SearchCandidates(context.Background(), q)
-	if err != nil {
-		t.Fatalf("Expected no error searching candidates, got %v", err)
+	if _, err := svc.SearchCandidates(context.Background(), q); err == nil {
+		t.Error("expected candidate search with no database to fail rather than answer")
 	}
+}
 
-	if resp.TotalResults == 0 {
-		t.Errorf("Expected candidate results, got %d", resp.TotalResults)
+// Saving a candidate has no store, so it is refused rather than reported done.
+func TestSavingACandidateIsRefusedRatherThanFaked(t *testing.T) {
+	svc := NewSearchService(nil, nil, nil, nil)
+
+	if err := svc.SaveCandidate(context.Background(), uuid.New(), uuid.New()); err == nil {
+		t.Error("expected saving a candidate to be refused while no shortlist store exists")
 	}
-
-	if resp.Candidates[0].Name != "Sarah Chen" {
-		t.Errorf("Expected first candidate 'Sarah Chen', got %s", resp.Candidates[0].Name)
-	}
-
-	if resp.Candidates[0].AIMatch.OverallScore != 96 {
-		t.Errorf("Expected AI match score 96, got %d", resp.Candidates[0].AIMatch.OverallScore)
+	if _, err := svc.GetSavedCandidates(context.Background(), uuid.New()); err == nil {
+		t.Error("expected the saved-candidate list to be refused rather than answered with a search")
 	}
 }
 
 func TestTalentPoolsFlow(t *testing.T) {
-	svc := NewSearchService(nil, nil, nil)
+	svc := NewSearchService(nil, nil, nil, nil)
 	recruiterID := uuid.New()
 
 	pools, err := svc.GetTalentPools(context.Background(), recruiterID)
@@ -63,7 +68,7 @@ func TestTalentPoolsFlow(t *testing.T) {
 }
 
 func TestCandidateComparisonFlow(t *testing.T) {
-	svc := NewSearchService(nil, nil, nil)
+	svc := NewSearchService(nil, nil, nil, nil)
 	ids := []uuid.UUID{uuid.New(), uuid.New()}
 
 	matrix, err := svc.CompareCandidates(context.Background(), ids)
@@ -77,7 +82,7 @@ func TestCandidateComparisonFlow(t *testing.T) {
 }
 
 func TestNormalizeQuery(t *testing.T) {
-	svc := NewSearchService(nil, nil, nil)
+	svc := NewSearchService(nil, nil, nil, nil)
 	tests := []struct {
 		input    string
 		expected string
@@ -98,7 +103,7 @@ func TestNormalizeQuery(t *testing.T) {
 
 func TestSearchWithFilters(t *testing.T) {
 	repo := repository.NewSearchRepository(nil)
-	svc := NewSearchService(repo, nil, nil)
+	svc := NewSearchService(repo, nil, nil, nil)
 	userID := uuid.New()
 
 	resp, err := svc.Search(context.Background(), userID, "!!Go!!", domain.CategoryJobs)
@@ -125,7 +130,7 @@ func TestSearchWithFilters(t *testing.T) {
 
 func TestDeleteSearchHistoryItem(t *testing.T) {
 	repo := repository.NewSearchRepository(nil)
-	svc := NewSearchService(repo, nil, nil)
+	svc := NewSearchService(repo, nil, nil, nil)
 	userID := uuid.New()
 
 	historyItem := &domain.SearchHistoryItem{
@@ -165,7 +170,7 @@ func TestDeleteSearchHistoryItem(t *testing.T) {
 }
 
 func TestReindexEntities(t *testing.T) {
-	svc := NewSearchService(nil, nil, nil)
+	svc := NewSearchService(nil, nil, nil, nil)
 
 	countSingle, err := svc.ReindexEntities(context.Background(), "jobs", "job-123")
 	if err != nil || countSingle != 1 {
@@ -182,4 +187,3 @@ func TestReindexEntities(t *testing.T) {
 		t.Errorf("Expected count 225 for all entities reindex, got count %d, err %v", countAll, err)
 	}
 }
-

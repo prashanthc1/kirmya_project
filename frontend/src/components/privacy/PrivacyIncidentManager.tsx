@@ -55,10 +55,17 @@ export const PrivacyIncidentManager: React.FC = () => {
   }, []);
 
   const loadIncidents = async () => {
-    setLoading(true);
-    const data = await privacyApi.getPrivacyIncidents();
-    setIncidents(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getPrivacyIncidents();
+      setIncidents(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PrivacyIncidentManager.tsx: loadIncidents failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenUpdate = (inc: PrivacyIncidentItem) => {
@@ -67,10 +74,16 @@ export const PrivacyIncidentManager: React.FC = () => {
   };
 
   const handleSaveStatus = async () => {
-    if (!selectedInc) return;
-    const updated = await privacyApi.updateIncidentStatus(selectedInc.id, newStatus);
-    setIncidents((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
-    setSelectedInc(null);
+    try {
+      if (!selectedInc) return;
+      const updated = await privacyApi.updateIncidentStatus(selectedInc.id, newStatus);
+      setIncidents((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      setSelectedInc(null);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PrivacyIncidentManager.tsx: handleSaveStatus failed', error);
+    }
   };
 
   return (

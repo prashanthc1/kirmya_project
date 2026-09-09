@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"testing"
 
 	"kirmya/internal/search/domain"
@@ -93,21 +94,22 @@ func TestCandidateSearchProvider(t *testing.T) {
 		t.Errorf("Expected candidate engine name 'postgresql-tsvector-v2', got %s", name)
 	}
 
-	resp, err := engine.SearchCandidates(context.Background(), domain.CandidateSearchQuery{
+	// This engine is named for PostgreSQL, and with no pool it now says so.
+	//
+	// The assertions here used to be that a nil-pool engine returns candidates
+	// and skill facets. They passed against the "mock candidates fallback for
+	// testing and development" - Sarah Chen, Tariq Al-Mansoor and Elena
+	// Rostova - which was the branch production took, because the search
+	// service constructed this engine with a nil pool.
+	if _, err := engine.SearchCandidates(context.Background(), domain.CandidateSearchQuery{
 		Query: "Golang",
 		Page:  1,
 		Limit: 10,
-	})
-	if err != nil {
-		t.Fatalf("Expected no error searching candidates, got %v", err)
+	}); err == nil {
+		t.Error("expected candidate search with no database to fail rather than answer")
 	}
-	if resp.TotalResults == 0 {
-		t.Errorf("Expected candidate results, got 0")
-	}
-	if len(resp.Candidates) == 0 {
-		t.Errorf("Expected candidates slice to be non-empty")
-	}
-	if resp.Facets == nil || len(resp.Facets["skills"]) == 0 {
-		t.Errorf("Expected skills facets in candidate search response")
+
+	if _, err := engine.CandidateByID(context.Background(), uuid.New()); err == nil {
+		t.Error("expected a candidate lookup with no database to fail rather than answer")
 	}
 }

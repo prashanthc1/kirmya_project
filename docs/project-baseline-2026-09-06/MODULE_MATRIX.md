@@ -132,33 +132,39 @@ exist, opens already signed in, and its sign-in button authenticates nobody. See
 scoped to `(user_id, device_id)` and a push that refuses a body naming somebody
 else — is implemented and covered by CI.
 
-### Correction: invented people are still live on fourteen surfaces
+### Correction: invented people were live on fourteen surfaces — now fixed
 
 Batch 5 recorded that the fabricated candidates, colleagues, endorsers and
-suggestions were gone — *"All of it is gone."* That is true of the server for
-the modules it named, and true of the public homepage. It is **not** true of the
-web client.
+suggestions were gone — *"All of it is gone."* That was true of the server for
+the modules it named, and true of the public homepage. It was **not** true of
+the web client.
 
-Scanning `frontend/src` for the specific fabricated identities finds fourteen
-files still carrying them. Ten make no API call at all, so they render fiction
-to every viewer of a reachable authenticated page; four are API clients that
-fall back to it. The list, with the group and responsible role for each, is in
-`frontend/src/test/invented-identities.test.ts` and in the
-[batch 6 acceptance record](../BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md).
+Scanning `frontend/src` for the specific fabricated identities found fourteen
+files still carrying them (F24). Ten made no API call at all; four were API
+clients that fell back to it. Fixing them found nine more components the scan
+had missed, because its name list was drawn from those fourteen files and did
+not include the recruiter personas (F25) — and then found that the API itself
+was fabricating, so a frontend-only fix would have replaced browser-side fiction
+with server-side fiction (F26).
 
-The rows below stay where they are, and the reason is now specific rather than
-general:
+**All three are fixed**, with evidence in the
+[batch 6 acceptance record](../BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md#7a-addendum--f24-closed-and-what-closing-it-found).
+The rows below stay where they are, and the reason has changed: it is no longer
+that these screens invent people, it is that their journeys have not been
+exercised end to end.
 
-| Module | Status | What is still invented |
+| Module | Status | What was invented, and what it does now |
 |---|---|---|
-| recruiter | in progress | `/recruiter/candidates` and `/recruiter/offers`, and the pipeline, team, offer and message components: candidates and colleagues who do not exist, with employers, match ratings and résumé URLs. No API calls. |
-| company (employer portal) | in progress | `/employer/applications` lists an invented applicant. |
-| admin | in progress | The dashboard and user management present invented accounts; `features/admin/services/adminApi.ts` falls back to them. |
-| onboarding | in progress | `ConnectionsStep` suggests invented people to every new user. |
-| networking | in progress | `features/networking/services/networkingApi.ts` answers connection recommendations and people search from arrays compiled into the bundle — the defect batch 5 fixed in the mentorship client, still present here. |
-| compliance, trust_safety | unverified | An invented reviewer and an invented moderator in their clients' fallbacks. |
+| recruiter | in progress | `/recruiter/candidates`, `/recruiter/offers`, and the pipeline, team, profile, application, interview, scorecard, notes, offer and message components: candidates and colleagues who do not exist, with employers, match ratings and résumé URLs, and no API calls. All now read from their endpoints or state that they cannot. The scorecard and the notes panels also reported writes that never happened; both are real requests now. Offers cannot be listed — no endpoint returns them — and the page says so rather than showing two invented offers. |
+| company (employer portal) | in progress | `/employer/applications` listed an invented applicant. Now reads the API. |
+| admin | in progress | The dashboard and user management presented invented accounts; `features/admin/services/adminApi.ts` fell back to them. Fallbacks removed. |
+| onboarding | in progress | `ConnectionsStep` suggested invented people to every new user. Now real, or empty. |
+| networking | in progress | `features/networking/services/networkingApi.ts` answered connection recommendations and people search from arrays compiled into the bundle. The `mockState` is deleted; the client went from 698 lines to 242. |
+| search / candidate discovery | unverified → **in progress** | The engine reporting itself as `postgresql-tsvector-v2` was constructed with a `nil` pool, so it never reached PostgreSQL in any environment and always served three invented candidates. Saving a candidate returned the success value without writing. Now database-backed, and refused where no store exists. |
+| compliance, trust_safety | unverified | An invented reviewer and an invented moderator in their clients' fallbacks. Removed. |
 | recommendation | unverified → **in progress** | Fixed in batch 6: both candidate queries had never executed, the errors were discarded, and fixtures were served in their place. Now real, or empty. Covered by `backend/test/ci/batch6_recommendations_test.go`. |
 
-No module moves to `verified` on the strength of a guard. The guard stops the
-problem spreading; wiring these screens to real data and exercising their
-journeys is the step 10 work that remains.
+No module moves to `verified` on the strength of a fix. These screens are wired
+to real data and two ratchets keep them there — `invented-identities.test.ts`,
+whose quarantine list may only shrink, and `api-clients-do-not-invent.test.ts`.
+Exercising their journeys end to end is the step 10 work that remains.

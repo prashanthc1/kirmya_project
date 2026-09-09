@@ -41,19 +41,31 @@ export const AdminRecommendationCenter: React.FC = () => {
   }, []);
 
   const loadData = async () => {
-    const [cfg, met] = await Promise.all([
-      recommendationApi.getAdminConfig(),
-      recommendationApi.getAdminMetrics(),
-    ]);
-    setConfig(cfg);
-    setMetrics(met);
+    try {
+      const [cfg, met] = await Promise.all([
+        recommendationApi.getAdminConfig(),
+        recommendationApi.getAdminMetrics(),
+      ]);
+      setConfig(cfg);
+      setMetrics(met);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AdminRecommendationCenter.tsx: loadData failed', error);
+    }
   };
 
   const handleSaveConfig = async () => {
-    if (!config) return;
-    await recommendationApi.updateAdminConfig(config);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    try {
+      if (!config) return;
+      await recommendationApi.updateAdminConfig(config);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AdminRecommendationCenter.tsx: handleSaveConfig failed', error);
+    }
   };
 
   return (

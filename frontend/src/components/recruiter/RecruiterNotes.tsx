@@ -14,15 +14,16 @@ import {
   Rating,
   MenuItem,
   Alert,
+  CircularProgress,
   useTheme,
   Divider,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import PushPinIcon from '@mui/icons-material/PushPin';
-import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
-import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { recruiterApi } from '../../features/recruiter/api';
 
 interface NoteItem {
   id: string;
@@ -43,52 +44,56 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const [notes, setNotes] = useState<NoteItem[]>([
-    {
-      id: 'n1',
-      recruiterName: 'Rashid Al-Maktoum',
-      note: 'Candidate demonstrated exceptional grasp of Go memory management and PostgreSQL GIN indexing during initial screen.',
-      score: 5,
-      recommendation: 'Strong Hire',
-      isPinned: true,
-      createdAt: '2 hours ago',
-    },
-    {
-      id: 'n2',
-      recruiterName: 'Amira Al-Farsi',
-      note: 'Verified previous tenure at CloudScale. Strong team leadership potential.',
-      score: 4,
-      recommendation: 'Hire',
-      isPinned: false,
-      createdAt: '1 day ago',
-    },
-  ]);
+  /*
+   * The recruiting team's notes on this candidate, from the API.
+   *
+   * Two notes were held in component state and shown for every candidate: one
+   * from "Rashid Al-Maktoum" rating an unnamed candidate 5 and Strong Hire on
+   * their "grasp of Go memory management and PostgreSQL GIN indexing", one from
+   * "Amira Al-Farsi" claiming to have verified a previous tenure at CloudScale.
+   * Neither person exists and neither note was about the candidate on screen.
+   *
+   * Adding a note prepended it to that array and stopped. The recruiter saw
+   * their evaluation appear, attributed to "You (Recruiter)", and it was gone
+   * on reload - it never reached the server. Pinning and deleting were the same
+   * kind of edit. Pin and delete have no endpoint, so they are gone rather than
+   * pretending; adding a note is a real request.
+   */
+  const queryClient = useQueryClient();
+
+  const {
+    data: notes = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['recruiter', 'candidate', candidateId, 'notes'],
+    queryFn: () => recruiterApi.getCandidateNotes(candidateId),
+    enabled: Boolean(candidateId),
+  });
 
   const [newNote, setNewNote] = useState('');
-  const [score, setScore] = useState(5);
-  const [recommendation, setRecommendation] = useState<'Strong Hire' | 'Hire' | 'Consider' | 'No Hire'>('Hire');
+  const [score, setScore] = useState(0);
+  const [recommendation, setRecommendation] = useState<'Strong Hire' | 'Hire' | 'Consider' | 'No Hire'>('Consider');
+
+  const addNote = useMutation({
+    mutationFn: () =>
+      recruiterApi.createCandidateNote(candidateId, {
+        note: newNote,
+        score,
+        recommendation,
+      }),
+    onSuccess: async () => {
+      setNewNote('');
+      await queryClient.invalidateQueries({
+        queryKey: ['recruiter', 'candidate', candidateId, 'notes'],
+      });
+    },
+  });
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    const item: NoteItem = {
-      id: `n_${Date.now()}`,
-      recruiterName: 'You (Recruiter)',
-      note: newNote,
-      score: score,
-      recommendation: recommendation,
-      isPinned: false,
-      createdAt: 'Just now',
-    };
-    setNotes([item, ...notes]);
-    setNewNote('');
-  };
-
-  const togglePin = (id: string) => {
-    setNotes(notes.map((n) => (n.id === id ? { ...n, isPinned: !n.isPinned } : n)));
-  };
-
-  const deleteNote = (id: string) => {
-    setNotes(notes.filter((n) => n.id !== id));
+    addNote.mutate();
   };
 
   return (
@@ -126,7 +131,7 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
           <Stack direction="row" spacing={3} alignItems="center">
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>Candidate Score</Typography>
-              <Rating value={score} onChange={(_, val) => setScore(val || 5)} />
+              <Rating value={score} onChange={(_, val) => setScore(val ?? 0)} />
             </Box>
 
             <Box>
@@ -165,6 +170,33 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
 
       {/* Notes List */}
       <Stack spacing={2}>
+        {isLoading && (
+          <Stack direction="row" spacing={2} alignItems="center" role="status" aria-live="polite">
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">Loading notes…</Typography>
+          </Stack>
+        )}
+
+        {isError && !isLoading && (
+          <Alert severity="error">
+            These notes could not be loaded.
+            {error instanceof Error ? ` ${error.message}` : ''}
+          </Alert>
+        )}
+
+        {addNote.isError && (
+          <Alert severity="error">
+            Your note was not saved.
+            {addNote.error instanceof Error ? ` ${addNote.error.message}` : ''}
+          </Alert>
+        )}
+
+        {!isLoading && !isError && notes.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            No one on your team has left a note on this candidate yet.
+          </Typography>
+        )}
+
         {notes.map((n) => (
           <Card
             key={n.id}
@@ -192,12 +224,9 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
 
               <Stack direction="row" spacing={1} alignItems="center">
                 <Chip label={n.recommendation} color={n.recommendation === 'Strong Hire' || n.recommendation === 'Hire' ? 'success' : 'default'} size="small" sx={{ fontWeight: 800 }} />
-                <IconButton size="small" onClick={() => togglePin(n.id)} color={n.isPinned ? 'primary' : 'default'}>
-                  {n.isPinned ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
-                </IconButton>
-                <IconButton size="small" color="error" onClick={() => deleteNote(n.id)}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
+                {/* Pinning and deleting had no endpoint; both only edited this
+                    component's copy of the list and were undone by a reload. */}
+                {n.isPinned && <PushPinIcon fontSize="small" color="primary" />}
               </Stack>
             </Stack>
 

@@ -66,6 +66,11 @@ export const recruiterApi = {
     return res.data;
   },
 
+  getCandidate: async (candidateId: string): Promise<RecruiterCandidateItem> => {
+    const res = await apiClient.get<RecruiterCandidateItem>(`/recruiter/candidates/${candidateId}`);
+    return res.data;
+  },
+
   saveCandidate: async (candidateId: string): Promise<{ message: string }> => {
     const res = await apiClient.post(`/recruiter/candidates/${candidateId}/save`, { candidate_id: candidateId });
     return res.data;
@@ -122,30 +127,22 @@ export const recruiterApi = {
   },
 
   getApplications: async (jobId?: string, stage?: string): Promise<ApplicationDetail[]> => {
-    try {
-      const res = await apiClient.get<ApplicationDetail[]>('/recruiter/applications', { params: { jobId, stage } });
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<ApplicationDetail[]>('/recruiter/applications', { params: { jobId, stage } });
+    return res.data;
+    
   },
 
-  getApplicationDetail: async (applicationId: string): Promise<ApplicationDetail | null> => {
-    try {
-      const res = await apiClient.get<ApplicationDetail>(`/recruiter/applications/${applicationId}`);
-      return res.data;
-    } catch {
-      return null;
-    }
+  // A refused or failed read used to come back as `null`, which every caller
+  // rendered as "no such application". The error is the answer here.
+  getApplicationDetail: async (applicationId: string): Promise<ApplicationDetail> => {
+    const res = await apiClient.get<ApplicationDetail>(`/recruiter/applications/${applicationId}`);
+    return res.data;
   },
 
   getStageHistory: async (applicationId: string): Promise<StageHistoryItem[]> => {
-    try {
-      const res = await apiClient.get<StageHistoryItem[]>(`/recruiter/applications/${applicationId}/history`);
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<StageHistoryItem[]>(`/recruiter/applications/${applicationId}/history`);
+    return res.data;
+    
   },
 
   createCandidateNote: async (candidateId: string, payload: { note: string; score?: number; recommendation?: string; is_pinned?: boolean; application_id?: string }): Promise<CandidateNote | null> => {
@@ -158,12 +155,9 @@ export const recruiterApi = {
   },
 
   getCandidateNotes: async (candidateId: string): Promise<CandidateNote[]> => {
-    try {
-      const res = await apiClient.get<CandidateNote[]>(`/recruiter/candidates/${candidateId}/notes`);
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<CandidateNote[]>(`/recruiter/candidates/${candidateId}/notes`);
+    return res.data;
+    
   },
 
   createEvaluation: async (payload: { application_id: string; job_id: string; candidate_id: string; skills_score: number; experience_score: number; communication_score: number; technical_score: number; culture_fit_score: number; role_fit_score: number; overall_score: number; recommendation: string; strengths: string; weaknesses: string; notes: string }): Promise<CandidateEvaluation | null> => {
@@ -176,29 +170,26 @@ export const recruiterApi = {
   },
 
   getEvaluations: async (applicationId: string): Promise<CandidateEvaluation[]> => {
-    try {
-      const res = await apiClient.get<CandidateEvaluation[]>(`/recruiter/applications/${applicationId}/evaluations`);
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<CandidateEvaluation[]>(`/recruiter/applications/${applicationId}/evaluations`);
+    return res.data;
+    
   },
 
   bulkUpdateApplications: async (payload: BulkActionPayload): Promise<{ message: string }> => {
-    try {
-      const res = await apiClient.post<{ message: string }>('/recruiter/applications/bulk', payload);
-      return res.data;
-    } catch {
-      return { message: 'Bulk action completed' };
-    }
+    const res = await apiClient.post<{ message: string }>('/recruiter/applications/bulk', payload);
+    return res.data;
+    
+  },
+
+  /** Move an application to another stage. */
+  updateApplicationStage: async (applicationId: string, stage: string): Promise<{ message: string }> => {
+    const res = await apiClient.put<{ message: string }>(`/recruiter/applications/${applicationId}/stage`, { stage });
+    return res.data;
   },
 
   updateOfferStatus: async (offerId: string, status: string): Promise<{ message: string }> => {
-    try {
-      const res = await apiClient.put<{ message: string }>(`/recruiter/offers/${offerId}`, { status });
-      return res.data;
-    } catch {
-      return { message: 'Offer status updated' };
-    }
+    const res = await apiClient.put<{ message: string }>(`/recruiter/offers/${offerId}`, { status });
+    return res.data;
+    
   },
 };

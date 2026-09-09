@@ -42,6 +42,7 @@ export interface RecruiterCandidateItem {
   matchScore: number;
   availability: string;
   resumeUrl: string;
+  resumeAvailable: boolean;
   saved: boolean;
   recommendationNote: string;
 }

@@ -54,17 +54,30 @@ export const ThirdPartyProcessorsCard: React.FC = () => {
   }, []);
 
   const loadProcessors = async () => {
-    setLoading(true);
-    const data = await privacyApi.getThirdPartyProcessors();
-    setProcessors(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getThirdPartyProcessors();
+      setProcessors(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('ThirdPartyProcessorsCard.tsx: loadProcessors failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveEdit = async () => {
-    if (!editItem) return;
-    const updated = await privacyApi.updateProcessor(editItem.id, editItem);
-    setProcessors((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    setEditItem(null);
+    try {
+      if (!editItem) return;
+      const updated = await privacyApi.updateProcessor(editItem.id, editItem);
+      setProcessors((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      setEditItem(null);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('ThirdPartyProcessorsCard.tsx: handleSaveEdit failed', error);
+    }
   };
 
   return (

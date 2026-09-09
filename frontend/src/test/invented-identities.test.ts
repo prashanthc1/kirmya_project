@@ -5,45 +5,26 @@ import path from 'node:path';
 /**
  * A ratchet on invented people.
  *
- * Batch 5 removed fabricated candidates, colleagues and connection suggestions
- * from several surfaces and recorded that "all of it is gone". Batch 6 found it
- * was not: fourteen files under src/ still carry invented identities, and nine of
- * them make no API call at all, so they render fiction to every viewer of a
- * reachable authenticated page. /recruiter/candidates presents two candidates
- * who do not exist, with employers, "96% AI match rating" and résumé URLs;
- * features/networking/services/networkingApi.ts answers connection
- * recommendations and people search from arrays compiled into the bundle.
+ * Batch 5 recorded that the fabricated candidates, colleagues and suggestions
+ * were gone - "All of it is gone." Batch 6 found fourteen files under src/ that
+ * still carried them, ten of which made no API call at all, and recorded that
+ * as F24: the one release blocker that was a code defect.
  *
- * Fixing those surfaces is step 10 domain work - 10A recruiter, 10B networking
- * and onboarding, 10F admin - and each needs its own journey evidence before
- * the screen can be wired to real data. Until then this test does the one thing
- * that can be done cheaply and durably: it stops the problem spreading.
+ * F24 is closed. Thirteen of the fourteen now read from the API, or say plainly
+ * that the data cannot be read, or are gone. The fourteenth is a test seam.
  *
- * The list below is a quarantine, not an approval. Every entry is a known
- * defect with an owner, recorded in
- * docs/BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md. A file may leave the list at
- * any time by having its invented data removed; nothing may join it.
+ * This test is what keeps it closed. Every `.ts`/`.tsx` file under src is
+ * scanned with comments stripped - a file that documents which invented person
+ * it stopped rendering is not presenting one - and any invented identity
+ * outside the list below fails it. The list may only shrink.
+ *
  */
 const QUARANTINE = new Set([
-  // 10A recruiter — Hiring domain lead
-  'src/app/recruiter/candidates/page.tsx',
-  'src/app/recruiter/offers/page.tsx',
-  'src/components/recruiter/MessageCenter.tsx',
-  'src/components/recruiter/OfferManager.tsx',
-  'src/components/recruiter/PipelineBoard.tsx',
-  'src/components/recruiter/TeamManagement.tsx',
-  // 10F admin — Domain engineering lead
-  'src/components/admin/AdminDashboard.tsx',
-  'src/components/admin/UserManagement.tsx',
-  'src/features/admin/services/adminApi.ts',
-  // 10B networking and onboarding — Frontend experience lead
-  'src/components/onboarding/ConnectionsStep.tsx',
-  'src/features/networking/services/networkingApi.ts',
-  // 10A employer — Hiring domain lead
-  'src/app/employer/applications/page.tsx',
-  // 10F privacy and trust/safety — Backend privacy lead, Domain engineering lead
+  // The only entry left, and it is a different thing from the rest: every
+  // fixture in this file sits behind `if (isTestEnv)`, so it is dead code in a
+  // production build and no reader can reach it. Kept listed rather than
+  // exempted, so that the seam stays visible and cannot quietly grow.
   'src/features/privacy/services/privacyApi.ts',
-  'src/features/trust_safety/services/trustSafetyApi.ts',
 ]);
 
 /**
@@ -59,6 +40,11 @@ const INVENTED = [
   'Ayesha Siddiqui',
   'Salim Al-Harthy',
   'Elena Rostova',
+  // Added after the batch 6 acceptance pass: the recruiting-side colleagues.
+  // The original list was drawn from the fourteen files F24 named and missed
+  // these, which is why nine further surfaces kept rendering them.
+  'Rashid Al-Maktoum',
+  'Amira Al-Farsi',
 ];
 
 /**
@@ -101,7 +87,8 @@ describe('invented identities', () => {
   it('are gone from every surface that has already been corrected', () => {
     // The quarantine may only shrink. This fails if a file that was cleaned up
     // regains invented data, because it would then be an unexpected offender
-    // above; and it documents how much is left.
-    expect(QUARANTINE.size).toBeLessThanOrEqual(14);
+    // above; and it documents how much is left. Fourteen at the start of the
+    // batch, one now, and that one cannot render.
+    expect(QUARANTINE.size).toBeLessThanOrEqual(1);
   });
 });

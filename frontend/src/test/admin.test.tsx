@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
@@ -206,11 +207,20 @@ describe('Admin & Platform Administration Module Test Suite', () => {
     });
 
     it('renders UserManagement governance table with impersonate action', () => {
-      render(<UserManagement />);
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      });
+      render(
+        <QueryClientProvider client={queryClient}>
+          <UserManagement />
+        </QueryClientProvider>
+      );
       expect(screen.getByText(/User Account Governance/i)).toBeInTheDocument();
-      expect(screen.getByText(/Tariq Al-Mansoor/i)).toBeInTheDocument();
-      const impersonateBtns = screen.getAllByRole('button', { name: /Impersonate/i });
-      expect(impersonateBtns.length).toBeGreaterThan(0);
+      // This asserted /Tariq Al-Mansoor/ - one of three accounts the console
+      // held in component state and showed to every administrator on a platform
+      // that has none of them. The directory is the API's now, so with the
+      // network disabled there is nothing to list and the console says so.
+      expect(screen.queryByText(/Tariq Al-Mansoor/i)).not.toBeInTheDocument();
     });
 
     it('renders RoleManagement RBAC console', () => {

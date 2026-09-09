@@ -25,415 +25,169 @@ import {
 
 export const analyticsApi = {
   ingestEvent: async (payload: IngestEventRequest): Promise<{ message: string; event: any }> => {
-    try {
-      const res = await client.post('/internal/analytics/events', payload);
-      return res.data;
-    } catch {
-      return { message: 'Event ingested successfully', event: payload };
-    }
+    const res = await client.post('/internal/analytics/events', payload);
+    return res.data;
+    
   },
 
   getUserAnalytics: async (): Promise<UserPersonalAnalytics> => {
-    try {
-      const res = await client.get('/analytics/profile');
-      return res.data;
-    } catch {
-      return {
-        profile_views_count: 142,
-        search_appearances_count: 88,
-        applications_count: 24,
-        applications_this_week: 4,
-        applications_this_month: 12,
-        saved_jobs_count: 18,
-        interview_invitation_rate: 33.3,
-        offer_rate: 12.5,
-        profile_completeness: 92,
-      };
-    }
+    const res = await client.get('/analytics/profile');
+    return res.data;
+    
   },
 
   getRecruiterAnalytics: async (orgID?: string): Promise<RecruiterHiringAnalytics> => {
-    try {
-      const res = await client.get('/recruiter/analytics/overview', {
-        params: { organization_id: orgID },
-      });
-      return res.data;
-    } catch {
-      return {
-        jobs_posted_count: 14,
-        applications_count: 320,
-        candidates_viewed_count: 180,
-        interviews_count: 42,
-        offers_count: 8,
-        hires_count: 6,
-        avg_time_to_review_hours: 14.5,
-        application_funnel: [
-          { stage: 'Applied', count: 320, percentage: 100 },
-          { stage: 'Reviewed', count: 180, percentage: 56.2 },
-          { stage: 'Interview', count: 42, percentage: 13.1 },
-          { stage: 'Hired', count: 6, percentage: 1.8 },
-        ],
-      };
-    }
+    const res = await client.get('/recruiter/analytics/overview', {
+      params: { organization_id: orgID },
+    });
+    return res.data;
+    
   },
 
   getCompanyAnalytics: async (companyID?: string): Promise<CompanyOverviewAnalytics> => {
-    try {
-      const res = await client.get('/company/analytics/overview', {
-        params: { company_id: companyID },
-      });
-      return res.data;
-    } catch {
-      return {
-        company_profile_views_count: 482,
-        active_jobs_count: 8,
-        total_job_views_count: 1420,
-        total_applications_count: 240,
-        followers_count: 1250,
-        candidate_conversion_rate: 16.9,
-      };
-    }
+    const res = await client.get('/company/analytics/overview', {
+      params: { company_id: companyID },
+    });
+    return res.data;
+    
   },
 
   getAdminOverview: async (): Promise<AdminAnalyticsOverview> => {
-    try {
-      const res = await client.get('/admin/analytics/overview');
-      return res.data;
-    } catch {
-      return {
-        total_users: 14850,
-        active_users_dau: 4950,
-        active_users_mau: 14850,
-        new_users_today: 184,
-        verified_users: 12400,
-        total_jobs: 3420,
-        total_applications: 8400,
-        total_connections: 42800,
-        total_messages: 142800,
-        total_ai_requests: 74250,
-        total_safety_reports: 12,
-        event_processing_latency_ms: 4.2,
-        data_freshness_timestamp: new Date().toISOString(),
-      };
-    }
+    const res = await client.get('/admin/analytics/overview');
+    return res.data;
+    
   },
 
   getAdminUserGrowth: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/users');
-      return res.data;
-    } catch {
-      return {
-        total_registrations: 14850,
-        activated_users: 12400,
-        profile_completion_pct: 84.5,
-        weekly_active_users: 9200,
-        monthly_active_users: 14200,
-        retention_rate_pct: 86.2,
-      };
-    }
+    const res = await client.get('/admin/analytics/users');
+    return res.data;
+    
   },
 
   getAdminJobMarket: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/jobs');
-      return res.data;
-    } catch {
-      return {
-        total_jobs_created: 3420,
-        active_jobs_count: 1280,
-        expired_jobs_count: 840,
-        jobs_by_industry: { 'Software Infrastructure': 1420, 'Fintech & Payments': 980 },
-        top_skills_requested: [{ skill: 'Go (Golang)', count: 1840, share: 38.5 }],
-      };
-    }
+    const res = await client.get('/admin/analytics/jobs');
+    return res.data;
+    
   },
 
   getAdminApplicationFunnel: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/applications');
-      return res.data;
-    } catch {
-      return {
-        total_views: 48200,
-        total_saves: 14200,
-        total_applications: 8400,
-        total_interviews: 2800,
-        total_offers: 640,
-        total_hires: 420,
-      };
-    }
+    const res = await client.get('/admin/analytics/applications');
+    return res.data;
+    
   },
 
   getAdminCommunities: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/communities');
-      return res.data;
-    } catch {
-      return { total_communities: 340, total_memberships: 28400, active_members_count: 18900, growth_rate_pct: 14.8 };
-    }
+    const res = await client.get('/admin/analytics/communities');
+    return res.data;
+    
   },
 
   getAdminMessaging: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/messaging');
-      return res.data;
-    } catch {
-      return { total_conversations: 8920, total_messages_sent: 142800, delivery_success_rate_pct: 99.8, avg_response_time_mins: 14.5 };
-    }
+    const res = await client.get('/admin/analytics/messaging');
+    return res.data;
+    
   },
 
   getAdminNotifications: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/notifications');
-      return res.data;
-    } catch {
-      return { total_sent: 184000, total_delivered: 182600, delivery_rate_pct: 99.2, click_through_rate_pct: 24.8 };
-    }
+    const res = await client.get('/admin/analytics/notifications');
+    return res.data;
+    
   },
 
   getAdminRecommendations: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/recommendations');
-      return res.data;
-    } catch {
-      return { total_impressions: 124000, total_clicks: 38200, avg_match_score: 88, conversion_rate_pct: 30.8 };
-    }
+    const res = await client.get('/admin/analytics/recommendations');
+    return res.data;
+    
   },
 
   getAdminSearch: async (): Promise<any> => {
-    try {
-      const res = await client.get('/admin/analytics/search');
-      return res.data;
-    } catch {
-      return {
-        total_searches: 98400,
-        popular_terms: ['Go Architect', 'Remote Distributed Systems', 'PostgreSQL DBA'],
-        zero_result_searches: [{ query_term: 'Rust WebAssembly Kernel Dev', search_count: 42 }],
-      };
-    }
+    const res = await client.get('/admin/analytics/search');
+    return res.data;
+    
   },
 
   getPerformanceAnalytics: async (): Promise<SystemPerformanceAnalytics> => {
-    try {
-      const res = await client.get('/admin/analytics/performance');
-      return res.data;
-    } catch {
-      return {
-        p50_latency_ms: 12.4,
-        p95_latency_ms: 45.2,
-        p99_latency_ms: 88.6,
-        api_request_rate_rps: 1240,
-        db_latency_ms: 3.8,
-        redis_latency_ms: 0.9,
-        search_latency_ms: 14.2,
-        otel_exporter_status: 'healthy',
-        active_worker_threads: 32,
-        error_rate_pct: 0.04,
-      };
-    }
+    const res = await client.get('/admin/analytics/performance');
+    return res.data;
+    
   },
 
   getTrustSafetyAnalytics: async (): Promise<TrustSafetyAnalytics> => {
-    try {
-      const res = await client.get('/admin/analytics/trust-safety');
-      return res.data;
-    } catch {
-      return {
-        total_reports_count: 142,
-        resolved_reports_count: 136,
-        avg_resolution_time_mins: 18.5,
-        user_restrictions_count: 12,
-        permanent_bans_count: 3,
-        security_threat_level: 'low',
-        flagged_content_count: 28,
-        spam_score_avg: 1.2,
-      };
-    }
+    const res = await client.get('/admin/analytics/trust-safety');
+    return res.data;
+    
   },
 
   getMentorshipAnalytics: async (): Promise<MentorshipAnalytics> => {
-    try {
-      const res = await client.get('/analytics/mentorship');
-      return res.data;
-    } catch {
-      return {
-        total_mentors_count: 85,
-        active_pairings_count: 140,
-        completed_sessions_count: 490,
-        avg_rating: 4.85,
-        top_skills_mentored: [
-          { skill: 'Go System Design', session_count: 120 },
-          { skill: 'React & MUI Engineering', session_count: 95 },
-          { skill: 'Distributed Systems', session_count: 80 },
-        ],
-      };
-    }
+    const res = await client.get('/analytics/mentorship');
+    return res.data;
+    
   },
 
   getLearningAnalytics: async (): Promise<LearningAnalytics> => {
-    try {
-      const res = await client.get('/analytics/learning');
-      return res.data;
-    } catch {
-      return {
-        courses_enrolled_count: 12,
-        courses_completed_count: 8,
-        total_learning_hours: 45.5,
-        certificates_issued_count: 5,
-        skill_assessments_passed: 14,
-      };
-    }
+    const res = await client.get('/analytics/learning');
+    return res.data;
+    
   },
 
   getActivationFunnel: async (): Promise<UserActivationFunnel> => {
-    try {
-      const res = await client.get('/admin/analytics/funnel');
-      return res.data;
-    } catch {
-      return {
-        stages: [
-          { stage_name: 'Signed Up', count: 1000, conversion_pct: 100.0, dropoff_pct: 0.0 },
-          { stage_name: 'Profile Completed', count: 840, conversion_pct: 84.0, dropoff_pct: 16.0 },
-          { stage_name: 'First Job Applied', count: 620, conversion_pct: 62.0, dropoff_pct: 22.0 },
-          { stage_name: 'Interview Scheduled', count: 280, conversion_pct: 28.0, dropoff_pct: 34.0 },
-          { stage_name: 'Offer Received', count: 95, conversion_pct: 9.5, dropoff_pct: 18.5 },
-        ],
-      };
-    }
+    const res = await client.get('/admin/analytics/funnel');
+    return res.data;
+    
   },
 
   getCohortGrid: async (): Promise<CohortGridAnalytics> => {
-    try {
-      const res = await client.get('/admin/analytics/cohorts');
-      return res.data;
-    } catch {
-      return {
-        cohorts: [
-          { cohort_name: 'Aug W1', cohort_date: '2026-08-01', initial_users: 250, retention_percentages: [100, 88, 74, 65, 58] },
-          { cohort_name: 'Aug W2', cohort_date: '2026-08-08', initial_users: 310, retention_percentages: [100, 91, 78, 68, 62] },
-          { cohort_name: 'Aug W3', cohort_date: '2026-08-15', initial_users: 290, retention_percentages: [100, 89, 76, 0, 0] },
-        ],
-      };
-    }
+    const res = await client.get('/admin/analytics/cohorts');
+    return res.data;
+    
   },
 
   getFeatureAdoption: async (): Promise<FeatureAdoptionMetrics[]> => {
-    try {
-      const res = await client.get('/admin/analytics/feature-adoption');
-      return res.data;
-    } catch {
-      return [
-        { feature_name: 'AI Resume Matcher', active_users_count: 8420, adoption_rate_pct: 68.5, daily_usage_count: 14200 },
-        { feature_name: 'Direct Messaging', active_users_count: 11200, adoption_rate_pct: 88.2, daily_usage_count: 38900 },
-        { feature_name: '1-on-1 Mentorship', active_users_count: 3400, adoption_rate_pct: 27.5, daily_usage_count: 890 },
-      ];
-    }
+    const res = await client.get('/admin/analytics/feature-adoption');
+    return res.data;
+    
   },
 
   getUserConsent: async (): Promise<UserConsentPreferences> => {
-    try {
-      const res = await client.get('/analytics/user-consent');
-      return res.data;
-    } catch {
-      return {
-        essential_telemetry: true,
-        optional_analytics: true,
-        personalization_tracking: true,
-        data_retention_period_days: 90,
-        updated_at: new Date().toISOString(),
-      };
-    }
+    const res = await client.get('/analytics/user-consent');
+    return res.data;
+    
   },
 
   updateUserConsent: async (payload: Partial<UserConsentPreferences>): Promise<UserConsentPreferences> => {
-    try {
-      const res = await client.put('/analytics/user-consent', payload);
-      return res.data;
-    } catch {
-      return {
-        essential_telemetry: payload.essential_telemetry ?? true,
-        optional_analytics: payload.optional_analytics ?? false,
-        personalization_tracking: payload.personalization_tracking ?? false,
-        data_retention_period_days: payload.data_retention_period_days ?? 90,
-        updated_at: new Date().toISOString(),
-      };
-    }
+    const res = await client.put('/analytics/user-consent', payload);
+    return res.data;
+    
   },
 
   createCustomReport: async (payload: CustomReportRequest): Promise<any> => {
-    try {
-      const res = await client.post('/admin/analytics/reports/custom', payload);
-      return res.data;
-    } catch {
-      return {
-        id: `report-${Date.now()}`,
-        ...payload,
-        status: 'queued',
-        created_at: new Date().toISOString(),
-      };
-    }
+    const res = await client.post('/admin/analytics/reports/custom', payload);
+    return res.data;
+    
   },
 
   triggerRetentionCleanup: async (retentionDays: number = 90): Promise<{ message: string; deleted_records: number }> => {
-    try {
-      const res = await client.post('/admin/analytics/retention/cleanup', { retention_days: retentionDays });
-      return res.data;
-    } catch {
-      return {
-        message: `Successfully executed retention cleanup for data older than ${retentionDays} days.`,
-        deleted_records: 1420,
-      };
-    }
+    const res = await client.post('/admin/analytics/retention/cleanup', { retention_days: retentionDays });
+    return res.data;
+    
   },
 
   getScheduledReports: async (): Promise<any[]> => {
-    try {
-      const res = await client.get('/admin/analytics/reports/scheduled');
-      return res.data;
-    } catch {
-      return [
-        {
-          id: '77777777-7777-7777-7777-777777777777',
-          title: 'Weekly Platform Growth & Conversion Executive Digest',
-          cron_expression: '0 0 * * 1',
-          report_type: 'platform_overview',
-          export_format: 'csv',
-          recipients: ['executives@kirmya.org'],
-          is_active: true,
-        },
-      ];
-    }
+    const res = await client.get('/admin/analytics/reports/scheduled');
+    return res.data;
+    
   },
 
   createScheduledReport: async (payload: any): Promise<any> => {
-    try {
-      const res = await client.post('/admin/analytics/reports/scheduled', payload);
-      return res.data;
-    } catch {
-      return { ...payload, id: 'new-scheduled-id', is_active: true };
-    }
+    const res = await client.post('/admin/analytics/reports/scheduled', payload);
+    return res.data;
+    
   },
 
   requestExport: async (format: string = 'csv'): Promise<{ message: string; export: AnalyticsExportJob }> => {
-    try {
-      const res = await client.post('/admin/analytics/export', { format });
-      return res.data;
-    } catch {
-      return {
-        message: 'Analytics export job queued asynchronously',
-        export: {
-          id: 'export-job-1',
-          admin_id: '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d',
-          export_format: format,
-          status: 'completed',
-          download_url: '/api/v1/admin/analytics/reports/download/export-job-1',
-          expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
-          file_size_bytes: 14820,
-          created_at: new Date().toISOString(),
-        },
-      };
-    }
+    const res = await client.post('/admin/analytics/export', { format });
+    return res.data;
+    
   },
 };
 

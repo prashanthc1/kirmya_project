@@ -46,14 +46,21 @@ export const PrivacyRiskDashboard: React.FC = () => {
   }, []);
 
   const loadData = async () => {
-    setLoading(true);
-    const [riskData, compData] = await Promise.all([
-      privacyApi.getPrivacyRiskSummary(),
-      privacyApi.getComplianceOverview(),
-    ]);
-    setRisk(riskData);
-    setCompliance(compData);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [riskData, compData] = await Promise.all([
+        privacyApi.getPrivacyRiskSummary(),
+        privacyApi.getComplianceOverview(),
+      ]);
+      setRisk(riskData);
+      setCompliance(compData);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('PrivacyRiskDashboard.tsx: loadData failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -77,42 +77,16 @@ const apiClient = authApiClient;
 export const systemHealthApi = {
   // Public status
   async getPublicStatus(): Promise<{ overallStatus: string; isMaintenance: boolean; publicComponents: Record<string, string>; checkedAt: string }> {
-    try {
-      const res = await apiClient.get('/status');
-      return res.data;
-    } catch {
-      return {
-        overallStatus: 'healthy',
-        isMaintenance: false,
-        publicComponents: { postgresql: 'healthy', redis: 'healthy', nats: 'healthy', opensearch: 'healthy', storage: 'healthy' },
-        checkedAt: new Date().toISOString(),
-      };
-    }
+    const res = await apiClient.get('/status');
+    return res.data;
+    
   },
 
   // Admin Health Summary
   async getAdminHealthSummary(): Promise<OverallHealthSummary> {
-    try {
-      const res = await apiClient.get<OverallHealthSummary>('/admin/system/health');
-      return res.data;
-    } catch {
-      return {
-        status: 'healthy',
-        version: 'v1.0.0',
-        buildSha: '21a5eef',
-        uptimeSeconds: 3600,
-        isMaintenance: false,
-        components: {
-          postgresql: { name: 'postgresql', status: 'healthy', weight: 'critical', latencyMs: 2, lastChecked: new Date().toISOString(), message: 'PostgreSQL operational', recentFailures: 0 },
-          redis: { name: 'redis', status: 'healthy', weight: 'optional', latencyMs: 1, lastChecked: new Date().toISOString(), message: 'Redis operational', recentFailures: 0 },
-          nats: { name: 'nats', status: 'healthy', weight: 'important', latencyMs: 1, lastChecked: new Date().toISOString(), message: 'NATS operational', recentFailures: 0 },
-          opensearch: { name: 'opensearch', status: 'healthy', weight: 'important', latencyMs: 4, lastChecked: new Date().toISOString(), message: 'OpenSearch operational', recentFailures: 0 },
-          storage: { name: 'storage', status: 'healthy', weight: 'important', latencyMs: 8, lastChecked: new Date().toISOString(), message: 'Storage operational', recentFailures: 0 },
-        },
-        activeIncidents: 0,
-        checkedAt: new Date().toISOString(),
-      };
-    }
+    const res = await apiClient.get<OverallHealthSummary>('/admin/system/health');
+    return res.data;
+    
   },
 
   // Trigger Self-Healing Action
@@ -135,20 +109,14 @@ export const systemHealthApi = {
 
   // Incidents & Recoveries
   async listIncidents(): Promise<HealthIncident[]> {
-    try {
-      const res = await apiClient.get<HealthIncident[]>('/admin/system/health/incidents');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<HealthIncident[]>('/admin/system/health/incidents');
+    return res.data;
+    
   },
 
   async listRecoveryActions(): Promise<HealthRecoveryAction[]> {
-    try {
-      const res = await apiClient.get<HealthRecoveryAction[]>('/admin/system/health/recoveries');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<HealthRecoveryAction[]>('/admin/system/health/recoveries');
+    return res.data;
+    
   },
 };

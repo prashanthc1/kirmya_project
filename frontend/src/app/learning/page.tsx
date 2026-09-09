@@ -89,23 +89,41 @@ export default function LearningPage() {
   }, []);
 
   const handleEnrollCourse = async (course: Course) => {
-    await learningApi.enroll(course.id);
-    await fetchData();
+    try {
+      await learningApi.enroll(course.id);
+      await fetchData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleEnrollCourse failed', error);
+    }
   };
 
   const handleUpdateLessonProgress = async (courseId: string, completedLessons: number) => {
-    await learningApi.updateProgress({
-      course_id: courseId,
-      completed_lessons: completedLessons,
-      time_spent_minutes: 45,
-    });
-    await fetchData();
+    try {
+      await learningApi.updateProgress({
+        course_id: courseId,
+        completed_lessons: completedLessons,
+        time_spent_minutes: 45,
+      });
+      await fetchData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleUpdateLessonProgress failed', error);
+    }
   };
 
   const handleSubmitAssessment = async (domain: CourseCategory, answers: Record<string, number>) => {
-    const res = await learningApi.submitSkillAssessment({ domain, answers });
-    await fetchData();
-    return res.assessment;
+    try {
+      const res = await learningApi.submitSkillAssessment({ domain, answers });
+      await fetchData();
+      return res.assessment;
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleSubmitAssessment failed', error);
+    }
   };
 
   // Mock initial data fallbacks for instant rich UI rendering

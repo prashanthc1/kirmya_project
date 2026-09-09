@@ -113,6 +113,127 @@ func (r *RecruiterRepository) JobCandidateMatchInputs(ctx context.Context, jobID
 
 // TeamMembers lists the recruiters sharing this organization, from the rows
 // that record their membership.
+// SearchCandidates lists the candidates this recruiter actually has: the people
+// who have applied to one of their jobs. There is no platform-wide candidate
+// index behind this endpoint, and inventing one is what it used to do - two
+// fixed people, "Sarah Chen" and "Tariq Al-Mansoor", with resume URLs under
+// kirmya.com that resolve to nothing, returned to every recruiter on the
+// platform regardless of what they had posted.
+//
+// A recruiter with no applicants gets an empty list.
+func (r *RecruiterRepository) SearchCandidates(ctx context.Context, recruiterID uuid.UUID) ([]models.RecruiterCandidateItem, error) {
+	if r.db == nil {
+		return nil, errors.New("candidate search requires PostgreSQL")
+	}
+	rows, err := r.db.Query(ctx, `
+		SELECT DISTINCT ON (u.id)
+		       u.id,
+		       u.first_name || ' ' || u.last_name,
+		       COALESCE(p.headline, ''),
+		       COALESCE(p.location, ''),
+		       COALESCE((SELECT jsonb_agg(us.name) FROM user_skills us WHERE us.profile_id = p.id), '[]'::jsonb),
+		       COALESCE(a.resume_url, '')
+		FROM job_applications a
+		JOIN jobs j ON j.id = a.job_id
+		JOIN users u ON u.id = a.candidate_id
+		LEFT JOIN profiles p ON p.user_id = u.id
+		WHERE j.recruiter_id = $1 AND u.status = 'active'
+		ORDER BY u.id, a.applied_at DESC`, recruiterID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]models.RecruiterCandidateItem, 0)
+	for rows.Next() {
+		var v models.RecruiterCandidateItem
+		var skills []byte
+		if err := rows.Scan(&v.ID, &v.Name, &v.Headline, &v.Location, &skills, &v.ResumeURL); err != nil {
+			return nil, err
+		}
+		_ = json.Unmarshal(skills, &v.Skills)
+		if v.Skills == nil {
+			v.Skills = []string{}
+		}
+		// MatchScore, ExperienceYears and Availability are not recorded against
+		// a candidate anywhere, so they stay at their zero values rather than
+		// being filled with a number that reads as a measurement.
+		v.ResumeAvailable = v.ResumeURL != ""
+		items = append(items, v)
+	}
+	return items, rows.Err()
+}
+
+// CandidateByID answers for one candidate the recruiter has access to, which is
+// one who has applied to a job of theirs. It returns pgx.ErrNoRows otherwise,
+// so a recruiter cannot read an arbitrary member of the platform through it.
+func (r *RecruiterRepository) CandidateByID(ctx context.Context, recruiterID, candidateID uuid.UUID) (*models.RecruiterCandidateItem, error) {
+	if r.db == nil {
+		return nil, errors.New("candidate lookup requires PostgreSQL")
+	}
+	var v models.RecruiterCandidateItem
+	var skills []byte
+	err := r.db.QueryRow(ctx, `
+		SELECT u.id,
+		       u.first_name || ' ' || u.last_name,
+		       COALESCE(p.headline, ''),
+		       COALESCE(p.location, ''),
+		       COALESCE((SELECT jsonb_agg(us.name) FROM user_skills us WHERE us.profile_id = p.id), '[]'::jsonb),
+		       COALESCE(a.resume_url, '')
+		FROM job_applications a
+		JOIN jobs j ON j.id = a.job_id
+		JOIN users u ON u.id = a.candidate_id
+		LEFT JOIN profiles p ON p.user_id = u.id
+		WHERE j.recruiter_id = $1 AND u.id = $2 AND u.status = 'active'
+		ORDER BY a.applied_at DESC
+		LIMIT 1`, recruiterID, candidateID).
+		Scan(&v.ID, &v.Name, &v.Headline, &v.Location, &skills, &v.ResumeURL)
+	if err != nil {
+		return nil, err
+	}
+	_ = json.Unmarshal(skills, &v.Skills)
+	if v.Skills == nil {
+		v.Skills = []string{}
+	}
+	v.ResumeAvailable = v.ResumeURL != ""
+	return &v, nil
+}
+
+// DashboardCounts counts the recruiter's own jobs, applicants and stages. Every
+// figure the overview showed was a literal: 142 applicants, 3 offers, 12
+// successful hires, on an account that had posted nothing.
+type DashboardCounts struct {
+	ActiveJobs     int
+	DraftJobs      int
+	TotalApplicants int
+	NewCandidates  int
+	Shortlisted    int
+	Offers         int
+	Hires          int
+}
+
+func (r *RecruiterRepository) DashboardCounts(ctx context.Context, recruiterID uuid.UUID) (*DashboardCounts, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter dashboard requires PostgreSQL")
+	}
+	var c DashboardCounts
+	err := r.db.QueryRow(ctx, `
+		SELECT
+		  (SELECT COUNT(*) FROM jobs WHERE recruiter_id = $1 AND status = 'active'),
+		  (SELECT COUNT(*) FROM jobs WHERE recruiter_id = $1 AND status = 'draft'),
+		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1),
+		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'New'),
+		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'Shortlisted'),
+		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'Offer'),
+		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'Hired')`,
+		recruiterID).
+		Scan(&c.ActiveJobs, &c.DraftJobs, &c.TotalApplicants, &c.NewCandidates, &c.Shortlisted, &c.Offers, &c.Hires)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
 func (r *RecruiterRepository) TeamMembers(ctx context.Context, orgID uuid.UUID) ([]models.TeamMemberDTO, error) {
 	if r.db == nil {
 		return nil, errors.New("recruiter team requires PostgreSQL")

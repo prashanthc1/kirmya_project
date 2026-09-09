@@ -112,37 +112,43 @@ export const SafetyPolicyStudio: React.FC = () => {
   };
 
   const handleSavePolicy = async () => {
-    if (!editModal) return;
-    if (isNewPolicy) {
-      await trustSafetyApi.createSafetyPolicy({
-        code: formCode,
-        title: formTitle,
-        category: formCategory,
-        description: formDescription,
-        version: formVersion,
-        severity: formSeverity,
-        status: formStatus,
-        default_penalty: formPenalty,
-        auto_enforcement_threshold: formThreshold,
-        effective_date: new Date().toISOString().split('T')[0],
-      });
-      setStatusMsg(`Created new policy ${formCode} successfully.`);
-    } else {
-      await trustSafetyApi.updateSafetyPolicy(editModal.id, {
-        code: formCode,
-        title: formTitle,
-        category: formCategory,
-        description: formDescription,
-        version: formVersion,
-        severity: formSeverity,
-        status: formStatus,
-        default_penalty: formPenalty,
-        auto_enforcement_threshold: formThreshold,
-      });
-      setStatusMsg(`Updated policy ${formCode} (${formVersion}) successfully.`);
+    try {
+      if (!editModal) return;
+      if (isNewPolicy) {
+        await trustSafetyApi.createSafetyPolicy({
+          code: formCode,
+          title: formTitle,
+          category: formCategory,
+          description: formDescription,
+          version: formVersion,
+          severity: formSeverity,
+          status: formStatus,
+          default_penalty: formPenalty,
+          auto_enforcement_threshold: formThreshold,
+          effective_date: new Date().toISOString().split('T')[0],
+        });
+        setStatusMsg(`Created new policy ${formCode} successfully.`);
+      } else {
+        await trustSafetyApi.updateSafetyPolicy(editModal.id, {
+          code: formCode,
+          title: formTitle,
+          category: formCategory,
+          description: formDescription,
+          version: formVersion,
+          severity: formSeverity,
+          status: formStatus,
+          default_penalty: formPenalty,
+          auto_enforcement_threshold: formThreshold,
+        });
+        setStatusMsg(`Updated policy ${formCode} (${formVersion}) successfully.`);
+      }
+      setEditModal(null);
+      loadPolicies();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SafetyPolicyStudio.tsx: handleSavePolicy failed', error);
     }
-    setEditModal(null);
-    loadPolicies();
   };
 
   const getSeverityBadge = (severity: SafetyPolicyItem['severity']) => {

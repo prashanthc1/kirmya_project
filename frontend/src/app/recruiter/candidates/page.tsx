@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography, Grid, Card, Stack, Button } from '@mui/material';
+import { Box, Typography, Grid, Card, Stack, Button, Alert, CircularProgress } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { recruiterApi } from '../../../features/recruiter/api';
 import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
 import CandidateFilters, { CandidateSearchFilters } from '../../../components/recruiter/CandidateFilters';
 import CandidateCard from '../../../components/recruiter/CandidateCard';
@@ -27,42 +29,24 @@ export default function CandidatesMainPage() {
     salaryMax: 200000,
   });
 
-  const mockCandidates = [
-    {
-      id: 'c1111111-1111-1111-1111-111111111111',
-      name: 'Sarah Chen',
-      headline: 'Staff Software Engineer & Cloud Architect',
-      currentRole: 'Staff Engineer at CloudScale',
-      location: 'Dubai, UAE',
-      skills: ['Golang', 'React', 'TypeScript', 'PostgreSQL', 'Docker', 'Kubernetes'],
-      experienceYears: 8,
-      matchScore: 96,
-      availability: 'Immediate Notice',
-      openToWork: true,
-      resumeUrl: 'https://kirmya.com/resumes/sarah-chen.pdf',
-      resumeAvailable: true,
-      verificationStatus: 'Verified',
-      saved: true,
-      recommendationNote: '96% AI match rating based on job requirements and experience.',
-    },
-    {
-      id: 'c2222222-2222-2222-2222-222222222222',
-      name: 'Tariq Al-Mansoor',
-      headline: 'Director of Facilities & Asset Management',
-      currentRole: 'Facilities Director at Emaar',
-      location: 'Abu Dhabi, UAE',
-      skills: ['Facilities Management', 'HVAC', 'SLA Auditing', 'Vendor Management'],
-      experienceYears: 12,
-      matchScore: 94,
-      availability: '2 Weeks Notice',
-      openToWork: true,
-      resumeUrl: 'https://kirmya.com/resumes/tariq-mansoor.pdf',
-      resumeAvailable: true,
-      verificationStatus: 'Verified',
-      saved: false,
-      recommendationNote: 'Verified leadership track record in commercial real estate.',
-    },
-  ];
+  /*
+   * The candidates this recruiter can actually see.
+   *
+   * This page rendered two people who do not exist - "Sarah Chen" and "Tariq
+   * Al-Mansoor" - with employers, twelve years of experience, a "96% AI match
+   * rating" and résumé links at kirmya.com/resumes/. It made no request of any
+   * kind: every recruiter on the platform saw the same two, and a recruiter
+   * with no candidates saw them too.
+   */
+  const {
+    data: candidates = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['recruiter', 'candidates'],
+    queryFn: () => recruiterApi.getCandidates(),
+  });
 
   return (
     <RecruiterLayout>
@@ -105,11 +89,28 @@ export default function CandidatesMainPage() {
       </Box>
 
       <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>
-        Matching Candidates ({mockCandidates.length})
+        Matching Candidates{!isLoading && !isError ? ` (${candidates.length})` : ''}
       </Typography>
 
       <Stack spacing={2}>
-        {mockCandidates.map((cand) => (
+        {isLoading && (
+          <Stack direction="row" spacing={2} alignItems="center" role="status" aria-live="polite">
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">Searching candidates…</Typography>
+          </Stack>
+        )}
+        {isError && !isLoading && (
+          <Alert severity="error">
+            Candidates could not be loaded.
+            {error instanceof Error ? ` ${error.message}` : ''}
+          </Alert>
+        )}
+        {!isLoading && !isError && candidates.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            No candidates match these filters yet.
+          </Typography>
+        )}
+        {candidates.map((cand) => (
           <CandidateCard key={cand.id} candidate={cand as any} />
         ))}
       </Stack>

@@ -50,26 +50,9 @@ export const securityApi = {
   },
 
   async setupMFA(): Promise<MFASetupResponse> {
-    try {
-      const res = await apiClient.post<MFASetupResponse>('/security/mfa/setup');
-      return res.data;
-    } catch {
-      return {
-        secret: 'JBSWY3DPEHPK3PXP',
-        qr_code_uri: 'otpauth://totp/Kirmya:user@kirmya.com?secret=JBSWY3DPEHPK3PXP&issuer=Kirmya',
-        recovery_codes: [
-          'REC-8F3A',
-          'REC-9B21',
-          'REC-1C4D',
-          'REC-7E82',
-          'REC-3F90',
-          'REC-4D12',
-          'REC-5B67',
-          'REC-2A89',
-        ],
-        enabled_at: new Date().toISOString(),
-      };
-    }
+    const res = await apiClient.post<MFASetupResponse>('/security/mfa/setup');
+    return res.data;
+    
   },
 
   async verifyMFA(code: string): Promise<boolean> {
@@ -213,12 +196,9 @@ export const securityApi = {
   },
 
   async getSecurityIncidents(): Promise<SecurityIncident[]> {
-    try {
-      const res = await apiClient.get<SecurityIncident[]>('/admin/security/incidents');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<SecurityIncident[]>('/admin/security/incidents');
+    return res.data;
+    
   },
 
   // SECURITY ALERTS & THREAT MONITOR ENDPOINTS
@@ -419,13 +399,9 @@ export const securityApi = {
   },
 
   async updatePrivacySettings(settings: Partial<PrivacySettings>): Promise<PrivacySettings> {
-    try {
-      const res = await apiClient.patch<PrivacySettings>('/privacy/settings', settings);
-      return res.data;
-    } catch {
-      const current = await this.getPrivacySettings();
-      return { ...current, ...settings, updated_at: new Date().toISOString() };
-    }
+    const res = await apiClient.patch<PrivacySettings>('/privacy/settings', settings);
+    return res.data;
+    
   },
 
   async requestDataExport(): Promise<DataExportStatus> {
@@ -473,12 +449,9 @@ export const securityApi = {
   },
 
   async requestAccountDeletion(reason?: string, password?: string): Promise<{ success: boolean; grace_period_days: number }> {
-    try {
-      const res = await apiClient.post('/privacy/account-deletion', { reason, password });
-      return res.data;
-    } catch {
-      return { success: true, grace_period_days: 14 };
-    }
+    const res = await apiClient.post('/privacy/account-deletion', { reason, password });
+    return res.data;
+    
   },
 
   async cancelAccountDeletion(): Promise<boolean> {

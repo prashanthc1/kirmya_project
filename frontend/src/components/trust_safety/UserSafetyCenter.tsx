@@ -101,55 +101,85 @@ export const UserSafetyCenter: React.FC = () => {
   }, []);
 
   const handleReportSubmit = async () => {
-    await trustSafetyApi.submitReport({
-      target_type: reportTargetType,
-      target_id: reportTargetId || 'target-' + Date.now(),
-      target_title: `Reported ${reportTargetType.toUpperCase()}`,
-      category: reportCategory,
-      description: reportDescription,
-      evidence_urls: reportEvidenceUrl ? [reportEvidenceUrl] : [],
-      reporter_privacy: true,
-    });
-    setStatusMsg('Confidential safety report submitted successfully. Our team will review within SLA guidelines.');
-    setReportModalOpen(false);
-    setReportDescription('');
-    setReportEvidenceUrl('');
-    loadData();
+    try {
+      await trustSafetyApi.submitReport({
+        target_type: reportTargetType,
+        target_id: reportTargetId || 'target-' + Date.now(),
+        target_title: `Reported ${reportTargetType.toUpperCase()}`,
+        category: reportCategory,
+        description: reportDescription,
+        evidence_urls: reportEvidenceUrl ? [reportEvidenceUrl] : [],
+        reporter_privacy: true,
+      });
+      setStatusMsg('Confidential safety report submitted successfully. Our team will review within SLA guidelines.');
+      setReportModalOpen(false);
+      setReportDescription('');
+      setReportEvidenceUrl('');
+      loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserSafetyCenter.tsx: handleReportSubmit failed', error);
+    }
   };
 
   const handleAppealSubmit = async () => {
-    if (!appealModalOpen) return;
-    await trustSafetyApi.submitAppeal({
-      decision_id: appealModalOpen.id,
-      reason: appealReason,
-      explanation: appealExplanation,
-    });
-    setStatusMsg('Appeal submitted successfully. Reviewer assigned.');
-    setAppealModalOpen(null);
-    setAppealExplanation('');
-    loadData();
+    try {
+      if (!appealModalOpen) return;
+      await trustSafetyApi.submitAppeal({
+        decision_id: appealModalOpen.id,
+        reason: appealReason,
+        explanation: appealExplanation,
+      });
+      setStatusMsg('Appeal submitted successfully. Reviewer assigned.');
+      setAppealModalOpen(null);
+      setAppealExplanation('');
+      loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserSafetyCenter.tsx: handleAppealSubmit failed', error);
+    }
   };
 
   const handleBlockSubmit = async () => {
-    if (!blockUserId) return;
-    await trustSafetyApi.blockUser(blockUserId, blockReason);
-    setStatusMsg(`User ${blockUserId} blocked successfully.`);
-    setBlockModalOpen(false);
-    setBlockUserId('');
-    setBlockReason('');
-    loadData();
+    try {
+      if (!blockUserId) return;
+      await trustSafetyApi.blockUser(blockUserId, blockReason);
+      setStatusMsg(`User ${blockUserId} blocked successfully.`);
+      setBlockModalOpen(false);
+      setBlockUserId('');
+      setBlockReason('');
+      loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserSafetyCenter.tsx: handleBlockSubmit failed', error);
+    }
   };
 
   const handleUnblock = async (blockedId: string) => {
-    await trustSafetyApi.unblockUser(blockedId);
-    setStatusMsg(`User ${blockedId} unblocked.`);
-    loadData();
+    try {
+      await trustSafetyApi.unblockUser(blockedId);
+      setStatusMsg(`User ${blockedId} unblocked.`);
+      loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserSafetyCenter.tsx: handleUnblock failed', error);
+    }
   };
 
   const handleUnmute = async (mutedId: string) => {
-    await trustSafetyApi.unmuteUser(mutedId);
-    setStatusMsg(`User ${mutedId} unmuted.`);
-    loadData();
+    try {
+      await trustSafetyApi.unmuteUser(mutedId);
+      setStatusMsg(`User ${mutedId} unmuted.`);
+      loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('UserSafetyCenter.tsx: handleUnmute failed', error);
+    }
   };
 
   return (

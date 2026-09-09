@@ -39,7 +39,6 @@ export const AdminDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(0);
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
-  const [impersonationOpen, setImpersonationOpen] = useState(false);
 
   const metrics = [
     { label: 'Total Users', value: '12,450', change: '+12% this month', icon: <PeopleIcon sx={{ color: '#3b82f6' }} />, path: '/admin/users' },
@@ -75,11 +74,18 @@ export const AdminDashboard: React.FC = () => {
             Maintenance Mode
           </Button>
 
+          {/*
+            Impersonation is reached from the user directory, where an
+            administrator picks who. This button opened the dialog against a
+            hardcoded target - id 'u1', "Tariq Al-Mansoor", an account that does
+            not exist - so the one control on the platform for acting as another
+            person named its subject in a literal. It goes to the directory now.
+          */}
           <Button
             variant="outlined"
             color="secondary"
             startIcon={<SupervisorAccountIcon />}
-            onClick={() => setImpersonationOpen(true)}
+            onClick={() => router.push('/admin/users')}
             sx={{ borderRadius: '12px', fontWeight: 800 }}
           >
             Impersonate
@@ -232,11 +238,6 @@ export const AdminDashboard: React.FC = () => {
       {/* Modals */}
       <MaintenanceModeModal open={maintenanceOpen} onClose={() => setMaintenanceOpen(false)} />
 
-      <ImpersonationDialog
-        open={impersonationOpen}
-        onClose={() => setImpersonationOpen(false)}
-        targetUser={{ id: 'u1', name: 'Tariq Al-Mansoor', email: 'tariq@kirmya.com' }}
-      />
     </Box>
   );
 };

@@ -28,17 +28,29 @@ export const SupportTicketDetails: React.FC<{ ticketId: string }> = ({ ticketId 
   }, [ticketId]);
 
   const handleSendReply = async () => {
-    if (!replyText) return;
-    const newMsg = await supportApi.addMessage(ticketId, replyText);
-    setMessages([...messages, newMsg]);
-    setReplyText('');
+    try {
+      if (!replyText) return;
+      const newMsg = await supportApi.addMessage(ticketId, replyText);
+      setMessages([...messages, newMsg]);
+      setReplyText('');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SupportTicketDetails.tsx: handleSendReply failed', error);
+    }
   };
 
   const handleCsat = async (val: number | null) => {
-    if (!val) return;
-    setCsatRating(val);
-    await supportApi.recordCSAT(ticketId, val);
-    setCsatSubmitted(true);
+    try {
+      if (!val) return;
+      setCsatRating(val);
+      await supportApi.recordCSAT(ticketId, val);
+      setCsatSubmitted(true);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SupportTicketDetails.tsx: handleCsat failed', error);
+    }
   };
 
   return (

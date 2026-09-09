@@ -23,10 +23,17 @@ export const DataExportView: React.FC = () => {
   }, []);
 
   const handleRequestExport = async () => {
-    setLoading(true);
-    const res = await securityApi.requestDataExport();
-    setExportStatus(res);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const res = await securityApi.requestDataExport();
+      setExportStatus(res);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataExportView.tsx: handleRequestExport failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

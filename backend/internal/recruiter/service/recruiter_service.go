@@ -220,76 +220,69 @@ func (s *RecruiterService) UpdatePipelineStage(ctx context.Context, userID, pipe
 	return s.repo.UpdateOwnedApplicationStage(ctx, userID, pipelineID, payload.Stage, payload.Notes)
 }
 
+// GetDashboardOverview counts what this recruiter actually has.
+//
+// Every headline figure here was a literal compiled into the binary: 142
+// applicants, 18 new candidates, 9 shortlisted, 3 offers, 12 successful hires,
+// served identically to every recruiter including one who had posted no jobs
+// at all. The two "recent activities" were literals too, one of them naming a
+// candidate who does not exist.
 func (s *RecruiterService) GetDashboardOverview(ctx context.Context, userID uuid.UUID) (*models.RecruiterDashboardOverview, error) {
-	jobs, _ := s.GetJobs(ctx, userID)
-	interviews, _ := s.GetInterviews(ctx, userID)
+	jobs, err := s.GetJobs(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	interviews, err := s.GetInterviews(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	counts, err := s.repo.DashboardCounts(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &models.RecruiterDashboardOverview{
-		ActiveJobsCount:      2,
-		DraftJobsCount:       1,
-		TotalApplicantsCount: 142,
-		NewCandidatesCount:   18,
-		ShortlistedCount:     9,
+		ActiveJobsCount:      counts.ActiveJobs,
+		DraftJobsCount:       counts.DraftJobs,
+		TotalApplicantsCount: counts.TotalApplicants,
+		NewCandidatesCount:   counts.NewCandidates,
+		ShortlistedCount:     counts.Shortlisted,
 		InterviewsScheduled:  len(interviews),
-		OffersCount:          3,
-		SuccessfulHiresCount: 12,
-		ExpiringJobsCount:    1,
-		RecentJobs:           jobs,
-		UpcomingInterviews:   interviews,
-		RecentActivities: []models.RecruiterActivity{
-			{ID: uuid.New(), ActivityType: "Job Posted", Description: "Published Senior Go Backend Architect position", CreatedAt: time.Now().Add(-2 * time.Hour)},
-			{ID: uuid.New(), ActivityType: "Stage Advanced", Description: "Moved Tariq Al-Mansoor to Shortlisted stage", CreatedAt: time.Now().Add(-5 * time.Hour)},
-		},
+		OffersCount:          counts.Offers,
+		SuccessfulHiresCount: counts.Hires,
+		// Nothing records an expiry against a posting, so this is not counted
+		// rather than guessed.
+		ExpiringJobsCount:  0,
+		RecentJobs:         jobs,
+		UpcomingInterviews: interviews,
+		// The activity feed has no store behind it. An empty list is the
+		// truthful answer; two invented entries were not.
+		RecentActivities: []models.RecruiterActivity{},
 	}, nil
 }
 
+// GetCandidates lists the people who have applied to this recruiter's jobs.
+//
+// It used to return two fixed candidates - "Sarah Chen" at 96% match and
+// "Tariq Al-Mansoor" at 94%, both marked Verified, both with resume URLs under
+// kirmya.com that resolve to nothing - to every recruiter, ignoring the
+// database entirely.
 func (s *RecruiterService) GetCandidates(ctx context.Context, userID uuid.UUID) ([]models.RecruiterCandidateItem, error) {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
-	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, uuid.Nil, p.CompanyName, "Candidate Search Performed")
+	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, uuid.Nil, p.CompanyName, "Candidate Search Performed"); err != nil {
+		return nil, err
+	}
+	return s.repo.SearchCandidates(ctx, userID)
+}
 
-	return []models.RecruiterCandidateItem{
-		{
-			ID:                 uuid.MustParse("c1111111-1111-1111-1111-111111111111"),
-			Name:               "Sarah Chen",
-			Headline:           "Staff Software Engineer & Cloud Architect",
-			CurrentRole:        "Staff Engineer at CloudScale",
-			Location:           "Dubai, UAE",
-			Skills:             []string{"Golang", "React", "TypeScript", "PostgreSQL", "Docker", "Kubernetes"},
-			ExperienceYears:    8,
-			MatchScore:         96,
-			Availability:       "Immediate",
-			OpenToWork:         true,
-			ResumeURL:          "https://kirmya.com/resumes/sarah-chen.pdf",
-			ResumeAvailable:    true,
-			VerificationStatus: "Verified",
-			Tags: []models.CandidateTagDTO{
-				{ID: uuid.New(), Name: "High Priority", Color: "#EF4444"},
-				{ID: uuid.New(), Name: "Technical Leader", Color: "#6366F1"},
-			},
-			Saved:              true,
-			RecommendationNote: "96% AI match rating based on job requirements and experience.",
-		},
-		{
-			ID:                 uuid.MustParse("c2222222-2222-2222-2222-222222222222"),
-			Name:               "Tariq Al-Mansoor",
-			Headline:           "Director of Facilities & Asset Management",
-			CurrentRole:        "Facilities Director at Emaar",
-			Location:           "Abu Dhabi, UAE",
-			Skills:             []string{"Facilities Management", "HVAC", "SLA Auditing", "Vendor Management"},
-			ExperienceYears:    12,
-			MatchScore:         94,
-			Availability:       "2 Weeks Notice",
-			OpenToWork:         true,
-			ResumeURL:          "https://kirmya.com/resumes/tariq-mansoor.pdf",
-			ResumeAvailable:    true,
-			VerificationStatus: "Verified",
-			Tags: []models.CandidateTagDTO{
-				{ID: uuid.New(), Name: "Leadership", Color: "#10B981"},
-			},
-			Saved:              false,
-			RecommendationNote: "Verified leadership track record in commercial real estate.",
-		},
-	}, nil
+// GetCandidate answers for one candidate who has applied to a job of the
+// caller's. A candidate the recruiter has no application from is not found,
+// so this endpoint is not a read of the whole member directory.
+func (s *RecruiterService) GetCandidate(ctx context.Context, userID, candidateID uuid.UUID) (*models.RecruiterCandidateItem, error) {
+	return s.repo.CandidateByID(ctx, userID, candidateID)
 }
 
 // GetCandidateMatch answers for one candidate on one of the caller's jobs,

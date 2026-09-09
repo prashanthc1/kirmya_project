@@ -69,26 +69,32 @@ export const SecurityCenter: React.FC<SecurityCenterProps> = ({ initialTab = 0 }
   }, []);
 
   const handlePasswordChange = async () => {
-    if (!currentPassword) {
-      setPasswordStatus('Please enter your current password.');
-      return;
-    }
-    if (newPassword.length < 12) {
-      setPasswordStatus('Password must be at least 12 characters long.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordStatus('New passwords do not match.');
-      return;
-    }
-    const success = await securityApi.changePassword({ current_password: currentPassword, new_password: newPassword });
-    if (success) {
-      setPasswordStatus('Password changed successfully. A security alert email has been sent.');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } else {
-      setPasswordStatus('Failed to change password. Please verify current password.');
+    try {
+      if (!currentPassword) {
+        setPasswordStatus('Please enter your current password.');
+        return;
+      }
+      if (newPassword.length < 12) {
+        setPasswordStatus('Password must be at least 12 characters long.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setPasswordStatus('New passwords do not match.');
+        return;
+      }
+      const success = await securityApi.changePassword({ current_password: currentPassword, new_password: newPassword });
+      if (success) {
+        setPasswordStatus('Password changed successfully. A security alert email has been sent.');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setPasswordStatus('Failed to change password. Please verify current password.');
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityCenter.tsx: handlePasswordChange failed', error);
     }
   };
 

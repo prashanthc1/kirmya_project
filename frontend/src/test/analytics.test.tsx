@@ -22,6 +22,25 @@ import CohortTable from '../components/analytics/CohortTable';
 import analyticsApi from '../features/analytics/services/analyticsApi';
 
 describe('Analytics, BI & Reporting Module Test Suite', () => {
+  /*
+   * Six tests here asserted figures the client invented when its request
+   * failed: total_users above zero, a retention rate, zero-result searches, a
+   * consent record. The suite disables the network, so every one of those calls
+   * failed and a catch block supplied the answer - the assertions were reading
+   * the fallback, not the API.
+   *
+   * The fallbacks are gone. What is worth pinning is that a failed analytics
+   * request is reported, so that a console shows an error instead of a figure
+   * nobody measured.
+   */
+  it('report a failed request rather than answering with invented figures', async () => {
+    await expect(analyticsApi.getAdminOverview()).rejects.toThrow();
+    await expect(analyticsApi.getAdminUserGrowth()).rejects.toThrow();
+    await expect(analyticsApi.getAdminSearch()).rejects.toThrow();
+    await expect(analyticsApi.getPerformanceAnalytics()).rejects.toThrow();
+    await expect(analyticsApi.getTrustSafetyAnalytics()).rejects.toThrow();
+  });
+
   it('renders AdminAnalyticsCenter executive dashboard', () => {
     render(<AdminAnalyticsCenter />);
     expect(screen.getByText(/Kirmya Executive Intelligence & Business Analytics/i)).toBeInTheDocument();
@@ -70,69 +89,4 @@ describe('Analytics, BI & Reporting Module Test Suite', () => {
     expect(screen.getByText(/User Retention Cohorts/i)).toBeInTheDocument();
   });
 
-  it('fetches admin overview and growth analytics safely', async () => {
-    const ov = await analyticsApi.getAdminOverview();
-    expect(ov.total_users).toBeGreaterThan(0);
-
-    const ug = await analyticsApi.getAdminUserGrowth();
-    expect(ug.retention_rate_pct).toBeGreaterThan(0);
-  });
-
-  it('fetches search zero-result analytics and scheduled reports', async () => {
-    const searchData = await analyticsApi.getAdminSearch();
-    expect(searchData.zero_result_searches.length).toBeGreaterThan(0);
-
-    const scheduled = await analyticsApi.getScheduledReports();
-    expect(scheduled.length).toBeGreaterThan(0);
-  });
-
-  it('handles CSV export requests with formula injection defense', async () => {
-    const res = await analyticsApi.requestExport('csv');
-    expect(res.export.export_format).toBe('csv');
-    expect(res.export.status).toBe('completed');
-  });
-
-  it('fetches system performance telemetry and trust safety analytics', async () => {
-    const perf = await analyticsApi.getPerformanceAnalytics();
-    expect(perf.p50_latency_ms).toBeGreaterThan(0);
-    expect(perf.otel_exporter_status).toBe('healthy');
-
-    const ts = await analyticsApi.getTrustSafetyAnalytics();
-    expect(ts.total_reports_count).toBeGreaterThan(0);
-  });
-
-  it('fetches mentorship, learning, activation funnel, cohort grid, and feature adoption data', async () => {
-    const mentorship = await analyticsApi.getMentorshipAnalytics();
-    expect(mentorship.total_mentors_count).toBeGreaterThan(0);
-
-    const learning = await analyticsApi.getLearningAnalytics();
-    expect(learning.courses_enrolled_count).toBeGreaterThan(0);
-
-    const funnel = await analyticsApi.getActivationFunnel();
-    expect(funnel.stages.length).toBeGreaterThan(0);
-
-    const cohortGrid = await analyticsApi.getCohortGrid();
-    expect(cohortGrid.cohorts.length).toBeGreaterThan(0);
-
-    const featureAdoption = await analyticsApi.getFeatureAdoption();
-    expect(featureAdoption.length).toBeGreaterThan(0);
-  });
-
-  it('handles user consent preferences and retention cleanup trigger', async () => {
-    const consent = await analyticsApi.getUserConsent();
-    expect(consent.essential_telemetry).toBe(true);
-
-    const updated = await analyticsApi.updateUserConsent({ optional_analytics: false });
-    expect(updated.optional_analytics).toBe(false);
-
-    const customReport = await analyticsApi.createCustomReport({
-      title: 'Monthly SLA',
-      report_type: 'performance',
-      export_format: 'csv',
-    });
-    expect(customReport.title).toBe('Monthly SLA');
-
-    const cleanupRes = await analyticsApi.triggerRetentionCleanup(60);
-    expect(cleanupRes.deleted_records).toBeGreaterThan(0);
-  });
 });

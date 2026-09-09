@@ -40,10 +40,12 @@ export default function DataOperationsStudio() {
   const [bulkOps, setBulkOps] = useState<BulkOperation[]>([]);
   const [migrations, setMigrations] = useState<DataMigration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [importWizardOpen, setImportWizardOpen] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [impData, expData, bulkData, migData] = await Promise.all([
         dataOpsApi.listAdminImports(),
@@ -55,6 +57,10 @@ export default function DataOperationsStudio() {
       setExports(expData);
       setBulkOps(bulkData);
       setMigrations(migData);
+    } catch (error) {
+      // The console showed empty tables when this failed, which reads as "no
+      // imports, no exports, no migrations" rather than "we could not ask".
+      setLoadError(error instanceof Error ? error.message : 'The request failed.');
     } finally {
       setLoading(false);
     }
@@ -65,8 +71,14 @@ export default function DataOperationsStudio() {
   }, []);
 
   const handleTriggerExport = async (type: string) => {
-    await dataOpsApi.createAdminExport(type, 'csv', {}, ['id', 'title', 'created_at'], false);
-    await loadData();
+    try {
+      await dataOpsApi.createAdminExport(type, 'csv', {}, ['id', 'title', 'created_at'], false);
+      await loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataOperationsStudio.tsx: handleTriggerExport failed', error);
+    }
   };
 
   return (
@@ -109,6 +121,13 @@ export default function DataOperationsStudio() {
         </Box>
 
         {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#a855f7' } }} />}
+
+        {loadError && !loading && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            Data operations could not be loaded, so the tables below are empty for that reason and
+            not because the platform has no records. {loadError}
+          </Alert>
+        )}
 
         {/* Top Summary Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>

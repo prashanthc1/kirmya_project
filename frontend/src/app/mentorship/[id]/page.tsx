@@ -51,32 +51,68 @@ export default function MentorshipWorkspacePage() {
   }, [mentorshipId]);
 
   const handleUpdateGoal = async (goalId: string, updates: any) => {
-    await mentorshipApi.updateGoal(mentorshipId, goalId, updates);
-    fetchMentorship();
+    try {
+      await mentorshipApi.updateGoal(mentorshipId, goalId, updates);
+      fetchMentorship();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleUpdateGoal failed', error);
+    }
   };
 
   const handleAddGoal = async (newGoal: any) => {
-    await mentorshipApi.createGoal(mentorshipId, newGoal);
-    fetchMentorship();
+    try {
+      await mentorshipApi.createGoal(mentorshipId, newGoal);
+      fetchMentorship();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleAddGoal failed', error);
+    }
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    await mentorshipApi.deleteGoal(mentorshipId, goalId);
-    fetchMentorship();
+    try {
+      await mentorshipApi.deleteGoal(mentorshipId, goalId);
+      fetchMentorship();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleDeleteGoal failed', error);
+    }
   };
 
   const handleScheduleSession = async (sessionData: any) => {
-    await mentorshipApi.scheduleSession(mentorshipId, sessionData);
-    fetchMentorship();
+    try {
+      await mentorshipApi.scheduleSession(mentorshipId, sessionData);
+      fetchMentorship();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleScheduleSession failed', error);
+    }
   };
 
   const handleUpdateSessionStatus = async (sessionId: string, status: any) => {
-    await mentorshipApi.updateSession(mentorshipId, sessionId, { status });
-    fetchMentorship();
+    try {
+      await mentorshipApi.updateSession(mentorshipId, sessionId, { status });
+      fetchMentorship();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleUpdateSessionStatus failed', error);
+    }
   };
 
   const handleSubmitFeedback = async (feedbackData: any) => {
-    await mentorshipApi.submitFeedback(feedbackData);
+    try {
+      await mentorshipApi.submitFeedback(feedbackData);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleSubmitFeedback failed', error);
+    }
   };
 
   if (loading) {

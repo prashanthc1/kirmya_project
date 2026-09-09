@@ -1,6 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import DashboardCards from '../components/recruiter/DashboardCards';
 import RecruiterOnboarding from '../components/recruiter/RecruiterOnboarding';
 import AIRecruiterAssistant from '../components/recruiter/AIRecruiterAssistant';
@@ -9,7 +10,6 @@ import RecruiterNotes from '../components/recruiter/RecruiterNotes';
 import CandidateProfile from '../components/recruiter/CandidateProfile';
 import ApplicationDetails from '../components/recruiter/ApplicationDetails';
 import InterviewScheduler from '../components/recruiter/InterviewScheduler';
-import OfferManager from '../components/recruiter/OfferManager';
 import JobManager from '../components/recruiter/JobManager';
 import { ThemeProvider, createTheme } from '@mui/material';
 
@@ -72,57 +72,69 @@ describe('Recruiter ATS Production Test Suite', () => {
   });
 
   it('renders PipelineBoard with stage columns', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
     render(
+      <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <PipelineBoard />
       </ThemeProvider>
+      </QueryClientProvider>
     );
-    expect(screen.getByText(/Kanban/i)).toBeInTheDocument();
+    // With no job selected the board says so rather than inventing a pipeline.
+    expect(screen.getByText(/Choose a job posting/i)).toBeInTheDocument();
   });
 
-  it('renders RecruiterNotes component', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <RecruiterNotes candidateId="c1111111-1111-1111-1111-111111111111" candidateName="Sarah Chen" />
-      </ThemeProvider>
+  /*
+   * These four read from the API now, so with the network disabled they render
+   * a stated failure. They used to render invented people held in component
+   * state - which is exactly why "renders" was all these assertions could
+   * check, and why they passed while the screens were fiction.
+   */
+  const withQuery = (ui: React.ReactElement) => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    return render(
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>{ui}</ThemeProvider>
+      </QueryClientProvider>
     );
-    expect(screen.getAllByText(/Notes/i).length).toBeGreaterThan(0);
+  };
+
+  it('RecruiterNotes says its notes could not be read rather than inventing two', async () => {
+    withQuery(
+      <RecruiterNotes candidateId="c1111111-1111-1111-1111-111111111111" candidateName="A Candidate" />
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/could not be loaded/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/Rashid Al-Maktoum/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Amira Al-Farsi/i)).not.toBeInTheDocument();
   });
 
-  it('renders CandidateProfile component', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <CandidateProfile candidateId="c1111111-1111-1111-1111-111111111111" />
-      </ThemeProvider>
-    );
-    expect(screen.getAllByText(/Candidate/i).length).toBeGreaterThan(0);
+  it('CandidateProfile says the candidate could not be read rather than showing a fixed one', async () => {
+    withQuery(<CandidateProfile candidateId="c1111111-1111-1111-1111-111111111111" />);
+    await waitFor(() => {
+      expect(screen.getByText(/could not be loaded/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/96% MATCH/i)).not.toBeInTheDocument();
   });
 
-  it('renders ApplicationDetails component', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <ApplicationDetails applicationId="a1111111-1111-1111-1111-111111111111" />
-      </ThemeProvider>
-    );
-    expect(screen.getAllByText(/Application/i).length).toBeGreaterThan(0);
+  it('ApplicationDetails says the application could not be read rather than showing a fixed one', async () => {
+    withQuery(<ApplicationDetails applicationId="a1111111-1111-1111-1111-111111111111" />);
+    await waitFor(() => {
+      expect(screen.getByText(/could not be loaded/i)).toBeInTheDocument();
+    });
   });
 
-  it('renders InterviewScheduler component', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <InterviewScheduler />
-      </ThemeProvider>
-    );
-    expect(screen.getAllByText(/Interview/i).length).toBeGreaterThan(0);
-  });
-
-  it('renders OfferManager component', () => {
-    render(
-      <ThemeProvider theme={theme}>
-        <OfferManager />
-      </ThemeProvider>
-    );
-    expect(screen.getAllByText(/Offer/i).length).toBeGreaterThan(0);
+  it('InterviewScheduler says its interviews could not be read rather than listing one', async () => {
+    withQuery(<InterviewScheduler />);
+    await waitFor(() => {
+      expect(screen.getByText(/could not be loaded/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/meet\.google\.com/i)).not.toBeInTheDocument();
   });
 
   it('renders JobManager component', () => {

@@ -50,10 +50,17 @@ export const FraudThreatMonitor: React.FC = () => {
   const [mitigationAction, setMitigationAction] = useState<string>('');
 
   const fetchAlerts = async () => {
-    setLoading(true);
-    const data = await securityApi.getFraudAlerts();
-    setAlerts(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await securityApi.getFraudAlerts();
+      setAlerts(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('FraudThreatMonitor.tsx: fetchAlerts failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -68,10 +75,16 @@ export const FraudThreatMonitor: React.FC = () => {
   };
 
   const handleSaveAction = async () => {
-    if (!targetAlert) return;
-    const updated = await securityApi.updateFraudAlertStatus(targetAlert.id, newStatus, mitigationAction);
-    setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-    setActionDialogOpen(false);
+    try {
+      if (!targetAlert) return;
+      const updated = await securityApi.updateFraudAlertStatus(targetAlert.id, newStatus, mitigationAction);
+      setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      setActionDialogOpen(false);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('FraudThreatMonitor.tsx: handleSaveAction failed', error);
+    }
   };
 
   const getFraudIcon = (type: FraudAlert['fraud_type']) => {

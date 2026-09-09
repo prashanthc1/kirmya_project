@@ -33,6 +33,8 @@ export default function UserConsentToggleModal({ open, onClose, onSaved }: UserC
   const [retentionDays, setRetentionDays] = useState(90);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -40,31 +42,57 @@ export default function UserConsentToggleModal({ open, onClose, onSaved }: UserC
     }
   }, [open]);
 
+  /*
+   * These toggles carry the switch positions this component was initialised
+   * with until the API answers. If the read fails they are not this account's
+   * consent - they are defaults - so the dialog says the settings could not be
+   * loaded rather than presenting them as the user's own choices.
+   */
   const loadConsent = async () => {
-    const consent = await analyticsApi.getUserConsent();
-    setEssential(consent.essential_telemetry);
-    setOptionalAnalytics(consent.optional_analytics);
-    setPersonalization(consent.personalization_tracking);
-    setRetentionDays(consent.data_retention_period_days);
+    setErrorMsg(null);
+    try {
+      const consent = await analyticsApi.getUserConsent();
+      setEssential(consent.essential_telemetry);
+      setOptionalAnalytics(consent.optional_analytics);
+      setPersonalization(consent.personalization_tracking);
+      setRetentionDays(consent.data_retention_period_days);
+      setLoaded(true);
+    } catch (error) {
+      setLoaded(false);
+      setErrorMsg(
+        `Your current privacy settings could not be loaded, so the switches below are defaults rather than your choices.${
+          error instanceof Error ? ` ${error.message}` : ''
+        }`
+      );
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
-    const updated = await analyticsApi.updateUserConsent({
-      essential_telemetry: essential,
-      optional_analytics: optionalAnalytics,
-      personalization_tracking: personalization,
-      data_retention_period_days: retentionDays,
-    });
-    setSaving(false);
-    setSuccessMsg('Privacy consent preferences updated successfully!');
-    if (onSaved) {
-      onSaved(updated);
+    setErrorMsg(null);
+    try {
+      const updated = await analyticsApi.updateUserConsent({
+        essential_telemetry: essential,
+        optional_analytics: optionalAnalytics,
+        personalization_tracking: personalization,
+        data_retention_period_days: retentionDays,
+      });
+      setSuccessMsg('Privacy consent preferences updated successfully!');
+      if (onSaved) {
+        onSaved(updated);
+      }
+      setTimeout(() => {
+        setSuccessMsg(null);
+        onClose();
+      }, 1200);
+    } catch (error) {
+      // Consent that was not stored must not be reported as saved.
+      setErrorMsg(
+        `Your privacy preferences were not saved.${error instanceof Error ? ` ${error.message}` : ''}`
+      );
+    } finally {
+      setSaving(false);
     }
-    setTimeout(() => {
-      setSuccessMsg(null);
-      onClose();
-    }, 1200);
   };
 
   return (
@@ -87,6 +115,12 @@ export default function UserConsentToggleModal({ open, onClose, onSaved }: UserC
         {successMsg && (
           <Alert severity="success" sx={{ mb: 2, borderRadius: 3 }}>
             {successMsg}
+          </Alert>
+        )}
+
+        {errorMsg && (
+          <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
+            {errorMsg}
           </Alert>
         )}
 
@@ -185,7 +219,9 @@ export default function UserConsentToggleModal({ open, onClose, onSaved }: UserC
         <Button
           onClick={handleSave}
           variant="contained"
-          disabled={saving}
+          // Saving before the current settings are known would write these
+          // defaults over choices the user has already made.
+          disabled={saving || !loaded}
           sx={{ borderRadius: 3, fontWeight: 800 }}
         >
           {saving ? 'Saving...' : 'Save Preferences'}

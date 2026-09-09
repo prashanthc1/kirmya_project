@@ -36,18 +36,24 @@ export const ContactSupport: React.FC = () => {
   ];
 
   const handleSubmit = async () => {
-    if (!subject || !description) {
-      setError('Please fill in all required fields.');
-      return;
+    try {
+      if (!subject || !description) {
+        setError('Please fill in all required fields.');
+        return;
+      }
+      setError(null);
+      const ticket = await supportApi.createTicket({
+        category,
+        subject,
+        description,
+        priority,
+      });
+      setCreatedTicket(ticket);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      setError(error instanceof Error ? error.message : 'Something went wrong.');
     }
-    setError(null);
-    const ticket = await supportApi.createTicket({
-      category,
-      subject,
-      description,
-      priority,
-    });
-    setCreatedTicket(ticket);
   };
 
   return (

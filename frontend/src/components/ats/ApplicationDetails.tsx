@@ -13,6 +13,8 @@ import {
   Tabs,
   Tab,
   useTheme,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -46,12 +48,44 @@ export const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({ applicat
   const [openOfferModal, setOpenOfferModal] = useState(false);
   const [openScheduleModal, setOpenScheduleModal] = useState(false);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  /*
+   * A failed read used to be swallowed, leaving `application` null, and the
+   * component returned null for it - a blank page with no explanation, and no
+   * way to tell "this application does not exist" from "the request failed".
+   */
   useEffect(() => {
-    atsApi.getApplicationDetail(applicationId).then((res) => setApplication(res)).catch(() => {});
-    atsApi.getAIEvaluation(applicationId).then((res) => setAiEval(res)).catch(() => {});
+    let live = true;
+    setLoadError(null);
+    atsApi
+      .getApplicationDetail(applicationId)
+      .then((res) => live && setApplication(res))
+      .catch((err) => live && setLoadError(err instanceof Error ? err.message : 'The request failed.'));
+    // The evaluation is a secondary panel; its absence is handled where it is
+    // rendered rather than blocking the application itself.
+    atsApi.getAIEvaluation(applicationId).then((res) => live && setAiEval(res)).catch(() => {});
+    return () => {
+      live = false;
+    };
   }, [applicationId]);
 
-  if (!application) return null;
+  if (loadError) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Alert severity="error">This application could not be loaded. {loadError}</Alert>
+      </Box>
+    );
+  }
+
+  if (!application) {
+    return (
+      <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2 }} role="status" aria-live="polite">
+        <CircularProgress size={22} />
+        <Typography variant="body2" color="text.secondary">Loading this application…</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -191,7 +225,16 @@ export const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({ applicat
       {tab === 1 && <ApplicationTimeline applicationId={applicationId} />}
 
       {/* Tab 2: Recruiter Notes */}
-      {tab === 2 && <NotesPanel applicationId={applicationId} />}
+      {/* Notes are recorded against the candidate, so the panel is given the
+          candidate this application belongs to rather than the application id
+          it used to ignore. */}
+      {tab === 2 && (
+        <NotesPanel
+          applicationId={applicationId}
+          candidateId={application.candidateId}
+          candidateName={application.candidateName}
+        />
+      )}
 
       {/* Tab 3: Feedback Form */}
       {tab === 3 && <FeedbackForm interviewId="int-123" applicationId={applicationId} />}

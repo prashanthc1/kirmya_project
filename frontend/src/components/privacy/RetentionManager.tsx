@@ -42,29 +42,48 @@ export const RetentionManager: React.FC = () => {
   }, []);
 
   const loadPolicies = async () => {
-    setLoading(true);
-    const data = await privacyApi.getRetentionPolicies();
-    setPolicies(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getRetentionPolicies();
+      setPolicies(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('RetentionManager.tsx: loadPolicies failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDryRun = async (policy: RetentionPolicyItem) => {
-    setActivePolicy(policy);
-    setDryRunning(true);
-    const res = await privacyApi.runRetentionDryRun(policy.id);
-    setDryRunRes(res);
-    setDryRunning(false);
+    try {
+      setActivePolicy(policy);
+      setDryRunning(true);
+      const res = await privacyApi.runRetentionDryRun(policy.id);
+      setDryRunRes(res);
+      setDryRunning(false);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('RetentionManager.tsx: handleDryRun failed', error);
+    }
   };
 
   const handleExecutePurge = async () => {
-    if (!activePolicy) return;
-    setPurging(true);
-    const res = await privacyApi.executeRetentionPurge(activePolicy.id);
-    setPurging(false);
-    setPurgeSuccess(`Purge executed for ${activePolicy.category}. ${res.purgedCount} records processed.`);
-    setDryRunRes(null);
-    setActivePolicy(null);
-    loadPolicies();
+    try {
+      if (!activePolicy) return;
+      setPurging(true);
+      const res = await privacyApi.executeRetentionPurge(activePolicy.id);
+      setPurging(false);
+      setPurgeSuccess(`Purge executed for ${activePolicy.category}. ${res.purgedCount} records processed.`);
+      setDryRunRes(null);
+      setActivePolicy(null);
+      loadPolicies();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('RetentionManager.tsx: handleExecutePurge failed', error);
+    }
   };
 
   return (

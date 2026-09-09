@@ -4,7 +4,6 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
 import InterviewScheduler from '../../../components/recruiter/InterviewScheduler';
-import InterviewFeedback from '../../../components/recruiter/InterviewFeedback';
 
 export default function InterviewsPage() {
   return (
@@ -18,11 +17,14 @@ export default function InterviewsPage() {
         </Typography>
       </Box>
 
+      {/*
+        * The scorecard used to be rendered here on its own, with no interview
+        * selected: it defaulted to interview "int_101" and candidate "Sarah
+        * Chen", arrived with every score pre-set to 5 and a written assessment
+        * already in the box, and submitting it recorded nothing. A scorecard
+        * belongs to one interview, so it is opened from that interview.
+        */}
       <InterviewScheduler />
-
-      <Box sx={{ mt: 4 }}>
-        <InterviewFeedback />
-      </Box>
     </RecruiterLayout>
   );
 }

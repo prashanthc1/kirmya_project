@@ -40,15 +40,28 @@ export const AccessReviewDesk: React.FC = () => {
   }, []);
 
   const loadReviews = async () => {
-    setLoading(true);
-    const data = await privacyApi.getAccessReviews();
-    setReviews(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getAccessReviews();
+      setReviews(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AccessReviewDesk.tsx: loadReviews failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpdateStatus = async (id: string, status: DataAccessReviewItem['status']) => {
-    const updated = await privacyApi.updateAccessReviewStatus(id, status);
-    setReviews((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+    try {
+      const updated = await privacyApi.updateAccessReviewStatus(id, status);
+      setReviews((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('AccessReviewDesk.tsx: handleUpdateStatus failed', error);
+    }
   };
 
   return (

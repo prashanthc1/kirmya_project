@@ -34,18 +34,30 @@ export const SessionManagerView: React.FC = () => {
   }, []);
 
   const handleRevoke = async (id: string) => {
-    const ok = await securityApi.revokeSession(id);
-    if (ok) {
-      setSessions(sessions.filter((s) => s.id !== id));
-      setMessage('Session revoked successfully.');
+    try {
+      const ok = await securityApi.revokeSession(id);
+      if (ok) {
+        setSessions(sessions.filter((s) => s.id !== id));
+        setMessage('Session revoked successfully.');
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SessionManagerView.tsx: handleRevoke failed', error);
     }
   };
 
   const handleRevokeAllOther = async () => {
-    const ok = await securityApi.revokeAllOtherSessions();
-    if (ok) {
-      setSessions(sessions.filter((s) => s.is_current));
-      setMessage('All other authentication sessions revoked successfully.');
+    try {
+      const ok = await securityApi.revokeAllOtherSessions();
+      if (ok) {
+        setSessions(sessions.filter((s) => s.is_current));
+        setMessage('All other authentication sessions revoked successfully.');
+      }
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SessionManagerView.tsx: handleRevokeAllOther failed', error);
     }
   };
 

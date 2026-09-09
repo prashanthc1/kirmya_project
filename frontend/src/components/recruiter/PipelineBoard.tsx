@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Typography,
+  Alert,
+  CircularProgress,
   Card,
   Grid,
   Stack,
@@ -23,6 +26,7 @@ import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import PipelineCard, { PipelineCandidate } from './PipelineCard';
+import { recruiterApi } from '../../features/recruiter/api';
 
 const defaultStages = [
   'New',
@@ -47,64 +51,112 @@ export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => 
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [candidates, setCandidates] = useState<PipelineCandidate[]>([
-    {
-      id: 'app_1',
-      applicationId: 'a1111111-1111-1111-1111-111111111111',
-      candidateId: 'c1111111-1111-1111-1111-111111111111',
-      candidateName: 'Sarah Chen',
-      candidateHeadline: 'Staff Software Engineer & Cloud Architect',
-      candidateAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      matchScore: 96,
-      stage: 'New',
-      appliedDate: '2 days ago',
-      notes: 'Strong backend Go microservices background.',
+  /*
+   * The pipeline this recruiter actually has.
+   *
+   * These were three candidates in component state - Sarah Chen, Tariq
+   * Al-Mansoor, Elena Rostova, with stock photographs and "96% MATCH" - shown
+   * to every recruiter on every job, including a recruiter with no applicants.
+   * Batch 5 removed the server's version of this fiction; the board kept its
+   * own copy.
+   *
+   * A board with no job selected has nothing to show, and says so, rather than
+   * filling itself in.
+   */
+  const {
+    data: candidates = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['recruiter', 'pipeline', jobId],
+    queryFn: async (): Promise<PipelineCandidate[]> => {
+      const items = await recruiterApi.getPipeline(jobId as string);
+      return (items ?? []).map((item) => ({
+        id: item.id,
+        applicationId: item.id,
+        candidateId: item.candidateId,
+        candidateName: item.candidateName,
+        // The endpoint serves an email, not a headline; showing the email is
+        // honest where inventing a job title would not be.
+        candidateHeadline: item.candidateEmail,
+        candidateAvatar: item.candidateAvatar ?? '',
+        stage: item.stage,
+        appliedDate: item.updatedAt,
+        interviewScheduledAt: item.interviewScheduledAt ?? undefined,
+        notes: item.notes,
+      }));
     },
-    {
-      id: 'app_2',
-      applicationId: 'a2222222-2222-2222-2222-222222222222',
-      candidateId: 'c2222222-2222-2222-2222-222222222222',
-      candidateName: 'Tariq Al-Mansoor',
-      candidateHeadline: 'Director of Facilities & Asset Management',
-      candidateAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      matchScore: 94,
-      stage: 'Shortlisted',
-      appliedDate: '3 days ago',
-      notes: 'Passed screening call with hiring manager.',
-    },
-    {
-      id: 'app_3',
-      applicationId: 'a3333333-3333-3333-3333-333333333333',
-      candidateId: 'c3333333-3333-3333-3333-333333333333',
-      candidateName: 'Elena Rostova',
-      candidateHeadline: 'Senior AI/ML Research Engineer',
-      candidateAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
-      matchScore: 91,
-      stage: 'Interview',
-      appliedDate: '4 days ago',
-      interviewScheduledAt: '2026-08-15 14:00',
-      notes: 'Scheduled for Technical Architecture Round.',
-    },
-  ]);
+    enabled: Boolean(jobId),
+  });
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+
+  /*
+   * Moving a candidate used to edit the local array and stop there. The card
+   * slid to the next column, the recruiter believed the stage had changed, and
+   * the server never heard about it - the next reload put the candidate back.
+   * The move is a real request now, and the board refetches from what the
+   * server accepted rather than from what was clicked.
+   */
+  const moveStage = useMutation({
+    mutationFn: (input: { pipelineId: string; stage: string }) =>
+      recruiterApi.updatePipelineStage(input.pipelineId, input.stage),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recruiter', 'pipeline', jobId] }),
+  });
 
   const handleMoveStage = (candidateId: string, targetStage: string) => {
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === candidateId ? { ...c, stage: targetStage } : c))
-    );
+    moveStage.mutate({ pipelineId: candidateId, stage: targetStage });
   };
 
-  const handleBulkMove = (targetStage: string) => {
-    setCandidates((prev) =>
-      prev.map((c) => (selectedIds.includes(c.id) ? { ...c, stage: targetStage } : c))
-    );
+  const handleBulkMove = async (targetStage: string) => {
+    const ids = [...selectedIds];
     setSelectedIds([]);
+    for (const id of ids) {
+      try {
+        await moveStage.mutateAsync({ pipelineId: id, stage: targetStage });
+      } catch {
+        // Each move is independent; one refusal must not silently swallow the
+        // rest, and the error surfaces below.
+      }
+    }
   };
 
   const filtered = candidates.filter((c) =>
     c.candidateName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Four honest answers where there used to be one invented one.
+  if (!jobId) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography variant="body2" color="text.secondary">
+          Choose a job posting to see its pipeline.
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 2 }} role="status" aria-live="polite">
+        <CircularProgress size={22} />
+        <Typography variant="body2" color="text.secondary">Loading the pipeline…</Typography>
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Alert severity="error">
+          This pipeline could not be loaded.
+          {error instanceof Error ? ` ${error.message}` : ''}
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: '100%', overflowX: 'auto' }}>

@@ -199,24 +199,30 @@ func TestRecruiterService_StageHistory(t *testing.T) {
 	}
 }
 
-func TestRecruiterService_DashboardOverview(t *testing.T) {
+// The overview is counted from the caller's own jobs and applications now, so
+// with no database there is nothing to count and the call fails.
+//
+// This test used to assert the opposite: that a recruiter with no database
+// behind them still got a non-zero applicant count and a non-empty job list.
+// It passed because the counts were literals - 142 applicants, 12 hires -
+// returned to every recruiter on the platform.
+func TestRecruiterService_DashboardOverviewNeedsADatabase(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
-	ctx := context.Background()
-	userID := uuid.New()
 
-	overview, err := svc.GetDashboardOverview(ctx, userID)
-	if err != nil {
-		t.Fatalf("GetDashboardOverview failed: %v", err)
+	if _, err := svc.GetDashboardOverview(context.Background(), uuid.New()); err == nil {
+		t.Error("expected an error building the dashboard overview with no database to count from")
 	}
-	if overview.ActiveJobsCount == 0 {
-		t.Error("Expected non-zero active jobs count")
-	}
-	if overview.TotalApplicantsCount == 0 {
-		t.Error("Expected non-zero total applicants count")
-	}
-	if len(overview.RecentJobs) == 0 {
-		t.Error("Expected recent jobs")
+}
+
+// Candidate search is a query over the people who have applied to the caller's
+// jobs. With no database it fails rather than answering with invented people.
+func TestRecruiterService_CandidatesNeedADatabase(t *testing.T) {
+	repo := repository.NewRecruiterRepository(nil)
+	svc := NewRecruiterService(repo)
+
+	if _, err := svc.GetCandidates(context.Background(), uuid.New()); err == nil {
+		t.Error("expected an error listing candidates with no database to read")
 	}
 }
 

@@ -65,10 +65,17 @@ export const SecurityAlertsDesk: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const fetchAlerts = async () => {
-    setLoading(true);
-    const data = await securityApi.getSecurityAlerts();
-    setAlerts(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await securityApi.getSecurityAlerts();
+      setAlerts(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityAlertsDesk.tsx: fetchAlerts failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -93,23 +100,35 @@ export const SecurityAlertsDesk: React.FC = () => {
   };
 
   const handleSaveStatus = async () => {
-    if (!targetAlert) return;
-    const updated = await securityApi.updateSecurityAlertStatus(targetAlert.id, newStatus);
-    setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-    if (selectedAlert && selectedAlert.id === updated.id) {
-      setSelectedAlert(updated);
+    try {
+      if (!targetAlert) return;
+      const updated = await securityApi.updateSecurityAlertStatus(targetAlert.id, newStatus);
+      setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      if (selectedAlert && selectedAlert.id === updated.id) {
+        setSelectedAlert(updated);
+      }
+      setStatusModalOpen(false);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityAlertsDesk.tsx: handleSaveStatus failed', error);
     }
-    setStatusModalOpen(false);
   };
 
   const handleConfirmFalsePositive = async () => {
-    if (!targetAlert) return;
-    const updated = await securityApi.markAlertFalsePositive(targetAlert.id, fpReason);
-    setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-    if (selectedAlert && selectedAlert.id === updated.id) {
-      setSelectedAlert(updated);
+    try {
+      if (!targetAlert) return;
+      const updated = await securityApi.markAlertFalsePositive(targetAlert.id, fpReason);
+      setAlerts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      if (selectedAlert && selectedAlert.id === updated.id) {
+        setSelectedAlert(updated);
+      }
+      setFpDialogOpen(false);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('SecurityAlertsDesk.tsx: handleConfirmFalsePositive failed', error);
     }
-    setFpDialogOpen(false);
   };
 
   const getSeverityChip = (severity: SecurityAlert['severity']) => {

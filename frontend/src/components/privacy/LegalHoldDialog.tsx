@@ -53,33 +53,52 @@ export const LegalHoldDialog: React.FC = () => {
   }, []);
 
   const loadHolds = async () => {
-    setLoading(true);
-    const data = await privacyApi.getLegalHolds();
-    setHolds(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getLegalHolds();
+      setHolds(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('LegalHoldDialog.tsx: loadHolds failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateHold = async () => {
-    if (!caseNumber || !title || !reason || !issuedBy) return;
-    const created = await privacyApi.createLegalHold({
-      caseNumber,
-      title,
-      reason,
-      issuedBy,
-      affectedCategories: affectedCategories.length ? affectedCategories : ['User Data'],
-    });
-    setHolds((prev) => [created, ...prev]);
-    setOpenCreate(false);
-    setCaseNumber('');
-    setTitle('');
-    setReason('');
-    setIssuedBy('');
-    setAffectedCategories([]);
+    try {
+      if (!caseNumber || !title || !reason || !issuedBy) return;
+      const created = await privacyApi.createLegalHold({
+        caseNumber,
+        title,
+        reason,
+        issuedBy,
+        affectedCategories: affectedCategories.length ? affectedCategories : ['User Data'],
+      });
+      setHolds((prev) => [created, ...prev]);
+      setOpenCreate(false);
+      setCaseNumber('');
+      setTitle('');
+      setReason('');
+      setIssuedBy('');
+      setAffectedCategories([]);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('LegalHoldDialog.tsx: handleCreateHold failed', error);
+    }
   };
 
   const handleRelease = async (id: string) => {
-    const updated = await privacyApi.releaseLegalHold(id);
-    setHolds((prev) => prev.map((h) => (h.id === updated.id ? updated : h)));
+    try {
+      const updated = await privacyApi.releaseLegalHold(id);
+      setHolds((prev) => prev.map((h) => (h.id === updated.id ? updated : h)));
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('LegalHoldDialog.tsx: handleRelease failed', error);
+    }
   };
 
   return (

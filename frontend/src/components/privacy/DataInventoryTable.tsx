@@ -54,17 +54,30 @@ export const DataInventoryTable: React.FC = () => {
   }, []);
 
   const loadInventory = async () => {
-    setLoading(true);
-    const data = await privacyApi.getDataInventory();
-    setItems(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getDataInventory();
+      setItems(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataInventoryTable.tsx: loadInventory failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveEdit = async () => {
-    if (!editItem) return;
-    const updated = await privacyApi.updateDataInventoryItem(editItem.id, editItem);
-    setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-    setEditItem(null);
+    try {
+      if (!editItem) return;
+      const updated = await privacyApi.updateDataInventoryItem(editItem.id, editItem);
+      setItems((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      setEditItem(null);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataInventoryTable.tsx: handleSaveEdit failed', error);
+    }
   };
 
   const filteredItems = items.filter((item) =>

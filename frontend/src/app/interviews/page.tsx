@@ -101,18 +101,36 @@ export default function InterviewsPage() {
   }, [user?.id]);
 
   const handleScheduleSubmit = async (payload: CreateInterviewPayload) => {
-    await interviewApi.scheduleInterview(payload);
-    await fetchData();
+    try {
+      await interviewApi.scheduleInterview(payload);
+      await fetchData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleScheduleSubmit failed', error);
+    }
   };
 
   const handleFeedbackSubmit = async (roundId: string, payload: SubmitFeedbackPayload) => {
-    await interviewApi.submitFeedback(roundId, payload);
-    await fetchData();
+    try {
+      await interviewApi.submitFeedback(roundId, payload);
+      await fetchData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleFeedbackSubmit failed', error);
+    }
   };
 
   const handleSaveAvailability = async (payload: SetAvailabilityPayload) => {
-    await interviewApi.setAvailability(payload);
-    await fetchData();
+    try {
+      await interviewApi.setAvailability(payload);
+      await fetchData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleSaveAvailability failed', error);
+    }
   };
 
   const getStatusChip = (status: string) => {

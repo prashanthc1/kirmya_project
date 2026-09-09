@@ -64,16 +64,22 @@ export default function UserSettingsAppealsPage() {
   }, []);
 
   const handleAppealSubmit = async () => {
-    if (!appealModalOpen) return;
-    await trustSafetyApi.submitAppeal({
-      decision_id: appealModalOpen.id,
-      reason: appealReason,
-      explanation: appealExplanation,
-    });
-    setStatusMsg('Appeal submitted successfully. Reviewer assigned.');
-    setAppealModalOpen(null);
-    setAppealExplanation('');
-    loadData();
+    try {
+      if (!appealModalOpen) return;
+      await trustSafetyApi.submitAppeal({
+        decision_id: appealModalOpen.id,
+        reason: appealReason,
+        explanation: appealExplanation,
+      });
+      setStatusMsg('Appeal submitted successfully. Reviewer assigned.');
+      setAppealModalOpen(null);
+      setAppealExplanation('');
+      loadData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleAppealSubmit failed', error);
+    }
   };
 
   const getStatusChip = (status: SafetyAppeal['status']) => {

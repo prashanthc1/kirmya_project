@@ -60,10 +60,17 @@ export const DataRequestManager: React.FC = () => {
   }, []);
 
   const loadRequests = async () => {
-    setLoading(true);
-    const data = await privacyApi.getDataSubjectRequests();
-    setRequests(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await privacyApi.getDataSubjectRequests();
+      setRequests(data);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataRequestManager.tsx: loadRequests failed', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenUpdate = (req: DataSubjectRequestItem) => {
@@ -73,24 +80,36 @@ export const DataRequestManager: React.FC = () => {
   };
 
   const handleSaveUpdate = async () => {
-    if (!selectedReq) return;
-    const updated = await privacyApi.updateDSRStatus(selectedReq.id, newStatus, notes);
-    setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-    setSelectedReq(null);
+    try {
+      if (!selectedReq) return;
+      const updated = await privacyApi.updateDSRStatus(selectedReq.id, newStatus, notes);
+      setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setSelectedReq(null);
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataRequestManager.tsx: handleSaveUpdate failed', error);
+    }
   };
 
   const handleCreateRequest = async () => {
-    if (!newUserId || !newUserEmail) return;
-    const created = await privacyApi.createDataSubjectRequest({
-      userId: newUserId,
-      userEmail: newUserEmail,
-      requestType: newReqType,
-      dueDate: newDueDate,
-    });
-    setRequests((prev) => [created, ...prev]);
-    setOpenCreate(false);
-    setNewUserId('');
-    setNewUserEmail('');
+    try {
+      if (!newUserId || !newUserEmail) return;
+      const created = await privacyApi.createDataSubjectRequest({
+        userId: newUserId,
+        userEmail: newUserEmail,
+        requestType: newReqType,
+        dueDate: newDueDate,
+      });
+      setRequests((prev) => [created, ...prev]);
+      setOpenCreate(false);
+      setNewUserId('');
+      setNewUserEmail('');
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('DataRequestManager.tsx: handleCreateRequest failed', error);
+    }
   };
 
   return (

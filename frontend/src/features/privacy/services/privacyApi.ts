@@ -338,13 +338,9 @@ export const privacyApi = {
       const existing = MOCK_DATA_INVENTORY.find((i) => i.id === id) || MOCK_DATA_INVENTORY[0];
       return { ...existing, ...updates, updatedAt: new Date().toISOString().split('T')[0] };
     }
-    try {
-      const res = await apiClient.put<DataInventoryItem>(`/admin/data-governance/inventory/${id}`, updates, { timeout: 1000 });
-      return res.data;
-    } catch {
-      const existing = MOCK_DATA_INVENTORY.find((i) => i.id === id) || MOCK_DATA_INVENTORY[0];
-      return { ...existing, ...updates, updatedAt: new Date().toISOString().split('T')[0] };
-    }
+    const res = await apiClient.put<DataInventoryItem>(`/admin/data-governance/inventory/${id}`, updates, { timeout: 1000 });
+    return res.data;
+    
   },
 
   // Data Subject Requests (DSAR)
@@ -396,19 +392,12 @@ export const privacyApi = {
       if (status === 'completed') req.fulfilledAt = new Date().toISOString();
       return { ...req };
     }
-    try {
-      const res = await apiClient.patch<DataSubjectRequestItem>(`/admin/compliance/dsr/${id}`, {
-        status,
-        notes,
-      }, { timeout: 1000 });
-      return res.data;
-    } catch {
-      const req = MOCK_DSR_REQUESTS.find((r) => r.id === id) || MOCK_DSR_REQUESTS[0];
-      req.status = status;
-      if (notes) req.notes = notes;
-      if (status === 'completed') req.fulfilledAt = new Date().toISOString();
-      return { ...req };
-    }
+    const res = await apiClient.patch<DataSubjectRequestItem>(`/admin/compliance/dsr/${id}`, {
+      status,
+      notes,
+    }, { timeout: 1000 });
+    return res.data;
+    
   },
 
   // Retention Policies
@@ -433,17 +422,9 @@ export const privacyApi = {
         simulatedAt: new Date().toISOString(),
       };
     }
-    try {
-      const res = await apiClient.post<DryRunResult>(`/admin/data-governance/retention/run`, {}, { timeout: 1000 });
-      return res.data;
-    } catch {
-      return {
-        affectedRecordsCount: 1420,
-        affectedDatasets: ['Telemetry Logs', 'Expired Session Tokens'],
-        estimatedDurationSec: 4.2,
-        simulatedAt: new Date().toISOString(),
-      };
-    }
+    const res = await apiClient.post<DryRunResult>(`/admin/data-governance/retention/run`, {}, { timeout: 1000 });
+    return res.data;
+    
   },
 
   async executeRetentionPurge(id: string): Promise<{ success: boolean; purgedCount: number }> {
@@ -452,20 +433,13 @@ export const privacyApi = {
       if (pol) pol.lastPurgeDate = new Date().toISOString().split('T')[0];
       return { success: true, purgedCount: 1420 };
     }
-    try {
-      const res = await apiClient.post<{ success: boolean; purgedCount: number }>(
-        `/admin/privacy/retention/${id}/purge`,
-        {},
-        { timeout: 1000 }
-      );
-      return res.data;
-    } catch {
-      const pol = MOCK_RETENTION_POLICIES.find((p) => p.id === id);
-      if (pol) {
-        pol.lastPurgeDate = new Date().toISOString().split('T')[0];
-      }
-      return { success: true, purgedCount: 1420 };
-    }
+    const res = await apiClient.post<{ success: boolean; purgedCount: number }>(
+      `/admin/privacy/retention/${id}/purge`,
+      {},
+      { timeout: 1000 }
+    );
+    return res.data;
+    
   },
 
   // Legal Holds
@@ -512,15 +486,9 @@ export const privacyApi = {
       hold.releasedAt = new Date().toISOString();
       return { ...hold };
     }
-    try {
-      const res = await apiClient.post<LegalHoldItem>(`/admin/compliance/legal-holds/${id}/release`, {}, { timeout: 1000 });
-      return res.data;
-    } catch {
-      const hold = MOCK_LEGAL_HOLDS.find((h) => h.id === id) || MOCK_LEGAL_HOLDS[0];
-      hold.status = 'released';
-      hold.releasedAt = new Date().toISOString();
-      return { ...hold };
-    }
+    const res = await apiClient.post<LegalHoldItem>(`/admin/compliance/legal-holds/${id}/release`, {}, { timeout: 1000 });
+    return res.data;
+    
   },
 
   // Data Access Reviews
@@ -546,19 +514,13 @@ export const privacyApi = {
       rev.reviewedAt = new Date().toISOString();
       return { ...rev };
     }
-    try {
-      const res = await apiClient.patch<DataAccessReviewItem>(
-        `/admin/privacy/access-reviews/${id}`,
-        { status },
-        { timeout: 1000 }
-      );
-      return res.data;
-    } catch {
-      const rev = MOCK_ACCESS_REVIEWS.find((r) => r.id === id) || MOCK_ACCESS_REVIEWS[0];
-      rev.status = status;
-      rev.reviewedAt = new Date().toISOString();
-      return { ...rev };
-    }
+    const res = await apiClient.patch<DataAccessReviewItem>(
+      `/admin/privacy/access-reviews/${id}`,
+      { status },
+      { timeout: 1000 }
+    );
+    return res.data;
+    
   },
 
   // Third-Party Processors
@@ -582,17 +544,13 @@ export const privacyApi = {
       const proc = MOCK_PROCESSORS.find((p) => p.id === id) || MOCK_PROCESSORS[0];
       return { ...proc, ...updates };
     }
-    try {
-      const res = await apiClient.put<ThirdPartyProcessorItem>(
-        `/admin/privacy/processors/${id}`,
-        updates,
-        { timeout: 1000 }
-      );
-      return res.data;
-    } catch {
-      const proc = MOCK_PROCESSORS.find((p) => p.id === id) || MOCK_PROCESSORS[0];
-      return { ...proc, ...updates };
-    }
+    const res = await apiClient.put<ThirdPartyProcessorItem>(
+      `/admin/privacy/processors/${id}`,
+      updates,
+      { timeout: 1000 }
+    );
+    return res.data;
+    
   },
 
   // Data Quality Checks
@@ -622,22 +580,14 @@ export const privacyApi = {
         failedCount: 1,
       };
     }
-    try {
-      const res = await apiClient.get<{
-        overallScore: number;
-        passedCount: number;
-        warningCount: number;
-        failedCount: number;
-      }>('/admin/data-governance/quality/score', { timeout: 1000 });
-      return res.data;
-    } catch {
-      return {
-        overallScore: 94.2,
-        passedCount: 14,
-        warningCount: 2,
-        failedCount: 1,
-      };
-    }
+    const res = await apiClient.get<{
+      overallScore: number;
+      passedCount: number;
+      warningCount: number;
+      failedCount: number;
+    }>('/admin/data-governance/quality/score', { timeout: 1000 });
+    return res.data;
+    
   },
 
   // Privacy Risk & Compliance
@@ -688,17 +638,11 @@ export const privacyApi = {
       if (status === 'resolved') inc.resolvedAt = new Date().toISOString();
       return { ...inc };
     }
-    try {
-      const res = await apiClient.patch<PrivacyIncidentItem>(`/admin/compliance/incidents/${id}`, {
-        status,
-      }, { timeout: 1000 });
-      return res.data;
-    } catch {
-      const inc = MOCK_INCIDENTS.find((i) => i.id === id) || MOCK_INCIDENTS[0];
-      inc.status = status;
-      if (status === 'resolved') inc.resolvedAt = new Date().toISOString();
-      return { ...inc };
-    }
+    const res = await apiClient.patch<PrivacyIncidentItem>(`/admin/compliance/incidents/${id}`, {
+      status,
+    }, { timeout: 1000 });
+    return res.data;
+    
   },
 
   // Policy Versions
@@ -721,18 +665,12 @@ export const privacyApi = {
       pol.effectiveDate = new Date().toISOString().split('T')[0];
       return { ...pol };
     }
-    try {
-      const res = await apiClient.post<PolicyVersionItem>(
-        `/admin/compliance/policies/${id}/publish`,
-        {},
-        { timeout: 1000 }
-      );
-      return res.data;
-    } catch {
-      const pol = MOCK_POLICY_VERSIONS.find((p) => p.id === id) || MOCK_POLICY_VERSIONS[0];
-      pol.status = 'published';
-      pol.effectiveDate = new Date().toISOString().split('T')[0];
-      return { ...pol };
-    }
+    const res = await apiClient.post<PolicyVersionItem>(
+      `/admin/compliance/policies/${id}/publish`,
+      {},
+      { timeout: 1000 }
+    );
+    return res.data;
+    
   },
 };

@@ -90,67 +90,15 @@ const apiClient = authApiClient;
 
 export const backupApi = {
   async getHealthSummary(): Promise<BackupHealthSummary> {
-    try {
-      const res = await apiClient.get<BackupHealthSummary>('/admin/backups/health');
-      return res.data;
-    } catch {
-      return {
-        status: 'healthy',
-        lastSuccessfulBackupAt: new Date(Date.now() - 7200000).toISOString(),
-        lastFailedBackupAt: null,
-        backupAgeMinutes: 120,
-        totalBackupSizeBytes: 524288000,
-        verifiedCount: 14,
-        pendingCount: 0,
-        failedCount: 0,
-        lastRestoreTestStatus: 'passed',
-        lastRestoreTestAt: new Date(Date.now() - 86400000).toISOString(),
-        activeIncidentsCount: 0,
-        rpoStatus: 'compliant',
-        rtoStatus: 'compliant',
-        encryptionVaultProtected: true,
-      };
-    }
+    const res = await apiClient.get<BackupHealthSummary>('/admin/backups/health');
+    return res.data;
+    
   },
 
   async listBackups(type?: string, status?: string): Promise<BackupRecord[]> {
-    try {
-      const res = await apiClient.get<BackupRecord[]>('/admin/backups', { params: { type, status } });
-      return res.data;
-    } catch {
-      return [
-        {
-          id: '11111111-1111-1111-1111-111111111111',
-          backupType: 'full',
-          status: 'completed',
-          sizeBytes: 524288000,
-          checksum: 'sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284ddd200126d9069e',
-          storageLocation: 'vault://backups/pg_full_20260814_0200.enc',
-          appVersion: '1.0.0',
-          migrationVersion: 72,
-          verificationStatus: 'verified',
-          retentionExpiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
-          isImmutable: true,
-          createdAt: new Date(Date.now() - 7200000).toISOString(),
-          completedAt: new Date(Date.now() - 7140000).toISOString(),
-        },
-        {
-          id: '22222222-2222-2222-2222-222222222222',
-          backupType: 'pitr_wal',
-          status: 'completed',
-          sizeBytes: 12451840,
-          checksum: 'sha256:60375d42d3e421e48227b686d4e5f7a0...sanitized',
-          storageLocation: 'vault://backups/wal_archive_000000010000000000000002.enc',
-          appVersion: '1.0.0',
-          migrationVersion: 72,
-          verificationStatus: 'verified',
-          retentionExpiresAt: new Date(Date.now() + 7 * 86400000).toISOString(),
-          isImmutable: true,
-          createdAt: new Date(Date.now() - 93600000).toISOString(),
-          completedAt: new Date(Date.now() - 93540000).toISOString(),
-        },
-      ];
-    }
+    const res = await apiClient.get<BackupRecord[]>('/admin/backups', { params: { type, status } });
+    return res.data;
+    
   },
 
   async triggerBackup(backupType: string, notes?: string): Promise<BackupRecord> {
@@ -164,30 +112,9 @@ export const backupApi = {
   },
 
   async listRestoreTests(): Promise<RestoreTest[]> {
-    try {
-      const res = await apiClient.get<RestoreTest[]>('/admin/backups/restore-tests');
-      return res.data;
-    } catch {
-      return [
-        {
-          id: '33333333-3333-3333-3333-333333333333',
-          backupId: '11111111-1111-1111-1111-111111111111',
-          environment: 'isolated_sandbox',
-          status: 'passed',
-          startedAt: new Date(Date.now() - 3600000).toISOString(),
-          completedAt: new Date(Date.now() - 3588000).toISOString(),
-          durationMs: 12400,
-          verificationResults: {
-            sandboxConnectivity: 'passed',
-            migrationCheck: 'Compatible (v72)',
-            foreignKeysCheck: 'passed',
-            rowIntegrityCount: '100% matched',
-            authProfilesCheck: 'passed',
-            jobsApplicationsCheck: 'passed',
-          },
-        },
-      ];
-    }
+    const res = await apiClient.get<RestoreTest[]>('/admin/backups/restore-tests');
+    return res.data;
+    
   },
 
   async runRestoreTest(backupId: string, environment?: string): Promise<RestoreTest> {
@@ -207,25 +134,9 @@ export const backupApi = {
   },
 
   async getConfiguration(): Promise<BackupConfiguration> {
-    try {
-      const res = await apiClient.get<BackupConfiguration>('/admin/backups/configuration');
-      return res.data;
-    } catch {
-      return {
-        id: '00000000-0000-0000-0000-000000000001',
-        backupScheduleCron: '0 2 * * *',
-        retentionDaysDaily: 7,
-        retentionWeeksWeekly: 4,
-        retentionMonthsMonthly: 12,
-        encryptionEnabled: true,
-        storageProvider: 's3_object_store',
-        targetRpoMinutes: 15,
-        targetRtoMinutes: 60,
-        autoRestoreTestEnabled: true,
-        isEnabled: true,
-        updatedAt: new Date().toISOString(),
-      };
-    }
+    const res = await apiClient.get<BackupConfiguration>('/admin/backups/configuration');
+    return res.data;
+    
   },
 
   async updateConfiguration(cfg: Partial<BackupConfiguration>): Promise<any> {
@@ -234,12 +145,9 @@ export const backupApi = {
   },
 
   async listIncidents(): Promise<RecoveryIncident[]> {
-    try {
-      const res = await apiClient.get<RecoveryIncident[]>('/admin/backups/incidents');
-      return res.data;
-    } catch {
-      return [];
-    }
+    const res = await apiClient.get<RecoveryIncident[]>('/admin/backups/incidents');
+    return res.data;
+    
   },
 
   async createIncident(payload: { title: string; severity: string; scenario: string; description?: string }): Promise<RecoveryIncident> {
@@ -248,36 +156,8 @@ export const backupApi = {
   },
 
   async getDataTiers(): Promise<DataTierClassification[]> {
-    try {
-      const res = await apiClient.get<DataTierClassification[]>('/admin/backups/tiers');
-      return res.data;
-    } catch {
-      return [
-        {
-          tier: 'Tier 1',
-          category: 'Critical Business Data',
-          dataTypes: ['Auth', 'Users', 'Profiles', 'Jobs', 'Applications', 'Messages', 'Security', 'Trust & Safety', 'Legal/Privacy'],
-          targetRpo: '< 15 minutes',
-          targetRto: '< 60 minutes',
-          description: 'Authoritative data requiring immediate high availability and immutable offsite vault storage.',
-        },
-        {
-          tier: 'Tier 2',
-          category: 'Important Operational Data',
-          dataTypes: ['Notifications', 'Job Alerts', 'Support', 'Analytics'],
-          targetRpo: '< 1 hour',
-          targetRto: '< 4 hours',
-          description: 'Operational records and user interaction data backed up continuously.',
-        },
-        {
-          tier: 'Tier 3',
-          category: 'Rebuildable Transient State',
-          dataTypes: ['Redis Cache', 'OpenSearch Indexes', 'Temporary Queues'],
-          targetRpo: 'N/A (Derived)',
-          targetRto: '< 2 hours',
-          description: 'Transient states that can be deterministically rebuilt from Tier 1 primary tables.',
-        },
-      ];
-    }
+    const res = await apiClient.get<DataTierClassification[]>('/admin/backups/tiers');
+    return res.data;
+    
   },
 };

@@ -101,12 +101,18 @@ export default function AssessmentsPage() {
   };
 
   const handleSubmitTest = async (payload: SubmitTestPayload) => {
-    if (!selectedAssessment) return;
-    const res = await assessmentApi.submitAssessment(selectedAssessment.id, payload);
-    setTestRunnerOpen(false);
-    setActiveResult(res.result);
-    setResultModalOpen(true);
-    await fetchData();
+    try {
+      if (!selectedAssessment) return;
+      const res = await assessmentApi.submitAssessment(selectedAssessment.id, payload);
+      setTestRunnerOpen(false);
+      setActiveResult(res.result);
+      setResultModalOpen(true);
+      await fetchData();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('page.tsx: handleSubmitTest failed', error);
+    }
   };
 
   // Mock initial data fallbacks for instant rich UI rendering

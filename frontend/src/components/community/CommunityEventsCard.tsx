@@ -53,30 +53,42 @@ export const CommunityEventsCard: React.FC<CommunityEventsCardProps> = ({
   const [meetingUrl, setMeetingUrl] = useState('');
 
   const handleRsvp = async (eventId: string, status: 'attending' | 'declined' | 'maybe') => {
-    const res = await communityApi.rsvpEvent(communityId, eventId, status);
-    setEvents(
-      events.map((e) =>
-        e.id === eventId ? { ...e, rsvpCount: res.rsvpCount ?? (e.rsvpCount + (status === 'attending' ? 1 : 0)), userRsvp: status } : e
-      )
-    );
-    if (onEventUpdated) onEventUpdated();
+    try {
+      const res = await communityApi.rsvpEvent(communityId, eventId, status);
+      setEvents(
+        events.map((e) =>
+          e.id === eventId ? { ...e, rsvpCount: res.rsvpCount ?? (e.rsvpCount + (status === 'attending' ? 1 : 0)), userRsvp: status } : e
+        )
+      );
+      if (onEventUpdated) onEventUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityEventsCard.tsx: handleRsvp failed', error);
+    }
   };
 
   const handleCreateEventSubmit = async () => {
-    if (!title) return;
-    const created = await communityApi.createEvent(communityId, {
-      title,
-      description,
-      startDate: startDate || new Date().toISOString(),
-      location,
-      isOnline,
-      meetingUrl,
-    });
-    setEvents([created, ...events]);
-    setOpenModal(false);
-    setTitle('');
-    setDescription('');
-    if (onEventUpdated) onEventUpdated();
+    try {
+      if (!title) return;
+      const created = await communityApi.createEvent(communityId, {
+        title,
+        description,
+        startDate: startDate || new Date().toISOString(),
+        location,
+        isOnline,
+        meetingUrl,
+      });
+      setEvents([created, ...events]);
+      setOpenModal(false);
+      setTitle('');
+      setDescription('');
+      if (onEventUpdated) onEventUpdated();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('CommunityEventsCard.tsx: handleCreateEventSubmit failed', error);
+    }
   };
 
   return (

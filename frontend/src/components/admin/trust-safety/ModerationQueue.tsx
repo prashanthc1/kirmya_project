@@ -81,21 +81,27 @@ export const ModerationQueue: React.FC = () => {
   };
 
   const handleActionSubmit = async () => {
-    if (!actionCase) return;
-    await safetyApi.takeModerationAction({
-      case_id: actionCase.id,
-      target_id: actionCase.target_id,
-      target_type: actionCase.target_type,
-      action: actionType,
-      reason: actionReason,
-      notes: actionNotes,
-      duration_days: durationDays,
-    });
-    setStatusMsg(`Enforcement action (${actionType.toUpperCase()}) executed for target ${actionCase.target_title || actionCase.target_id}.`);
-    setActionCase(null);
-    setActionReason('');
-    setActionNotes('');
-    loadCases();
+    try {
+      if (!actionCase) return;
+      await safetyApi.takeModerationAction({
+        case_id: actionCase.id,
+        target_id: actionCase.target_id,
+        target_type: actionCase.target_type,
+        action: actionType,
+        reason: actionReason,
+        notes: actionNotes,
+        duration_days: durationDays,
+      });
+      setStatusMsg(`Enforcement action (${actionType.toUpperCase()}) executed for target ${actionCase.target_title || actionCase.target_id}.`);
+      setActionCase(null);
+      setActionReason('');
+      setActionNotes('');
+      loadCases();
+  
+    } catch (error) {
+      // The request failed, so nothing is shown as having happened.
+      console.error('ModerationQueue.tsx: handleActionSubmit failed', error);
+    }
   };
 
   const getRiskScoreBadge = (score: number) => {
