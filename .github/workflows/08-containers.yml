@@ -1,0 +1,78 @@
+name: 08 Container Builds & Smoke Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/Dockerfile'
+      - 'frontend/Dockerfile'
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/08-containers.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  backend-container:
+    name: Build & Smoke-Start Backend Docker Image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Build Backend Docker Image
+        run: docker build -t kirmya-backend:latest backend
+
+      - name: Smoke-Start Backend Container & Check Liveness
+        run: |
+          docker run -d --name kirmya-backend-smoke -p 8080:8080 -e APP_ENV=test -e ALLOW_NO_DB=true kirmya-backend:latest
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/health/live > /dev/null; then
+              echo "Backend container answered healthy on /health/live"
+              docker stop kirmya-backend-smoke
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Backend container failed liveness healthcheck"
+          docker logs kirmya-backend-smoke
+          exit 1
+
+  frontend-container:
+    name: Build & Smoke-Start Frontend Docker Image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Build Frontend Docker Image
+        run: docker build -t kirmya-frontend:latest --build-arg NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1 frontend
+
+      - name: Smoke-Start Frontend Container & Check Root Response
+        run: |
+          docker run -d --name kirmya-frontend-smoke -p 3000:3000 kirmya-frontend:latest
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              echo "Frontend container answered healthy on HTTP 200 root"
+              docker stop kirmya-frontend-smoke
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Frontend container failed HTTP response check"
+          docker logs kirmya-frontend-smoke
+          exit 1

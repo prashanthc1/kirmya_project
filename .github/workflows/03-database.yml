@@ -1,0 +1,101 @@
+name: 03 Database & Migration Conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/scripts/migrations/**'
+      - 'backend/internal/shared/database/**'
+      - 'backend/tools/ci-migrate/**'
+      - 'backend/test/ci/schema_conformance_test.go'
+      - 'backend/internal/**/repository/**'
+      - 'backend/internal/**/repository.go'
+      - 'backend/internal/**/repo.go'
+      - 'backend/go.mod'
+      - 'backend/go.sum'
+      - '.github/workflows/03-database.yml'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  database:
+    name: Database Migrations, Concurrency & Schema Conformance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-disposable-only
+          POSTGRES_DB: kirmya_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d kirmya_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_ci?sslmode=disable
+      PGPASSWORD: ci-disposable-only
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Go Environment
+        uses: ./.github/actions/setup-go-env
+
+      - name: Build Migration Runner
+        run: |
+          mkdir -p artifacts
+          cd backend
+          go build -o bin/ci-migrate ./tools/ci-migrate
+
+      - name: Verify Migration Failure And Concurrency Behavior
+        env:
+          MIGRATION_TEST_DATABASE_URL: postgres://postgres:ci-disposable-only@127.0.0.1:5432/kirmya_migrationtest?sslmode=disable
+        run: |
+          psql -h 127.0.0.1 -U postgres -c "DROP DATABASE IF EXISTS kirmya_migrationtest"
+          psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE kirmya_migrationtest"
+          cd backend
+          go test -json ./internal/shared/database/... -count=1 > ../artifacts/migrations-behaviour.json
+
+      - name: Apply Real Migrations And Verify Idempotency
+        run: cd backend && ./bin/ci-migrate 2>&1 | tee ../artifacts/migrations.log
+
+      - name: Verify Repository SQL Matches Migrated Schema
+        run: |
+          cd backend
+          go test -json -tags=ciintegration ./test/ci -run '^TestRepositorySQLMatchesTheSchema$' -count=1 > ../artifacts/schema-conformance.json
+
+      - name: Reject Missing Tests Or Mandatory Skips
+        if: always()
+        run: |
+          node scripts/ci/check-results.mjs go artifacts/migrations-behaviour.json
+          node scripts/ci/check-results.mjs go artifacts/schema-conformance.json
+
+      - name: Collect PostgreSQL Service Diagnostics
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker logs ${{ job.services.postgres.id }} > artifacts/postgres.log 2>&1 || true
+
+      - name: Upload Diagnostics on Failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: database-diagnostics-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

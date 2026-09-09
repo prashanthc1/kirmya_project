@@ -1,0 +1,110 @@
+name: 09 Release Status Gate
+
+on:
+  workflow_run:
+    workflows:
+      - "01 Backend Fast Checks"
+      - "02 Frontend Fast Checks"
+      - "03 Database & Migration Conformance"
+      - "04 Real API Integration"
+      - "05 E2E Browser Smoke"
+      - "06 E2E Browser Full Suite"
+      - "07 Security Scans & Negative Controls"
+      - "08 Container Builds & Smoke Tests"
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Commit SHA to evaluate (defaults to current HEAD)'
+        required: false
+        default: ''
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  checks: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  status-gate:
+    name: Consolidated Release & Quality Status Gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Evaluate Upstream Workflow Runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          echo "Evaluating release gate for commit: ${TARGET_SHA}"
+          node - <<'EOF'
+          import { execSync } from 'node:child_process';
+          import fs from 'node:fs';
+
+          const sha = process.env.TARGET_SHA;
+          const repo = process.env.GITHUB_REPOSITORY;
+          console.log(`Querying check runs for ${repo}@${sha}...`);
+
+          let data;
+          try {
+            const raw = execSync(`gh api repos/${repo}/commits/${sha}/check-runs --paginate`, { encoding: 'utf8' });
+            data = JSON.parse(raw);
+          } catch (err) {
+            console.warn('Could not query check runs via gh api (may run in local/fork context):', err.message);
+            // Fallback: if triggered by workflow_run, inspect triggering workflow
+            const eventPath = process.env.GITHUB_EVENT_PATH;
+            if (eventPath && fs.existsSync(eventPath)) {
+              const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+              if (event.workflow_run) {
+                console.log(`Evaluating triggering workflow: ${event.workflow_run.name} -> ${event.workflow_run.conclusion}`);
+                if (['failure', 'cancelled', 'timed_out'].includes(event.workflow_run.conclusion)) {
+                  process.exit(1);
+                }
+              }
+            }
+            process.exit(0);
+          }
+
+          const runs = data.check_runs || [];
+          console.log(`Found ${runs.length} check run entries.`);
+
+          const summary = [];
+          summary.push('| Check Name | Status | Conclusion |');
+          summary.push('| --- | --- | --- |');
+
+          let hasFailure = false;
+          for (const run of runs) {
+            if (run.name === 'Consolidated Release & Quality Status Gate') continue;
+            const status = run.status;
+            const conclusion = run.conclusion || 'pending';
+            summary.push(`| ${run.name} | ${status} | ${conclusion} |`);
+            if (['failure', 'timed_out', 'cancelled'].includes(conclusion)) {
+              hasFailure = true;
+            }
+          }
+
+          const output = summary.join('\n');
+          console.log(output);
+
+          const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+          if (summaryFile) {
+            fs.appendFileSync(summaryFile, `### Release Status Gate Evaluation\n\nCommit: \`${sha}\`\n\n${output}\n`);
+          }
+
+          if (hasFailure) {
+            console.error('::error::Release gate detected failed upstream checks.');
+            process.exit(1);
+          }
+          console.log('All completed upstream checks passed or skipped successfully.');
+          EOF

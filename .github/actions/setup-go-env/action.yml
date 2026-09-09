@@ -1,0 +1,11 @@
+name: 'Setup Go Environment'
+description: 'Sets up Go toolchain with dependency caching using backend/go.sum'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Go Environment
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+      with:
+        go-version-file: backend/go.mod
+        cache: true
+        cache-dependency-path: backend/go.sum

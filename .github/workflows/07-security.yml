@@ -1,0 +1,132 @@
+name: 07 Security Scans & Negative Controls
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/go.mod'
+      - 'backend/go.sum'
+      - 'backend/**'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/ci/**'
+      - '.github/workflows/07-security.yml'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  security:
+    name: Security ${{ matrix.scanner }} Scanner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        scanner: [npm, govulncheck, trivy]
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Node.js Environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Setup Go Environment
+        if: matrix.scanner == 'govulncheck'
+        uses: ./.github/actions/setup-go-env
+
+      - name: Prepare Artifact Directory
+        run: mkdir -p artifacts
+
+      - name: Verify npm Rejects Vulnerable Fixture Negative Control
+        if: matrix.scanner == 'npm'
+        run: node scripts/ci/scanner-controls.mjs npm
+
+      - name: Run npm High And Critical Dependency Audit Gate
+        if: matrix.scanner == 'npm'
+        run: |
+          set +e
+          npm audit --audit-level=high --json > artifacts/npm-root.json
+          root_status=$?
+          npm audit --prefix frontend --audit-level=high --json > artifacts/npm-frontend.json
+          frontend_status=$?
+          test "$root_status" -eq 0 && test "$frontend_status" -eq 0
+
+      - name: Install Pinned govulncheck
+        if: matrix.scanner == 'govulncheck'
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+
+      - name: Verify govulncheck Rejects Vulnerable Fixture Negative Control
+        if: matrix.scanner == 'govulncheck'
+        run: node scripts/ci/scanner-controls.mjs govulncheck
+
+      - name: Run Reachable Go Vulnerabilities Gate
+        if: matrix.scanner == 'govulncheck'
+        run: |
+          (cd backend && govulncheck -json ./... > ../artifacts/govulncheck.json 2> ../artifacts/govulncheck.log)
+          node scripts/ci/check-govulncheck.mjs artifacts/govulncheck.json
+
+      - name: Run Trivy Vulnerability And Secret Scan Gate
+        if: matrix.scanner == 'trivy'
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        with:
+          version: v0.69.3
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          format: json
+          output: artifacts/trivy.json
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false
+          skip-dirs: artifacts,node_modules,frontend/node_modules
+
+      - name: Verify Trivy Rejects Vulnerable Fixture Negative Control
+        if: always() && matrix.scanner == 'trivy'
+        run: node scripts/ci/scanner-controls.mjs trivy
+
+      - name: Upload Diagnostics on Failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: security-${{ matrix.scanner }}-failure-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  report-gates:
+    name: Report Negative Controls & Result Gate Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Node.js Environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Execute Mandatory Report Script Negative Tests
+        run: mkdir -p artifacts && node --test scripts/ci/*.test.mjs 2>&1 | tee artifacts/report-controls.log
+
+      - name: Upload Diagnostics on Failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: report-gates-failure-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

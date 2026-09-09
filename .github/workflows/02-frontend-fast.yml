@@ -1,0 +1,91 @@
+name: 02 Frontend Fast Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.node-version'
+      - 'scripts/ci/lint-regression.cjs'
+      - 'scripts/ci/vitest-progress.mjs'
+      - 'scripts/ci/check-results.mjs'
+      - '.github/workflows/02-frontend-fast.yml'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  frontend-fast:
+    name: Frontend ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { check: lint, name: lint }
+          - { check: typecheck, name: typecheck }
+          - { check: build, name: build }
+          - { check: unit, name: unit 1 of 8, shard: 1/8 }
+          - { check: unit, name: unit 2 of 8, shard: 2/8 }
+          - { check: unit, name: unit 3 of 8, shard: 3/8 }
+          - { check: unit, name: unit 4 of 8, shard: 4/8 }
+          - { check: unit, name: unit 5 of 8, shard: 5/8 }
+          - { check: unit, name: unit 6 of 8, shard: 6/8 }
+          - { check: unit, name: unit 7 of 8, shard: 7/8 }
+          - { check: unit, name: unit 8 of 8, shard: 8/8 }
+    env:
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:8080/api/v1
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Install Dependencies
+        run: mkdir -p artifacts && npm ci --prefix frontend 2>&1 | tee artifacts/install.log
+
+      - name: Reproduce Historical Lint Failures And Verify Corrections
+        if: matrix.check == 'lint'
+        run: node scripts/ci/lint-regression.cjs
+
+      - name: Run Explicit Frontend Quality Check
+        run: |
+          set -o pipefail
+          case '${{ matrix.check }}' in
+            lint) npm --prefix frontend run lint -- --format json --output-file ../artifacts/eslint.json ;;
+            typecheck) npm --prefix frontend run typecheck 2>&1 | tee artifacts/typecheck.log ;;
+            unit) npm --prefix frontend test -- --shard=${{ matrix.shard }} --reporter=default --reporter=../scripts/ci/vitest-progress.mjs 2>&1 | tee artifacts/vitest.log ;;
+            build) npm --prefix frontend run build 2>&1 | tee artifacts/build.log ;;
+          esac
+
+      - name: Reject Missing, Failed Or Skipped Unit Tests
+        if: always() && matrix.check == 'unit'
+        run: node scripts/ci/check-results.mjs vitest artifacts/vitest.json
+
+      - name: Upload Diagnostics on Failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
+        with:
+          name: frontend-${{ matrix.name }}-failure-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

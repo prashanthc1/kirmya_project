@@ -1,10 +1,19 @@
-name: Backend Production CI/CD Pipeline
+name: 01 Backend Fast Checks
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/01-backend-fast.yml'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -14,10 +23,10 @@ defaults:
     shell: bash
 
 jobs:
-  backend-ci:
-    name: Go Backend Quality, Vet & Docker Build
+  backend-fast:
+    name: Backend Lint, Vet, Compile & Unit Tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -27,25 +36,23 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Setup Go Environment
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
-        with:
-          go-version-file: backend/go.mod
-          cache: true
-          cache-dependency-path: backend/go.sum
+        uses: ./.github/actions/setup-go-env
 
-      - name: Download Go Module Dependencies
+      - name: Download Go Dependencies
         run: go mod download
 
-      - name: Verify Go Module Tidy State
+      - name: Verify Go Module State
         run: go mod verify
 
-      - name: Run Go unit tests (database integration is a separate required job)
+      - name: Verify Go Code Formatting
         run: |
-          mkdir -p ../artifacts
-          set -o pipefail
-          go test -json ./... 2>&1 | tee ../artifacts/go-unit.json
-        env:
-          ALLOW_NO_DB: "true"
+          unformatted=$(gofmt -l ./cmd ./internal ./tools doc.go)
+          if [ -n "$unformatted" ]; then
+            echo "::error::Unformatted Go files found:"
+            echo "$unformatted"
+            exit 1
+          fi
+          echo "All Go files are properly formatted."
 
       - name: Run Go Vet Static Code Analysis
         run: go vet ./...
@@ -79,16 +86,26 @@ jobs:
       - name: Validate OpenAPI Schema And Route Coverage
         run: make swagger-validate
 
-      - name: Build Backend Executable Binary
+      - name: Build Backend Binary
         run: go build -v -o bin/kirmya ./cmd/kirmya
 
-      - name: Build Production Docker Container Image
-        run: docker build -t kirmya-backend:latest .
+      - name: Run Go Unit Tests
+        run: |
+          mkdir -p ../artifacts
+          set -o pipefail
+          go test -json ./... 2>&1 | tee ../artifacts/go-unit.json
+        env:
+          ALLOW_NO_DB: "true"
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - name: Enforce Unit Test Quality Gate
         if: always()
+        run: node ../scripts/ci/check-results.mjs go ../artifacts/go-unit.json
+
+      - name: Upload Diagnostics on Failure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: failure()
         with:
-          name: backend-unit-${{ github.sha }}
+          name: backend-unit-failure-${{ github.sha }}
           path: artifacts/
-          if-no-files-found: error
-          retention-days: 14
+          if-no-files-found: ignore
+          retention-days: 7
