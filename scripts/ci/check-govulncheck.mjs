@@ -23,6 +23,13 @@ export function checkGovulncheck(text) {
   const events = parseStream(text);
   const config = events.find(e=>e.config)?.config;
   if (config?.scanner_name !== 'govulncheck' || config.scan_level !== 'symbol' || config.scan_mode !== 'source' || !events.some(e=>e.SBOM)) throw new Error('Missing source/symbol scan evidence');
+  // govulncheck announces "Fetching vulnerabilities from the database..." before it reads the
+  // database and "Checking the code against the vulnerabilities..." once it has. A run whose
+  // fetch is refused - a blocked host, an outage, a proxy answering 403 - stops after the
+  // first announcement having consulted no vulnerability data at all, yet still emits the
+  // config and SBOM above and no findings. Without this, that report is indistinguishable
+  // from a clean scan.
+  if (events.filter(e=>e.progress).length < 2) throw new Error('Vulnerability database was never consulted');
   const findings = events.filter(e=>e.finding).map(e=>e.finding);
   if (findings.some(f=>!Array.isArray(f.trace) || !f.trace.length)) throw new Error('Malformed vulnerability finding');
   const reachable = [...new Set(findings.filter(f=>f.trace[0].function).map(f=>f.osv))];
