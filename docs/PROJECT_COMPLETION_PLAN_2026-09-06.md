@@ -255,8 +255,20 @@ any environment and always served three invented people, and the recruiter
 dashboard's counts were literals. Three backend tests asserted that behaviour,
 one on the exact name and match score.
 
-All six of this pass's findings are fixed, and so are F25 and F26. No release
-blocker that is a code defect remains.
+Giving F25 and F26 journey evidence - seeding a real posting and a real
+applicant, then requiring that person on every screen that used to invent one -
+uncovered two more. **F27:** the recruiter and ATS modules had never been
+authenticated. Three feature clients built bare axios instances with no bearer
+token, so every call returned 401 on every screen for every signed-in recruiter,
+and the fabricating catch blocks caught the 401 and substituted invented people.
+The fabrication was not beside the defect, it was concealing it, and removing it
+is what made it show. **F28:** four frontend stage vocabularies matched none of
+the server's, so a real applicant matched no kanban column and rendered nowhere;
+the board was legible only while it showed invented candidates carrying invented
+stages.
+
+All six of this pass's findings are fixed, and so are F25 through F28. No
+release blocker that is a code defect remains.
 
 Restore and rollback are now rehearsed rather than described — 6.1s recovery
 with no data loss, and the previous release serving the hiring journey against
@@ -264,7 +276,7 @@ this candidate's schema. **All 22 prior findings are closed**, and every
 historical residual is resolved or has a stated reason for staying open (R02
 needs a product decision, R05 needs a startup check, R07 needs a provider
 decision). The findings this pass raised are F23, F24 and - from the work that closed F24
-- F25 and F26. All four are closed.
+and then evidenced it - F25, F26, F27 and F28. All six are closed.
 
 **No module was promoted.** 10C, 10D, 10E and 10H remain open, 10A, 10B, 10F and
 10G remain in progress, and nothing is `verified`. The release verdict is **HOLD

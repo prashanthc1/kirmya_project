@@ -5616,10 +5616,10 @@
     "scope": "release blocker for the recruiter and ATS surfaces",
     "impact": "F24 enumerated fourteen files. Nine more reachable components carried the same fabrications and were missed because the quarantine list was drawn from the names in those fourteen and did not include the recruiter personas Rashid Al-Maktoum and Amira Al-Farsi. Two were worse than display: the interview scorecard arrived with every score pre-set to 5 of 5, a Strong Hire recommendation and a written assessment of a candidate the interviewer had never met, and submitting it recorded nothing while announcing that it had; the recruiter notes panels attributed a recruiter's own note to a colleague who does not exist and never sent it to the server. The offers page passed four hardcoded identifiers into a live create-offer call, and the ATS offer dialog reported an offer issued when the server had refused it.",
     "action": "ApplicationTimeline, recruiter ApplicationDetails, CandidateProfile, InterviewScheduler, InterviewFeedback, RecruiterNotes, ats/NotesPanel and ats/ApplicationDetails wired to their existing endpoints with stated loading, failure and empty states; ats/OfferManager no longer reports a refused offer as issued; the offers page and the standalone scorecard were removed rather than given placeholder identifiers. Controls with no endpoint behind them (note pinning and deletion, the private-note visibility checkbox) were removed rather than left appearing to work.",
-    "acceptance": "frontend unit suite 598/598; the invented-identities ratchet extended to the two recruiter personas and passing; typecheck clean; production build clean.",
+    "acceptance": "frontend unit suite 598/598; the invented-identities ratchet extended to the two recruiter personas and passing; typecheck clean; production build clean. Journey evidence added 9 Sep 2026: the screens and endpoints are exercised against a real API and PostgreSQL, and each journey is verified to fail against the pre-fix build.",
     "sources": "",
     "acceptance_evidence": "docs/BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md#f25",
-    "related_issues": "F24, F26"
+    "related_issues": "F24, F26, F27, F28"
   },
   {
     "id": "F26",
@@ -5634,9 +5634,45 @@
     "scope": "release blocker for the recruiter module",
     "impact": "The fabrication was not only in the browser. NewSearchService constructed the candidate engine named postgresql-tsvector-v2 with a literal nil pool, so it never reached PostgreSQL in any environment and always took its \"mock candidates fallback for testing and development\": every recruiter searching candidates was served the same three invented people with stock resume URLs and AI match scores of 96, 94 and 91. GetCandidateDetail ran an unfiltered search and returned the first result, so every candidate id resolved to the same person. RecruiterService.GetCandidates returned two more invented candidates ignoring the database. GetDashboardOverview returned literal counts - 142 applicants, 3 offers, 12 successful hires - to every recruiter including one who had posted nothing, with two activity entries naming a candidate who does not exist. SaveCandidate and UnsaveCandidate returned nil, the same value a successful save returns, and the saved list was an unfiltered search. Three backend tests asserted this behaviour, one of them on the exact string \"Sarah Chen\" and the score 96.",
     "action": "The real pool is passed to the candidate engine; the mock fallback is deleted and the engine fails when it has no database; CandidateByID reads the requested candidate under the same privacy filters as a search; per-row hardcoded skills and the fixed 92% match were removed, as were literal facet counts. Recruiter candidate listing and lookup became queries over the people who have applied to the caller's jobs, so the endpoint is not a read of the whole member directory; the dashboard is counted from the caller's own jobs and applications; saving a candidate is refused rather than reported done. The three tests were rewritten to assert refusal.",
-    "acceptance": "go build, go vet and the full backend unit suite clean; the real-database integration suite passes; 124 browser checks pass against this backend.",
+    "acceptance": "go build, go vet and the full backend unit suite clean; the real-database integration suite passes; 124 browser checks pass against this backend. Journey evidence added 9 Sep 2026: the screens and endpoints are exercised against a real API and PostgreSQL, and each journey is verified to fail against the pre-fix build.",
     "sources": "",
     "acceptance_evidence": "docs/BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md#f26",
-    "related_issues": "F24, F25"
+    "related_issues": "F24, F25, F27, F28"
+  },
+  {
+    "id": "F27",
+    "title": "The recruiter and ATS modules were never authenticated",
+    "priority": "P1",
+    "status": "verified",
+    "evidence_class": "found by the F25 browser journey on 2026-09-09; fixed and verified the same day",
+    "owner": "Frontend integration lead",
+    "owner_assignment": "responsible roles; individuals not assigned",
+    "workstream": "API contracts",
+    "plan_steps": "10A, 10B",
+    "scope": "release blocker for the recruiter and ATS surfaces",
+    "impact": "Three feature clients - features/recruiter/api.ts, features/ats/api.ts and features/recruiter/search/api.ts - each built a bare axios instance with withCredentials and nothing else. The access token lives in memory in authService and is attached by that client's request interceptor, so every call these three made went out unauthenticated and came back 401. Every screen in the recruiter and ATS modules was affected, for every signed-in recruiter, since the clients were written. Nobody saw it because the fabricating catch blocks caught the 401 and returned invented people in its place: the fabrication was not merely alongside the bug, it was concealing it. Closing F24 and F25 replaced the invented data with an honest failure state, which is what made the modules show 'could not be loaded' to a signed-in recruiter on every screen - the state the first browser journey found.",
+    "action": "The three clients use the shared authenticated client, so the bearer token and the refresh-on-401 retry apply to them as to every other module.",
+    "acceptance": "Seven browser journeys sign in as a real recruiter and read real seeded records across the candidate list, candidate detail, application detail, notes, interviews, offers and pipeline screens; all seven fail against the pre-fix build.",
+    "sources": "",
+    "acceptance_evidence": "docs/BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md#f27",
+    "related_issues": "F24, F25, F26"
+  },
+  {
+    "id": "F28",
+    "title": "Four frontend stage vocabularies, none matching the server's",
+    "priority": "P2",
+    "status": "verified",
+    "evidence_class": "found by the F25 browser journey on 2026-09-09; fixed and verified the same day",
+    "owner": "Frontend experience lead with hiring domain lead",
+    "owner_assignment": "responsible roles; individuals not assigned",
+    "workstream": "API contracts",
+    "plan_steps": "10A, 10B",
+    "scope": "recruiter pipeline and ATS board",
+    "impact": "The web client held four different lists of application stages and the ATSStage union held a fifth. None matched the values the API writes. The recruiter pipeline board offered New, Review, Recruiter Screen, Final Interview and Hired; the ATS board and filter panel added Screening, Recruiter Review and Technical Round; the union omitted Viewed and Accepted, which the server does write. No application ever holds any of the invented values, so those kanban columns were permanently empty - and a real applicant, whose stage is Applied, matched no column and was rendered nowhere at all. The board was legible only while it was displaying invented candidates carrying invented stages, which is why the mismatch survived. The recruiter dashboard had the same fault on the server side: two of its tiles counted stages no row holds, so they were structurally always zero.",
+    "action": "One canonical module, frontend/src/features/recruiter/stages.ts, derived from the stages the API writes and the transitions its own table accepts; the four lists and the ATSStage union are defined from it. The dashboard counts the stages the data actually uses.",
+    "acceptance": "A browser journey asserts the board offers no stage an application cannot hold; a backend journey asserts a just-submitted application is counted as a new applicant.",
+    "sources": "",
+    "acceptance_evidence": "docs/BATCH6_RELEASE_ACCEPTANCE_2026-09-09.md#f28",
+    "related_issues": "F25, F26"
   }
 ]

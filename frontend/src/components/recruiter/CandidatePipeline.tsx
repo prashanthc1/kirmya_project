@@ -20,23 +20,15 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import GlassCard from '../landing/GlassCard';
 import { CandidatePipelineItem } from '../../features/recruiter/types';
 import { recruiterApi } from '../../features/recruiter/api';
+import { APPLICATION_STAGES } from '../../features/recruiter/stages';
 
 interface CandidatePipelineProps {
   pipeline: CandidatePipelineItem[];
   onStageChange?: () => void;
 }
 
-const STAGES = [
-  'Applied',
-  'Screening',
-  'Shortlisted',
-  'Interview',
-  'Technical Round',
-  'Final Interview',
-  'Offer',
-  'Hired',
-  'Rejected',
-];
+const STAGES = APPLICATION_STAGES;
+
 
 export const CandidatePipeline: React.FC<CandidatePipelineProps> = ({ pipeline, onStageChange }) => {
   const theme = useTheme();

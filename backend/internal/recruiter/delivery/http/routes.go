@@ -30,7 +30,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandl
 		recruiterGroup.GET("/candidates/saved", searchHandler.GetSavedCandidates)
 		recruiterGroup.GET("/candidates/recommendations", searchHandler.GetRecommendations)
 		recruiterGroup.POST("/candidates/compare", searchHandler.CompareCandidates)
-		recruiterGroup.GET("/candidates/:id", searchHandler.GetCandidateDetail)
+		recruiterGroup.GET("/candidates/:id", handler.GetCandidateDetail)
 		recruiterGroup.DELETE("/candidates/:id/save", searchHandler.UnsaveCandidate)
 		recruiterGroup.POST("/candidates/:id/message", searchHandler.MessageCandidate)
 		recruiterGroup.POST("/candidates/:id/connect", searchHandler.ConnectCandidate)

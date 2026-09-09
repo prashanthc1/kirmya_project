@@ -4,6 +4,7 @@ import React from 'react';
 import { Box, TextField, MenuItem, Stack, Button } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import GlassCard from '../landing/GlassCard';
+import { APPLICATION_STAGES } from '../../features/recruiter/stages';
 
 interface FilterPanelProps {
   onFilterChange: (filters: any) => void;
@@ -30,7 +31,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({ onFilterChange }) => {
 
         <TextField select label="Filter by Stage" size="small" fullWidth value={stage} onChange={(e) => handleChange(jobId, e.target.value)}>
           <MenuItem value="">All Pipeline Stages</MenuItem>
-          {['Applied', 'Screening', 'Shortlisted', 'Recruiter Review', 'Interview', 'Technical Round', 'Final Interview', 'Offer', 'Hired', 'Rejected'].map((st) => (
+          {APPLICATION_STAGES.map((st) => (
             <MenuItem key={st} value={st}>
               {st}
             </MenuItem>

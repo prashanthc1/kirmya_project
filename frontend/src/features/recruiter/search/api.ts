@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { authApiClient } from '../../../services/authService';
 import {
   CandidateSearchQuery,
   CandidateSearchResponse,
@@ -8,12 +8,21 @@ import {
   CandidateComparisonItem,
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-
-const apiClient = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,
-});
+/*
+ * The shared authenticated client, not a bare axios instance.
+ *
+ * This module created its own client with `withCredentials: true` and
+ * nothing else. The access token lives in memory in authService and is
+ * attached by that client's request interceptor, so every call made here
+ * went out unauthenticated and came back 401 - to a signed-in recruiter,
+ * on every screen in the module.
+ *
+ * Nobody noticed because the fabricating catch blocks caught the 401 and
+ * returned invented people in its place, so the screens looked like they
+ * worked. Removing those fallbacks is what surfaced this: the module had
+ * never once read the caller's own data.
+ */
+const apiClient = authApiClient;
 
 export const candidateSearchApi = {
   searchCandidates: async (params?: CandidateSearchQuery): Promise<CandidateSearchResponse> => {

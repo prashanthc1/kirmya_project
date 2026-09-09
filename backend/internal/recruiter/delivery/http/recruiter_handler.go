@@ -259,6 +259,42 @@ func (h *RecruiterHandler) GetCandidates(c *gin.Context) {
 	c.JSON(http.StatusOK, candidates)
 }
 
+// GetCandidateDetail answers for one candidate the caller has a relationship
+// with, in the same shape as the sibling list endpoint.
+//
+// This route was served by the search handler, which read any active member by
+// id subject only to their own discoverability preferences. Two things were
+// wrong with that. It was broader than its sibling: GET /recruiter/candidates
+// lists the people who have applied to the caller's jobs, so the list could not
+// show someone the detail endpoint would happily return. And it answered in the
+// search DTO's snake_case shape - user_id, resume_url - where the list answers
+// in camelCase, so a client written against one rendered blanks against the
+// other.
+func (h *RecruiterHandler) GetCandidateDetail(c *gin.Context) {
+	userID, err := h.getUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	candidateID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid candidate ID"})
+		return
+	}
+
+	candidate, err := h.service.GetCandidate(c.Request.Context(), userID, candidateID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No application from this candidate to one of your jobs"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, candidate)
+}
+
 func (h *RecruiterHandler) SaveCandidate(c *gin.Context) {
 	userID, err := h.getUserID(c)
 	if err != nil {

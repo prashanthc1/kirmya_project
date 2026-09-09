@@ -6,6 +6,7 @@ import PipelineColumn from './PipelineColumn';
 import GlassCard from '../landing/GlassCard';
 import { JobApplicationDTO, ATSStage } from '../../features/ats/types';
 import { atsApi } from '../../features/ats/api';
+import { APPLICATION_STAGES, STAGE_COLORS } from '../../features/recruiter/stages';
 
 interface PipelineBoardProps {
   applications: JobApplicationDTO[];
@@ -16,18 +17,8 @@ interface PipelineBoardProps {
   selectedIds?: string[];
 }
 
-const STAGES: { name: ATSStage; color: string }[] = [
-  { name: 'Applied', color: '#6366f1' },
-  { name: 'Screening', color: '#06b6d4' },
-  { name: 'Shortlisted', color: '#3b82f6' },
-  { name: 'Recruiter Review', color: '#8b5cf6' },
-  { name: 'Interview', color: '#f59e0b' },
-  { name: 'Technical Round', color: '#ec4899' },
-  { name: 'Final Interview', color: '#a855f7' },
-  { name: 'Offer', color: '#10b981' },
-  { name: 'Hired', color: '#16a34a' },
-  { name: 'Rejected', color: '#ef4444' },
-];
+const STAGES = APPLICATION_STAGES.map((name) => ({ name, color: STAGE_COLORS[name] }));
+
 
 export const PipelineBoard: React.FC<PipelineBoardProps> = ({
   applications,

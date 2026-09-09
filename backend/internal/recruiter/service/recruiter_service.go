@@ -245,7 +245,7 @@ func (s *RecruiterService) GetDashboardOverview(ctx context.Context, userID uuid
 		ActiveJobsCount:      counts.ActiveJobs,
 		DraftJobsCount:       counts.DraftJobs,
 		TotalApplicantsCount: counts.TotalApplicants,
-		NewCandidatesCount:   counts.NewCandidates,
+		NewCandidatesCount:   counts.NewApplicants,
 		ShortlistedCount:     counts.Shortlisted,
 		InterviewsScheduled:  len(interviews),
 		OffersCount:          counts.Offers,

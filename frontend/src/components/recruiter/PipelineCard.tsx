@@ -44,7 +44,7 @@ interface Props {
   candidate: PipelineCandidate;
   onMoveStage: (candidateId: string, targetStage: string) => void;
   onViewDetails: (candidate: PipelineCandidate) => void;
-  stages: string[];
+  stages: readonly string[];
 }
 
 export const PipelineCard: React.FC<Props> = ({ candidate, onMoveStage, onViewDetails, stages }) => {

@@ -1,14 +1,15 @@
-export type ATSStage =
-  | 'Applied'
-  | 'Screening'
-  | 'Shortlisted'
-  | 'Recruiter Review'
-  | 'Interview'
-  | 'Technical Round'
-  | 'Final Interview'
-  | 'Offer'
-  | 'Hired'
-  | 'Rejected';
+import type { ApplicationStage } from '../recruiter/stages';
+
+/**
+ * The stages an application can hold, as the API defines them.
+ *
+ * This union listed "Screening", "Recruiter Review", "Technical Round",
+ * "Final Interview" and "Hired" - five values the server never writes and its
+ * transition table refuses - while omitting "Viewed" and "Accepted", which it
+ * does. It is derived from the one canonical list now, so a stage cannot be
+ * offered in the UI that the API would reject.
+ */
+export type ATSStage = ApplicationStage;
 
 export interface JobApplicationDTO {
   id: string;

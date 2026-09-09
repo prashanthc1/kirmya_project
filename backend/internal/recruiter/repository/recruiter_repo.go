@@ -136,7 +136,7 @@ func (r *RecruiterRepository) SearchCandidates(ctx context.Context, recruiterID 
 		FROM job_applications a
 		JOIN jobs j ON j.id = a.job_id
 		JOIN users u ON u.id = a.candidate_id
-		LEFT JOIN profiles p ON p.user_id = u.id
+		LEFT JOIN user_profiles p ON p.user_id = u.id
 		WHERE j.recruiter_id = $1 AND u.status = 'active'
 		ORDER BY u.id, a.applied_at DESC`, recruiterID)
 	if err != nil {
@@ -183,7 +183,7 @@ func (r *RecruiterRepository) CandidateByID(ctx context.Context, recruiterID, ca
 		FROM job_applications a
 		JOIN jobs j ON j.id = a.job_id
 		JOIN users u ON u.id = a.candidate_id
-		LEFT JOIN profiles p ON p.user_id = u.id
+		LEFT JOIN user_profiles p ON p.user_id = u.id
 		WHERE j.recruiter_id = $1 AND u.id = $2 AND u.status = 'active'
 		ORDER BY a.applied_at DESC
 		LIMIT 1`, recruiterID, candidateID).
@@ -199,17 +199,25 @@ func (r *RecruiterRepository) CandidateByID(ctx context.Context, recruiterID, ca
 	return &v, nil
 }
 
-// DashboardCounts counts the recruiter's own jobs, applicants and stages. Every
-// figure the overview showed was a literal: 142 applicants, 3 offers, 12
+// DashboardCounts counts the recruiter's own jobs, applicants and stages.
+//
+// Every figure the overview showed was a literal: 142 applicants, 3 offers, 12
 // successful hires, on an account that had posted nothing.
+//
+// The stage names here are the ones the pipeline actually writes and the
+// transition table in UpdateOwnedApplicationStage actually allows - Applied,
+// Viewed, Shortlisted, Interview, Offer, Accepted, Rejected. An earlier
+// version of this query counted "New" and "Hired", which no row ever holds, so
+// two of the tiles were structurally always zero. A count that can never be
+// anything but zero is its own kind of false statement.
 type DashboardCounts struct {
-	ActiveJobs     int
-	DraftJobs      int
+	ActiveJobs      int
+	DraftJobs       int
 	TotalApplicants int
-	NewCandidates  int
-	Shortlisted    int
-	Offers         int
-	Hires          int
+	NewApplicants   int
+	Shortlisted     int
+	Offers          int
+	Hires           int
 }
 
 func (r *RecruiterRepository) DashboardCounts(ctx context.Context, recruiterID uuid.UUID) (*DashboardCounts, error) {
@@ -218,16 +226,22 @@ func (r *RecruiterRepository) DashboardCounts(ctx context.Context, recruiterID u
 	}
 	var c DashboardCounts
 	err := r.db.QueryRow(ctx, `
+		WITH mine AS (
+		  SELECT a.current_stage
+		  FROM job_applications a
+		  JOIN jobs j ON j.id = a.job_id
+		  WHERE j.recruiter_id = $1
+		)
 		SELECT
 		  (SELECT COUNT(*) FROM jobs WHERE recruiter_id = $1 AND status = 'active'),
 		  (SELECT COUNT(*) FROM jobs WHERE recruiter_id = $1 AND status = 'draft'),
-		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1),
-		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'New'),
-		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'Shortlisted'),
-		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'Offer'),
-		  (SELECT COUNT(*) FROM job_applications a JOIN jobs j ON j.id = a.job_id WHERE j.recruiter_id = $1 AND a.current_stage = 'Hired')`,
+		  (SELECT COUNT(*) FROM mine),
+		  (SELECT COUNT(*) FROM mine WHERE current_stage = 'Applied'),
+		  (SELECT COUNT(*) FROM mine WHERE current_stage = 'Shortlisted'),
+		  (SELECT COUNT(*) FROM mine WHERE current_stage = 'Offer'),
+		  (SELECT COUNT(*) FROM mine WHERE current_stage = 'Accepted')`,
 		recruiterID).
-		Scan(&c.ActiveJobs, &c.DraftJobs, &c.TotalApplicants, &c.NewCandidates, &c.Shortlisted, &c.Offers, &c.Hires)
+		Scan(&c.ActiveJobs, &c.DraftJobs, &c.TotalApplicants, &c.NewApplicants, &c.Shortlisted, &c.Offers, &c.Hires)
 	if err != nil {
 		return nil, err
 	}

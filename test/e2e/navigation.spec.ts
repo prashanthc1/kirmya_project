@@ -45,7 +45,18 @@ test.describe('Navigation architecture', () => {
     await expect(page).toHaveURL(/\/feed$/, { timeout: 15_000 });
   });
 
-  test('the generic user dashboard is gone and redirects to the feed', async ({ page }) => {
+  test('the generic user dashboard is gone and redirects to the feed', async ({ page, request }) => {
+    // Signed in, because /feed is a signed-in page.
+    //
+    // This visited /dashboard anonymously and asserted the URL ends in /feed.
+    // The redirect does land there, and the auth guard then bounces an
+    // anonymous visitor on to /login?returnUrl=%2Ffeed - so the assertion was
+    // racing the guard, and lost whenever the guard won. It failed exactly
+    // that way on mobile-chromium, having passed everywhere else for weeks.
+    const api = process.env.TEST_API_URL!;
+    const account = await register(request, api, 'dashboard-redirect');
+    await signIn(page, api, account.email);
+
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/feed$/, { timeout: 15_000 });
   });

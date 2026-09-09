@@ -27,18 +27,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import PipelineCard, { PipelineCandidate } from './PipelineCard';
 import { recruiterApi } from '../../features/recruiter/api';
+import { APPLICATION_STAGES } from '../../features/recruiter/stages';
 
-const defaultStages = [
-  'New',
-  'Review',
-  'Shortlisted',
-  'Recruiter Screen',
-  'Interview',
-  'Final Interview',
-  'Offer',
-  'Hired',
-  'Rejected',
-];
 
 interface Props {
   jobId?: string;
@@ -197,7 +187,7 @@ export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => 
       {/* Board View */}
       {viewMode === 'kanban' ? (
         <Box sx={{ display: 'flex', gap: 2, pb: 2, overflowX: 'auto', minHeight: 600 }}>
-          {defaultStages.map((stage) => {
+          {APPLICATION_STAGES.map((stage) => {
             const stageCandidates = filtered.filter((c) => c.stage === stage);
             return (
               <Box
@@ -224,7 +214,7 @@ export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => 
                     <PipelineCard
                       key={cand.id}
                       candidate={cand}
-                      stages={defaultStages}
+                      stages={APPLICATION_STAGES}
                       onMoveStage={handleMoveStage}
                       onViewDetails={(c) => onSelectCandidate && onSelectCandidate(c)}
                     />

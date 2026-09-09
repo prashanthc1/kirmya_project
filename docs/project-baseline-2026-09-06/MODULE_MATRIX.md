@@ -155,7 +155,7 @@ exercised end to end.
 
 | Module | Status | What was invented, and what it does now |
 |---|---|---|
-| recruiter | in progress | `/recruiter/candidates`, `/recruiter/offers`, and the pipeline, team, profile, application, interview, scorecard, notes, offer and message components: candidates and colleagues who do not exist, with employers, match ratings and résumé URLs, and no API calls. All now read from their endpoints or state that they cannot. The scorecard and the notes panels also reported writes that never happened; both are real requests now. Offers cannot be listed — no endpoint returns them — and the page says so rather than showing two invented offers. |
+| recruiter | in progress | `/recruiter/candidates`, `/recruiter/offers`, and the pipeline, team, profile, application, interview, scorecard, notes, offer and message components: candidates and colleagues who do not exist, with employers, match ratings and résumé URLs, and no API calls. All now read from their endpoints, and **ten journeys prove they read** rather than only that they no longer invent. The scorecard and the notes panels reported writes that never happened; a note now posts to the server and survives a reload, which is asserted. Offers cannot be listed — no endpoint returns them — and the page says so rather than showing two invented offers. |
 | company (employer portal) | in progress | `/employer/applications` listed an invented applicant. Now reads the API. |
 | admin | in progress | The dashboard and user management presented invented accounts; `features/admin/services/adminApi.ts` fell back to them. Fallbacks removed. |
 | onboarding | in progress | `ConnectionsStep` suggested invented people to every new user. Now real, or empty. |
@@ -164,7 +164,16 @@ exercised end to end.
 | compliance, trust_safety | unverified | An invented reviewer and an invented moderator in their clients' fallbacks. Removed. |
 | recommendation | unverified → **in progress** | Fixed in batch 6: both candidate queries had never executed, the errors were discarded, and fixtures were served in their place. Now real, or empty. Covered by `backend/test/ci/batch6_recommendations_test.go`. |
 
-No module moves to `verified` on the strength of a fix. These screens are wired
-to real data and two ratchets keep them there — `invented-identities.test.ts`,
-whose quarantine list may only shrink, and `api-clients-do-not-invent.test.ts`.
-Exercising their journeys end to end is the step 10 work that remains.
+The recruiter module now has journey evidence: seven browser journeys and three
+API journeys seed a real posting and a real applicant and require that person
+everywhere a fabrication used to be, each verified to fail against the pre-fix
+build. Writing them found that the recruiter and ATS clients had never been
+authenticated (F27) — the fabrications had been concealing a 401 on every screen
+— and that four frontend stage vocabularies matched none of the server's (F28),
+so a real applicant matched no kanban column and rendered nowhere.
+
+No module moves to `verified` yet. Two ratchets hold the fixes in place
+(`invented-identities.test.ts`, whose quarantine list may only shrink, and
+`api-clients-do-not-invent.test.ts`), and the recruiter journey is evidenced;
+the employer portal, admin console, onboarding and networking client still need
+the same treatment before step 10 can call any of this verified.

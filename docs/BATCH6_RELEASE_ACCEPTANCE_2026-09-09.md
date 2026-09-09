@@ -547,6 +547,87 @@ Fields nothing records — a candidate's years of experience, availability, matc
 score, verification status, work history, education, certifications — are left
 unset rather than filled with a plausible number.
 
+### Journey evidence for F25 and F26
+
+<a id="f27"></a><a id="f28"></a>
+
+*Added 9 September 2026, after the addendum above.*
+
+The fixes for F25 and F26 shipped with tests that assert each screen and
+endpoint **states a failure** when it has no data source. That proves they
+stopped inventing. It does not prove they read, and those are different claims:
+a screen that renders "could not be loaded" forever satisfies every one of
+those tests.
+
+So the journeys below seed a real posting and a real applicant through the API,
+then require that person — by name, on the page — everywhere a fabrication used
+to be. **Each one is verified to fail against the pre-fix build**, by building
+`ad844af` in a throwaway worktree and running the identical specs against it.
+
+Writing them found four more defects, three of them in the fixes themselves.
+
+**The candidate query was wrong.** It joined `profiles`, which carries
+`job_title` and `location` but not `headline`, and is not the table
+`user_skills.profile_id` references. `GET /recruiter/candidates` answered
+`column p.headline does not exist` on every call. Every unit test still passed,
+because none of them had a database to be wrong against.
+
+**The candidate detail route was never scoped.** `GET /recruiter/candidates/:id`
+was served by the *search* handler, so the scoping added to the recruiter
+service never applied to it: a recruiter could read any member of the platform
+by id. It also answered in the search DTO's snake_case shape while its sibling
+list answers in camelCase, so the page reading it would have rendered blanks.
+It is served by the recruiter handler now, in the same shape as the list, and
+returns 404 for someone who has not applied to one of the caller's jobs.
+
+**F27 — the recruiter and ATS modules had never been authenticated.** This is
+the one the fabrications were hiding, and it was found by the very first browser
+journey: a signed-in recruiter reached `/recruiter/candidates` and the page said
+*"Candidates could not be loaded. Request failed with status code 401."*
+
+Three feature clients — `features/recruiter/api.ts`, `features/ats/api.ts` and
+`features/recruiter/search/api.ts` — each built a bare axios instance with
+`withCredentials: true` and nothing else. The access token lives in memory in
+`authService` and is attached by *that* client's request interceptor, so every
+call these three made went out unauthenticated and came back 401. Every screen
+in both modules, for every signed-in recruiter, since the clients were written.
+
+Nobody had ever seen it, because the fabricating catch blocks caught the 401 and
+returned invented people in its place. The modules looked like they worked. The
+invented data was not merely sitting beside the defect — it was what made the
+defect invisible, and removing it is what made the defect show.
+
+**F28 — four stage vocabularies, none matching the server's.** The recruiter
+pipeline board offered "New", "Review", "Recruiter Screen", "Final Interview"
+and "Hired"; `CandidatePipeline` offered "Screening" and "Technical Round"; the
+ATS board and filter panel had two more variations; and the `ATSStage` union
+omitted "Viewed" and "Accepted", which the server does write.
+
+No application holds any of the invented values, so those columns were
+permanently empty — and a real applicant, whose stage is "Applied", matched no
+column and **was rendered nowhere at all**. The board was legible only while it
+was displaying invented candidates carrying invented stages, which is why the
+mismatch survived this long. Two tiles on the recruiter dashboard had the same
+fault server-side and were structurally always zero.
+
+There is one list now, `frontend/src/features/recruiter/stages.ts`, derived from
+the stages the API writes and the transitions its own table accepts.
+
+### What the journeys assert
+
+| Journey | Seeds | Requires |
+|---|---|---|
+| `TestF26RecruiterJourneyReadsRealRecords` | a posting and one applicant | zero applicants and zero hires before, exactly the real applicant after; no invented name; no match score; the counts move |
+| `TestF26CandidateLookupIsScopedToTheRecruitersOwnApplicants` | a posting, an applicant, a stranger | the applicant is readable and is the person asked for; the stranger is not |
+| `TestF26SavingACandidateIsRefusedRatherThanFaked` | a posting and one applicant | saving is refused rather than reported done; the saved list is not an unfiltered search |
+| candidate list | a posting and one applicant | the real applicant by name; no invented person; no "96% AI match"; no `kirmya.com/resumes` |
+| candidate detail | the same | the candidate **asked for**; no "96% MATCH"; no "Verified Profile" |
+| application detail | the same | the real candidate, the real job title, and **the cover letter that candidate wrote** |
+| recruiter notes | the same | a note posts to the server and **is still there after a reload** — the local-array version could not survive one |
+| interviews | the same | no invented interview, no `meet.google.com` link, and no pre-filled scorecard on the page |
+| offers | the same | the absence is stated; no salary attached to an invented person; no button posting placeholder ids |
+| pipeline board | the same | no column an application cannot hold |
+
 ### Evidence for the addendum
 
 | Check | Result |
@@ -555,24 +636,35 @@ unset rather than filled with a plausible number.
 | Frontend typecheck (`tsc --noEmit`) | clean |
 | Frontend lint (`eslint`) | **0 errors**, 127 warnings (pre-existing) |
 | Frontend production build | clean, all routes emitted |
-| Browser (`playwright`) | **124 passed**, 0 failed, 0 skipped, against a real API and PostgreSQL |
+| Browser (`playwright`) | **138 passed**, 0 failed, 0 skipped, against a real API and PostgreSQL |
+| — of which recruiter journeys | **7**, each verified to fail against `ad844af` |
 | Backend build / vet / unit | clean; full `go test ./...` passes |
-| Real-database integration (`-tags=ciintegration`) | `ok kirmya/test/ci 36.9s` |
-| Company service against PostgreSQL | `ok kirmya/internal/company/service` |
+| Real-database integration (`-tags=ciintegration`) | `ok kirmya/test/ci 37.3s`, including the three F26 journeys |
+| — F26 journeys against `ad844af` | **all three fail**, returning Sarah Chen at 96% with a `kirmya.com` résumé URL |
+
+One further correction while running these. The navigation check *"the generic
+user dashboard is gone and redirects to the feed"* visited `/dashboard`
+anonymously and asserted the URL ends in `/feed`. The redirect does land there,
+and the auth guard then bounces an anonymous visitor on to
+`/login?returnUrl=%2Ffeed` — so the assertion was racing the guard, and lost
+whenever the guard won. It failed exactly that way on mobile-chromium, having
+passed everywhere else for weeks. It signs in first now, which is the state a
+user reaching `/dashboard` is actually in. Re-running it was not the fix; the
+race was.
 
 **Browser coverage is narrower here than in CI, and this is a sandbox limit, not
 a result.** This environment ships Playwright browser revision 1194 while the
 repo pins `@playwright/test` 1.63.0, which wants 1243, and the download is
 blocked. The four chromium-based projects were run against the installed binary;
 **Firefox and WebKit could not be run locally at all**. CI installs its own
-browsers and runs all six projects, so those two engines are covered there and
-not here.
+browsers and runs all six projects.
 
 ## 8. Blockers before a public launch
 
-In the order they have to be solved. None is a code defect: the three that
-were — F24, and F25 and F26 which closing it uncovered — are fixed and
-evidenced in the [addendum](#7a-addendum--f24-closed-and-what-closing-it-found).
+In the order they have to be solved. None is a code defect: the five that were
+— F24, then F25 and F26 which closing it uncovered, then F27 and F28 which
+giving those two journey evidence uncovered — are fixed and evidenced in the
+[addendum](#7a-addendum--f24-closed-and-what-closing-it-found).
 
 1. **Object storage.** Configure `STORAGE_*` before any real candidate uploads a
    résumé. Today documents go to a container's own disk, which does not survive a
@@ -588,14 +680,16 @@ evidenced in the [addendum](#7a-addendum--f24-closed-and-what-closing-it-found).
    a statement about production and should be made with the owner present.
 5. **A production-scale restore.** The 6.1-second figure must not be quoted as
    an RTO until it is re-run against a production-sized snapshot.
-6. **Journey evidence for the recruiter and ATS screens.** The surfaces that
-   invented people are fixed (F24, F25, F26 in the [addendum](#7a-addendum--f24-closed-and-what-closing-it-found)),
-   and the ratchet keeps them fixed. What is still missing is the step 10
-   evidence: each screen now reads from a real endpoint, but its journey has not
-   been exercised end to end, so 10A, 10B and 10F stay *in progress*. Two
-   endpoints these screens depend on do not exist at all and the screens say so
-   rather than filling the gap — there is no endpoint that lists a recruiter's
-   offers, and none that returns a candidate's work history or education.
+6. **The remaining recruiter and ATS journeys.** The core recruiter journey now
+   has evidence — seed a posting and an applicant, sign in, and the real person
+   is on every screen that used to invent one, with each journey verified to
+   fail against the pre-fix build. What is not yet exercised end to end: the
+   employer portal, the admin console, onboarding and the networking client,
+   which F24 also touched. Until those have the same treatment, 10A, 10B and
+   10F stay *in progress* rather than verified. Two endpoints these screens
+   depend on do not exist at all, and the screens say so rather than filling
+   the gap — nothing lists a recruiter's offers, and nothing returns a
+   candidate's work history or education.
 7. **The four open domain groups.** 10C needs a provider decision; 10D, 10E and
    10H need the journeys the plan specifies. Only then is "full platform" a
    phrase this project can use.
