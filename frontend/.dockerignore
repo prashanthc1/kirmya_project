@@ -1,0 +1,13 @@
+# The builder stage runs `COPY . .` over the whole frontend directory. Without
+# this, a developer's local node_modules and .next overwrite the dependencies
+# the deps stage installed and the build output the builder is about to produce,
+# so the image depends on whatever happened to be on the machine that built it.
+node_modules
+.next
+tsconfig.tsbuildinfo
+
+# Never needed inside the image, and .env* must never be baked into a layer.
+Dockerfile
+.dockerignore
+.env
+.env.*

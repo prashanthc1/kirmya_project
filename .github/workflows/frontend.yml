@@ -70,3 +70,39 @@ jobs:
           path: artifacts/
           if-no-files-found: error
           retention-days: 14
+
+  image:
+    name: Frontend production image builds
+    # The artifact that actually ships. Nothing built this image before, so a
+    # broken frontend/Dockerfile - a base image that no longer exists, a stage
+    # that stopped copying the standalone tree - reached a deployment without a
+    # single check having tried it. The backend pipeline has built its image
+    # since the beginning; this is the same gate for the other half.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - name: Build the production container image
+        run: |
+          mkdir -p artifacts
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=https://api.example.invalid/api/v1 \
+            -t kirmya-frontend:ci frontend 2>&1 | tee artifacts/image-build.log
+      - name: The image starts and serves the sign-in page
+        run: |
+          docker run -d --name kirmya-frontend-ci -p 3000:3000 kirmya-frontend:ci
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:3000/signin > /dev/null; then break; fi
+            docker inspect -f '{{.State.Running}}' kirmya-frontend-ci | grep -q true
+            sleep 1
+          done
+          curl --fail --silent --show-error http://127.0.0.1:3000/signin > /dev/null
+          docker logs kirmya-frontend-ci > artifacts/image-run.log 2>&1
+          docker rm -f kirmya-frontend-ci
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: frontend-image-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
