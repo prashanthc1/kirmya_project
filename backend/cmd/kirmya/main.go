@@ -945,8 +945,17 @@ func buildHealthProbes(
 	// sending one, so this reports configuration, and says exactly that.
 	if appMailer.Enabled() {
 		probes.Email = func(ctx context.Context) (string, map[string]interface{}, error) {
-			return "SMTP is configured; configuration only, no message is sent to check it",
-				map[string]interface{}{"from": appMailer.From()}, nil
+			// Which transport is live matters operationally: SMTP is
+			// unreachable on Railway below the Pro plan, so a deployment
+			// reporting "smtp" there can be configured and still deliver
+			// nothing. Still configuration only — no probe proves a message
+			// will arrive without sending one.
+			return fmt.Sprintf("mail configured over %s; configuration only, no message is sent to check it",
+					appMailer.Transport()),
+				map[string]interface{}{
+					"from":      appMailer.From(),
+					"transport": appMailer.Transport(),
+				}, nil
 		}
 	}
 
