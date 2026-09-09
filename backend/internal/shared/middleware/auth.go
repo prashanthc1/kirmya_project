@@ -111,15 +111,6 @@ func GetUserID(c *gin.Context) (uuid.UUID, bool) {
 	return uuid.Nil, false
 }
 
-// MustGetUserID extracts authenticated user UUID or panics if not authenticated.
-func MustGetUserID(c *gin.Context) uuid.UUID {
-	uid, ok := GetUserID(c)
-	if !ok {
-		panic("MustGetUserID: user is not authenticated")
-	}
-	return uid
-}
-
 // GetUserRole extracts role from Gin context.
 func GetUserRole(c *gin.Context) string {
 	if val, exists := c.Get("role"); exists {
