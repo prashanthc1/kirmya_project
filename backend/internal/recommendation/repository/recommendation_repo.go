@@ -210,7 +210,7 @@ func (r *RecommendationRepository) GetPeopleCandidates(ctx context.Context, user
 		       COALESCE(up.username, ''), COALESCE(up.headline, 'Professional Specialist'),
 		       COALESCE(up.avatar_url, ''), COALESCE(up.location, 'Dubai, UAE'), COALESCE(up.industry, 'Technology')
 		FROM user_profiles up
-		JOIN users u ON u.id = up.user_id AND u.deleted_at IS NULL
+		JOIN users u ON u.id = up.user_id AND u.status = 'active'
 		WHERE up.user_id != $1
 		  AND up.is_private = FALSE
 		  AND up.is_restricted = FALSE
@@ -248,11 +248,15 @@ func (r *RecommendationRepository) GetCommunityCandidates(ctx context.Context, u
 	}
 
 	query := `
-		SELECT id, title, slug, COALESCE(description, ''), COALESCE(category, 'General'), COALESCE(logo_url, ''), member_count
+		-- communities.slug and member_count are both nullable and nothing writes
+		-- a slug, so every real community has one. Scanning that NULL into a
+		-- string answered this endpoint with 500 the moment it stopped
+		-- serving fixtures. The web client already falls back to the id.
+		SELECT id, title, COALESCE(slug, ''), COALESCE(description, ''), COALESCE(category, 'General'), COALESCE(logo_url, ''), COALESCE(member_count, 0)
 		FROM communities
 		WHERE visibility != 'invite_only'
 		ORDER BY member_count DESC
-		LIMIT $2
+		LIMIT $1
 	`
 
 	rows, err := r.db.Query(ctx, query, limit)

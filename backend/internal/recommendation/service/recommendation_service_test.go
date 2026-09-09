@@ -63,51 +63,45 @@ func TestRecommendationMatchingAlgorithm(t *testing.T) {
 	assert.Equal(t, 0, score)
 }
 
-func TestPersonalizedFeedGeneration(t *testing.T) {
-	svc := NewRecommendationService(nil, nil)
-	userID := uuid.New()
-
-	feed, err := svc.GetPersonalizedFeed(context.Background(), userID, "", 10)
-	require.NoError(t, err)
-	assert.NotNil(t, feed)
-	assert.NotEmpty(t, feed.Items)
-
-	// Ensure multiple item types are interleaved
-	itemTypes := make(map[string]bool)
-	for _, item := range feed.Items {
-		assert.NotEmpty(t, item.Title)
-		assert.NotEmpty(t, item.ItemType)
-		assert.True(t, item.MatchScore > 0)
-		itemTypes[item.ItemType] = true
-	}
-
-	assert.True(t, itemTypes["career_tip"])
-	assert.True(t, itemTypes["job"])
-	assert.True(t, itemTypes["person"])
-	assert.True(t, itemTypes["community"])
-}
-
-func TestRecommendedPeopleAndCommunities(t *testing.T) {
+func TestNoDataRecommendsNothingRatherThanInventingIt(t *testing.T) {
+	// A service with no repository has no jobs, no people and no communities to
+	// recommend, which is also the state of a new deployment and of every
+	// account before anyone else has signed up.
+	//
+	// It used to answer that state with three job postings at named employers
+	// with salaries, two people with headlines, locations and the names of the
+	// connections they supposedly shared with the caller, and two communities
+	// with member counts - none of which exist. The feed opened with a fixed
+	// "AI Career Optimization Insight" scored 95 and attributed to the reader's
+	// verified profile skills.
 	svc := NewRecommendationService(nil, nil)
 	userID := uuid.New()
 
 	people, err := svc.GetRecommendedPeople(context.Background(), userID, 5)
 	require.NoError(t, err)
-	assert.NotEmpty(t, people)
-	for _, p := range people {
-		assert.NotEqual(t, userID, p.UserID)
-		assert.NotEmpty(t, p.FullName)
-		assert.NotEmpty(t, p.Headline)
-		assert.NotEmpty(t, p.Reason)
-	}
+	assert.Empty(t, people, "nobody to recommend must mean nobody, not an invented peer")
 
 	comms, err := svc.GetRecommendedCommunities(context.Background(), userID, 5)
 	require.NoError(t, err)
-	assert.NotEmpty(t, comms)
-	for _, c := range comms {
-		assert.NotEmpty(t, c.Name)
-		assert.NotEmpty(t, c.Category)
-		assert.True(t, c.MemberCount > 0)
-	}
+	assert.Empty(t, comms, "no communities must mean none, not two with member counts")
+
+	feed, err := svc.GetPersonalizedFeed(context.Background(), userID, "", 10)
+	require.NoError(t, err)
+	require.NotNil(t, feed)
+	assert.Empty(t, feed.Items, "an empty platform produces an empty feed")
+	assert.Equal(t, 0, feed.TotalCount)
+	assert.False(t, feed.HasMore)
 }
 
+func TestFeedCarriesOnlyRecommendationsItWasGiven(t *testing.T) {
+	// Whatever the feed contains has to come from a recommendation stream. This
+	// fails if a constant item is ever reintroduced ahead of them.
+	svc := NewRecommendationService(nil, nil)
+
+	feed, err := svc.GetPersonalizedFeed(context.Background(), uuid.New(), "", 10)
+	require.NoError(t, err)
+	for _, item := range feed.Items {
+		assert.Contains(t, []string{"job", "person", "community"}, item.ItemType,
+			"feed item %q is not one of the recommendation streams", item.ItemType)
+	}
+}

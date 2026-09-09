@@ -134,15 +134,18 @@ func (s *RecommendationService) GetRecommendations(ctx context.Context, userID u
 		return nil, err
 	}
 
-	// 3. Fetch real candidate jobs from PostgreSQL
+	// 3. Fetch real candidate jobs from PostgreSQL.
+	//
+	// The error is returned rather than discarded, and an empty board stays
+	// empty. This used to answer with three invented postings - salaries,
+	// employers and all - whenever the query failed or the board had nothing
+	// on it, which is every new deployment.
 	var jobs []models.JobSummaryDTO
 	if s.repo != nil {
-		jobs, _ = s.repo.GetActiveJobCandidates(ctx, userID, 50)
-	}
-
-	// Fallback seed candidates if DB has no active jobs
-	if len(jobs) == 0 {
-		jobs = getFallbackJobListings()
+		jobs, err = s.repo.GetActiveJobCandidates(ctx, userID, 50)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// 4. Score and rank candidates
@@ -201,13 +204,16 @@ func (s *RecommendationService) GetRecommendedPeople(ctx context.Context, userID
 		limit = 10
 	}
 
+	// A platform with nobody else on it recommends nobody. This used to answer
+	// with two invented people, their headlines, their locations and the names
+	// of the connections they supposedly shared with the caller.
 	var candidates []models.RecommendedPerson
 	if s.repo != nil {
-		candidates, _ = s.repo.GetPeopleCandidates(ctx, userID, limit*2)
-	}
-
-	if len(candidates) == 0 {
-		candidates = getFallbackPeopleCandidates(userID)
+		found, err := s.repo.GetPeopleCandidates(ctx, userID, limit*2)
+		if err != nil {
+			return nil, err
+		}
+		candidates = found
 	}
 
 	var userSkills []string
@@ -286,13 +292,15 @@ func (s *RecommendationService) GetRecommendedCommunities(ctx context.Context, u
 		limit = 10
 	}
 
+	// As above: no communities means no recommendations, not two invented ones
+	// with member counts.
 	var candidates []models.RecommendedCommunity
 	if s.repo != nil {
-		candidates, _ = s.repo.GetCommunityCandidates(ctx, userID, limit*2)
-	}
-
-	if len(candidates) == 0 {
-		candidates = getFallbackCommunityCandidates()
+		found, err := s.repo.GetCommunityCandidates(ctx, userID, limit*2)
+		if err != nil {
+			return nil, err
+		}
+		candidates = found
 	}
 
 	var result []models.RecommendedCommunity
@@ -322,31 +330,31 @@ func (s *RecommendationService) GetPersonalizedFeed(ctx context.Context, userID 
 		}
 	}
 
-	// 1. Fetch recommendations for each stream
-	jobRecs, _ := s.GetRecommendations(ctx, userID)
-	peopleRecs, _ := s.GetRecommendedPeople(ctx, userID, 6)
-	commRecs, _ := s.GetRecommendedCommunities(ctx, userID, 4)
+	// 1. Fetch recommendations for each stream. A failure in any of them is
+	// reported rather than served as a shorter feed.
+	jobRecs, err := s.GetRecommendations(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	peopleRecs, err := s.GetRecommendedPeople(ctx, userID, 6)
+	if err != nil {
+		return nil, err
+	}
+	commRecs, err := s.GetRecommendedCommunities(ctx, userID, 4)
+	if err != nil {
+		return nil, err
+	}
 
-	// 2. Interleave items into unified feed stream
+	// 2. Interleave items into unified feed stream.
+	//
+	// The feed used to open with a fixed "AI Career Optimization Insight"
+	// carrying a 95 match score and the claim that the reader's verified skills
+	// "align strongly with regional senior technology and backend engineering
+	// positions" - identical text for every account, derived from nothing, and
+	// labelled as derived from their profile. It is gone. The feed carries the
+	// recommendations, and an account with no recommendations gets an empty
+	// feed.
 	var allItems []models.FeedItem
-
-	// Add top career tip / welcome insight item
-	allItems = append(allItems, models.FeedItem{
-		ID:             fmt.Sprintf("insight-%s", userID.String()[:8]),
-		ItemType:       "career_tip",
-		ItemID:         userID,
-		Title:          "AI Career Optimization Insight",
-		Subtitle:       "Profile & Opportunity Alignment",
-		Description:    "Your verified skill set aligns strongly with regional senior technology and backend engineering positions.",
-		CategoryTag:    "Intelligence",
-		MatchScore:     95,
-		MatchRationale: "Derived from your verified profile skills and active hiring demand",
-		Metadata: map[string]interface{}{
-			"actionUrl": "/resume-analysis",
-			"actionText": "Analyze Resume",
-		},
-		CreatedAt: time.Now(),
-	})
 
 	// Interleave Jobs
 	for _, j := range jobRecs {
@@ -566,115 +574,3 @@ func computeMatchScore(job models.JobSummaryDTO, headline string, skills []strin
 }
 
 // Fallback seed candidates for offline test environments
-func getFallbackJobListings() []models.JobSummaryDTO {
-	return []models.JobSummaryDTO{
-		{
-			ID:             uuid.MustParse("11111111-1111-1111-1111-111111111111"),
-			Title:          "Senior Go Backend Engineer",
-			Company:        "Kirmya Technology",
-			Location:       "Dubai, UAE",
-			WorkMode:       "Hybrid",
-			EmploymentType: "Full-time",
-			SalaryMin:      20000,
-			SalaryMax:      28000,
-			Currency:       "AED",
-			Industry:       "Technology",
-			RequiredSkills: []string{"Go", "PostgreSQL", "Redis", "Microservices"},
-			IsFeatured:     true,
-			CreatedAt:      time.Now().Add(-24 * time.Hour),
-		},
-		{
-			ID:             uuid.MustParse("22222222-2222-2222-2222-222222222222"),
-			Title:          "Lead React / Next.js Developer",
-			Company:        "Gulf Enterprise Systems",
-			Location:       "Abu Dhabi, UAE",
-			WorkMode:       "On-site",
-			EmploymentType: "Full-time",
-			SalaryMin:      18000,
-			SalaryMax:      24000,
-			Currency:       "AED",
-			Industry:       "Technology",
-			RequiredSkills: []string{"Next.js", "MUI v6", "React", "TypeScript"},
-			IsFeatured:     false,
-			CreatedAt:      time.Now().Add(-48 * time.Hour),
-		},
-		{
-			ID:             uuid.MustParse("33333333-3333-3333-3333-333333333333"),
-			Title:          "Machine Learning / AI Developer",
-			Company:        "Emirates Applied Intelligence",
-			Location:       "Dubai, UAE",
-			WorkMode:       "Remote",
-			EmploymentType: "Full-time",
-			SalaryMin:      25000,
-			SalaryMax:      35000,
-			Currency:       "AED",
-			Industry:       "Finance",
-			RequiredSkills: []string{"Python", "Go", "pgvector", "LLMs"},
-			IsFeatured:     true,
-			CreatedAt:      time.Now().Add(-12 * time.Hour),
-		},
-	}
-}
-
-func getFallbackPeopleCandidates(currentUserID uuid.UUID) []models.RecommendedPerson {
-	return []models.RecommendedPerson{
-		{
-			UserID:            uuid.MustParse("44444444-4444-4444-4444-444444444444"),
-			FullName:          "Tariq Al-Mansoor",
-			Username:          "talmansoor",
-			Headline:          "Principal Infrastructure Architect | Distributed Systems",
-			AvatarURL:         "",
-			Location:          "Dubai, UAE",
-			Industry:          "Technology",
-			MutualCount:       3,
-			MutualConnections: []string{"Salim Al-Harthy", "Fatima Al-Suwaidi"},
-			SharedSkills:      []string{"Go", "PostgreSQL", "Kubernetes"},
-			MatchScore:        94,
-			Reason:            "Shares 3 mutual connections and core Go systems background",
-		},
-		{
-			UserID:            uuid.MustParse("55555555-5555-5555-5555-555555555555"),
-			FullName:          "Dr. Reem Al-Nuaimi",
-			Username:          "reemnuaimi",
-			Headline:          "AI Research Director & Engineering Lead",
-			AvatarURL:         "",
-			Location:          "Abu Dhabi, UAE",
-			Industry:          "Technology",
-			MutualCount:       2,
-			MutualConnections: []string{"Ayesha Siddiqui"},
-			SharedSkills:      []string{"Machine Learning", "Python"},
-			MatchScore:        89,
-			Reason:            "Active in regional AI & Machine Learning Community",
-		},
-	}
-}
-
-func getFallbackCommunityCandidates() []models.RecommendedCommunity {
-	return []models.RecommendedCommunity{
-		{
-			ID:           uuid.MustParse("66666666-6666-6666-6666-666666666666"),
-			Name:         "Gulf Gophers - Go Engineers Hub",
-			Slug:         "gulf-gophers",
-			Description:  "Regional community for high-throughput Go backend developers and system architects in UAE & GCC.",
-			Category:     "Engineering",
-			LogoURL:      "",
-			MemberCount:  1420,
-			SharedSkills: []string{"Go", "PostgreSQL", "Concurrency"},
-			MatchScore:   96,
-			Reason:       "Matches your primary backend technology stack",
-		},
-		{
-			ID:           uuid.MustParse("77777777-7777-7777-7777-777777777777"),
-			Name:         "UAE AI & ML Practitioners",
-			Slug:         "uae-ai-ml",
-			Description:  "Discussion group for generative AI, embeddings, vector databases, and enterprise LLM applications.",
-			Category:     "Artificial Intelligence",
-			LogoURL:      "",
-			MemberCount:  980,
-			SharedSkills: []string{"Python", "LLMs", "Vector Search"},
-			MatchScore:   90,
-			Reason:       "High activity discussion in applied intelligence",
-		},
-	}
-}
-
