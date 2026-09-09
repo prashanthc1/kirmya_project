@@ -38,7 +38,7 @@ jobs:
 
       - name: Smoke-Start Backend Container & Check Liveness
         run: |
-          docker run -d --name kirmya-backend-smoke -p 8080:8080 -e APP_ENV=test -e ALLOW_NO_DB=true kirmya-backend:latest
+          docker run -d --name kirmya-backend-smoke -p 8080:8080 -e APP_ENV=test -e ALLOW_NO_DB=true -e JWT_SECRET=disposable-ci-jwt-key-not-for-deployment-0123456789 kirmya-backend:latest
           for i in {1..30}; do
             if curl --fail --silent http://127.0.0.1:8080/health/live > /dev/null; then
               echo "Backend container answered healthy on /health/live"
