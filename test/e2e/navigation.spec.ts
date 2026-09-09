@@ -98,7 +98,17 @@ test.describe('Navigation architecture', () => {
       for (const path of ['/feed', '/network', '/jobs', '/communities', '/messages', '/notifications', '/settings', '/profile']) {
         const response = await page.goto(path);
         expect(response?.status(), `${path} answered ${response?.status()}`).toBeLessThan(400);
-        await expect(page.locator('body')).not.toContainText('404', { timeout: 5_000 });
+
+        // The not-found page by its own heading, rather than by searching the
+        // body for "404". That substring check failed on WebKit against a page
+        // that had rendered perfectly: the disposable account this test creates
+        // is named from a millisecond timestamp, one run's timestamp happened
+        // to contain 404, and /settings displays the signed-in email address.
+        // A test that fails on the digits of the clock is worse than no test.
+        await expect(
+          page.getByRole('heading', { name: /couldn.t find that page/i }),
+          `${path} rendered the not-found page`
+        ).toHaveCount(0);
       }
     });
 
