@@ -63,6 +63,7 @@ import (
 	trustHttp "kirmya/internal/trust_safety/delivery/http"
 	verificationHttp "kirmya/internal/verification/delivery/http"
 	intelligenceHttp "kirmya/internal/workforce_intelligence/delivery/http"
+	workspaceHttp "kirmya/internal/workspace/delivery/http"
 )
 
 type RouterDependencies struct {
@@ -85,6 +86,7 @@ type RouterDependencies struct {
 	CompanyHandler           *companyHttp.CompanyHandler
 	CompanyManagementHandler *companyHttp.ManagementHandler
 	RecruiterHandler         *recruiterHttp.RecruiterHandler
+	WorkspaceHandler         *workspaceHttp.WorkspaceHandler
 	// RecruiterService backs the recruiter capability guard on the privileged
 	// half of /recruiter/*.
 	RecruiterService            *recruiterSvc.RecruiterService
@@ -244,6 +246,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	companyHttp.RegisterRoutes(api, deps.CompanyHandler, deps.CompanyManagementHandler, deps.AuthMiddleware)
 	recruiterHttp.RegisterRoutes(api, deps.RecruiterHandler, deps.UnifiedSearchHandler, deps.RecruiterService)
 	candidateSearchHttp.RegisterRoutes(api, deps.CandidateSearchHandler, recruiterHttp.RequireRecruiterCapability(deps.RecruiterService))
+	workspaceHttp.RegisterRoutes(api, deps.WorkspaceHandler)
 	interviewHttp.RegisterRoutes(api, deps.InterviewHandler)
 	learningHttp.RegisterRoutes(api, deps.LearningHandler)
 	assessmentHttp.RegisterRoutes(api, deps.AssessmentHandler)

@@ -23,6 +23,7 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 
+import { rememberWorkspace } from '../../services/workspaceService';
 import { useAuth } from '../../hooks/useAuth';
 import { activeWorkspace } from '../../shared/workspace/active';
 import { GROUP_ORDER, groupOf, type Workspace, type WorkspaceType } from '../../shared/workspace/types';
@@ -87,9 +88,25 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
   }
 
   const close = () => setAnchor(null);
-  const choose = () => {
+  const choose = (workspace: Workspace) => {
     close();
     onNavigate?.();
+
+    /*
+     * Remember where they went, so the next sign-in opens here.
+     *
+     * Only on a deliberate switch. Navigating into a workspace by link or
+     * bookmark does not write anything: this records a choice, and the URL
+     * already handles being somewhere. It is also not written against an
+     * incomplete list - a degraded list means a missing workspace is unknown
+     * rather than revoked, and a preference stored against a guess is a guess
+     * that outlives the outage.
+     *
+     * Fire and forget. The link has already navigated.
+     */
+    if (workspacesComplete) {
+      void rememberWorkspace(workspace.key);
+    }
   };
 
   const trigger = (
@@ -153,7 +170,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
               key={workspace.key}
               workspace={workspace}
               current={workspace.key === active.key}
-              onSelect={choose}
+              onSelect={() => choose(workspace)}
             />
           ));
           // A divider between groups, never before the first or after the last.

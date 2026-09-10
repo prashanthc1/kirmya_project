@@ -959,3 +959,4 @@ PUT /api/v1/saved-searches/:id
 PUT /api/v1/security/devices/:id
 PUT /api/v1/settings/notifications
 PUT /api/v1/verifications/privacy
+PUT /api/v1/workspace/preference

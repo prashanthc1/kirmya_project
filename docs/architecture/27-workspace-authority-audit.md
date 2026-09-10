@@ -2,7 +2,7 @@
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | Audit complete. Resolver implemented, served on `/auth/me`, and switched in the UI — see §18. |
+| **Status** | Audit complete. Resolver implemented, served on `/auth/me`, switched in the UI, navigation keyed to the workspace, and the chosen workspace remembered — see §18. |
 | **Date** | 2026-09-10 |
 | **Audited at** | `04e8ed2` |
 | **Target design** | [26-workspace-architecture.md](26-workspace-architecture.md) · [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) |
@@ -593,6 +593,7 @@ unchanged; this section says which of its recommendations now exist in code.
 | `/auth/me` integration (map items 6–7) | **Done** | `dto.UserMeDTO.workspaces`, `AuthService.resolveWorkspaces` |
 | Frontend workspace state (map items 8–11) | **Done** | `AuthContext.workspaces`, `WorkspaceSwitcher`, shell entries |
 | Contextual navigation per workspace | **Done** | `shared/navigation/workspaceNav.ts`, `AppShell`, `MobileBottomNav` |
+| Workspace persistence | **Done** | migration 0098, `internal/workspace` preference service, `shared/workspace/landing.ts` |
 
 ### Workspaces the resolver returns
 
@@ -741,9 +742,9 @@ Two further defects were found while wiring it and fixed:
   verified tick, shown to every recruiter whoever they were, and a notification
   count hardcoded to 4.
 
-Still not done: persistence of the active workspace. The JWT is unchanged —
-scoped authority stays server-resolved per request, which is what lets a
-capability gained mid-session appear on the next bootstrap without a new token.
+The JWT is unchanged — scoped authority stays server-resolved per request,
+which is what lets a capability gained mid-session appear on the next bootstrap
+without a new token.
 
 ### Contextual navigation per workspace
 
@@ -805,3 +806,93 @@ every engine instead of skipping it on three, and asserts the landmark resolves
 to exactly one element before using it. A `test.skip` would in any case have
 failed the mandatory gate in `scripts/ci/check-results.mjs`, which treats a
 skipped Playwright test as a failure.
+
+### Workspace persistence
+
+The switcher moved an account between workspaces and forgot immediately. Every
+sign-in landed on `/feed`, so a recruiter who works a pipeline all day re-entered
+that workspace every morning.
+
+**This does not store the active workspace.** That still follows the URL, and the
+reasoning in `active.ts` stands: a stored current-workspace is a second source of
+truth whose only job is to disagree with the address bar. What is stored answers
+the question the URL cannot — where to go when there is *no* URL yet. The two
+never compete, because they are consulted at different moments:
+
+| Question | Answered by | When |
+| :--- | :--- | :--- |
+| Which workspace am I in? | the URL, via `activeWorkspace()` | every render |
+| Where do I land? | the stored key, via `landingRoute()` | sign-in with no `returnUrl` |
+
+Precedence at sign-in is `returnUrl` → remembered workspace → `/feed`. A
+requested page always wins: someone who asked for `/jobs` gets `/jobs`. A
+`returnUrl` that was *refused* also wins, resolving to `/feed` rather than to the
+remembered workspace — `getSafeReturnUrl` answers `/feed` both for "nothing was
+asked for" and for "I refused what was asked for", and only the first may be
+replaced. `landingRoute` takes `hadReturnUrl` separately for exactly that reason,
+and a test pins it.
+
+#### The key is validated twice, and the second time is the one that matters
+
+`workspace_preferences` stores one key per account. It is checked against the
+account's live resolved list **on write** (`PreferenceService.Select`, 403
+`WORKSPACE_NOT_AVAILABLE`) and **again on serve** (`/auth/me`, via
+`domain.KeyWithin`).
+
+The second check is not a redundant repeat of the first. A membership can be
+revoked in the weeks between choosing a workspace and next signing in, and
+nothing goes back to rewrite stored preferences when it is. So an account removed
+from Acme is not sent to Acme's console on the strength of a row written last
+week — the row survives untouched, and the serving check is what protects the
+account. An integration test revokes a capability after the choice and asserts
+the key stops being served; reverting the serve-time check to trust the stored
+key fails that test and only that test.
+
+Both checks call the same `domain.KeyWithin`, so there is one implementation of
+the membership rule rather than two that can drift.
+
+Three further refusals all serve no key, because the client's next move is the
+same in each — land on the default:
+
+- **The list is incomplete.** A degraded list is professional-only, so checking a
+  company key against it would report an outage as a revocation. `/auth/me`
+  already tells clients not to persist a selection against an incomplete list;
+  it now declines to serve one either, and the switcher declines to write one.
+- **The preference lookup failed.** A convenience never fails a bootstrap that
+  runs on every page load.
+- **The account is not eligible.** An account that may enter nothing cannot
+  choose where to land.
+
+#### It remains navigation, not authority
+
+Choosing a workspace grants nothing. The write's own 403 protects no data — it
+keeps the store meaningful, since a key that resolves to nothing would be
+discarded on the way out and leave a row that looks like a preference and behaves
+like none. Landing on a route is not being admitted to it: every route
+authorizes its own request on arrival, exactly as before. A test signs in with a
+recruiting preference and confirms `/admin/users` still refuses.
+
+#### Decisions taken
+
+- **Server-side rather than `localStorage`.** The preference follows the account
+  to a new device, and — more importantly — the server can validate it against
+  the list it is already resolving, in the same response, with no extra round
+  trip. A client-side store would have to re-implement that check, or skip it.
+- **Written on a deliberate switch only.** Navigating into a workspace by link
+  or bookmark records nothing: this stores a *choice*, and someone who bookmarks
+  `/recruiter/jobs` already lands where they want. It also avoids a write on
+  every page view.
+- **Best-effort write.** `rememberWorkspace` swallows its errors. The menu item
+  is a real link and has already navigated; failing loudly would turn a
+  convenience into an error message about something the person cannot fix.
+- **`login()` returns the bootstrap it fetched.** The landing decision runs
+  immediately after sign-in, when the auth context still holds the previous
+  render's values. Returning the payload avoids both a stale read and a second
+  `/auth/me` call for an answer already in hand.
+- **A dedicated table, not `user_preferences`.** That name is created twice, by
+  0001 and again by 0037 with different columns; `CREATE TABLE IF NOT EXISTS`
+  silently skips the second, so 0037's columns do not exist. Adding to it would
+  have meant adding to whichever definition won.
+- **No CHECK constraint listing workspace types.** It would be a copy of the
+  domain vocabulary that migrations cannot keep in step, and it would buy
+  nothing: an unrecognised key already fails the resolved-list comparison.

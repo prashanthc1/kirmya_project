@@ -9,6 +9,7 @@ import {
   UserProfile,
   LoginPayload,
   RegisterPayload,
+  UserMeResponse,
 } from '../services/authService';
 import type { Workspace } from '../shared/workspace/types';
 
@@ -42,6 +43,16 @@ interface AuthContextType {
    * persisted against an incomplete list.
    */
   workspacesComplete: boolean;
+  /**
+   * The workspace this account last chose, for use when nothing else says
+   * where to go - signing in without a returnUrl, and nowhere else.
+   *
+   * Never consult this to decide which workspace is active: that follows the
+   * URL, through activeWorkspace(). This answers the different question of
+   * where to land when there is no URL yet, and it is null far more often than
+   * not - the server withholds it unless it still names one of `workspaces`.
+   */
+  lastWorkspaceKey: string | null;
   notificationsCount: number;
   setNotificationsCount: React.Dispatch<React.SetStateAction<number>>;
   status: AuthStatus;
@@ -86,6 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [permissions, setPermissions] = useState<string[]>([]);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspacesComplete, setWorkspacesComplete] = useState(false);
+  const [lastWorkspaceKey, setLastWorkspaceKey] = useState<string | null>(null);
   const [notificationsCount, setNotificationsCount] = useState<number>(0);
   const [status, setStatus] = useState<AuthStatus>('loading');
 
@@ -106,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       notificationsCount?: number;
       workspaces?: Workspace[];
       workspacesComplete?: boolean;
+      lastWorkspaceKey?: string;
     }) => {
       setUser(me.user);
       setPermissions(me.permissions || []);
@@ -115,6 +128,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // reported as complete, so nothing reads it as "this account has none".
       setWorkspaces(me.workspaces || []);
       setWorkspacesComplete(Boolean(me.workspacesComplete) && Array.isArray(me.workspaces));
+      // The server has already checked this against the list it served beside
+      // it, and withholds it otherwise. Checking again here would be a second
+      // implementation of the same rule; taking it as-is and finding no
+      // matching workspace simply means no landing hint, which is the same
+      // outcome.
+      setLastWorkspaceKey(me.lastWorkspaceKey || null);
       setStatus('authenticated');
     },
     []
@@ -126,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setNotificationsCount(0);
     setWorkspaces([]);
     setWorkspacesComplete(false);
+    setLastWorkspaceKey(null);
     setStatus('unauthenticated');
   }, []);
 
@@ -206,8 +226,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await authService.login(payload);
       // Any data cached for a previous user must not survive into this session.
       queryClient?.clear();
+
+      // Returned to the caller as well as applied to state. A caller deciding
+      // where to send the user immediately after signing in cannot read that
+      // state yet - it belongs to a render that has not happened - and a second
+      // /auth/me call to work around it would ask a question already answered.
+      let identity: UserMeResponse | null = null;
       try {
-        applyIdentity(await authService.getMe());
+        identity = await authService.getMe();
+        applyIdentity(identity);
       } catch {
         // The login itself succeeded, so the session exists. Fall back to the
         // profile the login response carried rather than reporting a failure.
@@ -215,7 +242,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setStatus('authenticated');
       }
       announce('signed-in');
-      return data;
+      return { ...data, identity };
     } catch (error) {
       clearIdentity();
       throw error;
@@ -268,6 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         permissions,
         workspaces,
         workspacesComplete,
+        lastWorkspaceKey,
         notificationsCount,
         setNotificationsCount,
         status,

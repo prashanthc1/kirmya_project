@@ -53,6 +53,7 @@ import (
 	candidateSearchHttp "kirmya/internal/candidate_search/delivery/http"
 	candidateSearchRepo "kirmya/internal/candidate_search/repository"
 	candidateSearchSvc "kirmya/internal/candidate_search/service"
+	workspaceHttp "kirmya/internal/workspace/delivery/http"
 	workspaceRepo "kirmya/internal/workspace/repository"
 	workspaceSvc "kirmya/internal/workspace/service"
 
@@ -821,13 +822,25 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	// is an aggregator and never an authority: the workspaces it serves are
 	// navigation, and every request the resulting screens make is authorized
 	// again by the module that owns the data.
-	authService.WithWorkspaceResolver(workspaceSvc.NewResolver(
+	workspaceResolver := workspaceSvc.NewResolver(
 		workspaceRepo.NewAccountAdapter(authRepository),
 		workspaceRepo.NewFreelancerAdapter(freelanceRepository),
 		workspaceRepo.NewRecruiterAdapter(recruiterService),
 		workspaceRepo.NewCompanyAdapter(companyManagementRepository),
 		workspaceRepo.NewCommunityAdapter(commRepository),
-	))
+	)
+	authService.WithWorkspaceResolver(workspaceResolver)
+
+	// Where an account lands when nothing else says. The store is read by
+	// /auth/me and written by the switcher, and the same resolver validates it
+	// at both ends - so a workspace an account no longer holds is refused on
+	// the way in and dropped on the way out.
+	workspacePreferences := workspaceSvc.NewPreferenceService(
+		workspaceRepo.NewPreferenceRepository(dbPool),
+		workspaceResolver,
+	)
+	authService.WithWorkspacePreference(workspacePreferences)
+	workspaceHandler := workspaceHttp.NewWorkspaceHandler(workspacePreferences)
 
 	fileRepository := mediaRepo.NewFileRepository(dbPool)
 	fileService := mediaSvc.NewFileService(fileRepository, storageProvider)
@@ -835,6 +848,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 
 	return router.RouterDependencies{
 		AuthHandler:                 authHandler,
+		WorkspaceHandler:            workspaceHandler,
 		AuthMiddleware:              authMiddleware,
 		ProfileHandler:              pHandler,
 		ResumeHandler:               rHandler,

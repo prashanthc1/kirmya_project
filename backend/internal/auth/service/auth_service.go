@@ -102,6 +102,12 @@ type AuthService struct {
 	// workspace and says the list is incomplete, rather than claiming an
 	// account has exactly one workspace on the strength of missing wiring.
 	workspaces workspaceResolver
+
+	// workspacePreference reads the workspace the caller last chose to enter.
+	// Optional on the same terms as the two above: unwired, every account is
+	// served no preference, which is the same answer as an account that has
+	// never chosen one and lands in exactly the same place.
+	workspacePreference workspacePreferenceReader
 }
 
 // workspaceResolver is the one question /auth/me asks of the workspace module.
@@ -111,6 +117,23 @@ type AuthService struct {
 // return value only; it carries labels and routes, never permissions.
 type workspaceResolver interface {
 	ResolveForUser(ctx context.Context, userID uuid.UUID) ([]workspaceDomain.Workspace, error)
+}
+
+// workspacePreferenceReader is the one question /auth/me asks of the workspace
+// preference store.
+//
+// It returns the stored key unjudged. Whether that key still names a workspace
+// this account may enter is decided here, against the list this same response
+// carries, because that list is the current answer and the stored key is an
+// older one.
+type workspacePreferenceReader interface {
+	LastWorkspace(ctx context.Context, userID uuid.UUID) (string, error)
+}
+
+// WithWorkspacePreference supplies the store behind /auth/me's landing hint.
+func (s *AuthService) WithWorkspacePreference(reader workspacePreferenceReader) *AuthService {
+	s.workspacePreference = reader
+	return s
 }
 
 // WithWorkspaceResolver supplies the resolver behind /auth/me's workspace list.
@@ -997,7 +1020,45 @@ func (s *AuthService) GetUserMe(ctx context.Context, userID uuid.UUID) (*dto.Use
 		NotificationsCount: unread,
 		Workspaces:         workspaces,
 		WorkspacesComplete: complete,
+		LastWorkspaceKey:   s.landingPreference(ctx, u.ID, workspaces, complete),
 	}, nil
+}
+
+// landingPreference returns the stored workspace key when it is still one of
+// this account's workspaces, and "" otherwise.
+//
+// Three refusals, all of which serve "" because the client's next move is the
+// same in each - land on the default:
+//
+//   - The list is incomplete. A degraded list is professional-only, so checking
+//     a company key against it would answer "revoked" for what is really an
+//     outage. The endpoint already tells the client not to persist a selection
+//     against an incomplete list; it must not serve one either.
+//   - The lookup failed. A preference is a convenience, and no convenience is
+//     worth failing a bootstrap that runs on every page load.
+//   - The key is not in the list. This is the revocation case, and it is the
+//     reason the check exists: an account removed from Acme this morning must
+//     not be sent to Acme's console this afternoon on the strength of a row
+//     written last week.
+func (s *AuthService) landingPreference(
+	ctx context.Context,
+	userID uuid.UUID,
+	workspaces []workspaceDomain.Workspace,
+	complete bool,
+) string {
+	if s.workspacePreference == nil || !complete {
+		return ""
+	}
+
+	key, err := s.workspacePreference.LastWorkspace(ctx, userID)
+	if err != nil {
+		slog.Warn("workspace preference unavailable", "userId", userID.String(), "error", err)
+		return ""
+	}
+
+	// The membership check is the resolver package's own, so the rule applied
+	// when the key was written and the rule applied now are one implementation.
+	return workspaceDomain.KeyWithin(workspaces, key)
 }
 
 // resolveWorkspaces resolves the caller's workspaces for the bootstrap payload,

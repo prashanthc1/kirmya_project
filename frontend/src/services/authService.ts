@@ -260,6 +260,15 @@ export interface UserMeResponse {
    * absent company means "we could not tell", not "you were removed".
    */
   workspacesComplete?: boolean;
+  /**
+   * The workspace this account last chose to enter, for use when nothing else
+   * says where to go - signing in without a returnUrl, and nowhere else.
+   *
+   * Never a statement about which workspace is active: that follows the URL.
+   * The server withholds it unless it still names one of `workspaces` above,
+   * so absent is the ordinary case and means "land on the default".
+   */
+  lastWorkspaceKey?: string;
 }
 
 export interface SessionResponse {

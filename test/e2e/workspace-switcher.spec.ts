@@ -109,21 +109,92 @@ test('switching enters the workspace, and the control follows the URL', async ({
   await expect(await switcherTrigger(page)).toHaveAccessibleName(/current workspace: professional/i);
 });
 
-test('signing in lands every account on the feed, whatever it may enter', async ({ page, request }) => {
+/*
+ * Where signing in lands.
+ *
+ * Post-login routing used to guess a destination from roleId, defaulting to a
+ * 'candidate' persona the backend has never had. It does not guess at all now:
+ * a returnUrl wins, then the workspace this account itself chose, then the
+ * feed. The first test below is the one that used to stand alone, and it still
+ * holds - holding a workspace is not choosing it.
+ */
+
+async function submitSignIn(page: import('@playwright/test').Page, email: string) {
+  await page.goto('/signin');
+  await page.getByLabel(/email/i).first().fill(email);
+  await page.getByLabel(/password/i).first().fill(password);
+  await page.getByRole('button', { name: 'Sign In' }).click();
+}
+
+test('an account that has chosen nothing lands on the feed, whatever it may enter', async ({
+  page,
+  request,
+}) => {
   const api = process.env.TEST_API_URL!;
   const account = await registerAccount(request, api, 'ws-landing');
   await becomeRecruiter(request, api, account);
 
-  // Post-login routing used to guess a destination from roleId, defaulting to a
-  // 'candidate' persona the backend has never had. Professional is the default
-  // workspace for everyone; the switcher is how the others are reached.
-  await page.goto('/signin');
+  // This account holds recruiting and has never chosen it. Holding a workspace
+  // is not the same as wanting to start in it.
+  await submitSignIn(page, account.email);
+
+  await page.waitForURL(/\/feed/, { timeout: 15_000 });
+  expect(new URL(page.url()).pathname).toBe('/feed');
+});
+
+test('signing in returns to the workspace the account last chose', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-remember');
+  await becomeRecruiter(request, api, account);
+
+  // Chosen through the switcher itself, so this covers the write as well as the
+  // landing - a preference the control never records is a preference nobody has.
+  await signIn(page, account.email);
+  (await switcherTrigger(page)).click();
+  await page.getByRole('menuitem', { name: /recruiting/i }).click();
+  await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
+
+  // A fresh sign-in, with no returnUrl, opens where they were working.
+  await page.context().clearCookies();
+  await submitSignIn(page, account.email);
+
+  await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
+  expect(new URL(page.url()).pathname).toMatch(/^\/recruiter/);
+});
+
+test('a requested page wins over the workspace the account last chose', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-returnurl');
+  await becomeRecruiter(request, api, account);
+
+  const chosen = await request.put(`${api}/api/v1/workspace/preference`, {
+    headers: { Authorization: `Bearer ${account.token}` },
+    data: { key: 'recruiting' },
+  });
+  expect(chosen.status()).toBe(204);
+
+  // Asking for a page is a stronger statement than a remembered workspace.
+  await page.goto('/signin?returnUrl=%2Fjobs');
   await page.getByLabel(/email/i).first().fill(account.email);
   await page.getByLabel(/password/i).first().fill(password);
   await page.getByRole('button', { name: 'Sign In' }).click();
 
-  await page.waitForURL(/\/feed/, { timeout: 15_000 });
-  expect(new URL(page.url()).pathname).toBe('/feed');
+  await page.waitForURL(/\/jobs/, { timeout: 15_000 });
+  expect(new URL(page.url()).pathname).toBe('/jobs');
+});
+
+test('choosing a workspace the account does not hold is refused', async ({ request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-pref-authz');
+
+  // Never onboarded, so recruiting is not this account's to choose. The refusal
+  // protects nothing - a stored key grants no access - but a key that resolves
+  // to nothing would be a preference that behaves like none.
+  const refused = await request.put(`${api}/api/v1/workspace/preference`, {
+    headers: { Authorization: `Bearer ${account.token}` },
+    data: { key: 'recruiting' },
+  });
+  expect(refused.status()).toBe(403);
 });
 
 test('the switcher is navigation, not authorization', async ({ page, request }) => {

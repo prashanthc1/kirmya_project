@@ -127,3 +127,27 @@ func SafeLabel(name, fallback string) string {
 	}
 	return fallback
 }
+
+// KeyWithin returns key when the list contains a workspace with it, and ""
+// otherwise.
+//
+// One implementation of the membership rule, used at both moments it is needed:
+// before a workspace preference is stored, and again when a stored preference
+// is served. Those are separated by however long the account leaves the tab
+// open, and a membership can be revoked in between - so the second check is not
+// a redundant repeat of the first, it is the one that matters.
+//
+// This is a lookup in a list the caller already holds, never a grant. A key
+// found here means "this account was offered this workspace", which is a
+// statement about navigation, exactly as the list itself is.
+func KeyWithin(workspaces []Workspace, key string) string {
+	if key == "" {
+		return ""
+	}
+	for _, workspace := range workspaces {
+		if workspace.Key == key {
+			return key
+		}
+	}
+	return ""
+}

@@ -44494,6 +44494,66 @@
                 }
             }
         },
+        "/api/v1/workspace/preference": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Records which workspace this account last chose to enter, so a later sign-in with no returnUrl opens there instead of the feed. The key must be one the account's own workspace list contains, as served by GET /api/v1/auth/me. Selecting a workspace grants no access: the routes it leads to authorize their own requests, and the stored key is checked again against the live list whenever it is served.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Workspace"
+                ],
+                "summary": "Remember the chosen workspace",
+                "parameters": [
+                    {
+                        "description": "The workspace key to remember",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.selectRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "The choice was recorded"
+                    },
+                    "400": {
+                        "description": "No workspace key, or one too long to be a key",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "That workspace is not in this account's list",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "The workspace list could not be resolved",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Reports that the process is up and serving HTTP. Discloses nothing about the deployment beyond that, so it is safe to leave open to the platform's health checker.",
@@ -47317,6 +47377,10 @@
         "dto.UserMeDTO": {
             "type": "object",
             "properties": {
+                "lastWorkspaceKey": {
+                    "description": "LastWorkspaceKey names the workspace this account last chose to enter,\nfor use when nothing else says where to go - signing in without a\nreturnUrl, and nowhere else.\n\nIt never overrides a path. The active workspace is derived from the URL\nand is not stored; this answers the different question of where to land\nwhen there is no URL yet. A client that consults it while a URL is\navailable has misread it.\n\nEmpty means no preference, and that covers three cases deliberately made\nindistinguishable to the client, because the client does the same thing in\nall three: the account never chose, the account chose a workspace it no\nlonger holds, or the list is incomplete and nothing can be checked against\nit. Whenever it is non-empty it is the Key of an entry in Workspaces\nabove - validated against that list on the way out, so a membership\nrevoked since the choice cannot land anyone anywhere.",
+                    "type": "string"
+                },
                 "notificationsCount": {
                     "type": "integer"
                 },
@@ -47758,6 +47822,18 @@
                 },
                 "verification": {
                     "$ref": "#/definitions/models.CompanyVerification"
+                }
+            }
+        },
+        "http.selectRequest": {
+            "type": "object",
+            "required": [
+                "key"
+            ],
+            "properties": {
+                "key": {
+                    "description": "Key is the workspace to remember, as served in /auth/me's workspaces.",
+                    "type": "string"
                 }
             }
         },

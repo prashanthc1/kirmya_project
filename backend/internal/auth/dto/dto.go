@@ -159,6 +159,24 @@ type UserMeDTO struct {
 	// from Acme" as if it were a fact. A client should not persist a selection
 	// against an incomplete list, and should re-bootstrap instead.
 	WorkspacesComplete bool `json:"workspacesComplete"`
+
+	// LastWorkspaceKey names the workspace this account last chose to enter,
+	// for use when nothing else says where to go - signing in without a
+	// returnUrl, and nowhere else.
+	//
+	// It never overrides a path. The active workspace is derived from the URL
+	// and is not stored; this answers the different question of where to land
+	// when there is no URL yet. A client that consults it while a URL is
+	// available has misread it.
+	//
+	// Empty means no preference, and that covers three cases deliberately made
+	// indistinguishable to the client, because the client does the same thing in
+	// all three: the account never chose, the account chose a workspace it no
+	// longer holds, or the list is incomplete and nothing can be checked against
+	// it. Whenever it is non-empty it is the Key of an entry in Workspaces
+	// above - validated against that list on the way out, so a membership
+	// revoked since the choice cannot land anyone anywhere.
+	LastWorkspaceKey string `json:"lastWorkspaceKey,omitempty"`
 }
 
 // SessionDTO returned for GET /api/v1/auth/session.

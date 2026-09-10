@@ -24,6 +24,7 @@ import PasswordInput from './PasswordInput';
 import AuthFooter from './AuthFooter';
 import { useLogin } from '../../hooks/useLogin';
 import { tokens } from '../../theme/tokens';
+import { landingRoute } from '../../shared/workspace/landing';
 import { ROUTES } from '../../shared/routes';
 
 // Zod Validation Schema
@@ -104,21 +105,32 @@ export const SignInForm: React.FC = () => {
       setSuccessMessage('Authentication successful. Redirecting...');
 
       /*
-       * Everyone lands on the feed unless they asked for somewhere specific.
+       * Where to land, in one place: landingRoute().
        *
-       * This used to branch on roleId, defaulting to 'candidate' - a persona
-       * that exists nowhere in the backend - and substring-matching the rest,
-       * so a role containing "admin" anywhere took the user to the console.
-       * Registration writes "user" for every account, so in practice the
-       * branches were unreachable and the default was the only live path.
+       * A returnUrl wins, then the workspace this account last chose, then the
+       * feed. Nothing here branches on a role. It used to branch on roleId,
+       * defaulting to a 'candidate' persona that exists nowhere in the backend
+       * and substring-matching the rest, so any role containing "admin" went to
+       * the console - and since registration writes "user" for every account,
+       * the branches were unreachable and the default was the only live path.
        *
-       * Professional is the default workspace for every account, and the
-       * switcher is how someone reaches the others. Guessing an entry point
-       * from a global role is exactly the single-role assumption the workspace
-       * architecture replaces.
+       * The remembered workspace is not a guess of that kind. It is a choice
+       * this account made, checked by the server against the workspaces it
+       * holds right now, and it decides a starting page and nothing else: the
+       * route authorizes its own request on arrival exactly as it always did.
+       *
+       * The identity comes back from login() rather than from the auth context,
+       * which still holds the pre-login render's values at this point.
        */
+      const destination = landingRoute({
+        safeReturnUrl,
+        hadReturnUrl: Boolean(rawReturnUrl),
+        workspaces: res?.identity?.workspaces,
+        lastWorkspaceKey: res?.identity?.lastWorkspaceKey,
+      });
+
       setTimeout(() => {
-        router.push(rawReturnUrl ? safeReturnUrl : ROUTES.FEED);
+        router.push(destination);
       }, 400);
     } catch {
       // Handled via useLogin error state

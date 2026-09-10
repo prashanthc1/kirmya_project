@@ -1848,6 +1848,25 @@ definitions:
     type: object
   dto.UserMeDTO:
     properties:
+      lastWorkspaceKey:
+        description: |-
+          LastWorkspaceKey names the workspace this account last chose to enter,
+          for use when nothing else says where to go - signing in without a
+          returnUrl, and nowhere else.
+
+          It never overrides a path. The active workspace is derived from the URL
+          and is not stored; this answers the different question of where to land
+          when there is no URL yet. A client that consults it while a URL is
+          available has misread it.
+
+          Empty means no preference, and that covers three cases deliberately made
+          indistinguishable to the client, because the client does the same thing in
+          all three: the account never chose, the account chose a workspace it no
+          longer holds, or the list is incomplete and nothing can be checked against
+          it. Whenever it is non-empty it is the Key of an entry in Workspaces
+          above - validated against that list on the way out, so a membership
+          revoked since the choice cannot land anyone anywhere.
+        type: string
       notificationsCount:
         type: integer
       permissions:
@@ -2161,6 +2180,14 @@ definitions:
         type: string
       verification:
         $ref: '#/definitions/models.CompanyVerification'
+    type: object
+  http.selectRequest:
+    properties:
+      key:
+        description: Key is the workspace to remember, as served in /auth/me's workspaces.
+        type: string
+    required:
+    - key
     type: object
   kirmya_internal_admin_models.MaintenanceModeConfig:
     properties:
@@ -37769,6 +37796,49 @@ paths:
       summary: Save work experience
       tags:
       - Onboarding
+  /api/v1/workspace/preference:
+    put:
+      consumes:
+      - application/json
+      description: 'Records which workspace this account last chose to enter, so a
+        later sign-in with no returnUrl opens there instead of the feed. The key must
+        be one the account''s own workspace list contains, as served by GET /api/v1/auth/me.
+        Selecting a workspace grants no access: the routes it leads to authorize their
+        own requests, and the stored key is checked again against the live list whenever
+        it is served.'
+      parameters:
+      - description: The workspace key to remember
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.selectRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: The choice was recorded
+        "400":
+          description: No workspace key, or one too long to be a key
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not authenticated
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: That workspace is not in this account's list
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: The workspace list could not be resolved
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remember the chosen workspace
+      tags:
+      - Workspace
   /health:
     get:
       description: Reports that the process is up and serving HTTP. Discloses nothing

@@ -606,6 +606,9 @@ type meWorkspaces struct {
 		IsDefault bool    `json:"isDefault"`
 	} `json:"workspaces"`
 	WorkspacesComplete bool `json:"workspacesComplete"`
+	// The landing hint. Absent when the account has chosen nothing, chose a
+	// workspace it no longer holds, or the list is incomplete.
+	LastWorkspaceKey string `json:"lastWorkspaceKey"`
 	// Read back so the additive change can be shown not to have displaced the
 	// fields the web client already depends on.
 	Permissions []string `json:"permissions"`
