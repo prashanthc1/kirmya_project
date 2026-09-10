@@ -91,20 +91,20 @@ type InterviewParticipant struct {
 }
 
 type InterviewFeedback struct {
-	ID                   uuid.UUID `json:"id"`
-	InterviewID          uuid.UUID `json:"interview_id"`
-	RoundID              uuid.UUID `json:"round_id"`
-	InterviewerID        uuid.UUID `json:"interviewer_id"`
-	InterviewerName      string    `json:"interviewer_name"`
-	Rating               int       `json:"rating"`
-	TechnicalScore       int       `json:"technical_score"`
-	CommunicationScore   int       `json:"communication_score"`
-	ProblemSolvingScore  int       `json:"problem_solving_score"`
-	Recommendation       string    `json:"recommendation"`
-	FeedbackText         string    `json:"feedback_text"`
-	Strengths            string    `json:"strengths"`
+	ID                  uuid.UUID `json:"id"`
+	InterviewID         uuid.UUID `json:"interview_id"`
+	RoundID             uuid.UUID `json:"round_id"`
+	InterviewerID       uuid.UUID `json:"interviewer_id"`
+	InterviewerName     string    `json:"interviewer_name"`
+	Rating              int       `json:"rating"`
+	TechnicalScore      int       `json:"technical_score"`
+	CommunicationScore  int       `json:"communication_score"`
+	ProblemSolvingScore int       `json:"problem_solving_score"`
+	Recommendation      string    `json:"recommendation"`
+	FeedbackText        string    `json:"feedback_text"`
+	Strengths           string    `json:"strengths"`
 	AreasForImprovement string    `json:"areas_for_improvement"`
-	CreatedAt            time.Time `json:"created_at"`
+	CreatedAt           time.Time `json:"created_at"`
 }
 
 type CandidateAvailability struct {
@@ -118,26 +118,26 @@ type CandidateAvailability struct {
 }
 
 type CreateInterviewRequest struct {
-	CandidateID    uuid.UUID                 `json:"candidate_id" binding:"required"`
-	JobID          *uuid.UUID                `json:"job_id"`
-	Title          string                    `json:"title" binding:"required"`
-	ScheduledStart time.Time                 `json:"scheduled_start" binding:"required"`
-	ScheduledEnd   time.Time                 `json:"scheduled_end" binding:"required"`
-	LocationType   string                    `json:"location_type"`
-	MeetingLink    string                    `json:"meeting_link"`
-	Notes          string                    `json:"notes"`
-	Rounds         []CreateRoundRequest      `json:"rounds"`
+	CandidateID    uuid.UUID                  `json:"candidate_id" binding:"required"`
+	JobID          *uuid.UUID                 `json:"job_id"`
+	Title          string                     `json:"title" binding:"required"`
+	ScheduledStart time.Time                  `json:"scheduled_start" binding:"required"`
+	ScheduledEnd   time.Time                  `json:"scheduled_end" binding:"required"`
+	LocationType   string                     `json:"location_type"`
+	MeetingLink    string                     `json:"meeting_link"`
+	Notes          string                     `json:"notes"`
+	Rounds         []CreateRoundRequest       `json:"rounds"`
 	Participants   []CreateParticipantRequest `json:"participants"`
 }
 
 type CreateRoundRequest struct {
-	RoundNumber    int                       `json:"round_number"`
-	RoundName      string                    `json:"round_name" binding:"required"`
-	RoundType      string                    `json:"round_type"`
-	ScheduledStart time.Time                 `json:"scheduled_start" binding:"required"`
-	ScheduledEnd   time.Time                 `json:"scheduled_end" binding:"required"`
-	MeetingLink    string                    `json:"meeting_link"`
-	Instructions   string                    `json:"instructions"`
+	RoundNumber    int                        `json:"round_number"`
+	RoundName      string                     `json:"round_name" binding:"required"`
+	RoundType      string                     `json:"round_type"`
+	ScheduledStart time.Time                  `json:"scheduled_start" binding:"required"`
+	ScheduledEnd   time.Time                  `json:"scheduled_end" binding:"required"`
+	MeetingLink    string                     `json:"meeting_link"`
+	Instructions   string                     `json:"instructions"`
 	Participants   []CreateParticipantRequest `json:"participants"`
 }
 
@@ -149,13 +149,13 @@ type CreateParticipantRequest struct {
 }
 
 type SubmitFeedbackRequest struct {
-	Rating               int    `json:"rating" binding:"required,min=1,max=5"`
-	TechnicalScore       int    `json:"technical_score" binding:"required,min=1,max=5"`
-	CommunicationScore   int    `json:"communication_score" binding:"required,min=1,max=5"`
-	ProblemSolvingScore  int    `json:"problem_solving_score" binding:"required,min=1,max=5"`
-	Recommendation       string `json:"recommendation" binding:"required"`
-	FeedbackText         string `json:"feedback_text" binding:"required"`
-	Strengths            string `json:"strengths"`
+	Rating              int    `json:"rating" binding:"required,min=1,max=5"`
+	TechnicalScore      int    `json:"technical_score" binding:"required,min=1,max=5"`
+	CommunicationScore  int    `json:"communication_score" binding:"required,min=1,max=5"`
+	ProblemSolvingScore int    `json:"problem_solving_score" binding:"required,min=1,max=5"`
+	Recommendation      string `json:"recommendation" binding:"required"`
+	FeedbackText        string `json:"feedback_text" binding:"required"`
+	Strengths           string `json:"strengths"`
 	AreasForImprovement string `json:"areas_for_improvement"`
 }
 

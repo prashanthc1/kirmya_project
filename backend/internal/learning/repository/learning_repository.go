@@ -36,11 +36,11 @@ type pgxLearningRepository struct {
 	pool *pgxpool.Pool
 	mu   sync.RWMutex
 
-	courses       map[uuid.UUID]*domain.Course
-	paths         map[uuid.UUID]*domain.LearningPath
-	progress      map[string]*domain.UserLearningProgress // key: userID_courseID
-	certificates  map[uuid.UUID]*domain.Certificate
-	assessments   map[uuid.UUID]*domain.SkillAssessment
+	courses      map[uuid.UUID]*domain.Course
+	paths        map[uuid.UUID]*domain.LearningPath
+	progress     map[string]*domain.UserLearningProgress // key: userID_courseID
+	certificates map[uuid.UUID]*domain.Certificate
+	assessments  map[uuid.UUID]*domain.SkillAssessment
 }
 
 func NewLearningRepository(pool *pgxpool.Pool) LearningRepository {

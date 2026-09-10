@@ -90,4 +90,3 @@ type RecentSearchDeletePayload struct {
 	HistoryID string `json:"history_id,omitempty"`
 	ClearAll  bool   `json:"clear_all,omitempty"`
 }
-

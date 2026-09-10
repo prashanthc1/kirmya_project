@@ -132,7 +132,6 @@ func swaggerGetPeopleRecommendations() {}
 // @Router       /api/v1/recommendations/communities [get]
 func swaggerGetCommunityRecommendations() {}
 
-
 // The blank declarations below anchor the imports above. swag resolves the
 // qualified type names in the annotations through this file's import set,
 // and package names such as `domain` and `models` are not unique across

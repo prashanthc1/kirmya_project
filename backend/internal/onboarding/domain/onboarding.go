@@ -34,16 +34,16 @@ type OnboardingStepConfig struct {
 }
 
 type ProfileCompletion struct {
-	ID                 uuid.UUID              `json:"id"`
-	UserID             uuid.UUID              `json:"user_id"`
-	CompletionScore    int                    `json:"completion_score"`
-	ResumeScore        int                    `json:"resume_score"`
-	SkillScore         int                    `json:"skill_score"`
-	MarketDemandScore  int                    `json:"market_demand_score"`
-	MissingSections    []string               `json:"missing_sections"`
-	ActionableSuggestions []string            `json:"actionable_suggestions"`
-	AIInsights         map[string]interface{} `json:"ai_insights"`
-	UpdatedAt          time.Time              `json:"updated_at"`
+	ID                    uuid.UUID              `json:"id"`
+	UserID                uuid.UUID              `json:"user_id"`
+	CompletionScore       int                    `json:"completion_score"`
+	ResumeScore           int                    `json:"resume_score"`
+	SkillScore            int                    `json:"skill_score"`
+	MarketDemandScore     int                    `json:"market_demand_score"`
+	MissingSections       []string               `json:"missing_sections"`
+	ActionableSuggestions []string               `json:"actionable_suggestions"`
+	AIInsights            map[string]interface{} `json:"ai_insights"`
+	UpdatedAt             time.Time              `json:"updated_at"`
 }
 
 type PersonalInfoDTO struct {
@@ -136,20 +136,20 @@ type JobAlertPreferences struct {
 }
 
 type RecruiterOnboardingPayload struct {
-	CompanyID       string   `json:"company_id"`
-	CompanyName     string   `json:"company_name"`
-	RecruiterRole   string   `json:"recruiter_role"`
+	CompanyID        string   `json:"company_id"`
+	CompanyName      string   `json:"company_name"`
+	RecruiterRole    string   `json:"recruiter_role"`
 	HiringIndustries []string `json:"hiring_industries"`
-	HiringFocus     string   `json:"hiring_focus"`
+	HiringFocus      string   `json:"hiring_focus"`
 }
 
 type EmployerOnboardingPayload struct {
-	CompanyName     string `json:"company_name" binding:"required"`
-	Industry        string `json:"industry"`
-	CompanySize     string `json:"company_size"`
-	Website         string `json:"website"`
-	Description     string `json:"description"`
-	Location        string `json:"location"`
+	CompanyName string `json:"company_name" binding:"required"`
+	Industry    string `json:"industry"`
+	CompanySize string `json:"company_size"`
+	Website     string `json:"website"`
+	Description string `json:"description"`
+	Location    string `json:"location"`
 }
 
 type ResumeParsedResult struct {
@@ -179,14 +179,14 @@ type ConnectionRecommendation struct {
 }
 
 type OnboardingAnalyticsSummary struct {
-	StartedCount           int64            `json:"started_count"`
-	CompletedCount         int64            `json:"completed_count"`
-	CompletionRate         float64          `json:"completion_rate"`
-	AverageStepsCompleted  float64          `json:"average_steps_completed"`
-	AverageTimeMinutes     float64          `json:"average_time_minutes"`
-	StepCompletionBreakdown map[string]int64 `json:"step_completion_breakdown"`
-	StepDropOffRate        map[string]float64 `json:"step_dropoff_rate"`
-	SkipRateByStep         map[string]float64 `json:"skip_rate_by_step"`
+	StartedCount            int64              `json:"started_count"`
+	CompletedCount          int64              `json:"completed_count"`
+	CompletionRate          float64            `json:"completion_rate"`
+	AverageStepsCompleted   float64            `json:"average_steps_completed"`
+	AverageTimeMinutes      float64            `json:"average_time_minutes"`
+	StepCompletionBreakdown map[string]int64   `json:"step_completion_breakdown"`
+	StepDropOffRate         map[string]float64 `json:"step_dropoff_rate"`
+	SkipRateByStep          map[string]float64 `json:"skip_rate_by_step"`
 }
 
 type StartOnboardingPayload struct {
@@ -220,4 +220,3 @@ type CertificationPayload struct {
 type OnboardingConfigPayload struct {
 	Steps []OnboardingStepConfig `json:"steps" binding:"required"`
 }
-

@@ -1204,4 +1204,3 @@ func (r *AdminRepository) RevokeImpersonationSession(ctx context.Context, id uui
 	sess.IsActive = false
 	return nil
 }
-

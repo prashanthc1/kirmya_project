@@ -68,9 +68,9 @@ func TestInterviewPrepService_WorkspaceAndFlow(t *testing.T) {
 
 	// 4. Start AI Mock Interview Session
 	mockSession, err := svc.StartMockSession(ctx, userID, models.StartMockSessionRequest{
-		PreparationID: &prep.ID,
-		Title:         "Google Staff Prep Mock",
-		InterviewType: "Behavioral",
+		PreparationID:  &prep.ID,
+		Title:          "Google Staff Prep Mock",
+		InterviewType:  "Behavioral",
 		TotalQuestions: 2,
 	})
 	if err != nil {

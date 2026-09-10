@@ -592,4 +592,3 @@ func (h *NotificationHandler) AdminGetDeliveryAnalytics(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, analytics)
 }
-

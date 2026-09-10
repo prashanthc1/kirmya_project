@@ -15,7 +15,7 @@ const (
 	CategoryRecruiter    = "Recruiter"
 	CategoryNetworking   = "Networking"
 	CategoryMessaging    = "Messaging"
-	CategoryCommunities = "Communities"
+	CategoryCommunities  = "Communities"
 	CategoryCareer       = "Career"
 	CategoryResume       = "Resume"
 	CategoryCoverLetters = "Cover Letters"

@@ -52,17 +52,17 @@ type AIRecommendation struct {
 }
 
 type AIUsageLog struct {
-	ID               uuid.UUID `json:"id"`
-	UserID           uuid.UUID `json:"user_id"`
+	ID               uuid.UUID  `json:"id"`
+	UserID           uuid.UUID  `json:"user_id"`
 	SessionID        *uuid.UUID `json:"session_id,omitempty"`
-	ProviderName     string    `json:"provider_name"`
-	ModelName        string    `json:"model_name"`
-	RequestType      string    `json:"request_type"`
-	PromptTokens     int       `json:"prompt_tokens"`
-	CompletionTokens int       `json:"completion_tokens"`
-	TotalTokens      int       `json:"total_tokens"`
-	LatencyMS        int       `json:"latency_ms"`
-	CreatedAt        time.Time `json:"created_at"`
+	ProviderName     string     `json:"provider_name"`
+	ModelName        string     `json:"model_name"`
+	RequestType      string     `json:"request_type"`
+	PromptTokens     int        `json:"prompt_tokens"`
+	CompletionTokens int        `json:"completion_tokens"`
+	TotalTokens      int        `json:"total_tokens"`
+	LatencyMS        int        `json:"latency_ms"`
+	CreatedAt        time.Time  `json:"created_at"`
 }
 
 type GenerateCareerRequest struct {

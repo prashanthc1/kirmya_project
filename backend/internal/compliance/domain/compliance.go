@@ -231,14 +231,14 @@ type PrivacyRiskSummary struct {
 }
 
 type ComplianceOverview struct {
-	GDPRCompliant                   bool               `json:"gdpr_compliant"`
-	CCPACompliant                   bool               `json:"ccpa_compliant"`
-	TotalDataSubjectRequests        int                `json:"total_data_subject_requests"`
-	CompletedDSRCount               int                `json:"completed_dsr_count"`
-	ActiveLegalHolds                int                `json:"active_legal_holds"`
-	ActiveRetentionPolicies         int                `json:"active_retention_policies"`
+	GDPRCompliant                  bool               `json:"gdpr_compliant"`
+	CCPACompliant                  bool               `json:"ccpa_compliant"`
+	TotalDataSubjectRequests       int                `json:"total_data_subject_requests"`
+	CompletedDSRCount              int                `json:"completed_dsr_count"`
+	ActiveLegalHolds               int                `json:"active_legal_holds"`
+	ActiveRetentionPolicies        int                `json:"active_retention_policies"`
 	AverageDSROrderFulfillmentDays float64            `json:"average_dsr_order_fulfillment_days"`
-	RiskSummary                     PrivacyRiskSummary `json:"risk_summary"`
+	RiskSummary                    PrivacyRiskSummary `json:"risk_summary"`
 }
 
 type PrivacyIncidentItem struct {

@@ -670,7 +670,7 @@ type EmployerSettings struct {
 	NewApplicationNotification    bool       `json:"newApplicationNotification"`
 	CandidateMessageNotification  bool       `json:"candidateMessageNotification"`
 	InterviewReminderNotification bool       `json:"interviewReminderNotification"`
-	AutoAcknowledgeApplication   bool       `json:"autoAcknowledgeApplication"`
+	AutoAcknowledgeApplication    bool       `json:"autoAcknowledgeApplication"`
 	AutoAcknowledgeMessage        string     `json:"autoAcknowledgeMessage"`
 	CandidateVisibilityMode       string     `json:"candidateVisibilityMode"`
 	DataExportRetentionDays       int        `json:"dataExportRetentionDays"`
@@ -683,7 +683,7 @@ type EmployerSettingsUpdatePayload struct {
 	NewApplicationNotification    *bool   `json:"newApplicationNotification"`
 	CandidateMessageNotification  *bool   `json:"candidateMessageNotification"`
 	InterviewReminderNotification *bool   `json:"interviewReminderNotification"`
-	AutoAcknowledgeApplication   *bool   `json:"autoAcknowledgeApplication"`
+	AutoAcknowledgeApplication    *bool   `json:"autoAcknowledgeApplication"`
 	AutoAcknowledgeMessage        string  `json:"autoAcknowledgeMessage"`
 	CandidateVisibilityMode       string  `json:"candidateVisibilityMode"`
 }
@@ -706,4 +706,3 @@ type CompanyDataExport struct {
 	ExpiresAt   time.Time `json:"expiresAt"`
 	CreatedAt   time.Time `json:"createdAt"`
 }
-

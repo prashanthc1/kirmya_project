@@ -139,4 +139,3 @@ func (h *RecommendationHandler) getUserID(c *gin.Context) uuid.UUID {
 	}
 	return uuid.Nil
 }
-

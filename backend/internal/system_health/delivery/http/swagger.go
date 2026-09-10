@@ -137,5 +137,3 @@ var (
 	_ models.OverallHealthSummary
 	_ swagger.ErrorResponse
 )
-
-

@@ -42,19 +42,19 @@ const (
 )
 
 type BackupConfiguration struct {
-	ID                    uuid.UUID `json:"id" db:"id"`
-	BackupScheduleCron    string    `json:"backupScheduleCron" db:"backup_schedule_cron"`
-	RetentionDaysDaily    int       `json:"retentionDaysDaily" db:"retention_days_daily"`
-	RetentionWeeksWeekly  int       `json:"retentionWeeksWeekly" db:"retention_weeks_weekly"`
-	RetentionMonthsMonthly int      `json:"retentionMonthsMonthly" db:"retention_months_monthly"`
-	EncryptionEnabled     bool      `json:"encryptionEnabled" db:"encryption_enabled"`
-	StorageProvider       string    `json:"storageProvider" db:"storage_provider"`
-	TargetRPOMinutes      int       `json:"targetRpoMinutes" db:"target_rpo_minutes"`
-	TargetRTOMinutes      int       `json:"targetRtoMinutes" db:"target_rto_minutes"`
-	AutoRestoreTestEnabled bool     `json:"autoRestoreTestEnabled" db:"auto_restore_test_enabled"`
-	IsEnabled             bool      `json:"isEnabled" db:"is_enabled"`
-	UpdatedAt             time.Time `json:"updatedAt" db:"updated_at"`
-	UpdatedBy             *uuid.UUID `json:"updatedBy,omitempty" db:"updated_by"`
+	ID                     uuid.UUID  `json:"id" db:"id"`
+	BackupScheduleCron     string     `json:"backupScheduleCron" db:"backup_schedule_cron"`
+	RetentionDaysDaily     int        `json:"retentionDaysDaily" db:"retention_days_daily"`
+	RetentionWeeksWeekly   int        `json:"retentionWeeksWeekly" db:"retention_weeks_weekly"`
+	RetentionMonthsMonthly int        `json:"retentionMonthsMonthly" db:"retention_months_monthly"`
+	EncryptionEnabled      bool       `json:"encryptionEnabled" db:"encryption_enabled"`
+	StorageProvider        string     `json:"storageProvider" db:"storage_provider"`
+	TargetRPOMinutes       int        `json:"targetRpoMinutes" db:"target_rpo_minutes"`
+	TargetRTOMinutes       int        `json:"targetRtoMinutes" db:"target_rto_minutes"`
+	AutoRestoreTestEnabled bool       `json:"autoRestoreTestEnabled" db:"auto_restore_test_enabled"`
+	IsEnabled              bool       `json:"isEnabled" db:"is_enabled"`
+	UpdatedAt              time.Time  `json:"updatedAt" db:"updated_at"`
+	UpdatedBy              *uuid.UUID `json:"updatedBy,omitempty" db:"updated_by"`
 }
 
 type BackupRecord struct {

@@ -9,7 +9,7 @@ import (
 type ResumeScores struct {
 	ID                    uuid.UUID `json:"id"`
 	AnalysisID            uuid.UUID `json:"analysis_id"`
-	OverallScore          int       `json:"overall_score"`          // 0-100
+	OverallScore          int       `json:"overall_score"`           // 0-100
 	ATSCompatibilityScore int       `json:"ats_compatibility_score"` // 0-100
 	StructureScore        int       `json:"structure_score"`
 	SkillsScore           int       `json:"skills_score"`

@@ -18,9 +18,9 @@ var (
 	}
 
 	// Patterns to scrub sensitive credentials from LLM prompts or logs
-	jwtPattern      = regexp.MustCompile(`(?i)bearer\s+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+`)
-	apiKeyPattern   = regexp.MustCompile(`(?i)(api[_\-]?key|secret|password|db_pass)\s*[:=]\s*['"]?[a-zA-Z0-9\-_+/=]{8,}['"]?`)
-	connStrPattern  = regexp.MustCompile(`(?i)postgres(ql)?://[^:]+:[^@]+@[^/]+/[a-zA-Z0-9_\-]+`)
+	jwtPattern     = regexp.MustCompile(`(?i)bearer\s+[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+`)
+	apiKeyPattern  = regexp.MustCompile(`(?i)(api[_\-]?key|secret|password|db_pass)\s*[:=]\s*['"]?[a-zA-Z0-9\-_+/=]{8,}['"]?`)
+	connStrPattern = regexp.MustCompile(`(?i)postgres(ql)?://[^:]+:[^@]+@[^/]+/[a-zA-Z0-9_\-]+`)
 )
 
 // SecurityConfig defines bounds and defense behaviors

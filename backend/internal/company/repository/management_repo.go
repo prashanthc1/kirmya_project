@@ -1023,7 +1023,7 @@ func (r *ManagementRepository) GetCompanySettings(ctx context.Context, companyID
 			NewApplicationNotification:    true,
 			CandidateMessageNotification:  true,
 			InterviewReminderNotification: true,
-			AutoAcknowledgeApplication:   true,
+			AutoAcknowledgeApplication:    true,
 			AutoAcknowledgeMessage:        "Thank you for applying to our team. We have received your application and will review it shortly.",
 			CandidateVisibilityMode:       "Team",
 			DataExportRetentionDays:       90,
@@ -1036,7 +1036,7 @@ func (r *ManagementRepository) GetCompanySettings(ctx context.Context, companyID
 		NewApplicationNotification:    true,
 		CandidateMessageNotification:  true,
 		InterviewReminderNotification: true,
-		AutoAcknowledgeApplication:   true,
+		AutoAcknowledgeApplication:    true,
 		AutoAcknowledgeMessage:        "Thank you for applying to our team.",
 		CandidateVisibilityMode:       "Team",
 		DataExportRetentionDays:       90,
@@ -1112,4 +1112,3 @@ func (r *ManagementRepository) CreateDataExport(ctx context.Context, companyID, 
 		CreatedAt:   time.Now(),
 	}, nil
 }
-

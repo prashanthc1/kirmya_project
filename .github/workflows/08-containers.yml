@@ -38,7 +38,16 @@ jobs:
 
       - name: Smoke-Start Backend Container & Check Liveness
         run: |
-          docker run -d --name kirmya-backend-smoke -p 8080:8080 -e APP_ENV=test -e ALLOW_NO_DB=true kirmya-backend:latest
+          # JWT_SECRET is mandatory and the image is right to refuse without it:
+          # config.InitJWTSecret only falls back to a built-in value when it
+          # detects a Go *test binary* (flag "test.v"), which a container never
+          # is, so APP_ENV=test does not and should not soften it. This value is
+          # disposable and exists only to let the process reach /health/live.
+          docker run -d --name kirmya-backend-smoke -p 8080:8080 \
+            -e APP_ENV=test \
+            -e ALLOW_NO_DB=true \
+            -e JWT_SECRET=disposable-ci-smoke-jwt-key-not-for-deployment-0123456789 \
+            kirmya-backend:latest
           for i in {1..30}; do
             if curl --fail --silent http://127.0.0.1:8080/health/live > /dev/null; then
               echo "Backend container answered healthy on /health/live"

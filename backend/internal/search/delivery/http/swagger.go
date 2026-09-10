@@ -125,4 +125,3 @@ var (
 	_ domain.ReindexPayload
 	_ swagger.ErrorResponse
 )
-

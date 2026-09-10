@@ -20,11 +20,11 @@ func (h *AdminBillingHandler) GetAdminStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"data": gin.H{
-			"billing_enabled": status.BillingEnabled,
-			"active_plans_count": 1,
+			"billing_enabled":        status.BillingEnabled,
+			"active_plans_count":     1,
 			"active_customers_count": 0,
-			"mrr_cents": 0,
-			"message": "Billing is currently disabled. Platform operating under 100% free mode.",
+			"mrr_cents":              0,
+			"message":                "Billing is currently disabled. Platform operating under 100% free mode.",
 		},
 	})
 }
@@ -51,11 +51,11 @@ func (h *AdminBillingHandler) GetAdminAnalytics(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"data": gin.H{
-			"mrr": 0,
-			"arr": 0,
+			"mrr":                  0,
+			"arr":                  0,
 			"active_subscriptions": 0,
-			"churn_rate": 0,
-			"message": "Billing is currently disabled.",
+			"churn_rate":           0,
+			"message":              "Billing is currently disabled.",
 		},
 	})
 }

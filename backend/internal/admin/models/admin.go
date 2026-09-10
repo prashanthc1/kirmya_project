@@ -76,21 +76,21 @@ type ModerationAction struct {
 
 // ContentReport represents a user-submitted report.
 type ContentReport struct {
-	ID              uuid.UUID              `json:"id"`
-	ReporterID      uuid.UUID              `json:"reporterId"`
-	TargetType      string                 `json:"targetType"`
-	TargetID        string                 `json:"targetId"`
-	TargetTitle     string                 `json:"targetTitle,omitempty"`
-	Category        string                 `json:"category"`
-	Reason          string                 `json:"reason"`
-	Description     string                 `json:"description,omitempty"`
-	EvidenceURLs    []string               `json:"evidenceUrls,omitempty"`
-	Status          string                 `json:"status"`
-	Priority        string                 `json:"priority"`
-	AssignedAdminID *uuid.UUID             `json:"assignedAdminId,omitempty"`
-	ResolutionNotes string                 `json:"resolutionNotes,omitempty"`
-	CreatedAt       time.Time              `json:"createdAt"`
-	UpdatedAt       time.Time              `json:"updatedAt"`
+	ID              uuid.UUID  `json:"id"`
+	ReporterID      uuid.UUID  `json:"reporterId"`
+	TargetType      string     `json:"targetType"`
+	TargetID        string     `json:"targetId"`
+	TargetTitle     string     `json:"targetTitle,omitempty"`
+	Category        string     `json:"category"`
+	Reason          string     `json:"reason"`
+	Description     string     `json:"description,omitempty"`
+	EvidenceURLs    []string   `json:"evidenceUrls,omitempty"`
+	Status          string     `json:"status"`
+	Priority        string     `json:"priority"`
+	AssignedAdminID *uuid.UUID `json:"assignedAdminId,omitempty"`
+	ResolutionNotes string     `json:"resolutionNotes,omitempty"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
 }
 
 // AccountFlag represents internal status flags on users.
@@ -326,5 +326,3 @@ type UpdateIncidentPayload struct {
 	Status          string `json:"status" binding:"required"`
 	ResolutionNotes string `json:"resolutionNotes"`
 }
-
-

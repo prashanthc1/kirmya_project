@@ -46,29 +46,29 @@ type JobAlert struct {
 
 // SavedSearch represents a user's bookmarked search query and filters.
 type SavedSearch struct {
-	ID         uuid.UUID              `json:"id"`
-	UserID     uuid.UUID              `json:"user_id"`
-	Name       string                 `json:"name"`
-	QueryText  string                 `json:"query_text"`
-	Filters    map[string]interface{} `json:"filters"`
-	AutoAlert  bool                   `json:"auto_alert"`
-	AlertID    *uuid.UUID             `json:"alert_id,omitempty"`
-	CreatedAt  time.Time              `json:"created_at"`
-	UpdatedAt  time.Time              `json:"updated_at"`
+	ID        uuid.UUID              `json:"id"`
+	UserID    uuid.UUID              `json:"user_id"`
+	Name      string                 `json:"name"`
+	QueryText string                 `json:"query_text"`
+	Filters   map[string]interface{} `json:"filters"`
+	AutoAlert bool                   `json:"auto_alert"`
+	AlertID   *uuid.UUID             `json:"alert_id,omitempty"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
 }
 
 // JobMatchScore breakdown for a specific job recommendation.
 type JobMatchScore struct {
-	OverallScore   int      `json:"overall_score"` // 0-100
-	SkillsMatch    int      `json:"skills_match"`
-	ExperienceMatch int     `json:"experience_match"`
-	EducationMatch  int     `json:"education_match"`
-	SalaryMatch     int     `json:"salary_match"`
-	LocationMatch   int     `json:"location_match"`
-	IndustryMatch   int     `json:"industry_match"`
-	GrowthScore     int     `json:"growth_score"`
-	CompanyFitScore int     `json:"company_fit_score"`
-	ConfidenceScore int     `json:"confidence_score"`
+	OverallScore    int      `json:"overall_score"` // 0-100
+	SkillsMatch     int      `json:"skills_match"`
+	ExperienceMatch int      `json:"experience_match"`
+	EducationMatch  int      `json:"education_match"`
+	SalaryMatch     int      `json:"salary_match"`
+	LocationMatch   int      `json:"location_match"`
+	IndustryMatch   int      `json:"industry_match"`
+	GrowthScore     int      `json:"growth_score"`
+	CompanyFitScore int      `json:"company_fit_score"`
+	ConfidenceScore int      `json:"confidence_score"`
 	MatchReasons    []string `json:"match_reasons"`
 	MatchingSkills  []string `json:"matching_skills"`
 	MissingSkills   []string `json:"missing_skills"`
@@ -100,10 +100,10 @@ type JobRecommendation struct {
 
 // RecommendationFeedback represents explicit candidate feedback on a recommendation.
 type RecommendationFeedbackRequest struct {
-	JobID            uuid.UUID `json:"job_id"`
+	JobID            uuid.UUID  `json:"job_id"`
 	RecommendationID *uuid.UUID `json:"recommendation_id,omitempty"`
-	ActionType       string    `json:"action_type"` // interested, not_interested, hide_company, hide_role, already_applied, too_senior, too_junior, wrong_location, wrong_salary
-	FeedbackReason   string    `json:"feedback_reason,omitempty"`
+	ActionType       string     `json:"action_type"` // interested, not_interested, hide_company, hide_role, already_applied, too_senior, too_junior, wrong_location, wrong_salary
+	FeedbackReason   string     `json:"feedback_reason,omitempty"`
 }
 
 // AlertDeliveryHistory record of sent alerts and engagement.
@@ -159,8 +159,8 @@ type NameCount struct {
 }
 
 type SalaryTrendPoint struct {
-	Role      string `json:"role"`
-	AvgSalary int    `json:"avg_salary"`
+	Role      string  `json:"role"`
+	AvgSalary int     `json:"avg_salary"`
 	GrowthPct float64 `json:"growth_pct"`
 }
 

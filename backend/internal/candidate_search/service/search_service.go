@@ -109,7 +109,7 @@ func (s *SearchService) SearchCandidates(ctx context.Context, userID uuid.UUID, 
 				match = false
 			}
 		}
-		
+
 		// Match location
 		if criteria.Filters.Location != "" && !strings.Contains(strings.ToLower(mc.Location), strings.ToLower(criteria.Filters.Location)) {
 			match = false

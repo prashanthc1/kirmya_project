@@ -16,11 +16,11 @@ import (
 
 var (
 	ErrSelfMentorshipNotAllowed = errors.New("cannot request mentorship from yourself")
-	ErrDuplicateRequest        = errors.New("a pending or active mentorship request already exists with this mentor")
-	ErrMentorNotAvailable      = errors.New("mentor is currently not available for new mentees")
+	ErrDuplicateRequest         = errors.New("a pending or active mentorship request already exists with this mentor")
+	ErrMentorNotAvailable       = errors.New("mentor is currently not available for new mentees")
 	ErrMentorCapacityReached    = errors.New("mentor has reached maximum mentee capacity")
-	ErrUnauthorized            = errors.New("unauthorized to access or modify this mentorship resource")
-	ErrInvalidStatus           = errors.New("invalid request status transition")
+	ErrUnauthorized             = errors.New("unauthorized to access or modify this mentorship resource")
+	ErrInvalidStatus            = errors.New("invalid request status transition")
 )
 
 type MentorshipService interface {

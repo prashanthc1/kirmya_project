@@ -275,13 +275,13 @@ func (r *supportRepository) GetAnalyticsSummary(ctx context.Context) (*models.Su
 		HighPriorityTickets:      1,
 		OverdueTickets:           0,
 		AverageFirstResponseTime: "18 Minutes",
-		AverageResolutionTime:   "2.4 Hours",
+		AverageResolutionTime:    "2.4 Hours",
 		CSATScore:                4.85,
 		TicketsByCategory: map[string]int64{
-			"jobs":        4,
-			"account":     2,
-			"messaging":   1,
-			"technical":   1,
+			"jobs":      4,
+			"account":   2,
+			"messaging": 1,
+			"technical": 1,
 		},
 	}, nil
 }

@@ -28,7 +28,7 @@ func RequireEntitlement(billingService service.BillingService, feature string) g
 		allowed, err := billingService.HasEntitlement(c.Request.Context(), userID, feature)
 		if err != nil || !allowed {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": "ENTITLEMENT_REQUIRED",
+				"error":   "ENTITLEMENT_REQUIRED",
 				"message": "Access to feature requires appropriate plan entitlement.",
 			})
 			c.Abort()

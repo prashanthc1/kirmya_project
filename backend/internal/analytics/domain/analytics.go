@@ -13,11 +13,11 @@ const (
 	EventCandidateHired       = "hired"
 	EventSearchAppearance     = "search_appearance"
 
-	MetricUserGrowth         = "user_growth"
-	MetricSkillDemand        = "skill_demand"
-	MetricHiringSpeed        = "hiring_speed"
+	MetricUserGrowth          = "user_growth"
+	MetricSkillDemand         = "skill_demand"
+	MetricHiringSpeed         = "hiring_speed"
 	MetricCandidateConversion = "candidate_conversion"
-	MetricProfileViews       = "profile_views"
+	MetricProfileViews        = "profile_views"
 )
 
 type AnalyticsEvent struct {
@@ -72,11 +72,11 @@ type RecruiterAnalytics struct {
 }
 
 type UserAnalytics struct {
-	ProfileViewsCount       int     `json:"profile_views_count"`
-	SearchAppearancesCount  int     `json:"search_appearances_count"`
-	ApplicationsCount       int     `json:"applications_count"`
-	InterviewInvitationRate float64 `json:"interview_invitation_rate"`
-	ProfileCompleteness     int     `json:"profile_completeness"`
+	ProfileViewsCount       int      `json:"profile_views_count"`
+	SearchAppearancesCount  int      `json:"search_appearances_count"`
+	ApplicationsCount       int      `json:"applications_count"`
+	InterviewInvitationRate float64  `json:"interview_invitation_rate"`
+	ProfileCompleteness     int      `json:"profile_completeness"`
 	TopSearchingCompanies   []string `json:"top_searching_companies"`
 }
 

@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	TypeCompany           = "company"
-	TypeRecruiterAgency   = "recruiter_agency"
-	TypeTrainingProvider  = "training_provider"
+	TypeCompany          = "company"
+	TypeRecruiterAgency  = "recruiter_agency"
+	TypeTrainingProvider = "training_provider"
 
 	RoleAdmin      = "org_admin"
 	RoleRecruiter  = "recruiter"

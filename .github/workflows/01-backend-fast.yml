@@ -89,11 +89,30 @@ jobs:
       - name: Build Backend Binary
         run: go build -v -o bin/kirmya ./cmd/kirmya
 
+      # This job runs without PostgreSQL or Redis, and five packages skip
+      # themselves when those are absent. The quality gate below fails on any
+      # skip, by design (see scripts/ci/check-results.mjs) — so running ./...
+      # here made the gate unsatisfiable: 24 tests skipped every time.
+      #
+      # The fix is to run what this job can actually run, and to let the jobs
+      # that have the infrastructure own the rest, under the same strict gate.
+      # Nothing is exempted from being run; the exclusions below are each
+      # covered elsewhere:
+      #
+      #   internal/shared/database   -> 03-database.yml (real PostgreSQL)
+      #   internal/company/service   -> 04-api-integration.yml
+      #   test/integration           -> 04-api-integration.yml
+      #   internal/messaging/pubsub  -> 04-api-integration.yml (real Redis)
+      #   internal/shared/middleware -> 04-api-integration.yml (real Redis)
+      #
+      # Adding a package here without adding it to one of those jobs means its
+      # tests run nowhere, which is the failure this gate exists to prevent.
       - name: Run Go Unit Tests
         run: |
           mkdir -p ../artifacts
           set -o pipefail
-          go test -json ./... 2>&1 | tee ../artifacts/go-unit.json
+          infra='kirmya/internal/company/service|kirmya/internal/messaging/pubsub|kirmya/internal/shared/database|kirmya/internal/shared/middleware|kirmya/test/integration'
+          go test -json $(go list ./... | grep -vE "^($infra)$") 2>&1 | tee ../artifacts/go-unit.json
         env:
           ALLOW_NO_DB: "true"
 

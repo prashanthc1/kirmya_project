@@ -7,19 +7,19 @@ import (
 )
 
 const (
-	SessionTypeRanking      = "candidate_ranking"
-	SessionTypeJDOptimize   = "jd_optimization"
-	SessionTypeInterview    = "interview_prep"
+	SessionTypeRanking       = "candidate_ranking"
+	SessionTypeJDOptimize    = "jd_optimization"
+	SessionTypeInterview     = "interview_prep"
 	SessionTypeOutreachDraft = "outreach_draft"
 )
 
 type RecruiterAISession struct {
-	ID          uuid.UUID   `json:"id"`
-	OrgID       uuid.UUID   `json:"org_id"`
-	RecruiterID uuid.UUID   `json:"recruiter_id"`
-	JobID       uuid.UUID   `json:"job_id"`
-	SessionType string      `json:"session_type"`
-	CreatedAt   time.Time   `json:"created_at"`
+	ID          uuid.UUID `json:"id"`
+	OrgID       uuid.UUID `json:"org_id"`
+	RecruiterID uuid.UUID `json:"recruiter_id"`
+	JobID       uuid.UUID `json:"job_id"`
+	SessionType string    `json:"session_type"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 type AICandidateScore struct {

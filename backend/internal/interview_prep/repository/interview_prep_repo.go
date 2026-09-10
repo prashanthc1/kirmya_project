@@ -706,16 +706,16 @@ func (r *postgresRepository) GetReadinessScore(ctx context.Context, userID uuid.
 		s, exists := r.readiness[userID]
 		if !exists {
 			defaultScore := &models.InterviewReadinessScore{
-				UserID:                   userID,
-				OverallReadiness:         75,
-				TechnicalReadiness:       80,
-				BehavioralReadiness:      72,
-				CommunicationReadiness:   85,
-				RoleFitReadiness:         78,
+				UserID:                    userID,
+				OverallReadiness:          75,
+				TechnicalReadiness:        80,
+				BehavioralReadiness:       72,
+				CommunicationReadiness:    85,
+				RoleFitReadiness:          78,
 				CompanyKnowledgeReadiness: 70,
-				TotalMockSessions:        0,
-				TotalQuestionsPracticed:  0,
-				UpdatedAt:                time.Now(),
+				TotalMockSessions:         0,
+				TotalQuestionsPracticed:   0,
+				UpdatedAt:                 time.Now(),
 			}
 			return defaultScore, nil
 		}
@@ -738,16 +738,16 @@ func (r *postgresRepository) GetReadinessScore(ctx context.Context, userID uuid.
 	if err != nil {
 		// Return default score if record doesn't exist yet
 		return &models.InterviewReadinessScore{
-			UserID:                   userID,
-			OverallReadiness:         75,
-			TechnicalReadiness:       80,
-			BehavioralReadiness:      72,
-			CommunicationReadiness:   85,
-			RoleFitReadiness:         78,
+			UserID:                    userID,
+			OverallReadiness:          75,
+			TechnicalReadiness:        80,
+			BehavioralReadiness:       72,
+			CommunicationReadiness:    85,
+			RoleFitReadiness:          78,
 			CompanyKnowledgeReadiness: 70,
-			TotalMockSessions:        0,
-			TotalQuestionsPracticed:  0,
-			UpdatedAt:                time.Now(),
+			TotalMockSessions:         0,
+			TotalQuestionsPracticed:   0,
+			UpdatedAt:                 time.Now(),
 		}, nil
 	}
 	return &s, nil

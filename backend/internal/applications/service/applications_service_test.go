@@ -281,4 +281,3 @@ func TestApplicationsService_SavedJobsAndArchive(t *testing.T) {
 		t.Fatalf("ArchiveApplication failed: %v", err)
 	}
 }
-

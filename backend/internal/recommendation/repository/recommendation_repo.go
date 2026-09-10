@@ -277,4 +277,3 @@ func (r *RecommendationRepository) GetCommunityCandidates(ctx context.Context, u
 	}
 	return comms, nil
 }
-

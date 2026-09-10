@@ -1,9 +1,9 @@
 package service
 
 import (
-	"errors"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math/rand"
@@ -219,14 +219,14 @@ func (s *learningService) SubmitSkillAssessment(ctx context.Context, userID uuid
 	ansJSON, _ := json.Marshal(req.Answers)
 
 	assessment := &domain.SkillAssessment{
-		ID:                 uuid.New(),
-		UserID:             userID,
-		Domain:             req.Domain,
-		Score:              scorePct,
-		ReadinessLevel:     readiness,
+		ID:                uuid.New(),
+		UserID:            userID,
+		Domain:            req.Domain,
+		Score:             scorePct,
+		ReadinessLevel:    readiness,
 		RecommendedPathID: recPathID,
-		AnswersJSON:        string(ansJSON),
-		CreatedAt:          time.Now(),
+		AnswersJSON:       string(ansJSON),
+		CreatedAt:         time.Now(),
 	}
 
 	if err := s.repo.SaveSkillAssessment(ctx, assessment); err != nil {

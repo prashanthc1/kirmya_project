@@ -112,12 +112,29 @@ jobs:
       - name: Company SQL Ownership Regression Tests
         run: cd backend && go test -json ./internal/company/service -count=1 > ../artifacts/company.json
 
+      # The Redis-backed packages. These skip themselves when REDIS_HOST is
+      # unset, and until now no job set it for them: the distributed rate
+      # limiter and the pub/sub broker were tested nowhere in CI, in this
+      # pipeline or the one it replaced. Both are load-bearing for multi-replica
+      # correctness — the rate limiter is R03 and the broker is what makes
+      # realtime delivery work across replicas — so a green pipeline that never
+      # ran them was asserting more than it had checked.
+      #
+      # This job already has a real Redis and sets REDIS_HOST, so they run here.
+      - name: Redis-Backed Rate Limiter And Pub/Sub Tests
+        run: cd backend && go test -json ./internal/shared/middleware ./internal/messaging/pubsub -count=1 > ../artifacts/redis-backed.json
+
+      - name: Live Database Pool Integration Test
+        run: cd backend && go test -json ./test/integration -count=1 > ../artifacts/db-pool.json
+
       - name: Reject Missing Tests Or Mandatory Skips
         if: always()
         run: |
           node scripts/ci/check-results.mjs go artifacts/integration.json
           node scripts/ci/check-results.mjs go artifacts/company.json
           node scripts/ci/check-results.mjs go artifacts/restart-readback.json
+          node scripts/ci/check-results.mjs go artifacts/redis-backed.json
+          node scripts/ci/check-results.mjs go artifacts/db-pool.json
 
       - name: Collect Service Diagnostics
         if: always()

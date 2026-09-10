@@ -8,64 +8,64 @@ import (
 
 // InterviewPreparation represents an interview prep workspace for a target job/company
 type InterviewPreparation struct {
-	ID                  uuid.UUID `json:"id"`
-	UserID              uuid.UUID `json:"user_id"`
+	ID                  uuid.UUID  `json:"id"`
+	UserID              uuid.UUID  `json:"user_id"`
 	JobID               *uuid.UUID `json:"job_id,omitempty"`
 	ApplicationID       *uuid.UUID `json:"application_id,omitempty"`
-	CompanyName         string    `json:"company_name"`
-	JobTitle            string    `json:"job_title"`
-	JobDescription      string    `json:"job_description"`
+	CompanyName         string     `json:"company_name"`
+	JobTitle            string     `json:"job_title"`
+	JobDescription      string     `json:"job_description"`
 	InterviewDate       *time.Time `json:"interview_date,omitempty"`
-	InterviewType       string    `json:"interview_type"` // Behavioral, Technical, System Design, Situational, Case Study
-	InterviewRound      string    `json:"interview_round"` // Recruiter Round, Hiring Manager, Technical, Onsite
-	ExperienceLevel     string    `json:"experience_level"` // Entry-Level, Mid-Level, Senior, Lead/Executive
-	PreparationDuration string    `json:"preparation_duration"` // 3 Days, 7 Days, 14 Days, 30 Days
-	Status              string    `json:"status"` // In Progress, Ready, Completed, Archived
-	ReadinessScore      int       `json:"readiness_score"`
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
+	InterviewType       string     `json:"interview_type"`       // Behavioral, Technical, System Design, Situational, Case Study
+	InterviewRound      string     `json:"interview_round"`      // Recruiter Round, Hiring Manager, Technical, Onsite
+	ExperienceLevel     string     `json:"experience_level"`     // Entry-Level, Mid-Level, Senior, Lead/Executive
+	PreparationDuration string     `json:"preparation_duration"` // 3 Days, 7 Days, 14 Days, 30 Days
+	Status              string     `json:"status"`               // In Progress, Ready, Completed, Archived
+	ReadinessScore      int        `json:"readiness_score"`
+	CreatedAt           time.Time  `json:"created_at"`
+	UpdatedAt           time.Time  `json:"updated_at"`
 }
 
 // InterviewQuestion represents a question in the preparation library
 type InterviewQuestion struct {
-	ID            uuid.UUID `json:"id"`
+	ID            uuid.UUID  `json:"id"`
 	PreparationID *uuid.UUID `json:"preparation_id,omitempty"`
-	UserID        uuid.UUID `json:"user_id"`
-	Question      string    `json:"question"`
-	Category      string    `json:"category"` // Behavioral, Technical, Situational, Leadership, Culture Fit
-	Difficulty    string    `json:"difficulty"` // Beginner, Intermediate, Advanced, Expert
-	SampleAnswer  string    `json:"sample_answer"`
-	UserAnswer    string    `json:"user_answer"`
-	Notes         string    `json:"notes"`
-	IsPracticed   bool      `json:"is_practiced"`
-	IsSaved       bool      `json:"is_saved"`
-	STARSituation string    `json:"star_situation"`
-	STARTask      string    `json:"star_task"`
-	STARAction    string    `json:"star_action"`
-	STARResult    string    `json:"star_result"`
-	CreatedAt     time.Time `json:"created_at"`
+	UserID        uuid.UUID  `json:"user_id"`
+	Question      string     `json:"question"`
+	Category      string     `json:"category"`   // Behavioral, Technical, Situational, Leadership, Culture Fit
+	Difficulty    string     `json:"difficulty"` // Beginner, Intermediate, Advanced, Expert
+	SampleAnswer  string     `json:"sample_answer"`
+	UserAnswer    string     `json:"user_answer"`
+	Notes         string     `json:"notes"`
+	IsPracticed   bool       `json:"is_practiced"`
+	IsSaved       bool       `json:"is_saved"`
+	STARSituation string     `json:"star_situation"`
+	STARTask      string     `json:"star_task"`
+	STARAction    string     `json:"star_action"`
+	STARResult    string     `json:"star_result"`
+	CreatedAt     time.Time  `json:"created_at"`
 }
 
 // MockInterviewSession represents an AI mock interview practice session
 type MockInterviewSession struct {
-	ID                 uuid.UUID           `json:"id"`
-	UserID             uuid.UUID           `json:"user_id"`
-	PreparationID      *uuid.UUID          `json:"preparation_id,omitempty"`
-	Title              string              `json:"title"`
-	InterviewType      string              `json:"interview_type"`
-	Difficulty         string              `json:"difficulty"`
-	TotalQuestions     int                 `json:"total_questions"`
-	CompletedQuestions int                 `json:"completed_questions"`
-	OverallScore       int                 `json:"overall_score"`
-	RelevanceScore     int                 `json:"relevance_score"`
-	ClarityScore       int                 `json:"clarity_score"`
-	ConfidenceScore    int                 `json:"confidence_score"`
-	TechnicalScore     int                 `json:"technical_score"`
-	CommunicationScore int                 `json:"communication_score"`
-	StructureScore     int                 `json:"structure_score"`
-	Status             string              `json:"status"` // Active, Completed, Abandoned
-	StartedAt          time.Time           `json:"started_at"`
-	CompletedAt        *time.Time          `json:"completed_at,omitempty"`
+	ID                 uuid.UUID             `json:"id"`
+	UserID             uuid.UUID             `json:"user_id"`
+	PreparationID      *uuid.UUID            `json:"preparation_id,omitempty"`
+	Title              string                `json:"title"`
+	InterviewType      string                `json:"interview_type"`
+	Difficulty         string                `json:"difficulty"`
+	TotalQuestions     int                   `json:"total_questions"`
+	CompletedQuestions int                   `json:"completed_questions"`
+	OverallScore       int                   `json:"overall_score"`
+	RelevanceScore     int                   `json:"relevance_score"`
+	ClarityScore       int                   `json:"clarity_score"`
+	ConfidenceScore    int                   `json:"confidence_score"`
+	TechnicalScore     int                   `json:"technical_score"`
+	CommunicationScore int                   `json:"communication_score"`
+	StructureScore     int                   `json:"structure_score"`
+	Status             string                `json:"status"` // Active, Completed, Abandoned
+	StartedAt          time.Time             `json:"started_at"`
+	CompletedAt        *time.Time            `json:"completed_at,omitempty"`
 	Answers            []MockInterviewAnswer `json:"answers,omitempty"`
 }
 
@@ -125,16 +125,16 @@ type InterviewNote struct {
 
 // InterviewReadinessScore represents user's overall interview readiness metrics
 type InterviewReadinessScore struct {
-	UserID                   uuid.UUID `json:"user_id"`
-	OverallReadiness         int       `json:"overall_readiness"`
-	TechnicalReadiness       int       `json:"technical_readiness"`
-	BehavioralReadiness      int       `json:"behavioral_readiness"`
-	CommunicationReadiness   int       `json:"communication_readiness"`
-	RoleFitReadiness         int       `json:"role_fit_readiness"`
+	UserID                    uuid.UUID `json:"user_id"`
+	OverallReadiness          int       `json:"overall_readiness"`
+	TechnicalReadiness        int       `json:"technical_readiness"`
+	BehavioralReadiness       int       `json:"behavioral_readiness"`
+	CommunicationReadiness    int       `json:"communication_readiness"`
+	RoleFitReadiness          int       `json:"role_fit_readiness"`
 	CompanyKnowledgeReadiness int       `json:"company_knowledge_readiness"`
-	TotalMockSessions        int       `json:"total_mock_sessions"`
-	TotalQuestionsPracticed  int       `json:"total_questions_practiced"`
-	UpdatedAt                time.Time `json:"updated_at"`
+	TotalMockSessions         int       `json:"total_mock_sessions"`
+	TotalQuestionsPracticed   int       `json:"total_questions_practiced"`
+	UpdatedAt                 time.Time `json:"updated_at"`
 }
 
 // AICoachMessage represents a single message in an AI coach session
@@ -159,14 +159,14 @@ type AICoachSession struct {
 type CreatePreparationRequest struct {
 	JobID               *uuid.UUID `json:"job_id,omitempty"`
 	ApplicationID       *uuid.UUID `json:"application_id,omitempty"`
-	CompanyName         string    `json:"company_name" binding:"required"`
-	JobTitle            string    `json:"job_title" binding:"required"`
-	JobDescription      string    `json:"job_description"`
+	CompanyName         string     `json:"company_name" binding:"required"`
+	JobTitle            string     `json:"job_title" binding:"required"`
+	JobDescription      string     `json:"job_description"`
 	InterviewDate       *time.Time `json:"interview_date,omitempty"`
-	InterviewType       string    `json:"interview_type"`
-	InterviewRound      string    `json:"interview_round"`
-	ExperienceLevel     string    `json:"experience_level"`
-	PreparationDuration string    `json:"preparation_duration"`
+	InterviewType       string     `json:"interview_type"`
+	InterviewRound      string     `json:"interview_round"`
+	ExperienceLevel     string     `json:"experience_level"`
+	PreparationDuration string     `json:"preparation_duration"`
 }
 
 type UpdatePreparationRequest struct {
@@ -215,11 +215,11 @@ type UpdateQuestionPracticeRequest struct {
 }
 
 type StartMockSessionRequest struct {
-	PreparationID *uuid.UUID `json:"preparation_id,omitempty"`
-	Title         string     `json:"title"`
-	InterviewType string     `json:"interview_type"`
-	Difficulty    string     `json:"difficulty"`
-	TotalQuestions int       `json:"total_questions"`
+	PreparationID  *uuid.UUID `json:"preparation_id,omitempty"`
+	Title          string     `json:"title"`
+	InterviewType  string     `json:"interview_type"`
+	Difficulty     string     `json:"difficulty"`
+	TotalQuestions int        `json:"total_questions"`
 }
 
 type SubmitMockAnswerRequest struct {

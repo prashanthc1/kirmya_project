@@ -283,4 +283,3 @@ func TestDomainEventsAndMandatorySecurityOverrides(t *testing.T) {
 	assert.Equal(t, models.PriorityCritical, secNotif.Priority)
 	assert.Equal(t, "/settings/security", secNotif.ActionURL)
 }
-

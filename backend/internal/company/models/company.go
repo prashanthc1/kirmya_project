@@ -16,34 +16,34 @@ type Company struct {
 
 // CompanyProfile details profile properties and sections.
 type CompanyProfile struct {
-	CompanyID        uuid.UUID `json:"companyId"`
-	LogoURL          string    `json:"logoUrl"`
-	CoverURL         string    `json:"coverUrl"`
-	About            string    `json:"about"`
-	Industry         string    `json:"industry"`
-	CompanySize      string    `json:"companySize"`
-	Location         string    `json:"location"`
-	Website          string    `json:"website"`
-	FoundedYear      int       `json:"foundedYear"`
-	Culture          string    `json:"culture"`
-	Mission          string    `json:"mission"`
-	Vision           string    `json:"vision"`
-	Values           []string  `json:"values"`
-	CoreServices     []string  `json:"coreServices"`
-	OperatingCountries []string `json:"operatingCountries"`
-	Benefits         []string  `json:"benefits"`
-	EmployeeInsights string    `json:"employeeInsights"`
-	Rating           float64   `json:"rating"`
-	ReviewCount      int       `json:"reviewCount"`
-	FollowersCount   int       `json:"followersCount"`
-	EmployeesCount   int       `json:"employeesCount"`
-	OpenJobsCount    int       `json:"openJobsCount"`
-	IsVerified       bool      `json:"isVerified"`
-	IsHiring         bool      `json:"isHiring"`
-	IsFollowing      bool      `json:"isFollowing"`
-	IsSaved          bool      `json:"isSaved"`
-	ResponseTime     string    `json:"responseTime"`
-	UpdatedAt        time.Time `json:"updatedAt"`
+	CompanyID          uuid.UUID `json:"companyId"`
+	LogoURL            string    `json:"logoUrl"`
+	CoverURL           string    `json:"coverUrl"`
+	About              string    `json:"about"`
+	Industry           string    `json:"industry"`
+	CompanySize        string    `json:"companySize"`
+	Location           string    `json:"location"`
+	Website            string    `json:"website"`
+	FoundedYear        int       `json:"foundedYear"`
+	Culture            string    `json:"culture"`
+	Mission            string    `json:"mission"`
+	Vision             string    `json:"vision"`
+	Values             []string  `json:"values"`
+	CoreServices       []string  `json:"coreServices"`
+	OperatingCountries []string  `json:"operatingCountries"`
+	Benefits           []string  `json:"benefits"`
+	EmployeeInsights   string    `json:"employeeInsights"`
+	Rating             float64   `json:"rating"`
+	ReviewCount        int       `json:"reviewCount"`
+	FollowersCount     int       `json:"followersCount"`
+	EmployeesCount     int       `json:"employeesCount"`
+	OpenJobsCount      int       `json:"openJobsCount"`
+	IsVerified         bool      `json:"isVerified"`
+	IsHiring           bool      `json:"isHiring"`
+	IsFollowing        bool      `json:"isFollowing"`
+	IsSaved            bool      `json:"isSaved"`
+	ResponseTime       string    `json:"responseTime"`
+	UpdatedAt          time.Time `json:"updatedAt"`
 }
 
 type CompanyLeaderDTO struct {
@@ -91,15 +91,15 @@ type CompanyEmployeeDTO struct {
 }
 
 type CompanyJobDTO struct {
-	ID               uuid.UUID `json:"id"`
-	Title            string    `json:"title"`
-	Department       string    `json:"department"`
-	Location         string    `json:"location"`
-	EmploymentType   string    `json:"employmentType"`
-	SalaryRange      string    `json:"salaryRange"`
-	PostedDate       string    `json:"postedDate"`
-	Deadline         string    `json:"deadline"`
-	IsSaved          bool      `json:"isSaved"`
+	ID             uuid.UUID `json:"id"`
+	Title          string    `json:"title"`
+	Department     string    `json:"department"`
+	Location       string    `json:"location"`
+	EmploymentType string    `json:"employmentType"`
+	SalaryRange    string    `json:"salaryRange"`
+	PostedDate     string    `json:"postedDate"`
+	Deadline       string    `json:"deadline"`
+	IsSaved        bool      `json:"isSaved"`
 }
 
 type CompanyDirectoryItem struct {
@@ -116,16 +116,16 @@ type CompanyDirectoryResponse struct {
 }
 
 type CompanyFilterQuery struct {
-	Query         string `form:"query"`
-	Industry      string `form:"industry"`
-	CompanySize   string `form:"size"`
-	Country       string `form:"country"`
-	City          string `form:"city"`
+	Query          string `form:"query"`
+	Industry       string `form:"industry"`
+	CompanySize    string `form:"size"`
+	Country        string `form:"country"`
+	City           string `form:"city"`
 	ActivelyHiring bool   `form:"actively_hiring"`
-	Verified      bool   `form:"verified"`
-	SortBy        string `form:"sort"`
-	Page          int    `form:"page"`
-	Limit         int    `form:"limit"`
+	Verified       bool   `form:"verified"`
+	SortBy         string `form:"sort"`
+	Page           int    `form:"page"`
+	Limit          int    `form:"limit"`
 }
 
 type IndustryCategory struct {

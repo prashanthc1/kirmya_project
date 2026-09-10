@@ -256,8 +256,8 @@ type EvidenceItem struct {
 	ID               uuid.UUID  `json:"id" db:"id"`
 	CaseID           *uuid.UUID `json:"case_id,omitempty" db:"case_id"`
 	ReportID         *uuid.UUID `json:"report_id,omitempty" db:"report_id"`
-	Source           string     `json:"source" db:"source"`                 // user_upload, system_log, automated_scan, admin_note
-	EvidenceType     string     `json:"evidence_type" db:"evidence_type"`   // screenshot, log_file, message_transcript, document_hash
+	Source           string     `json:"source" db:"source"`               // user_upload, system_log, automated_scan, admin_note
+	EvidenceType     string     `json:"evidence_type" db:"evidence_type"` // screenshot, log_file, message_transcript, document_hash
 	FileHash         string     `json:"file_hash,omitempty" db:"file_hash"`
 	ContentPreview   string     `json:"content_preview,omitempty" db:"content_preview"`
 	AccessRestricted bool       `json:"access_restricted" db:"access_restricted"`
@@ -266,11 +266,11 @@ type EvidenceItem struct {
 
 // ModeratorWorkload represents moderator case assignments and SLA performance.
 type ModeratorWorkload struct {
-	AdminID                uuid.UUID `json:"admin_id" db:"admin_id"`
-	AssignedCasesCount     int       `json:"assigned_cases_count" db:"assigned_cases_count"`
-	PendingAppealsCount    int       `json:"pending_appeals_count" db:"pending_appeals_count"`
+	AdminID               uuid.UUID `json:"admin_id" db:"admin_id"`
+	AssignedCasesCount    int       `json:"assigned_cases_count" db:"assigned_cases_count"`
+	PendingAppealsCount   int       `json:"pending_appeals_count" db:"pending_appeals_count"`
 	AverageResolutionMins float64   `json:"average_resolution_mins" db:"average_resolution_mins"`
-	SLAStatus              string    `json:"sla_status" db:"sla_status"` // on_track, warning, breached
+	SLAStatus             string    `json:"sla_status" db:"sla_status"` // on_track, warning, breached
 }
 
 // CreatePolicyPayload payload for creating a safety policy.
