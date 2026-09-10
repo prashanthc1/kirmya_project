@@ -2,16 +2,18 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(router *gin.RouterGroup, analyticsHandler interface{}, adminHandler *AdminAnalyticsHandler) {
+func RegisterRoutes(router *gin.RouterGroup, analyticsHandler interface{}, adminHandler *AdminAnalyticsHandler, guard *authz.Guard) {
 	if h, ok := analyticsHandler.(*AnalyticsHandler); ok {
 		RegisterAnalyticsRoutes(router, h)
 	} else {
 		RegisterAnalyticsRoutes(router, nil)
 	}
-	RegisterAdminAnalyticsRoutes(router, adminHandler)
+	RegisterAdminAnalyticsRoutes(router, adminHandler, guard)
 }
 
 func RegisterAnalyticsRoutes(router *gin.RouterGroup, handler *AnalyticsHandler) {
@@ -85,7 +87,7 @@ func RegisterAnalyticsRoutes(router *gin.RouterGroup, handler *AnalyticsHandler)
 	}
 }
 
-func RegisterAdminAnalyticsRoutes(router *gin.RouterGroup, handler *AdminAnalyticsHandler) {
+func RegisterAdminAnalyticsRoutes(router *gin.RouterGroup, handler *AdminAnalyticsHandler, guard *authz.Guard) {
 	var getOverview, getUserGrowth, getJobMarket, getAppFunnel, getCommunities, getMessaging, getNotifications, getRecommendations, getSearch, requestExport, getScheduled, createScheduled, downloadReport gin.HandlerFunc
 	var getPerformance, getTrustSafety, getMentorship, getLearning, getFunnel, getCohorts, getFeatureAdoption, generateCustomReport, triggerCleanup gin.HandlerFunc
 
@@ -121,36 +123,36 @@ func RegisterAdminAnalyticsRoutes(router *gin.RouterGroup, handler *AdminAnalyti
 	adminAnalytics := router.Group("/admin/analytics")
 	adminAnalytics.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminAnalytics.GET("/overview", getOverview)
-		adminAnalytics.GET("/users", getUserGrowth)
-		adminAnalytics.GET("/jobs", getJobMarket)
-		adminAnalytics.GET("/applications", getAppFunnel)
-		adminAnalytics.GET("/recruiters", getOverview)
-		adminAnalytics.GET("/companies", getOverview)
-		adminAnalytics.GET("/communities", getCommunities)
-		adminAnalytics.GET("/messaging", getMessaging)
-		adminAnalytics.GET("/notifications", getNotifications)
-		adminAnalytics.GET("/recommendations", getRecommendations)
-		adminAnalytics.GET("/ai", getOverview)
-		adminAnalytics.GET("/search", getSearch)
-		adminAnalytics.GET("/search/zero-results", getSearch)
-		adminAnalytics.GET("/support", getOverview)
-		adminAnalytics.GET("/safety", getTrustSafety)
-		adminAnalytics.GET("/system", getOverview)
-		adminAnalytics.GET("/system/performance", getPerformance)
-		adminAnalytics.GET("/performance", getPerformance)
-		adminAnalytics.GET("/trust-safety", getTrustSafety)
-		adminAnalytics.GET("/mentorship", getMentorship)
-		adminAnalytics.GET("/learning", getLearning)
-		adminAnalytics.GET("/funnel", getFunnel)
-		adminAnalytics.GET("/cohorts", getCohorts)
-		adminAnalytics.GET("/feature-adoption", getFeatureAdoption)
-		adminAnalytics.GET("/events", getOverview)
-		adminAnalytics.POST("/export", requestExport)
-		adminAnalytics.POST("/reports/custom", generateCustomReport)
-		adminAnalytics.GET("/reports/scheduled", getScheduled)
-		adminAnalytics.POST("/reports/scheduled", createScheduled)
-		adminAnalytics.GET("/reports/download/:id", downloadReport)
-		adminAnalytics.POST("/cleanup", triggerCleanup)
+		adminAnalytics.GET("/overview", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.GET("/users", guard.Require(adminDomain.PermAnalyticsRead), getUserGrowth)
+		adminAnalytics.GET("/jobs", guard.Require(adminDomain.PermAnalyticsRead), getJobMarket)
+		adminAnalytics.GET("/applications", guard.Require(adminDomain.PermAnalyticsRead), getAppFunnel)
+		adminAnalytics.GET("/recruiters", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.GET("/companies", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.GET("/communities", guard.Require(adminDomain.PermAnalyticsRead), getCommunities)
+		adminAnalytics.GET("/messaging", guard.Require(adminDomain.PermAnalyticsRead), getMessaging)
+		adminAnalytics.GET("/notifications", guard.Require(adminDomain.PermAnalyticsRead), getNotifications)
+		adminAnalytics.GET("/recommendations", guard.Require(adminDomain.PermAnalyticsRead), getRecommendations)
+		adminAnalytics.GET("/ai", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.GET("/search", guard.Require(adminDomain.PermAnalyticsRead), getSearch)
+		adminAnalytics.GET("/search/zero-results", guard.Require(adminDomain.PermAnalyticsRead), getSearch)
+		adminAnalytics.GET("/support", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.GET("/safety", guard.Require(adminDomain.PermAnalyticsRead), getTrustSafety)
+		adminAnalytics.GET("/system", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.GET("/system/performance", guard.Require(adminDomain.PermAnalyticsRead), getPerformance)
+		adminAnalytics.GET("/performance", guard.Require(adminDomain.PermAnalyticsRead), getPerformance)
+		adminAnalytics.GET("/trust-safety", guard.Require(adminDomain.PermAnalyticsRead), getTrustSafety)
+		adminAnalytics.GET("/mentorship", guard.Require(adminDomain.PermAnalyticsRead), getMentorship)
+		adminAnalytics.GET("/learning", guard.Require(adminDomain.PermAnalyticsRead), getLearning)
+		adminAnalytics.GET("/funnel", guard.Require(adminDomain.PermAnalyticsRead), getFunnel)
+		adminAnalytics.GET("/cohorts", guard.Require(adminDomain.PermAnalyticsRead), getCohorts)
+		adminAnalytics.GET("/feature-adoption", guard.Require(adminDomain.PermAnalyticsRead), getFeatureAdoption)
+		adminAnalytics.GET("/events", guard.Require(adminDomain.PermAnalyticsRead), getOverview)
+		adminAnalytics.POST("/export", guard.Require(adminDomain.PermAnalyticsManage), requestExport)
+		adminAnalytics.POST("/reports/custom", guard.Require(adminDomain.PermAnalyticsManage), generateCustomReport)
+		adminAnalytics.GET("/reports/scheduled", guard.Require(adminDomain.PermAnalyticsRead), getScheduled)
+		adminAnalytics.POST("/reports/scheduled", guard.Require(adminDomain.PermAnalyticsManage), createScheduled)
+		adminAnalytics.GET("/reports/download/:id", guard.Require(adminDomain.PermAnalyticsRead), downloadReport)
+		adminAnalytics.POST("/cleanup", guard.Require(adminDomain.PermDataOpsManage), triggerCleanup)
 	}
 }

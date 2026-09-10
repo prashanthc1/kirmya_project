@@ -2,10 +2,12 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *RecommendationHandler) {
+func RegisterRoutes(api *gin.RouterGroup, handler *RecommendationHandler, guard *authz.Guard) {
 	recommendationGroup := api.Group("/recommendation-engine")
 	recommendationGroup.Use(sharedMiddleware.AuthRequired())
 	{
@@ -19,8 +21,8 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecommendationHandler) {
 	adminGroup := api.Group("/admin/recommendations")
 	adminGroup.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
-		adminGroup.GET("/config", handler.AdminGetConfig)
-		adminGroup.PUT("/config", handler.AdminUpdateConfig)
-		adminGroup.GET("/metrics", handler.AdminGetMetrics)
+		adminGroup.GET("/config", guard.Require(adminDomain.PermSystemSettings), handler.AdminGetConfig)
+		adminGroup.PUT("/config", guard.Require(adminDomain.PermSystemSettings), handler.AdminUpdateConfig)
+		adminGroup.GET("/metrics", guard.Require(adminDomain.PermAnalyticsRead), handler.AdminGetMetrics)
 	}
 }

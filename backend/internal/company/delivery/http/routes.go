@@ -1,6 +1,8 @@
 package http
 
 import (
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddleware "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 
@@ -17,7 +19,7 @@ import (
 //
 // auth is required. Passing nil would mount the write routes without
 // authentication, so the function refuses to register them at all in that case.
-func RegisterRoutes(api *gin.RouterGroup, handler *CompanyHandler, management *ManagementHandler, auth *authMiddleware.AuthMiddleware) {
+func RegisterRoutes(api *gin.RouterGroup, handler *CompanyHandler, management *ManagementHandler, auth *authMiddleware.AuthMiddleware, guard *authz.Guard) {
 	companies := api.Group("/companies")
 
 	// Public reads. OptionalAuth attaches the caller when a token is present so
@@ -147,7 +149,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *CompanyHandler, management *M
 	admin := api.Group("/admin/company-verifications")
 	admin.Use(sharedMiddleware.RequireAdmin())
 	{
-		admin.GET("", management.ListPendingVerifications)
-		admin.PUT("/:verificationId", management.DecideVerification)
+		admin.GET("", guard.Require(adminDomain.PermVerificationsReview), management.ListPendingVerifications)
+		admin.PUT("/:verificationId", guard.Require(adminDomain.PermCompaniesVerify), management.DecideVerification)
 	}
 }

@@ -34,7 +34,7 @@ func mountCompanyRoutes(t *testing.T) (*gin.Engine, *authService.AuthService) {
 
 	engine := gin.New()
 	api := engine.Group("/api/v1")
-	RegisterRoutes(api, handler, management, authMiddleware.NewAuthMiddleware(auth))
+	RegisterRoutes(api, handler, management, authMiddleware.NewAuthMiddleware(auth), nil)
 	return engine, auth
 }
 
@@ -269,7 +269,7 @@ func TestRoutesRefuseToMountWritesWithoutAuth(t *testing.T) {
 
 	engine := gin.New()
 	api := engine.Group("/api/v1")
-	RegisterRoutes(api, handler, management, nil)
+	RegisterRoutes(api, handler, management, nil, nil)
 
 	for _, route := range engine.Routes() {
 		if route.Method != http.MethodGet {

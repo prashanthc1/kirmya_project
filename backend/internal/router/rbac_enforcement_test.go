@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -38,13 +39,13 @@ import (
 	"github.com/google/uuid"
 )
 
-// adminSurfaceRouter builds a router carrying every handler that registers an
-// /admin/* group. Zero-value handlers are fine: these tests assert on which
-// middleware a request survives, and a request that reaches a handler has
-// already passed the guard, which is the thing under test.
-func adminSurfaceRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	return New(Handlers{
+// adminSurfaceHandlers is every handler that registers an /admin/* group.
+//
+// Zero-value handlers are fine: these tests assert on which middleware a
+// request survives, and a request that reaches a handler has already passed the
+// guard, which is the thing under test.
+func adminSurfaceHandlers() Handlers {
+	return Handlers{
 		AuthMiddleware:              authMiddleware.NewAuthMiddleware(&authService.AuthService{}),
 		AdminHandler:                &adminHttp.AdminHandler{},
 		AdminAnalyticsHandler:       &analyticsHttp.AdminAnalyticsHandler{},
@@ -73,7 +74,27 @@ func adminSurfaceRouter() *gin.Engine {
 		TrustHandler:                &trustHttp.TrustHandler{},
 		TrustSafetyHandler:          &trustHttp.TrustSafetyHandler{},
 		AdminTrustSafetyHandler:     &trustHttp.AdminTrustSafetyHandler{},
-	}, SwaggerConfig{})
+	}
+}
+
+// adminSurfaceRouter builds that router with a permission checker that grants
+// every permission.
+//
+// That is the no-assignment case, which is what every administrator in the
+// product is in today. These tests are about the outer gate - who is an
+// administrator - so they run with the inner one wide open, and the tests in
+// admin_permission_matrix_test.go narrow it instead.
+func adminSurfaceRouter() *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	deps := adminSurfaceHandlers()
+	deps.AdminPermissionChecker = allowEveryPermission{}
+	return New(deps, SwaggerConfig{})
+}
+
+type allowEveryPermission struct{}
+
+func (allowEveryPermission) CheckPermission(context.Context, uuid.UUID, string) (bool, error) {
+	return true, nil
 }
 
 func tokenWithRole(t *testing.T, role string) string {

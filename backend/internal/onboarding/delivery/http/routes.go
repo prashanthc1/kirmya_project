@@ -2,12 +2,14 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware) {
+func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddleware *authMiddlewarePkg.AuthMiddleware, guard *authz.Guard) {
 	group := api.Group("", authMiddleware.OptionalAuth())
 
 	onboardingGroup := group.Group("/onboarding")
@@ -41,9 +43,9 @@ func RegisterRoutes(api *gin.RouterGroup, handler *OnboardingHandler, authMiddle
 	adminGroup := api.Group("/admin/onboarding")
 	adminGroup.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminGroup.GET("", handler.GetAnalyticsSummary)
-		adminGroup.GET("/analytics", handler.GetAnalyticsSummary)
-		adminGroup.GET("/config", handler.GetStepConfigs)
-		adminGroup.PUT("/config", handler.UpdateStepConfigs)
+		adminGroup.GET("", guard.Require(adminDomain.PermAnalyticsRead), handler.GetAnalyticsSummary)
+		adminGroup.GET("/analytics", guard.Require(adminDomain.PermAnalyticsRead), handler.GetAnalyticsSummary)
+		adminGroup.GET("/config", guard.Require(adminDomain.PermSystemSettings), handler.GetStepConfigs)
+		adminGroup.PUT("/config", guard.Require(adminDomain.PermSystemSettings), handler.UpdateStepConfigs)
 	}
 }

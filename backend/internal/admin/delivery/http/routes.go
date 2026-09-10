@@ -3,12 +3,13 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 
+	"kirmya/internal/admin/authz"
 	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware ...*authMiddlewarePkg.AuthMiddleware) {
+func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, guard *authz.Guard, authMiddleware ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
@@ -30,10 +31,14 @@ func RegisterRoutes(api *gin.RouterGroup, handler *AdminHandler, authMiddleware 
 	//
 	// The mapping is here, beside the routes, so a route added to this file
 	// without a permission is visible as an omission rather than hidden in a
-	// table somewhere else.
-	perm := func(code string) gin.HandlerFunc {
-		return RequirePermission(handler.service, code)
-	}
+	// table somewhere else. Every other module's administrative routes now
+	// carry the same annotation against the same vocabulary, issued by the
+	// same guard - see package authz.
+	//
+	// The guard is the router's, not one built from this handler's service, so
+	// that the whole administrative surface asks one object the same question.
+	// A nil guard fails closed.
+	perm := guard.Require
 	{
 		admin.GET("/dashboard", perm(adminDomain.PermDashboardRead), handler.GetDashboard)
 

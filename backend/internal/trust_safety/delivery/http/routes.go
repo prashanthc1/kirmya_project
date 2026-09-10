@@ -2,6 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
@@ -17,7 +19,7 @@ import (
 //
 // The *TrustSafetyHandler branch this switch also carried was unreachable:
 // SetupRouter mounts that handler through RegisterSafetyRoutes directly.
-func RegisterRoutes(router *gin.RouterGroup, handler *TrustHandler) {
+func RegisterRoutes(router *gin.RouterGroup, handler *TrustHandler, guard *authz.Guard) {
 	if handler == nil {
 		return
 	}
@@ -29,7 +31,8 @@ func RegisterRoutes(router *gin.RouterGroup, handler *TrustHandler) {
 		trust.GET("/reports", handler.GetReports)
 		// Executing a moderation action is an administrative capability, not
 		// something any signed-in user may do to another user's report.
-		trust.POST("/reports/:id/action", sharedMiddleware.RequireAdmin(), handler.ExecuteModerationAction)
+		trust.POST("/reports/:id/action", sharedMiddleware.RequireAdmin(),
+			guard.Require(adminDomain.PermModerationReview), handler.ExecuteModerationAction)
 	}
 }
 
@@ -79,7 +82,7 @@ func RegisterSafetyRoutes(router *gin.RouterGroup, handler *TrustSafetyHandler) 
 	}
 }
 
-func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafetyHandler, auth *authMiddlewarePkg.AuthMiddleware) {
+func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafetyHandler, auth *authMiddlewarePkg.AuthMiddleware, guard *authz.Guard) {
 	if handler == nil {
 		return
 	}
@@ -87,43 +90,43 @@ func RegisterAdminSafetyRoutes(router *gin.RouterGroup, handler *AdminTrustSafet
 	adminTrustSafety := router.Group("/admin/trust-safety")
 	adminTrustSafety.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminTrustSafety.GET("", handler.GetAdminSummary)
-		adminTrustSafety.GET("/queue", handler.GetAdminQueue)
-		adminTrustSafety.GET("/reports", handler.GetAdminReports)
-		adminTrustSafety.GET("/reports/:id", handler.GetReportByID)
-		adminTrustSafety.PUT("/reports/:id", handler.UpdateReportStatus)
-		adminTrustSafety.POST("/reports/:id/actions", handler.ApplyAction)
+		adminTrustSafety.GET("", guard.Require(adminDomain.PermReportsRead), handler.GetAdminSummary)
+		adminTrustSafety.GET("/queue", guard.Require(adminDomain.PermModerationReview), handler.GetAdminQueue)
+		adminTrustSafety.GET("/reports", guard.Require(adminDomain.PermReportsRead), handler.GetAdminReports)
+		adminTrustSafety.GET("/reports/:id", guard.Require(adminDomain.PermReportsRead), handler.GetReportByID)
+		adminTrustSafety.PUT("/reports/:id", guard.Require(adminDomain.PermReportsResolve), handler.UpdateReportStatus)
+		adminTrustSafety.POST("/reports/:id/actions", guard.Require(adminDomain.PermModerationReview), handler.ApplyAction)
 
-		adminTrustSafety.GET("/cases", handler.GetAdminCases)
-		adminTrustSafety.GET("/cases/:id", handler.GetCaseByID)
-		adminTrustSafety.POST("/cases/:id/claim", handler.ClaimCase)
-		adminTrustSafety.POST("/cases/:id/assign", handler.AssignCase)
-		adminTrustSafety.POST("/cases/:id/actions", handler.ApplyAction)
+		adminTrustSafety.GET("/cases", guard.Require(adminDomain.PermReportsRead), handler.GetAdminCases)
+		adminTrustSafety.GET("/cases/:id", guard.Require(adminDomain.PermReportsRead), handler.GetCaseByID)
+		adminTrustSafety.POST("/cases/:id/claim", guard.Require(adminDomain.PermModerationReview), handler.ClaimCase)
+		adminTrustSafety.POST("/cases/:id/assign", guard.Require(adminDomain.PermModerationReview), handler.AssignCase)
+		adminTrustSafety.POST("/cases/:id/actions", guard.Require(adminDomain.PermModerationReview), handler.ApplyAction)
 
-		adminTrustSafety.GET("/appeals", handler.GetAdminAppeals)
-		adminTrustSafety.GET("/appeals/:id", handler.GetAppealByID)
-		adminTrustSafety.PUT("/appeals/:id", handler.ResolveAppeal)
-		adminTrustSafety.POST("/appeals/:id/resolve", handler.ResolveAppeal)
+		adminTrustSafety.GET("/appeals", guard.Require(adminDomain.PermReportsRead), handler.GetAdminAppeals)
+		adminTrustSafety.GET("/appeals/:id", guard.Require(adminDomain.PermReportsRead), handler.GetAppealByID)
+		adminTrustSafety.PUT("/appeals/:id", guard.Require(adminDomain.PermReportsResolve), handler.ResolveAppeal)
+		adminTrustSafety.POST("/appeals/:id/resolve", guard.Require(adminDomain.PermReportsResolve), handler.ResolveAppeal)
 
-		adminTrustSafety.GET("/policies", handler.GetSafetyPolicies)
-		adminTrustSafety.POST("/policies", handler.CreateSafetyPolicy)
-		adminTrustSafety.PUT("/policies/:id", handler.UpdateSafetyPolicy)
+		adminTrustSafety.GET("/policies", guard.Require(adminDomain.PermReportsRead), handler.GetSafetyPolicies)
+		adminTrustSafety.POST("/policies", guard.Require(adminDomain.PermModerationReview), handler.CreateSafetyPolicy)
+		adminTrustSafety.PUT("/policies/:id", guard.Require(adminDomain.PermModerationReview), handler.UpdateSafetyPolicy)
 
-		adminTrustSafety.GET("/workload", handler.GetModeratorWorkloads)
-		adminTrustSafety.POST("/reinstatements", handler.ReinstateUser)
+		adminTrustSafety.GET("/workload", guard.Require(adminDomain.PermReportsRead), handler.GetModeratorWorkloads)
+		adminTrustSafety.POST("/reinstatements", guard.Require(adminDomain.PermUsersSuspend), handler.ReinstateUser)
 
-		adminTrustSafety.GET("/incidents", handler.GetAdminCases)
-		adminTrustSafety.GET("/rules", handler.GetSafetyRules)
-		adminTrustSafety.PUT("/rules", handler.UpdateSafetyRule)
-		adminTrustSafety.GET("/analytics", handler.GetAnalytics)
+		adminTrustSafety.GET("/incidents", guard.Require(adminDomain.PermReportsRead), handler.GetAdminCases)
+		adminTrustSafety.GET("/rules", guard.Require(adminDomain.PermReportsRead), handler.GetSafetyRules)
+		adminTrustSafety.PUT("/rules", guard.Require(adminDomain.PermModerationReview), handler.UpdateSafetyRule)
+		adminTrustSafety.GET("/analytics", guard.Require(adminDomain.PermAnalyticsRead), handler.GetAnalytics)
 	}
 
 	adminSafetyLegacy := router.Group("/admin/safety")
 	adminSafetyLegacy.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminSafetyLegacy.GET("/cases", handler.GetAdminCases)
-		adminSafetyLegacy.POST("/cases/:id/actions", handler.ApplyAction)
-		adminSafetyLegacy.POST("/appeals/:id/resolve", handler.ResolveAppeal)
-		adminSafetyLegacy.GET("/analytics", handler.GetAnalytics)
+		adminSafetyLegacy.GET("/cases", guard.Require(adminDomain.PermReportsRead), handler.GetAdminCases)
+		adminSafetyLegacy.POST("/cases/:id/actions", guard.Require(adminDomain.PermModerationReview), handler.ApplyAction)
+		adminSafetyLegacy.POST("/appeals/:id/resolve", guard.Require(adminDomain.PermReportsResolve), handler.ResolveAppeal)
+		adminSafetyLegacy.GET("/analytics", guard.Require(adminDomain.PermAnalyticsRead), handler.GetAnalytics)
 	}
 }

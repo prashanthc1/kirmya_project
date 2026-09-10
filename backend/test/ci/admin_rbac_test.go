@@ -329,3 +329,205 @@ func makePlatformAdmin(t *testing.T, pool *pgxpool.Pool, user ciUser) ciUser {
 	user.token = token
 	return user
 }
+
+/*
+Enforcement across modules.
+
+The tests above cover /api/v1/admin/*, which is one module. The administrative
+surface is twenty-one: notifications, support, compliance, legal, billing,
+backups, data operations, security, trust & safety, analytics and the rest each
+mount an /admin group of their own, and until this slice each of those groups
+carried RequireAdmin() and nothing else.
+
+That made the narrowing a half-truth. read_only_admin - an account whose whole
+definition is "sees the administrative surface, changes nothing" - was refused
+PUT /admin/users/:id/status and allowed POST /admin/backups/restore-confirm.
+The tests below are against a real database and a running API, because that gap
+was invisible to every unit test in the repository: each module's routes were
+correct in isolation, and the promise they broke was made somewhere else.
+*/
+
+// crossModuleWrites are state-changing routes, one per module, each gated on a
+// permission read_only_admin does not carry.
+//
+// The bodies are deliberately empty. A permission gate runs before a handler
+// parses anything, so what matters is only that the request is refused before
+// it gets there - and an empty body means a route that is *not* gated fails
+// this test loudly on a 400 rather than quietly succeeding on a valid payload.
+var crossModuleWrites = []struct {
+	method, path, permission string
+}{
+	{http.MethodPost, "/api/v1/admin/backups/restore-confirm", "backups.manage"},
+	{http.MethodPut, "/api/v1/admin/security/settings", "security.manage"},
+	{http.MethodPost, "/api/v1/admin/data-operations/bulk-operations", "data_operations.manage"},
+	{http.MethodPatch, "/api/v1/admin/compliance/legal-holds/00000000-0000-0000-0000-000000000001/release", "compliance.manage"},
+	{http.MethodPost, "/api/v1/admin/support/tickets/00000000-0000-0000-0000-000000000001/resolve", "support.manage"},
+	{http.MethodPost, "/api/v1/admin/notifications/templates", "notifications.manage"},
+	{http.MethodPost, "/api/v1/admin/analytics/export", "analytics.manage"},
+	{http.MethodPut, "/api/v1/admin/privacy/requests/00000000-0000-0000-0000-000000000001", "compliance.manage"},
+	{http.MethodPost, "/api/v1/admin/trust-safety/reinstatements", "users.suspend"},
+	{http.MethodPost, "/api/v1/admin/system/health/maintenance", "maintenance.manage"},
+}
+
+// crossModuleReads are the counterpart: routes read_only_admin must keep.
+var crossModuleReads = []struct{ path, permission string }{
+	{"/api/v1/admin/backups", "backups.read"},
+	{"/api/v1/admin/support/tickets", "support.read"},
+	{"/api/v1/admin/compliance/dsr", "compliance.read"},
+	{"/api/v1/admin/notifications/queue", "notifications.read"},
+	{"/api/v1/admin/billing/status", "billing.read"},
+	{"/api/v1/admin/data-operations/imports", "data_operations.read"},
+	{"/api/v1/admin/security/events", "security_events.read"},
+}
+
+func assignRole(t *testing.T, base string, assigner, target ciUser, roleCode, reason string) {
+	t.Helper()
+	resp := do(t, http.MethodPost, base+"/api/v1/admin/roles/assign", assigner.token, map[string]any{
+		"userId":   target.id,
+		"roleCode": roleCode,
+		"reason":   reason,
+	})
+	if resp.StatusCode != http.StatusOK {
+		body, _ := readBody(resp)
+		t.Fatalf("assigning %s: got %d want 200: %s", roleCode, resp.StatusCode, body)
+	}
+}
+
+// An administrator with no assignment reaches every module's writes. This is
+// the precondition the narrowing test below is measured against, and on its own
+// it is the no-lockout guarantee for the nineteen modules that had no granular
+// gate until now: adding one must not have refused anybody anything.
+func TestUnassignedAdministratorReachesEveryModule(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	pool := connectDB(t)
+	admin := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+
+	for _, rt := range crossModuleWrites {
+		resp := do(t, rt.method, base+rt.path, admin.token, map[string]any{})
+		if resp.StatusCode == http.StatusForbidden {
+			body, _ := readBody(resp)
+			t.Errorf("%s %s refused an administrator with no assignment: %s", rt.method, rt.path, body)
+		}
+	}
+	for _, rt := range crossModuleReads {
+		resp := do(t, http.MethodGet, base+rt.path, admin.token, nil)
+		if resp.StatusCode == http.StatusForbidden {
+			body, _ := readBody(resp)
+			t.Errorf("GET %s refused an administrator with no assignment: %s", rt.path, body)
+		}
+	}
+}
+
+// The promise read_only_admin's name makes, kept in every module rather than in
+// one. Each of these routes was reachable by this role before this slice.
+func TestReadOnlyAdminChangesNothingInAnyModule(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	pool := connectDB(t)
+	assigner := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+	narrowed := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+
+	assignRole(t, base, assigner, narrowed, adminDomain.RoleReadOnlyAdmin, "CI cross-module read-only test")
+
+	for _, rt := range crossModuleWrites {
+		resp := do(t, rt.method, base+rt.path, narrowed.token, map[string]any{})
+		if resp.StatusCode != http.StatusForbidden {
+			body, _ := readBody(resp)
+			t.Errorf("%s %s answered %d for read_only_admin, want 403 (it needs %s): %s",
+				rt.method, rt.path, resp.StatusCode, rt.permission, body)
+		}
+	}
+
+	// And it keeps what it is for.
+	for _, rt := range crossModuleReads {
+		resp := do(t, http.MethodGet, base+rt.path, narrowed.token, nil)
+		if resp.StatusCode == http.StatusForbidden {
+			body, _ := readBody(resp)
+			t.Errorf("GET %s refused read_only_admin, which carries %s: %s", rt.path, rt.permission, body)
+		}
+	}
+}
+
+// A role that spans modules narrows in both directions: operations_admin runs
+// the machinery and does not touch user accounts.
+func TestOperationsAdminIsNarrowedAcrossModules(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	pool := connectDB(t)
+	assigner := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+	ops := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+
+	assignRole(t, base, assigner, ops, adminDomain.RoleOperationsAdmin, "CI operations narrowing test")
+
+	// Carries backups.manage, in a module that is not internal/admin.
+	if resp := do(t, http.MethodPost, base+"/api/v1/admin/backups/restore-confirm", ops.token, map[string]any{}); resp.StatusCode == http.StatusForbidden {
+		t.Error("operations_admin was refused a backup restore, which backups.manage permits")
+	}
+	// Does not carry users.read, in the module that always enforced it.
+	if resp := do(t, http.MethodGet, base+"/api/v1/admin/users", ops.token, nil); resp.StatusCode != http.StatusForbidden {
+		t.Errorf("GET /admin/users answered %d for operations_admin, want 403", resp.StatusCode)
+	}
+	// Nor compliance.manage, in a module that had no gate at all before.
+	if resp := do(t, http.MethodPost, base+"/api/v1/admin/compliance/legal-holds", ops.token, map[string]any{}); resp.StatusCode != http.StatusForbidden {
+		t.Errorf("POST /admin/compliance/legal-holds answered %d for operations_admin, want 403", resp.StatusCode)
+	}
+}
+
+// A permission refusal in another module answers the same way the admin module
+// does. A client that recognises the contract on /admin/users must recognise it
+// on /admin/backups, or "403" is the only thing it can act on and it cannot
+// tell "you are not an administrator" from "you are, but not that kind".
+func TestCrossModuleRefusalCarriesThePermissionContract(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	pool := connectDB(t)
+	assigner := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+	narrowed := makePlatformAdmin(t, pool, registerAndLogin(t, base))
+
+	assignRole(t, base, assigner, narrowed, adminDomain.RoleReadOnlyAdmin, "CI contract test")
+
+	resp := do(t, http.MethodPost, base+"/api/v1/admin/backups/restore-confirm", narrowed.token, map[string]any{})
+	body, err := readBody(resp)
+	if err != nil {
+		t.Fatalf("reading body: %v", err)
+	}
+	if resp.StatusCode != http.StatusForbidden {
+		t.Fatalf("got %d want 403: %s", resp.StatusCode, body)
+	}
+
+	var payload struct {
+		Code  string `json:"code"`
+		Error string `json:"error"`
+	}
+	if err := json.Unmarshal([]byte(body), &payload); err != nil {
+		t.Fatalf("refusal is not JSON: %v (%s)", err, body)
+	}
+	if payload.Code != "ADMIN_PERMISSION_REQUIRED" {
+		t.Errorf("refusal code %q, want ADMIN_PERMISSION_REQUIRED (body: %s)", payload.Code, body)
+	}
+	if !bytes.Contains([]byte(payload.Error), []byte(adminDomain.PermBackupsManage)) {
+		t.Errorf("refusal does not name the permission needed: %q", payload.Error)
+	}
+}
+
+// The outer gate still runs first in every module. An ordinary account carries
+// no assignment, which is the every-permission case, and must still reach
+// nothing - by 403 from the role check, not 401 from a missing token.
+func TestOtherModulesRefuseANonAdministrator(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	ordinary := registerAndLogin(t, base)
+
+	for _, rt := range crossModuleReads {
+		resp := do(t, http.MethodGet, base+rt.path, ordinary.token, nil)
+		if resp.StatusCode != http.StatusForbidden {
+			body, _ := readBody(resp)
+			t.Errorf("GET %s answered %d for an authenticated non-administrator, want 403: %s",
+				rt.path, resp.StatusCode, body)
+		}
+	}
+	for _, rt := range crossModuleWrites {
+		resp := do(t, rt.method, base+rt.path, ordinary.token, map[string]any{})
+		if resp.StatusCode != http.StatusForbidden {
+			body, _ := readBody(resp)
+			t.Errorf("%s %s answered %d for an authenticated non-administrator, want 403: %s",
+				rt.method, rt.path, resp.StatusCode, body)
+		}
+	}
+}

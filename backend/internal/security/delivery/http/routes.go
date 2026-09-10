@@ -2,6 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
@@ -39,29 +41,29 @@ func RegisterSecurityRoutes(router *gin.RouterGroup, handler *SecurityHandler) {
 	}
 }
 
-func RegisterAdminSecurityRoutes(router *gin.RouterGroup, handler *AdminSecurityHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+func RegisterAdminSecurityRoutes(router *gin.RouterGroup, handler *AdminSecurityHandler, guard *authz.Guard, auth ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
 	adminSecurity := router.Group("/admin/security")
 	adminSecurity.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminSecurity.GET("", handler.GetAdminSecuritySummary)
-		adminSecurity.GET("/events", handler.GetSecurityEvents)
-		adminSecurity.GET("/incidents", handler.GetSecurityIncidents)
-		adminSecurity.POST("/incidents", handler.CreateSecurityIncident)
-		adminSecurity.GET("/incidents/:id", handler.GetSecurityIncidentByID)
-		adminSecurity.PUT("/incidents/:id", handler.UpdateSecurityIncident)
-		adminSecurity.GET("/settings", handler.GetSecuritySettings)
-		adminSecurity.PUT("/settings", handler.UpdateSecuritySettings)
-		adminSecurity.GET("/alerts", handler.GetSecurityAlerts)
-		adminSecurity.GET("/alerts/:id", handler.GetSecurityAlertByID)
-		adminSecurity.PUT("/alerts/:id", handler.UpdateSecurityAlert)
-		adminSecurity.POST("/alerts/:id/resolve", handler.ResolveSecurityAlert)
-		adminSecurity.GET("/rules", handler.GetSecurityRules)
-		adminSecurity.PUT("/rules/:id", handler.UpdateSecurityRule)
-		adminSecurity.GET("/bot-signals", handler.GetBotSignals)
-		adminSecurity.GET("/fraud-alerts", handler.GetFraudAlerts)
-		adminSecurity.GET("/risk-scores", handler.GetAccountRiskScores)
+		adminSecurity.GET("", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetAdminSecuritySummary)
+		adminSecurity.GET("/events", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetSecurityEvents)
+		adminSecurity.GET("/incidents", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetSecurityIncidents)
+		adminSecurity.POST("/incidents", guard.Require(adminDomain.PermSecurityManage), handler.CreateSecurityIncident)
+		adminSecurity.GET("/incidents/:id", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetSecurityIncidentByID)
+		adminSecurity.PUT("/incidents/:id", guard.Require(adminDomain.PermSecurityManage), handler.UpdateSecurityIncident)
+		adminSecurity.GET("/settings", guard.Require(adminDomain.PermSecurityManage), handler.GetSecuritySettings)
+		adminSecurity.PUT("/settings", guard.Require(adminDomain.PermSecurityManage), handler.UpdateSecuritySettings)
+		adminSecurity.GET("/alerts", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetSecurityAlerts)
+		adminSecurity.GET("/alerts/:id", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetSecurityAlertByID)
+		adminSecurity.PUT("/alerts/:id", guard.Require(adminDomain.PermSecurityManage), handler.UpdateSecurityAlert)
+		adminSecurity.POST("/alerts/:id/resolve", guard.Require(adminDomain.PermSecurityManage), handler.ResolveSecurityAlert)
+		adminSecurity.GET("/rules", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetSecurityRules)
+		adminSecurity.PUT("/rules/:id", guard.Require(adminDomain.PermSecurityManage), handler.UpdateSecurityRule)
+		adminSecurity.GET("/bot-signals", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetBotSignals)
+		adminSecurity.GET("/fraud-alerts", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetFraudAlerts)
+		adminSecurity.GET("/risk-scores", guard.Require(adminDomain.PermSecurityEventsRead), handler.GetAccountRiskScores)
 	}
 }

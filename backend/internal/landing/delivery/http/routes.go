@@ -2,15 +2,19 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *LandingHandler, newsletter *NewsletterHandler, newsletterRequestsPerMinute, newsletterBurst float64) {
+func RegisterRoutes(api *gin.RouterGroup, handler *LandingHandler, newsletter *NewsletterHandler, guard *authz.Guard, newsletterRequestsPerMinute, newsletterBurst float64) {
 	landingGroup := api.Group("/landing")
 	{
 		landingGroup.GET("/content", handler.GetLandingContent)
-		landingGroup.POST("/admin/testimonials", sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin(), handler.CreateTestimonial)
-		landingGroup.POST("/admin/featured-jobs", sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin(), handler.CreateFeaturedJob)
+		landingGroup.POST("/admin/testimonials", sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin(),
+			guard.Require(adminDomain.PermAnnouncements), handler.CreateTestimonial)
+		landingGroup.POST("/admin/featured-jobs", sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin(),
+			guard.Require(adminDomain.PermAnnouncements), handler.CreateFeaturedJob)
 	}
 
 	if newsletter == nil {

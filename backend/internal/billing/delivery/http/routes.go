@@ -2,6 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
@@ -30,16 +32,16 @@ func RegisterBillingRoutes(router *gin.RouterGroup, handler *BillingHandler, aut
 	}
 }
 
-func RegisterAdminBillingRoutes(router *gin.RouterGroup, handler *AdminBillingHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+func RegisterAdminBillingRoutes(router *gin.RouterGroup, handler *AdminBillingHandler, guard *authz.Guard, auth ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
 	adminBilling := router.Group("/admin/billing")
 	adminBilling.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminBilling.GET("/status", handler.GetAdminStatus)
-		adminBilling.GET("/plans", handler.GetAdminPlans)
-		adminBilling.GET("/entitlements", handler.GetAdminEntitlements)
-		adminBilling.GET("/analytics", handler.GetAdminAnalytics)
+		adminBilling.GET("/status", guard.Require(adminDomain.PermBillingRead), handler.GetAdminStatus)
+		adminBilling.GET("/plans", guard.Require(adminDomain.PermBillingRead), handler.GetAdminPlans)
+		adminBilling.GET("/entitlements", guard.Require(adminDomain.PermBillingRead), handler.GetAdminEntitlements)
+		adminBilling.GET("/analytics", guard.Require(adminDomain.PermBillingRead), handler.GetAdminAnalytics)
 	}
 }

@@ -33,7 +33,7 @@ func newTestEngine(t *testing.T, authUser *uuid.UUID) (*gin.Engine, service.Onbo
 			c.Next()
 		})
 	}
-	onboardingHttp.RegisterRoutes(api, handler, nil)
+	onboardingHttp.RegisterRoutes(api, handler, nil, nil)
 	return engine, svc
 }
 

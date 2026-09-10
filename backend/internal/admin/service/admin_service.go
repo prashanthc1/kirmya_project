@@ -266,7 +266,7 @@ func (s *AdminService) UpdateCompanyStatus(ctx context.Context, adminID uuid.UUI
 		return err
 	}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "company_admin", "company.status_update", "Company", companyID.String(), prev, next, reason, ip, userAgent, "")
+	return s.LogAction(ctx, adminID, "", "", "company.status_update", "Company", companyID.String(), prev, next, reason, ip, userAgent, "")
 }
 
 func (s *AdminService) ListJobs(ctx context.Context, search string, status string, limit int, offset int) ([]map[string]interface{}, error) {
@@ -285,7 +285,7 @@ func (s *AdminService) ModerateJob(ctx context.Context, adminID uuid.UUID, jobID
 		return err
 	}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "job_admin", "job.moderate", "Job", jobID.String(), prev, next, reason, ip, userAgent, "")
+	return s.LogAction(ctx, adminID, "", "", "job.moderate", "Job", jobID.String(), prev, next, reason, ip, userAgent, "")
 }
 
 func (s *AdminService) ListReports(ctx context.Context, status string, priority string, limit int, offset int) ([]models.ContentReport, error) {
@@ -304,7 +304,7 @@ func (s *AdminService) ResolveReport(ctx context.Context, adminID uuid.UUID, rep
 	prev := map[string]interface{}{"status": "New"}
 	next := map[string]interface{}{"status": action, "notes": notes}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "moderator", "report.resolve", "Report", reportID.String(), prev, next, notes, ip, userAgent, "")
+	return s.LogAction(ctx, adminID, "", "", "report.resolve", "Report", reportID.String(), prev, next, notes, ip, userAgent, "")
 }
 
 func (s *AdminService) ListModerationQueue(ctx context.Context, status string, priority string, limit int, offset int) ([]models.ModerationCase, error) {
@@ -334,7 +334,7 @@ func (s *AdminService) UpdateFeatureFlag(ctx context.Context, adminID uuid.UUID,
 		return err
 	}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "super_admin", "feature_flag.update", "FeatureFlag", flag.Name, prev, next, "Updated feature flag rollout state", ip, userAgent, "")
+	return s.LogAction(ctx, adminID, "", "", "feature_flag.update", "FeatureFlag", flag.Name, prev, next, "Updated feature flag rollout state", ip, userAgent, "")
 }
 
 // Assistive AI Analysis methods
@@ -370,7 +370,7 @@ func (s *AdminService) CreateAnnouncement(ctx context.Context, adminID uuid.UUID
 	prev := map[string]interface{}{}
 	next := map[string]interface{}{"title": title, "audience": audience}
 
-	_ = s.LogAction(ctx, adminID, "admin@kirmya.com", "super_admin", "announcement.create", "Announcement", announcement.ID.String(), prev, next, "Created platform announcement", ip, userAgent, "")
+	_ = s.LogAction(ctx, adminID, "", "", "announcement.create", "Announcement", announcement.ID.String(), prev, next, "Created platform announcement", ip, userAgent, "")
 
 	return announcement, nil
 }
@@ -436,6 +436,14 @@ func (s *AdminService) AssignUserRoleAs(ctx context.Context, adminID uuid.UUID, 
 // administrator and every action. An audit log that names the wrong person is
 // worse than one that admits it does not know, so an unknown email is recorded
 // as empty rather than as somebody.
+//
+// The same literal appeared at seven other call sites, three of them naming a
+// role the platform does not have: "company_admin", "job_admin", "moderator".
+// An audit entry asserting an administrator holds a role that is not in the
+// vocabulary is not a small inaccuracy - it is evidence of authority nobody
+// ever held. All seven now record the acting administrator's real id and leave
+// the email and role empty, which is the honest answer until the handler
+// threads the caller's own identity down the way AssignUserRoleAs does.
 type actor struct {
 	ID    uuid.UUID
 	Email string
@@ -544,7 +552,7 @@ func (s *AdminService) CreateImpersonationSession(ctx context.Context, adminID u
 		"token":        "[REDACTED]",
 	}
 
-	_ = s.LogAction(ctx, adminID, "admin@kirmya.com", "support_admin", "impersonation.create", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
+	_ = s.LogAction(ctx, adminID, "", "", "impersonation.create", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
 
 	return session, nil
 }
@@ -558,7 +566,7 @@ func (s *AdminService) RevokeImpersonationSession(ctx context.Context, adminID u
 	prev := map[string]interface{}{"isActive": true}
 	next := map[string]interface{}{"isActive": false}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "support_admin", "impersonation.revoke", "ImpersonationSession", sessionID.String(), prev, next, reason, ip, userAgent, "")
+	return s.LogAction(ctx, adminID, "", "", "impersonation.revoke", "ImpersonationSession", sessionID.String(), prev, next, reason, ip, userAgent, "")
 }
 
 // ListBackgroundJobs queries asynchronous background tasks.

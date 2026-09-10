@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"kirmya/internal/admin/authz"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -40,7 +41,10 @@ func setupTestRouter() (*gin.Engine, *AdminHandler, *service.AdminService, uuid.
 	})
 
 	api := r.Group("/api/v1")
-	RegisterRoutes(api, handler, nil)
+	// The real guard over the real service. The suite's administrator has no
+	// row in admin_user_roles, which is the no-assignment case: every
+	// permission, so these tests exercise the handlers rather than the gate.
+	RegisterRoutes(api, handler, authz.NewGuard(svc), nil)
 
 	return r, handler, svc, adminID
 }

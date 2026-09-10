@@ -917,6 +917,10 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		SystemHealthHandler:         sysHealthHandler,
 		MentorshipHandler:           mentorshipHandler,
 		FileHandler:                 fileHandler,
+
+		// The same service the admin module already consulted, now consulted
+		// for every module's administrative routes as well.
+		AdminPermissionChecker: adminService,
 	}
 }
 

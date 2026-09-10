@@ -2,11 +2,13 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, guard *authz.Guard, auth ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
@@ -105,9 +107,9 @@ func RegisterRoutes(api *gin.RouterGroup, handler *ProfileHandler, auth ...*auth
 	adminUserGroup := api.Group("/admin/users/:id/profile")
 	adminUserGroup.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminUserGroup.GET("", handler.AdminGetProfile)
-		adminUserGroup.PUT("", handler.AdminUpdateProfile)
-		adminUserGroup.POST("/verify", handler.AdminVerifyProfile)
-		adminUserGroup.POST("/restrict", handler.AdminRestrictProfile)
+		adminUserGroup.GET("", guard.Require(adminDomain.PermUsersRead), handler.AdminGetProfile)
+		adminUserGroup.PUT("", guard.Require(adminDomain.PermUsersUpdate), handler.AdminUpdateProfile)
+		adminUserGroup.POST("/verify", guard.Require(adminDomain.PermVerificationsReview), handler.AdminVerifyProfile)
+		adminUserGroup.POST("/restrict", guard.Require(adminDomain.PermUsersSuspend), handler.AdminRestrictProfile)
 	}
 }

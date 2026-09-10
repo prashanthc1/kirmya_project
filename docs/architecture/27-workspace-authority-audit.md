@@ -947,8 +947,8 @@ Two properties follow, and tests hold both:
 
 - **Nobody is locked out.** Every administrator today has no assignment, so
   every administrator keeps exactly the access they have and notices nothing.
-  Adding `RequirePermission` to fifty routes changed no behaviour on the day it
-  shipped.
+  Adding the permission gate to fifty routes, and later to all 245, changed no
+  behaviour on the day either shipped.
 - **Nothing can be widened.** Since the no-assignment baseline is *everything*,
   any assignment is necessarily a subset. There is no arrangement of roles that
   grants more than assigning none — so this mechanism is incapable of admitting
@@ -966,9 +966,9 @@ negative control caught that the test proved nothing.
 
 | Piece | Before | After |
 | :--- | :--- | :--- |
-| Vocabulary | four empty tables | 10 roles, 29 permissions, seeded by 0099 |
+| Vocabulary | four empty tables | 10 roles, 42 permissions, seeded by 0099 and 0100 |
 | Canonical definition | none | `internal/admin/domain`, with a conformance test holding the seed equal to it |
-| Enforcement | none | `RequirePermission` on every admin route, inside `RequireAdmin()` |
+| Enforcement | none | a permission on every one of the 245 administrative routes, inside `RequireAdmin()` |
 | Empty-table answer | invented permissions and `super_admin` | nothing; the service decides what empty means |
 | Lookup failure | 403 | 500 |
 | Unknown role code | silent success, no row | 400 `UNKNOWN_ADMIN_ROLE`, no row |
@@ -979,29 +979,127 @@ negative control caught that the test proved nothing.
 
 `roles.manage` and `users.impersonate` are withheld from `platform_admin`, so
 among the seeded roles only `super_admin` can widen anyone or become anyone.
+
+That sentence was written here when it was not yet true: 0099 also granted
+`users.impersonate` to `support_admin`, which the note beside it did not
+mention. `0100` removes that one grant, and a service test now asserts the
+refusal. It narrows nobody — `admin_user_roles` is empty, so no account holds
+`support_admin` — and a support desk does not need a session indistinguishable
+from the user's own in order to answer a ticket.
 `read_only_admin` is derived from `%.read` in both the seed and the code rather
 than listed, so a permission added later cannot silently fall out of the role
 whose whole definition is "can look at things".
 
-#### Narrowing covers the console, not yet the whole admin surface
+#### Narrowing now covers the whole administrative surface
 
-`RequirePermission` is applied to the ~50 routes in
-`internal/admin/delivery/http/routes.go`. Eighteen other modules — analytics,
-backup, billing, company, compliance, data_operations, landing, legal,
-messaging, networking, notification, onboarding, recommendation_engine,
-profile, security, support, system_health and trust_safety — register their own
-administrative groups behind the same `RequireAdmin()` and are **not** narrowed
-by these roles.
+The paragraph that stood here said `RequirePermission` reached only the ~50
+routes in `internal/admin/delivery/http/routes.go`, that eighteen other modules
+registered administrative groups behind the same `RequireAdmin()` and were not
+narrowed by these roles, and that extending it was worth its own slice. That
+slice is done, and the count was wrong: **twenty** other modules register one,
+not eighteen — `messaging` and `networking` were missing from the list.
 
-This cannot widen anyone: those routes behave exactly as they did, and an
-account still needs `users.role_id ∈ AdminRoles()` to reach them. But it means a
-`read_only_admin` is read-only *in the console* and not everywhere, which is a
-misleading affordance if left unsaid — the same class of trap this slice
-closes. It is said, on the screen that does the narrowing and here.
+`internal/admin/authz` now issues the permission middleware, and every
+administrative group in the codebase takes it. **245 routes** are gated, up from
+about 50, against **42 permissions**, up from 29. `internal/admin/domain`
+remains the only vocabulary and the only effective-permission rule; the new
+package holds the middleware, not a second system.
 
-Extending it is mechanical but not small: each module needs its routes mapped to
-permissions, and several would want permissions this vocabulary does not yet
-have. Worth doing as its own slice, with the same no-lockout property.
+The gap this closes was not theoretical. Against the API as it stood before the
+change, an account assigned `read_only_admin` — a role whose entire definition
+is "sees the administrative surface, changes nothing" — was measured doing all
+of the following:
+
+| Route | Answer before | Effect |
+| :--- | :--- | :--- |
+| `POST /admin/system/health/maintenance` | `200` | toggled platform maintenance mode |
+| `PUT /admin/security/settings` | `200` | rewrote platform security policy |
+| `PUT /admin/privacy/requests/:id` | `200` | decided a privacy request |
+| `POST /admin/support/tickets/:id/resolve` | `200` | resolved a support ticket |
+| `POST /admin/analytics/export` | `202` | queued a platform data export |
+| `POST /admin/backups/restore-confirm` | `400` | reached the restore handler's validator |
+| `PATCH /admin/compliance/legal-holds/:id/release` | `500` | reached the legal-hold release path |
+| `POST /admin/data-operations/bulk-operations` | `400` | reached the bulk-operation handler |
+| `POST /admin/notifications/templates` | `400` | reached the template writer |
+| `POST /admin/trust-safety/reinstatements` | `400` | reached the reinstatement handler |
+
+The `400`s and `500`s are not refusals: they are the handlers rejecting an empty
+body, which is to say the request got past authorization and into the handler.
+All ten answer `403 ADMIN_PERMISSION_REQUIRED` now.
+
+#### Permissions added, and why each was necessary
+
+Thirteen, seeded by `0100`. Each exists because no permission in 0099's set
+described the operation, and reusing an approximate one would have handed narrow
+roles authority nobody chose to give them:
+
+| Permission | Gates |
+| :--- | :--- |
+| `notifications.read` / `.manage` | the notification desk: templates, queue, providers, dead letters |
+| `support.read` / `.manage` | tickets, help articles, feedback and bug reports |
+| `compliance.read` / `.manage` | data subject requests, legal holds, retention, privacy records |
+| `billing.read` | platform billing status, plans and entitlements |
+| `backups.read` / `.manage` | backups, restore tests, production restore confirmation |
+| `data_operations.read` / `.manage` | bulk imports, exports, migrations, retention runs |
+| `security.manage` | security settings, detection rules, incident and alert writes |
+| `analytics.manage` | analytics exports, custom and scheduled reports |
+
+Both properties above still hold. The six new `.read` codes join
+`read_only_admin` by the same `%.read` derivation, so the role became
+genuinely read-only across every module rather than gaining a longer list that
+could fall behind. `operations_admin` gained the backup, data-operations and
+notification-pipeline permissions; `support_admin` gained support and
+`notifications.read`; `analytics_admin` gained `analytics.manage` and
+`billing.read`. No narrow role holds `security.manage`, `roles.manage` or
+`users.impersonate`.
+
+#### How completeness is held
+
+Three route-level tests in `internal/router`, all walking the assembled router
+rather than reading the source — a grep can be satisfied by a line that is
+present but unreachable; a request cannot:
+
+- **`TestEveryAdministrativeRouteAsksForAPermission`** denies every permission
+  and requires all 245 routes to answer `403`. A route that never consults the
+  guard reaches its handler instead and fails here.
+- **`TestAdminPermissionMatrixIsPinned`** regenerates the whole route →
+  permission mapping from the running router into
+  `testdata/admin_permissions.golden`, so a route moved from a `.manage`
+  permission to a `.read` one is a reviewable diff.
+- **`TestReadOnlyAdminReachesNoWrite`** holds the invariant the role's name
+  promises: nothing that changes state is reachable, in any module.
+
+Plus `TestAdministrativeRoutesConsultThePermissionOnce` — one route, one
+lookup — and `TestGuardFailsClosedWithoutAChecker`, because a router assembled
+without a permission checker cannot evaluate "may this administrator do this"
+and must not answer yes. The sweep covers the three administrative routes that
+do not live under `/api/v1/admin/`: `POST /trust/reports/:id/action` and the two
+`/landing/admin/*` writers.
+
+Each was verified by a negative control. Removing one route's `guard.Require`
+failed the first and third; removing `RequireAdmin()` from a group left 17
+routes reachable by an ordinary user, which is what proves the outer gate is
+still the load-bearing one.
+
+#### One further fabrication, found and removed
+
+Seven `LogAction` call sites still recorded the acting administrator as
+`admin@kirmya.com`, three of them naming a role the platform does not have:
+`company_admin`, `job_admin`, `moderator`. An audit entry asserting an
+administrator holds a role that is not in the vocabulary is not a small
+inaccuracy — it is evidence of authority nobody ever held. All seven now record
+the administrator's real id and leave the email and role empty, matching the
+fix already applied to role assignment.
+
+#### Known divergence, not changed here
+
+`internal/media/service/file_service.go` decides moderator authority by
+comparing the token role against `"admin"` and `"super_admin"` only, omitting
+`platform_admin`, which `RequireAdmin()` admits. It is narrower than the
+platform gate rather than wider, so it is not a hole; correcting it would
+*widen* what a `platform_admin` may do to another user's files, which is a
+behaviour change that belongs to whoever owns that decision, not to this slice.
+Recorded here so it is not rediscovered as new.
 
 #### The escape hatch, stated deliberately
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"kirmya/internal/admin/authz"
 	adminHttp "kirmya/internal/admin/delivery/http"
 	aiHttp "kirmya/internal/ai/delivery/http"
 	jobMatchHttp "kirmya/internal/ai_job_match/delivery/http"
@@ -71,6 +72,15 @@ type RouterDependencies struct {
 	TrustedProxies []string
 	RateLimit      RateLimitConfig
 	Metrics        MetricsConfig
+
+	// AdminPermissionChecker backs the granular permission gate that runs
+	// inside RequireAdmin() on every administrative route, in this module and
+	// in the twenty others that mount one. *adminSvc.AdminService satisfies it.
+	//
+	// Leaving it nil does not open the administrative surface: the guard fails
+	// closed with 500 rather than admitting anybody, because a router that
+	// cannot evaluate "may this administrator do this" must not answer yes.
+	AdminPermissionChecker authz.PermissionChecker
 
 	AuthMiddleware           *authMiddlewarePkg.AuthMiddleware
 	AuthHandler              *authHttp.AuthHandler
@@ -237,13 +247,18 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 
 	api.GET("/metrics", metricsGuard(deps.Metrics), metricsHandler())
 
+	// One guard for the whole administrative surface. Every module's /admin
+	// group receives it and gates each of its routes on a named permission, so
+	// there is exactly one permission system rather than one per module.
+	adminGuard := authz.NewGuard(deps.AdminPermissionChecker)
+
 	authHttp.RegisterRoutesWithSessionLimit(api, deps.AuthHandler, deps.AuthMiddleware,
 		deps.RateLimit.AuthRequestsPerMinute, deps.RateLimit.AuthBurst,
 		deps.RateLimit.AuthSessionRequestsPerMinute, deps.RateLimit.AuthSessionBurst)
-	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler, deps.AdminAnalyticsHandler)
+	analyticsHttp.RegisterRoutes(api, deps.AnalyticsHandler, deps.AdminAnalyticsHandler, adminGuard)
 	aiHttp.RegisterRoutes(api, deps.AIHandler)
 
-	companyHttp.RegisterRoutes(api, deps.CompanyHandler, deps.CompanyManagementHandler, deps.AuthMiddleware)
+	companyHttp.RegisterRoutes(api, deps.CompanyHandler, deps.CompanyManagementHandler, deps.AuthMiddleware, adminGuard)
 	recruiterHttp.RegisterRoutes(api, deps.RecruiterHandler, deps.UnifiedSearchHandler, deps.RecruiterService)
 	candidateSearchHttp.RegisterRoutes(api, deps.CandidateSearchHandler, recruiterHttp.RequireRecruiterCapability(deps.RecruiterService))
 	workspaceHttp.RegisterRoutes(api, deps.WorkspaceHandler)
@@ -270,20 +285,20 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	marketplaceHttp.RegisterRoutes(api, deps.MarketplaceHandler)
 	freelanceHttp.RegisterRoutes(api, deps.FreelanceHandler)
 	enterpriseHttp.RegisterRoutes(api, deps.EnterpriseHandler)
-	trustHttp.RegisterRoutes(api, deps.TrustHandler)
-	complianceHttp.RegisterRoutes(api, deps.ComplianceHandler)
+	trustHttp.RegisterRoutes(api, deps.TrustHandler, adminGuard)
+	complianceHttp.RegisterRoutes(api, deps.ComplianceHandler, adminGuard)
 	intelligenceHttp.RegisterRoutes(api, deps.IntelligenceHandler)
-	recommendationEngineHttp.RegisterRoutes(api, deps.RecommendationEngineHandler)
-	landingHttp.RegisterRoutes(api, deps.LandingHandler, deps.NewsletterHandler,
+	recommendationEngineHttp.RegisterRoutes(api, deps.RecommendationEngineHandler, adminGuard)
+	landingHttp.RegisterRoutes(api, deps.LandingHandler, deps.NewsletterHandler, adminGuard,
 		deps.RateLimit.NewsletterRequestsPerMinute, deps.RateLimit.NewsletterBurst)
-	onboardingHttp.RegisterRoutes(api, deps.OnboardingHandler, deps.AuthMiddleware)
-	profileHttp.RegisterRoutes(api, deps.ProfileHandler, deps.AuthMiddleware)
+	onboardingHttp.RegisterRoutes(api, deps.OnboardingHandler, deps.AuthMiddleware, adminGuard)
+	profileHttp.RegisterRoutes(api, deps.ProfileHandler, adminGuard, deps.AuthMiddleware)
 	resumeHttp.RegisterRoutes(api, deps.ResumeHandler)
 	recHttp.RegisterRoutes(api, deps.RecommendationHandler)
-	netHttp.RegisterRoutes(api, deps.NetworkingHandler)
+	netHttp.RegisterRoutes(api, deps.NetworkingHandler, adminGuard)
 	commHttp.RegisterRoutes(api, deps.CommunityHandler)
-	msgHttp.RegisterRoutes(api, deps.MessagingHandler)
-	notifyHttp.RegisterRoutes(api, deps.NotificationHandler)
+	msgHttp.RegisterRoutes(api, deps.MessagingHandler, adminGuard)
+	notifyHttp.RegisterRoutes(api, deps.NotificationHandler, adminGuard)
 	applicationsHttp.RegisterRoutes(api, deps.ApplicationsHandler)
 	jobAlertsHttp.RegisterRoutes(api, deps.JobAlertsHandler)
 	jobsHttp.RegisterRoutes(api, deps.JobsHandler)
@@ -300,48 +315,48 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 		interviewPrepHttp.RegisterRoutes(api, deps.InterviewPrepHandler)
 	}
 	if deps.AdminHandler != nil {
-		adminHttp.RegisterRoutes(api, deps.AdminHandler, deps.AuthMiddleware)
+		adminHttp.RegisterRoutes(api, deps.AdminHandler, adminGuard, deps.AuthMiddleware)
 	}
 	if deps.BillingHandler != nil {
 		billingHttp.RegisterBillingRoutes(api, deps.BillingHandler, deps.AuthMiddleware)
 	}
 	if deps.AdminBillingHandler != nil {
-		billingHttp.RegisterAdminBillingRoutes(api, deps.AdminBillingHandler, deps.AuthMiddleware)
+		billingHttp.RegisterAdminBillingRoutes(api, deps.AdminBillingHandler, adminGuard, deps.AuthMiddleware)
 	}
 	if deps.LegalHandler != nil {
 		legalHttp.RegisterLegalRoutes(api, deps.LegalHandler)
 	}
 	if deps.AdminLegalHandler != nil {
-		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler, deps.AuthMiddleware)
+		legalHttp.RegisterAdminLegalRoutes(api, deps.AdminLegalHandler, adminGuard, deps.AuthMiddleware)
 	}
 	if deps.SecurityHandler != nil {
 		securityHttp.RegisterSecurityRoutes(api, deps.SecurityHandler)
 	}
 	if deps.AdminSecurityHandler != nil {
-		securityHttp.RegisterAdminSecurityRoutes(api, deps.AdminSecurityHandler, deps.AuthMiddleware)
+		securityHttp.RegisterAdminSecurityRoutes(api, deps.AdminSecurityHandler, adminGuard, deps.AuthMiddleware)
 	}
 	if deps.SupportHandler != nil {
 		supportHttp.RegisterPublicHelpRoutes(api, deps.SupportHandler)
 		supportHttp.RegisterSupportRoutes(api, deps.SupportHandler)
 	}
 	if deps.AdminSupportHandler != nil {
-		supportHttp.RegisterAdminSupportRoutes(api, deps.AdminSupportHandler, deps.AuthMiddleware)
+		supportHttp.RegisterAdminSupportRoutes(api, deps.AdminSupportHandler, adminGuard, deps.AuthMiddleware)
 	}
 	if deps.AdminBackupHandler != nil {
-		backupHttp.RegisterAdminBackupRoutes(api, deps.AdminBackupHandler, deps.AuthMiddleware)
+		backupHttp.RegisterAdminBackupRoutes(api, deps.AdminBackupHandler, deps.AuthMiddleware, adminGuard)
 	}
 	if deps.DataOperationsHandler != nil {
 		dataOpsHttp.RegisterUserRoutes(api, deps.DataOperationsHandler, deps.AuthMiddleware)
-		dataOpsHttp.RegisterAdminRoutes(api, deps.DataOperationsHandler, deps.AuthMiddleware)
+		dataOpsHttp.RegisterAdminRoutes(api, deps.DataOperationsHandler, deps.AuthMiddleware, adminGuard)
 	}
 	if deps.SystemHealthHandler != nil {
 		sysHealthHttp.RegisterPublicHealthRoutes(engine, deps.SystemHealthHandler)
-		sysHealthHttp.RegisterAdminHealthRoutes(api, deps.SystemHealthHandler, deps.AuthMiddleware)
+		sysHealthHttp.RegisterAdminHealthRoutes(api, deps.SystemHealthHandler, deps.AuthMiddleware, adminGuard)
 	}
 	if deps.TrustSafetyHandler != nil {
 		trustHttp.RegisterSafetyRoutes(api, deps.TrustSafetyHandler)
 	}
 	if deps.AdminTrustSafetyHandler != nil {
-		trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler, deps.AuthMiddleware)
+		trustHttp.RegisterAdminSafetyRoutes(api, deps.AdminTrustSafetyHandler, deps.AuthMiddleware, adminGuard)
 	}
 }

@@ -28,18 +28,29 @@ func TestAdminRBACCheckPermission(t *testing.T) {
 	err = svc.AssignUserRole(context.Background(), adminID, supportUserID, "support_admin", "Grant support admin role", "127.0.0.1", "Mozilla/5.0")
 	assert.NoError(t, err)
 
-	hasImpersonate, err := svc.CheckPermission(context.Background(), supportUserID, "users.impersonate")
+	hasSupport, err := svc.CheckPermission(context.Background(), supportUserID, "support.manage")
 	assert.NoError(t, err)
-	assert.True(t, hasImpersonate)
+	assert.True(t, hasSupport)
 
 	hasDelete, err := svc.CheckPermission(context.Background(), supportUserID, "system_jobs.retry")
 	assert.NoError(t, err)
 	assert.False(t, hasDelete)
 
+	// Impersonation is not a support capability. 0099 granted it to this role
+	// while claiming beside platform_admin that only super_admin could become
+	// another user; 0100 makes the seed match the claim.
+	hasImpersonate, err := svc.CheckPermission(context.Background(), supportUserID, "users.impersonate")
+	assert.NoError(t, err)
+	assert.False(t, hasImpersonate)
+
 	// Test CheckAnyPermission
-	hasAny, err := svc.CheckAnyPermission(context.Background(), supportUserID, "users.impersonate", "non_existent_perm")
+	hasAny, err := svc.CheckAnyPermission(context.Background(), supportUserID, "support.read", "non_existent_perm")
 	assert.NoError(t, err)
 	assert.True(t, hasAny)
+
+	hasNone, err := svc.CheckAnyPermission(context.Background(), supportUserID, "users.impersonate", "non_existent_perm")
+	assert.NoError(t, err)
+	assert.False(t, hasNone)
 }
 
 func TestAdminAuditLoggingAndStatusUpdate(t *testing.T) {

@@ -2,10 +2,12 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
+func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler, guard *authz.Guard) {
 	notifications := api.Group("/notifications")
 	notifications.Use(sharedMiddleware.AuthRequired())
 	{
@@ -52,23 +54,23 @@ func RegisterRoutes(api *gin.RouterGroup, handler *NotificationHandler) {
 	admin := api.Group("/admin/notifications")
 	admin.Use(sharedMiddleware.AuthRequired(), sharedMiddleware.RequireAdmin())
 	{
-		admin.GET("", handler.ListNotifications)
-		admin.GET("/templates", handler.AdminGetTemplates)
-		admin.POST("/templates", handler.AdminCreateTemplate)
-		admin.GET("/templates/:id", handler.AdminGetTemplateByID)
-		admin.PUT("/templates/:id", handler.AdminUpdateTemplate)
-		admin.POST("/templates/:id/publish", handler.AdminPublishTemplate)
-		admin.POST("/templates/:id/archive", handler.AdminArchiveTemplate)
-		admin.POST("/templates/:id/test", handler.AdminTestSendTemplate)
-		admin.GET("/queue", handler.AdminGetQueue)
-		admin.GET("/failed", handler.AdminGetFailures)
-		admin.GET("/failures", handler.AdminGetFailures)
-		admin.GET("/providers", handler.AdminGetProviders)
-		admin.GET("/analytics", handler.AdminGetAnalytics)
-		admin.GET("/delivery-analytics", handler.AdminGetDeliveryAnalytics)
-		admin.GET("/dead-letters", handler.AdminListDeadLetters)
-		admin.POST("/dead-letters/:id/retry", handler.AdminRetryDeadLetter)
-		admin.POST("/announcement", handler.AdminSendAnnouncement)
+		admin.GET("", guard.Require(adminDomain.PermNotificationsRead), handler.ListNotifications)
+		admin.GET("/templates", guard.Require(adminDomain.PermNotificationsRead), handler.AdminGetTemplates)
+		admin.POST("/templates", guard.Require(adminDomain.PermNotificationsManage), handler.AdminCreateTemplate)
+		admin.GET("/templates/:id", guard.Require(adminDomain.PermNotificationsRead), handler.AdminGetTemplateByID)
+		admin.PUT("/templates/:id", guard.Require(adminDomain.PermNotificationsManage), handler.AdminUpdateTemplate)
+		admin.POST("/templates/:id/publish", guard.Require(adminDomain.PermNotificationsManage), handler.AdminPublishTemplate)
+		admin.POST("/templates/:id/archive", guard.Require(adminDomain.PermNotificationsManage), handler.AdminArchiveTemplate)
+		admin.POST("/templates/:id/test", guard.Require(adminDomain.PermNotificationsManage), handler.AdminTestSendTemplate)
+		admin.GET("/queue", guard.Require(adminDomain.PermNotificationsRead), handler.AdminGetQueue)
+		admin.GET("/failed", guard.Require(adminDomain.PermNotificationsRead), handler.AdminGetFailures)
+		admin.GET("/failures", guard.Require(adminDomain.PermNotificationsRead), handler.AdminGetFailures)
+		admin.GET("/providers", guard.Require(adminDomain.PermNotificationsRead), handler.AdminGetProviders)
+		admin.GET("/analytics", guard.Require(adminDomain.PermAnalyticsRead), handler.AdminGetAnalytics)
+		admin.GET("/delivery-analytics", guard.Require(adminDomain.PermAnalyticsRead), handler.AdminGetDeliveryAnalytics)
+		admin.GET("/dead-letters", guard.Require(adminDomain.PermNotificationsRead), handler.AdminListDeadLetters)
+		admin.POST("/dead-letters/:id/retry", guard.Require(adminDomain.PermNotificationsManage), handler.AdminRetryDeadLetter)
+		admin.POST("/announcement", guard.Require(adminDomain.PermAnnouncements), handler.AdminSendAnnouncement)
 	}
 
 	internal := api.Group("/internal/notifications")

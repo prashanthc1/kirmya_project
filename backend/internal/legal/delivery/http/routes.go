@@ -2,6 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
@@ -45,30 +47,30 @@ func RegisterLegalRoutes(router *gin.RouterGroup, handler *LegalHandler) {
 	}
 }
 
-func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+func RegisterAdminLegalRoutes(router *gin.RouterGroup, handler *AdminLegalHandler, guard *authz.Guard, auth ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
 	adminLegal := router.Group("/admin/legal")
 	adminLegal.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminLegal.GET("/documents", handler.GetAdminDocuments)
-		adminLegal.GET("/privacy-requests", handler.GetPrivacyRequests)
-		adminLegal.GET("/retention", handler.GetRetentionPolicies)
-		adminLegal.GET("/legal-holds", handler.GetLegalHolds)
+		adminLegal.GET("/documents", guard.Require(adminDomain.PermComplianceRead), handler.GetAdminDocuments)
+		adminLegal.GET("/privacy-requests", guard.Require(adminDomain.PermComplianceRead), handler.GetPrivacyRequests)
+		adminLegal.GET("/retention", guard.Require(adminDomain.PermComplianceRead), handler.GetRetentionPolicies)
+		adminLegal.GET("/legal-holds", guard.Require(adminDomain.PermComplianceRead), handler.GetLegalHolds)
 	}
 
 	adminPrivacy := router.Group("/admin/privacy")
 	adminPrivacy.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminPrivacy.GET("", handler.GetAdminPrivacySummary)
-		adminPrivacy.GET("/requests", handler.GetPrivacyRequests)
-		adminPrivacy.GET("/requests/:id", handler.GetPrivacyRequestByID)
-		adminPrivacy.PUT("/requests/:id", handler.UpdatePrivacyRequest)
-		adminPrivacy.GET("/consents", handler.GetAdminConsents)
-		adminPrivacy.GET("/retention", handler.GetRetentionPolicies)
-		adminPrivacy.PUT("/retention", handler.UpdateRetentionPolicy)
-		adminPrivacy.GET("/data-processing", handler.GetDataProcessingRecords)
-		adminPrivacy.POST("/export", handler.CreateAdminDataExport)
+		adminPrivacy.GET("", guard.Require(adminDomain.PermComplianceRead), handler.GetAdminPrivacySummary)
+		adminPrivacy.GET("/requests", guard.Require(adminDomain.PermComplianceRead), handler.GetPrivacyRequests)
+		adminPrivacy.GET("/requests/:id", guard.Require(adminDomain.PermComplianceRead), handler.GetPrivacyRequestByID)
+		adminPrivacy.PUT("/requests/:id", guard.Require(adminDomain.PermComplianceManage), handler.UpdatePrivacyRequest)
+		adminPrivacy.GET("/consents", guard.Require(adminDomain.PermComplianceRead), handler.GetAdminConsents)
+		adminPrivacy.GET("/retention", guard.Require(adminDomain.PermComplianceRead), handler.GetRetentionPolicies)
+		adminPrivacy.PUT("/retention", guard.Require(adminDomain.PermComplianceManage), handler.UpdateRetentionPolicy)
+		adminPrivacy.GET("/data-processing", guard.Require(adminDomain.PermComplianceRead), handler.GetDataProcessingRecords)
+		adminPrivacy.POST("/export", guard.Require(adminDomain.PermComplianceManage), handler.CreateAdminDataExport)
 	}
 }

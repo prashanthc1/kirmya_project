@@ -2,6 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/admin/authz"
+	adminDomain "kirmya/internal/admin/domain"
 	authMiddlewarePkg "kirmya/internal/auth/middleware"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
@@ -64,7 +66,7 @@ func RegisterSupportRoutes(router *gin.RouterGroup, handler *SupportHandler) {
 	}
 }
 
-func RegisterAdminSupportRoutes(router *gin.RouterGroup, handler *AdminSupportHandler, auth ...*authMiddlewarePkg.AuthMiddleware) {
+func RegisterAdminSupportRoutes(router *gin.RouterGroup, handler *AdminSupportHandler, guard *authz.Guard, auth ...*authMiddlewarePkg.AuthMiddleware) {
 	if handler == nil {
 		return
 	}
@@ -72,19 +74,19 @@ func RegisterAdminSupportRoutes(router *gin.RouterGroup, handler *AdminSupportHa
 	adminSupport := router.Group("/admin/support")
 	adminSupport.Use(sharedMiddleware.RequireAdmin())
 	{
-		adminSupport.GET("", handler.GetAnalyticsSummary)
-		adminSupport.GET("/analytics", handler.GetAnalyticsSummary)
-		adminSupport.GET("/sla", handler.GetAnalyticsSummary)
-		adminSupport.GET("/tickets", handler.GetAdminTickets)
-		adminSupport.GET("/tickets/:id", handler.GetTicketByID)
-		adminSupport.GET("/tickets/:id/messages", handler.GetTicketMessages)
-		adminSupport.POST("/tickets/:id/messages", handler.AddAgentMessageOrInternalNote)
-		adminSupport.POST("/tickets/:id/notes", handler.AddAgentMessageOrInternalNote)
-		adminSupport.POST("/tickets/:id/assign", handler.AssignTicket)
-		adminSupport.POST("/tickets/:id/resolve", handler.ResolveTicket)
-		adminSupport.GET("/articles", handler.GetAdminArticles)
-		adminSupport.POST("/articles", handler.CreateArticle)
-		adminSupport.GET("/feedback", handler.GetFeatureRequests)
-		adminSupport.GET("/bugs", handler.GetBugReports)
+		adminSupport.GET("", guard.Require(adminDomain.PermSupportRead), handler.GetAnalyticsSummary)
+		adminSupport.GET("/analytics", guard.Require(adminDomain.PermSupportRead), handler.GetAnalyticsSummary)
+		adminSupport.GET("/sla", guard.Require(adminDomain.PermSupportRead), handler.GetAnalyticsSummary)
+		adminSupport.GET("/tickets", guard.Require(adminDomain.PermSupportRead), handler.GetAdminTickets)
+		adminSupport.GET("/tickets/:id", guard.Require(adminDomain.PermSupportRead), handler.GetTicketByID)
+		adminSupport.GET("/tickets/:id/messages", guard.Require(adminDomain.PermSupportRead), handler.GetTicketMessages)
+		adminSupport.POST("/tickets/:id/messages", guard.Require(adminDomain.PermSupportManage), handler.AddAgentMessageOrInternalNote)
+		adminSupport.POST("/tickets/:id/notes", guard.Require(adminDomain.PermSupportManage), handler.AddAgentMessageOrInternalNote)
+		adminSupport.POST("/tickets/:id/assign", guard.Require(adminDomain.PermSupportManage), handler.AssignTicket)
+		adminSupport.POST("/tickets/:id/resolve", guard.Require(adminDomain.PermSupportManage), handler.ResolveTicket)
+		adminSupport.GET("/articles", guard.Require(adminDomain.PermSupportRead), handler.GetAdminArticles)
+		adminSupport.POST("/articles", guard.Require(adminDomain.PermSupportManage), handler.CreateArticle)
+		adminSupport.GET("/feedback", guard.Require(adminDomain.PermSupportRead), handler.GetFeatureRequests)
+		adminSupport.GET("/bugs", guard.Require(adminDomain.PermSupportRead), handler.GetBugReports)
 	}
 }

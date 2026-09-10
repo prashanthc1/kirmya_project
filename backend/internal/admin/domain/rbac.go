@@ -45,6 +45,25 @@ const (
 	PermAuditLogsRead       = "audit_logs.read"
 	PermSecurityEventsRead  = "security_events.read"
 	PermRolesManage         = "roles.manage"
+
+	// Added when enforcement was extended past /api/v1/admin/* to the
+	// administrative surfaces the other modules mount. Each one exists because
+	// no permission above described the operation: mapping the notification
+	// desk to announcements.manage, or backup restore to system_settings.manage,
+	// would have handed narrow roles authority nobody chose to give them.
+	PermNotificationsRead   = "notifications.read"
+	PermNotificationsManage = "notifications.manage"
+	PermSupportRead         = "support.read"
+	PermSupportManage       = "support.manage"
+	PermComplianceRead      = "compliance.read"
+	PermComplianceManage    = "compliance.manage"
+	PermBillingRead         = "billing.read"
+	PermBackupsRead         = "backups.read"
+	PermBackupsManage       = "backups.manage"
+	PermDataOpsRead         = "data_operations.read"
+	PermDataOpsManage       = "data_operations.manage"
+	PermSecurityManage      = "security.manage"
+	PermAnalyticsManage     = "analytics.manage"
 )
 
 // Role codes.
@@ -74,6 +93,14 @@ var allPermissions = []string{
 	PermSystemSettings, PermFeatureFlags, PermAnnouncements,
 	PermAnalyticsRead, PermAuditLogsRead, PermSecurityEventsRead,
 	PermRolesManage,
+	PermNotificationsRead, PermNotificationsManage,
+	PermSupportRead, PermSupportManage,
+	PermComplianceRead, PermComplianceManage,
+	PermBillingRead,
+	PermBackupsRead, PermBackupsManage,
+	PermDataOpsRead, PermDataOpsManage,
+	PermSecurityManage,
+	PermAnalyticsManage,
 }
 
 // AllPermissions returns every permission the admin surface enforces.
@@ -135,16 +162,30 @@ var rolePermissions = map[string][]string{
 		PermDashboardRead, PermVerificationsReview, PermCompaniesRead,
 		PermCompaniesVerify, PermCompaniesSuspend,
 	},
+	// No users.impersonate. 0099 gave it to this role and the accompanying note
+	// claimed that among the seeded roles only super_admin could become anyone,
+	// which was not true of the seed it described. Impersonation is the single
+	// most dangerous administrative capability - it produces a session
+	// indistinguishable from the user's own - and a support desk does not need
+	// it to answer a ticket. It stays with super_admin, alongside roles.manage.
+	//
+	// Removing it narrows nobody today: no account has an assignment, so no
+	// account holds this role.
 	RoleSupportAdmin: {
-		PermDashboardRead, PermUsersRead, PermUsersImpersonate, PermReportsRead,
+		PermDashboardRead, PermUsersRead, PermReportsRead,
+		PermSupportRead, PermSupportManage, PermNotificationsRead,
 	},
 	RoleAnalyticsAdmin: {
 		PermDashboardRead, PermAnalyticsRead, PermAuditLogsRead,
 		PermSecurityEventsRead, PermObservabilityRead,
+		PermAnalyticsManage, PermBillingRead,
 	},
 	RoleOperationsAdmin: {
 		PermDashboardRead, PermSystemJobsRead, PermSystemJobsRetry,
 		PermIncidentsManage, PermMaintenanceManage, PermObservabilityRead,
+		PermBackupsRead, PermBackupsManage,
+		PermDataOpsRead, PermDataOpsManage,
+		PermNotificationsRead, PermNotificationsManage,
 	},
 	RoleReadOnlyAdmin: readOnly(),
 }
