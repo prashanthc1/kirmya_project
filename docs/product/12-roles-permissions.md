@@ -20,6 +20,35 @@ This document establishes the official **Role-Based Access Control (RBAC)** poli
 
 ---
 
+> ### Superseded in part — read this first
+>
+> **Sections 2 and 3 below describe a single-role model that Kirmya is moving
+> away from.** They present eight mutually exclusive roles in an inheritance
+> chain, in which Company Admin *extends* Recruiter and a user is exactly one of
+> them. That model cannot express the states Kirmya actually has: a user who
+> recruits for one company and not another, or who is simultaneously a
+> professional, a freelancer and a community moderator.
+>
+> The current model is:
+>
+> - a small **global role** — `member`, `platform_admin`, `super_admin`
+> - zero or more **capabilities** — `freelancer`, `recruiter`
+> - zero or more **entity-scoped memberships** — company, community, page
+>
+> Roles are **not** mutually exclusive and there is **no inheritance** between
+> them. Holding a role on one company says nothing about any other company, and
+> no entity-scoped role ever confers platform administration.
+>
+> **Authoritative:**
+> [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) ·
+> [26-workspace-architecture.md](../architecture/26-workspace-architecture.md)
+>
+> The matrix below remains useful as a statement of *which capabilities exist*.
+> Read its columns as capabilities a user may hold in combination, never as a
+> classification of the user.
+
+---
+
 ## 2. High-Level RBAC Matrix
 
 The following grid outlines major platform capabilities mapped against Kirmya's eight core user roles:

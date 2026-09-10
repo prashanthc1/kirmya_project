@@ -1,5 +1,16 @@
 # Kirmya Global Navigation System & Application Shell Specification (Prompt 14/50)
 
+> **Workspace model — read alongside this document.**
+>
+> This document predates the workspace architecture and still refers to a
+> "Dashboard" per persona (`/recruiter/dashboard`, `/admin/dashboard`).
+> Navigation is now organised by **workspace**, selected from a switcher beside
+> the account controls, and `/dashboard` redirects to `/feed`.
+>
+> Authoritative: [26-workspace-architecture.md](../architecture/26-workspace-architecture.md)
+> · [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md)
+> · [11-information-architecture.md](../product/11-information-architecture.md)
+
 **Date**: August 30, 2026  
 **Auditor**: Antigravity AI (Google DeepMind)  
 **Status**: ACTIVE GLOBAL NAVIGATION & SHELL SPECIFICATION  

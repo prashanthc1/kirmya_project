@@ -8,6 +8,7 @@ Welcome to the comprehensive documentation directory for the Kirmya AI Career Co
 
 - [**Implementation & Verification Walkthrough**](walkthrough.md): Full platform implementation status, subsystem breakdown, and latest test verification metrics.
 - [**Backend Architecture Guide**](backend-architecture.md): Modular Monolith design, Gin HTTP handlers, domain service layer, and fail-closed persistence.
+- [**Single Identity, Multiple Workspaces**](architecture/26-workspace-architecture.md): one account, many capabilities and scoped memberships, and the workspace model that lets a person move between Professional, Freelancing, Recruiting, company, community and platform administration without logging out. Decision: [ADR 0002](decisions/0002-single-identity-multi-workspace-access.md).
 - [**REST API & OpenAPI 3.0 Contract**](api.md): Endpoint standards, standardized error format, authentication requirements, and Swagger UI.
 - [**Frontend Architecture & Styling**](frontend/): styling decisions (MUI, theme tokens, `sx`, CSS Modules — and where each fits), accessibility standards (WCAG AA), and API client centralization. Styling starts at [styling-and-ui-decisions.md](frontend/styling-and-ui-decisions.md).
 - [**System Health & Diagnostics**](system-health-diagnostics.md): Health probe contracts (`/health/live`, `/health/ready`, `/health/dependencies`) and telemetry.

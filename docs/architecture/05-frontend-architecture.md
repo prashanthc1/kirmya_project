@@ -194,6 +194,16 @@ graph TD
 ---
 
 ### 7.4 State Management and Server Cache Data Flow
+
+> **Workspace state.** The active workspace is client state — a preference held
+> in the app shell and reflected in the URL — and it is **never** an input to an
+> authorization decision. Eligibility is server-authoritative: the bootstrap
+> response lists the workspaces the account may enter, and every route re-checks
+> on the server regardless of which workspace the client believes it is in.
+> Restore the last workspace only after re-validating it against that list, and
+> fall back to Professional when it is no longer authorized. See
+> [26-workspace-architecture.md](26-workspace-architecture.md) §4.
+
 Kirmya separates local UI states (Zustand) from server-cached state models (TanStack Query):
 
 ```mermaid

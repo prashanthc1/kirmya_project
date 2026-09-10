@@ -11,6 +11,7 @@
 | :--- | :--- | :--- | :--- |
 | `0.1.0` | 2026-07-19 | Antigravity AI | Initial draft outlining route hierarchies and dashboard structures. |
 | `1.0.0` | 2026-07-19 | Antigravity AI | Completed full sitemap, breadcrumb specifications, and deep-link routing mappings. |
+| `1.1.0` | 2026-09-10 | Platform architecture | Rewrote the site map, routes, workspace shell and breadcrumbs around the single-identity multi-workspace model; corrected `/dashboard`, `/guilds` and `/copilot` claims against the shipped application. |
 
 ---
 
@@ -22,128 +23,312 @@ This document establishes the official **Information Architecture (IA) and Sitem
 
 ## 2. Core Site Map & Navigation Hierarchy
 
-The following site hierarchy diagram illustrates the navigation levels from unauthenticated guest pages down to authenticated dashboards:
+The previous diagram branched from the auth gate into three separate
+dashboards — talent, recruiter and admin — as if a user were one of the three.
+That is the single-role model. One account may hold several of these at once,
+so the hierarchy branches on **workspace**, and every branch hangs off the same
+identity.
 
 ```mermaid
 graph TD
-    classDef root fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff;
-    classDef auth fill:#eff6ff,stroke:#3b82f6,stroke-width:1px,color:#1e3a8a;
-    classDef public fill:#f3f4f6,stroke:#d1d5db,stroke-width:1px,color:#1f2937;
-    classDef admin fill:#ef4444,stroke:#dc2626,stroke-width:1px,color:#fff;
-    
-    Root[Landing Page /]:::public
-    
-    %% Public Branches
-    Root --> AuthGate[Auth Gate /login]:::public
-    Root --> SEO[SEO Skill Directories /skills]:::public
-    Root --> Help[Help & Docs /docs]:::public
-    
-    %% Authenticated Talent Gateway
-    AuthGate --> TalentDashboard[/dashboard]:::auth
-    TalentDashboard --> Profiles[/profile/me]:::auth
-    TalentDashboard --> Guilds[/guilds]:::auth
-    TalentDashboard --> Learning[/learning]:::auth
-    TalentDashboard --> Copilot[/copilot]:::auth
-    
-    %% Authenticated Recruiter Gateway
-    AuthGate --> RecDashboard[/recruiter/dashboard]:::auth
-    RecDashboard --> Sourcing[/recruiter/search]:::auth
-    RecDashboard --> JobManager[/recruiter/jobs]:::auth
-    RecDashboard --> Analytics[/recruiter/analytics]:::auth
-    
-    %% Administrative Gateway
-    AuthGate --> AdminDashboard[/admin/dashboard]:::admin
-    AdminDashboard --> Telemetry[/admin/telemetry]:::admin
-    AdminDashboard --> AccessControl[/admin/access]:::admin
+    classDef public fill:#f3f4f6,stroke:#d1d5db,color:#1f2937;
+    classDef ident  fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#1e1b4b;
+    classDef ws     fill:#eff6ff,stroke:#3b82f6,color:#1e3a8a;
+    classDef scoped fill:#fff7ed,stroke:#ea580c,color:#7c2d12;
+    classDef admin  fill:#fef2f2,stroke:#dc2626,color:#7f1d1d;
+
+    Root["Landing /"]:::public
+    Root --> Jobs["Public jobs /jobs"]:::public
+    Root --> Help["Help /help"]:::public
+    Root --> Auth["Sign in /signin"]:::public
+
+    Auth --> Ident["One authenticated identity<br/>one account, one session"]:::ident
+
+    Ident --> Pro["Professional workspace<br/>/feed — the default home"]:::ws
+    Ident -.capability.-> Free["Freelancer workspace<br/>/freelance"]:::ws
+    Ident -.capability.-> Rec["Recruiting workspace<br/>/recruiter"]:::ws
+    Ident -.membership.-> Co["Company workspace<br/>/companies/:handle/admin"]:::scoped
+    Ident -.membership.-> Comm["Community admin<br/>/communities/:id/admin"]:::scoped
+    Ident -.global role.-> Admin["Platform administration<br/>/admin"]:::admin
+
+    Pro --> P1["Feed · Network · Jobs<br/>Communities · Messages"]:::ws
+
+    Ident --> SW{{"Workspace switcher<br/>lists only entitled workspaces"}}:::ident
 ```
+
+Dotted edges are conditional: the workspace exists for this account only when
+the capability is activated, the membership is held, or the global role allows
+it. Solid edges are unconditional — every account has an identity and a
+Professional workspace.
+
+**The switcher is not a security boundary.** It renders what the server said is
+enterable; each route re-checks on the server regardless of how it was reached.
 
 ---
 
 ## 3. URL Routes & Page Index
 
-### 3.1 Unauthenticated Public Routes (SEO & Marketing)
-* **`/` (Home)**: Marketing landing page highlighting Kirmya’s ecosystem pillars.
-* **`/about`**: Product philosophy, mission, and long-term horizons overview.
-* **`/login`**: Multi-method login page (Email/Password + GitHub/LinkedIn OAuth + SSO redirects).
-* **`/signup`**: Onboarding wizard segmenting users into Talent, Employer, or Freelancer types.
-* **`/verify/badge/[badgeId]`**: Public-facing cryptographic skill-credential verification page.
-* **`/skills/[slug]`**: SEO-optimized landing directory showcasing regional talent statistics (e.g. `/skills/react-developers-dubai`).
-* **`/help`**: Public documentation, glossary tables, and unauthenticated suspension appeals forms.
+> ### Rewritten 2026-09-10 — workspace-based information architecture
+>
+> The previous version of this section described `/dashboard` as the unified
+> signed-in homepage and listed `/guilds` and `/copilot`. **None of those is
+> accurate**: `/dashboard` was retired as a landing page and permanently
+> redirects to `/feed`, and `/guilds` and `/copilot` do not exist in the
+> application. Verified against `frontend/src/app` on 2026-09-10.
+>
+> Routes are now organised by **workspace**. See
+> [26-workspace-architecture.md](../architecture/26-workspace-architecture.md)
+> for the model and
+> [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) for
+> the decision.
 
-### 3.2 Authenticated Talent Routes (Professionals & Learners)
-* **`/dashboard`**: Unified homepage displaying personalized feed cards, upskilling recommendations, and active Guild notifications.
-* **`/profile/[username]`**: Interactive user profile displaying the candidate's dynamic Skill Graph, linked portfolios (GitHub commits/Figma files), and Guild achievement badges.
-* **`/guilds`**: Specialized communities dashboard.
-  - **`/guilds/[guild-slug]`**: Main workspace feed for a technical discipline (e.g. `/guilds/rust-developers`).
-  - **`/guilds/[guild-slug]/reviews`**: Active portfolio peer-review submission queue.
-  - **`/guilds/[guild-slug]/docs`**: Curated technical documents and templates repository.
-* **`/learning`**: Learning hub index showing recommended paths.
-  - **`/learning/paths/[path-id]`**: Dynamic skill-gap pathway layout (listing Coursera/Udemy/edX course sequences).
-* **`/copilot`**: Core AI career assistance workspace.
-  - **`/copilot/resume`**: AI Resume Optimizer file uploader and audit interface.
-  - **`/copilot/interview`**: Text and voice mock interview simulator panel.
-* **`/settings`**: Personal security configurations, GDPR export request logs, and feed filter preferences.
+### 3.0 How to read this section
 
-### 3.3 Authenticated Recruiter & Employer Routes
-* **`/recruiter/dashboard`**: Sourcing workspace displaying pipeline ratios, active jobs, and quick candidate lists.
-* **`/recruiter/search`**: **Capability Search Engine** interface containing skill filters, DRS bounds, and location/visa selectors.
-* **`/recruiter/jobs`**: Job posting manager list.
-  - **`/recruiter/jobs/new`**: Capabilities-first job listing form mapping target DRS score requirements.
-  - **`/recruiter/jobs/[job-id]/candidates`**: Candidate evaluation pipeline, displaying blind candidate match profiles.
-* **`/recruiter/analytics`**: HR metrics dashboard logging sourcing speeds and AEDT bias audits.
+Each namespace belongs to one workspace. A route existing does not imply the
+signed-in user may open it: entity-scoped routes are authorized against the
+entity in the URL, on the server, on every request. Navigation visibility is
+never the control.
 
-### 3.4 Authenticated Administrative Routes
-* **`/admin/dashboard`**: Consolidated operational portal displaying global metrics (Active users, active Guild counts, transaction volumes).
-* **`/admin/telemetry`**: OpenTelemetry dashboard displaying graph DB query speeds, vector indexing rates, and compute costs.
-* **`/admin/access`**: Recruiter seat licensing manager and SSO config panels.
-* **`/admin/moderation`**: Flagged content review queues, mediation escalations, and moderator election configurations.
+**Status column:** *Shipped* means the route exists today. *Target* means it is
+specified here and not yet built.
+
+### 3.1 Unauthenticated public routes
+
+| Route | Purpose | Status |
+| :--- | :--- | :--- |
+| `/` | Marketing landing page | Shipped |
+| `/signin` | Sign-in. `/login` also resolves | Shipped |
+| `/signup`, `/register` | Account creation | Shipped |
+| `/jobs`, `/jobs/[id]` | Public job board and postings, server-rendered for indexing | Shipped |
+| `/help` | Public documentation and appeals | Shipped |
+
+There is one account type at signup. The wizard does **not** segment users into
+Talent, Employer or Freelancer — capabilities are activated later through
+onboarding (§3.8), and a person may hold several.
+
+### 3.2 Professional workspace — the signed-in home
+
+`/feed` is where an authenticated user lands. There is no generic dashboard.
+
+| Route | Purpose | Status |
+| :--- | :--- | :--- |
+| `/feed` | Professional home | Shipped |
+| `/network` | Connections and invitations | Shipped |
+| `/jobs` | Job search and saved jobs | Shipped |
+| `/communities`, `/communities/[id]` | Communities | Shipped |
+| `/messages` | Messaging | Shipped |
+| `/notifications`, `/profile`, `/settings` | Account surfaces | Shipped |
+
+Primary navigation is exactly five destinations — Feed, Network, Jobs,
+Communities, Messages. Search, notifications and the account menu are global
+*actions* beside them, not entries in the list. Workspace links never accumulate
+here; the workspace switcher handles that (§4.1).
+
+`/dashboard` permanently redirects to `/feed`. Several personal tools remain
+under the `/dashboard/*` namespace (`career-insights`, `cover-letters`,
+`interview-prep`, `resumes`, `saved-searches`). They are tools inside the
+Professional workspace, not a dashboard home — a dashboard may exist inside a
+workspace, but is not the workspace.
+
+### 3.3 Freelancer workspace
+
+Available when the freelancer capability is activated.
+
+| Route | Purpose | Status |
+| :--- | :--- | :--- |
+| `/freelance` | Freelancer home | Shipped |
+| `/freelance/projects` | Find projects | Target |
+| `/freelance/proposals` | Proposals | Target |
+| `/freelance/contracts` | Contracts | Target |
+| `/freelance/earnings` | Earnings | Target |
+
+### 3.4 Recruiting workspace
+
+Available when the recruiter capability is activated.
+
+**The canonical namespace is `/recruiter/*`, not `/recruiting/*`.** The shipped
+application uses `/recruiter`, and renaming a working namespace to match a
+document would break every existing link and bookmark for no user-visible gain.
+The workspace is *named* Recruiting; its routes are `/recruiter`.
+
+| Route | Purpose | Status |
+| :--- | :--- | :--- |
+| `/recruiter` | Recruiting home | Shipped |
+| `/recruiter/jobs` | Job management | Shipped |
+| `/recruiter/candidates`, `/recruiter/candidates/[id]` | Candidates | Shipped |
+| `/recruiter/applications`, `/recruiter/applications/[id]` | Applications | Shipped |
+| `/recruiter/candidates/search` | Talent search | Shipped |
+| `/recruiter/interviews`, `/recruiter/pipeline`, `/recruiter/offers` | Hiring workflow | Shipped |
+
+If `/recruiting/*` is ever introduced, it must be a redirect to `/recruiter/*`,
+never a parallel implementation. Two URLs for one canonical resource is the
+defect this section exists to prevent.
+
+### 3.5 Company workspace — entity-scoped
+
+One instance per company the user may manage. The company id is in the path, so
+the address carries the authority it needs; it must never be carried in a query
+parameter, which was the defect corrected in the navigation rebuild.
+
+| Route | Purpose | Status |
+| :--- | :--- | :--- |
+| `/companies/[handle]` | Public company page | Shipped |
+| `/companies/[handle]/admin` | Company home | Shipped |
+| `/companies/[handle]/admin/jobs` | Jobs | Target |
+| `/companies/[handle]/admin/candidates` | Candidates | Target |
+| `/companies/[handle]/admin/team` | Employees and team | Target |
+| `/companies/[handle]/admin/analytics` | Analytics | Target |
+| `/companies/[handle]/admin/settings` | Settings | Target |
+
+The shipped namespace is `/companies/[handle]/admin/*`. Documents proposing
+`/company/:companyId/*` describe the same concept with a different spelling;
+the shipped form is canonical. A legacy `/company/dashboard?company=slug` has
+already been retired.
+
+### 3.6 Community admin workspace — entity-scoped
+
+| Route | Purpose | Status |
+| :--- | :--- | :--- |
+| `/communities/[id]/admin` | Overview | Shipped |
+| `/communities/[id]/admin/members` | Members | Target |
+| `/communities/[id]/admin/posts`, `/moderation` | Content and moderation | Target |
+| `/communities/[id]/admin/events`, `/analytics`, `/settings` | Remaining sections | Target |
+
+### 3.7 Page admin workspace — specified, not buildable
+
+`/pages/[id]/admin` is **Target only, and blocked.** Pages do not exist: no
+table, no backend module, no API route, no web route. This workspace must not
+appear in the switcher until the Pages domain exists. See §3.2 of the
+architecture specification.
+
+### 3.8 Capability onboarding
+
+Capabilities are activated, never selected. "Start freelancing" and "Recruit
+talent" begin onboarding; the workspace appears only once that completes and
+validates. Selecting a workspace never grants the capability behind it.
+
+### 3.9 Platform administration
+
+`/admin/*`. Isolated, gated on the route rather than only on the link, and
+restricted to the global role set `{admin, super_admin, platform_admin}`. No
+entity-scoped role ever confers access here.
+
 
 ---
 
-## 4. Dashboard Layout & Panel Specifications
+## 4. Workspace Shell & The Switcher
 
-### 4.1 Talent Dashboard Layout
-* **Primary Panel (Center)**: The High-Signal Feed (voted technical articles, code updates, and Guild publications).
-* **Sidebar Left**: Mini-profile card displaying current DRS rating and active Guild links.
-* **Sidebar Right**: AI Copilot recommendations (next course in upskilling path, upcoming interview prep slot).
+Renamed from "Dashboard Layout". The panel specifications that stood here
+described four dashboards keyed to four mutually exclusive personas — Talent,
+Recruiter, Company Admin, Guild Moderator — which is the model this
+architecture replaces. Several referenced surfaces that do not exist (DRS
+rating, AI Copilot panel, Guild peer review, recruiter seat caps).
 
-### 4.2 Recruiter Console Layout
-* **Primary Panel (Center)**: Active Candidate Funnel matrix (Vetted -> Anonymized Chat -> Interview Scheduled -> Hired).
-* **Header**: Global search bar triggering the **Capability Search Engine**.
-* **Sidebar Left**: Active job postings slot list (cap: 5 active slots per seat).
+Layout is now defined per **workspace**, and one user may move between several.
 
-### 4.3 Company Admin Control Panel
-* **Primary Panel (Center)**: User management table (adding/revoking recruiter seats, assigning permissions).
-* **Sidebar Left**: SSO (SAML/OIDC) security configuration wizard and API token generation controls.
-* **Sidebar Right**: Billing summary panel (monthly SaaS seat count invoice exports).
+### 4.1 The workspace switcher
 
-### 4.4 Guild Moderator Interface
-* **Primary Panel (Center)**: Flagged content moderation queue (flagged posts, comments, spammers).
-* **Tab Panel 1**: Pending peer-review portfolio submissions (matching candidate deliverables with moderator expertise).
-* **Tab Panel 2**: Escrow dispute mediation panel (auditing contract specifications and project submissions).
+Placement: beside the account controls, at every breakpoint. **Not** in the
+primary navigation.
+
+```
+Kirmya   Feed  Network  Jobs  Communities  Messages      🔍  🔔  [Professional ▾]
+                                                                      │
+                                                     ┌────────────────┴─────────┐
+                                                     │ Professional           ✓ │
+                                                     │ Freelancing              │
+                                                     │ Recruiting               │
+                                                     ├──────────────────────────┤
+                                                     │ Acme LLC                 │
+                                                     │ Go Developers UAE        │
+                                                     ├──────────────────────────┤
+                                                     │ Kirmya Administration    │
+                                                     └──────────────────────────┘
+```
+
+Rules:
+
+- Lists only workspaces the authenticated user may actually enter.
+- Groups by kind: capabilities, then entity instances, then platform admin.
+- The current workspace is always identifiable.
+- Switching takes at most two interactions.
+- Unavailable **capabilities** may appear as onboarding calls to action.
+  Unavailable **privileged** workspaces do not appear at all — listing a company
+  the user cannot enter discloses that the company exists.
+
+### 4.2 Shell composition
+
+Every workspace uses the same shell, with the contextual layer swapped:
+
+| Layer | Varies by workspace? |
+| :--- | :--- |
+| Global header — brand, search, notifications, account, switcher | No |
+| Primary navigation | **Yes** — five destinations of the active workspace |
+| Contextual navigation — section tabs | **Yes** |
+| Page header and breadcrumbs | Yes |
+| Content | Yes |
+| Mobile bottom navigation | **Yes** — mirrors the active workspace's primary items |
+
+### 4.3 Per-workspace primary navigation
+
+| Workspace | Primary destinations |
+| :--- | :--- |
+| Professional | Feed · Network · Jobs · Communities · Messages |
+| Freelancer | Freelancer Home · Find Projects · Proposals · Contracts · Earnings · Messages |
+| Recruiting | Recruiting Home · Jobs · Candidates · Applications · Talent Search · Messages |
+| Company | Company Home · Jobs · Candidates · Team · Company Page · Analytics · Settings |
+| Community admin | Overview · Members · Posts · Moderation · Events · Analytics · Settings |
+| Page admin | Overview · Content · Followers · Analytics · Settings *(blocked — Pages do not exist)* |
+| Platform admin | Isolated console; not composed with the above |
+
+### 4.4 Mobile and tablet
+
+The switcher opens from the account control on every breakpoint. The mobile
+presentation must not enumerate every capability at once. The bottom navigation
+carries the primary destinations of the **active** workspace, so switching
+changes the bottom bar rather than adding to it.
+
+Both the desktop primary row and the bottom bar switch at the `md` breakpoint
+(768px in this theme, not MUI's 900px default), so no viewport is left with
+neither.
 
 ---
 
 ## 5. Breadcrumb Structure & Navigation Rules
 
-To ensure orientation across nested workspaces, the platform enforces logical breadcrumb hierarchies:
+Breadcrumbs are rooted in the **active workspace**, not in a global "Home".
+This is what tells a user which of several contexts they are in, and it is the
+main orientation cue when one person holds many workspaces.
 
-* **Talent Guild Paths**:  
-  `Home > Guilds > [Guild Name] > [Resource Type] > [Item]`  
-  *Example*: `Home > Guilds > Rust Developers > Peer Reviews > Submission #4092`
-* **Upskilling Paths**:  
-  `Home > Learning > Upskilling Paths > [Target Role] > [Active Course]`  
-  *Example*: `Home > Learning > Upskilling Paths > DevOps Engineer > Udemy Course API #1`
-* **Recruiter Pipeline Paths**:  
-  `Recruiter Dashboard > Job Postings > [Job Title] > Candidates > [Blind Candidate ID]`  
-  *Example*: `Recruiter Dashboard > Job Postings > Senior Backend Engineer > Candidates > Profile #T7492`
-* **Admin Telemetry Paths**:  
-  `Admin Dashboard > Telemetry Logs > [Database Type] > Query Logs`  
-  *Example*: `Admin Dashboard > Telemetry Logs > Neo4j GraphDB > Query Logs`
+| Workspace | Pattern | Example |
+| :--- | :--- | :--- |
+| Professional | `Feed > [Section] > [Item]` | `Feed > Jobs > Senior Backend Engineer` |
+| Freelancer | `Freelancing > [Section] > [Item]` | `Freelancing > Proposals > Proposal #482` |
+| Recruiting | `Recruiting > [Section] > [Item]` | `Recruiting > Candidates > Priya Raghunathan` |
+| Company | `[Company Name] > [Section] > [Item]` | `Acme LLC > Jobs > Platform Engineer` |
+| Community admin | `[Community Name] > [Section] > [Item]` | `Go Developers UAE > Moderation > Report #17` |
+| Platform admin | `Kirmya Administration > [Section] > [Item]` | `Kirmya Administration > Users > Account #8821` |
+
+Rules:
+
+- The first crumb names the workspace and, for entity-scoped workspaces, the
+  entity — so `Acme LLC > …` rather than `Company > …`.
+- A crumb is a link only where the destination exists and the user may open it.
+- Breadcrumbs never expose the name of an entity the viewer may not see.
+- Browser Back and Forward follow the URL, and the URL carries the workspace, so
+  history moves between workspaces predictably.
+
+The previous version of this section described Guild peer-review paths, DevOps
+upskilling paths and Neo4j telemetry logs. None of those surfaces exists.
 
 ---
 
 ## 6. Deep Link Configurations
+
+> **Unverified.** The deep links below were not re-checked against the shipped
+> application in the 2026-09-10 workspace revision, and some reference Guild
+> surfaces that do not exist. Verify before relying on them.
+
 
 To support external workflows and sharing, the platform registers specific deep-link schemas:
 
@@ -173,6 +358,10 @@ To capture search engine index queries organically, Kirmya maintains public, rea
 ---
 
 ## 8. Future Horizon Marketplace Mappings (Phase 4)
+
+> **Forward-looking.** Phase 4 concepts, not shipped routes. Retained as
+> intent; several reference Guild surfaces that do not exist today.
+
 
 To support the V3.0 roadmap, the sitemap reserves the following routes:
 
