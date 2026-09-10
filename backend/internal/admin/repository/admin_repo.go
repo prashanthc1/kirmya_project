@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"kirmya/internal/admin/domain"
 	"kirmya/internal/admin/models"
 
 	"github.com/google/uuid"
@@ -218,43 +219,21 @@ func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UU
 		r.mu.RLock()
 		roles, exists := r.userRoles[userID]
 		r.mu.RUnlock()
-
-		if exists && len(roles) > 0 {
-			var perms []string
-			for _, role := range roles {
-				switch role {
-				case "super_admin":
-					return []string{"super_admin", "*"}, nil
-				case "platform_admin":
-					perms = append(perms, "users.read", "users.update", "system_settings.manage", "feature_flags.manage")
-				case "trust_safety_admin":
-					perms = append(perms, "reports.read", "reports.resolve", "moderation.review", "trust_safety.manage", "users.suspend")
-				case "content_moderator":
-					perms = append(perms, "jobs.read", "jobs.moderate", "reports.read", "reports.resolve", "moderation.review")
-				case "support_admin":
-					perms = append(perms, "users.read", "users.impersonate", "tickets.manage", "reports.read")
-				case "analytics_admin":
-					perms = append(perms, "analytics.read", "audit_logs.read", "metrics.read")
-				case "operations_admin":
-					perms = append(perms, "system_jobs.read", "system_jobs.retry", "incidents.manage", "maintenance.manage", "health.read")
-				}
-			}
-			return perms, nil
+		if !exists {
+			return nil, nil
 		}
 
-		// Default fallback for unit testing / development
-		return []string{
-			"super_admin", "*",
-			"users.read", "users.update", "users.suspend", "users.delete", "users.impersonate",
-			"companies.read", "companies.verify", "companies.suspend",
-			"recruiters.read", "recruiters.manage",
-			"jobs.read", "jobs.moderate", "jobs.approve", "jobs.remove",
-			"applications.read", "communities.moderate",
-			"reports.read", "reports.resolve", "moderation.review",
-			"trust_safety.manage", "audit_logs.read", "analytics.read",
-			"system_settings.manage", "notifications.manage",
-			"system_jobs.read", "system_jobs.retry", "incidents.manage", "maintenance.manage", "health.read",
-		}, nil
+		// The seeded mapping, from the one place it is defined. The no-database
+		// path exists for unit tests; answering from a second hand-written
+		// table here would let the tests agree with something the product does
+		// not do.
+		var perms []string
+		for _, role := range roles {
+			if rolePerms, ok := domain.PermissionsForRole(role); ok {
+				perms = append(perms, rolePerms...)
+			}
+		}
+		return perms, nil
 	}
 
 	query := `SELECT DISTINCT p.code
@@ -272,13 +251,24 @@ func (r *AdminRepository) GetUserPermissions(ctx context.Context, userID uuid.UU
 	var permissions []string
 	for rows.Next() {
 		var code string
-		if err := rows.Scan(&code); err == nil {
-			permissions = append(permissions, code)
+		// A scan error used to be discarded, so a partial read was returned as
+		// though it were the whole answer - and for a permission set, a short
+		// answer is a different authorization decision.
+		if err := rows.Scan(&code); err != nil {
+			return nil, err
 		}
+		permissions = append(permissions, code)
 	}
-	if len(permissions) == 0 {
-		permissions = []string{"users.read", "reports.read", "health.read"}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
+
+	// No invented default. This used to answer "users.read, reports.read,
+	// health.read" when the query found nothing, which meant every account in
+	// the product held three real permissions granted by an empty table. What
+	// an empty result means is decided by the service, which knows the
+	// difference between "assigned nothing" and "assigned a role with no
+	// permissions"; the repository only reports what is stored.
 	return permissions, nil
 }
 
@@ -287,10 +277,7 @@ func (r *AdminRepository) GetUserRoles(ctx context.Context, userID uuid.UUID) ([
 	if r.db == nil {
 		r.mu.RLock()
 		defer r.mu.RUnlock()
-		if roles, exists := r.userRoles[userID]; exists && len(roles) > 0 {
-			return roles, nil
-		}
-		return []string{"super_admin"}, nil
+		return append([]string(nil), r.userRoles[userID]...), nil
 	}
 
 	query := `SELECT r.code FROM admin_roles r JOIN admin_user_roles ur ON r.id = ur.role_id WHERE ur.user_id = $1`
@@ -303,13 +290,18 @@ func (r *AdminRepository) GetUserRoles(ctx context.Context, userID uuid.UUID) ([
 	var roles []string
 	for rows.Next() {
 		var code string
-		if err := rows.Scan(&code); err == nil {
-			roles = append(roles, code)
+		if err := rows.Scan(&code); err != nil {
+			return nil, err
 		}
+		roles = append(roles, code)
 	}
-	if len(roles) == 0 {
-		roles = []string{"super_admin"}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
+
+	// Formerly "super_admin" when the query found nothing - which is to say,
+	// for every account in the product, because nothing had ever been assigned.
+	// An account with no administrative role holds no administrative role.
 	return roles, nil
 }
 
@@ -945,10 +937,73 @@ func (r *AdminRepository) AssignUserRole(ctx context.Context, userID uuid.UUID, 
 		query := `INSERT INTO admin_user_roles (id, user_id, role_id, assigned_at)
 			SELECT gen_random_uuid(), $1, id, NOW() FROM admin_roles WHERE code = $2
 			ON CONFLICT (user_id, role_id) DO NOTHING`
-		_, err := r.db.Exec(ctx, query, userID, roleCode)
-		return err
+		tag, err := r.db.Exec(ctx, query, userID, roleCode)
+		if err != nil {
+			return err
+		}
+		// The SELECT matches nothing for a role code the table does not hold,
+		// so this statement reported success while writing no row - the console
+		// would say a role had been assigned that had not been. The service
+		// refuses an unknown code before reaching here; this catches a code the
+		// code knows and the database does not, which means the seed did not
+		// run. It is deliberately not an error for an existing assignment,
+		// where DO NOTHING is the correct no-op.
+		if tag.RowsAffected() == 0 {
+			assigned, err := r.userHasRole(ctx, userID, roleCode)
+			if err != nil {
+				return err
+			}
+			if !assigned {
+				return fmt.Errorf("administrative role %q is not defined in this database", roleCode)
+			}
+		}
+		return nil
 	}
 	return nil
+}
+
+// userHasRole reports whether the assignment already exists.
+func (r *AdminRepository) userHasRole(ctx context.Context, userID uuid.UUID, roleCode string) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx,
+		`SELECT EXISTS (
+			SELECT 1 FROM admin_user_roles ur
+			JOIN admin_roles r ON r.id = ur.role_id
+			WHERE ur.user_id = $1 AND r.code = $2)`,
+		userID, roleCode).Scan(&exists)
+	return exists, err
+}
+
+// RevokeUserRole removes one administrative role assignment.
+//
+// Removing the last one returns the account to "no assignment", which under the
+// rule in admin/domain means every permission again - the state every
+// administrator is in today.
+func (r *AdminRepository) RevokeUserRole(ctx context.Context, userID uuid.UUID, roleCode string) error {
+	r.mu.Lock()
+	if existing, ok := r.userRoles[userID]; ok {
+		kept := existing[:0]
+		for _, code := range existing {
+			if code != roleCode {
+				kept = append(kept, code)
+			}
+		}
+		if len(kept) == 0 {
+			delete(r.userRoles, userID)
+		} else {
+			r.userRoles[userID] = kept
+		}
+	}
+	r.mu.Unlock()
+
+	if r.db == nil {
+		return nil
+	}
+	query := `DELETE FROM admin_user_roles
+		WHERE user_id = $1
+		  AND role_id = (SELECT id FROM admin_roles WHERE code = $2)`
+	_, err := r.db.Exec(ctx, query, userID, roleCode)
+	return err
 }
 
 // GetRoles lists all predefined administrative roles.

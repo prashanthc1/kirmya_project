@@ -3,6 +3,7 @@ package http
 import (
 	"kirmya/internal/admin/service"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,7 +23,21 @@ func getUserID(c *gin.Context) (uuid.UUID, bool) {
 	return userID, true
 }
 
-// RequirePermission Gin middleware that enforces a granular admin permission.
+// CodeAdminPermissionRequired means the caller is an administrator, but not one
+// holding the permission this route needs.
+const CodeAdminPermissionRequired = "ADMIN_PERMISSION_REQUIRED"
+
+// RequirePermission gates an administrative route on a granular permission.
+//
+// It runs *inside* RequireAdmin(), never instead of it. The outer gate decides
+// who is an administrator, from users.role_id; this decides what a given
+// administrator may do, from admin_user_roles. An account with no assignment
+// holds every permission and passes, which is why adding this to a route
+// changes nothing for anybody until somebody is deliberately narrowed.
+//
+// Consequently this middleware can only ever refuse. It is incapable of
+// admitting a caller the middleware ahead of it turned away, and it must never
+// be used as the only guard on a route.
 func RequirePermission(adminSvc *service.AdminService, requiredPermission string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, ok := getUserID(c)
@@ -32,9 +47,22 @@ func RequirePermission(adminSvc *service.AdminService, requiredPermission string
 		}
 
 		hasPerm, err := adminSvc.CheckPermission(c.Request.Context(), userID, requiredPermission)
-		if err != nil || !hasPerm {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Insufficient administrative privileges for permission: " + requiredPermission})
-			c.Abort()
+		if err != nil {
+			// A failed lookup is not a denial. Answering 403 here would report
+			// an outage as an authorization decision, and would tell an
+			// administrator their access had been removed when the database
+			// was merely unreachable.
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": "Administrative permissions could not be determined",
+				"code":  "INTERNAL_ERROR",
+			})
+			return
+		}
+		if !hasPerm {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error": "This administrative action requires the " + requiredPermission + " permission.",
+				"code":  CodeAdminPermissionRequired,
+			})
 			return
 		}
 		c.Next()
@@ -51,9 +79,18 @@ func RequireAnyPermission(adminSvc *service.AdminService, requiredPermissions ..
 		}
 
 		hasPerm, err := adminSvc.CheckAnyPermission(c.Request.Context(), userID, requiredPermissions...)
-		if err != nil || !hasPerm {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: Insufficient administrative privileges"})
-			c.Abort()
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": "Administrative permissions could not be determined",
+				"code":  "INTERNAL_ERROR",
+			})
+			return
+		}
+		if !hasPerm {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error": "This administrative action requires one of: " + strings.Join(requiredPermissions, ", "),
+				"code":  CodeAdminPermissionRequired,
+			})
 			return
 		}
 		c.Next()

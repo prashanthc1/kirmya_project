@@ -2,7 +2,7 @@
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | Audit complete. Resolver implemented, served on `/auth/me`, switched in the UI, navigation keyed to the workspace, and the chosen workspace remembered — see §18. |
+| **Status** | Audit complete. Every recommendation implemented — resolver, `/auth/me`, switcher, workspace-keyed navigation, workspace persistence, and the two admin authorities reconciled. See §18. |
 | **Date** | 2026-09-10 |
 | **Audited at** | `04e8ed2` |
 | **Target design** | [26-workspace-architecture.md](26-workspace-architecture.md) · [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) |
@@ -286,6 +286,12 @@ granted an admin role there is not admitted by the middleware; a user with
 This is not a vulnerability — the middleware is the stricter of the two — but it
 is a latent trap: granting a role in the admin console does not grant access.
 Recorded as **P1-2**.
+
+**Closed.** See §18, *Reconciling the two admin systems*. The audit understated
+it in one direction and overstated it in another: the console's assign button
+made no request at all, so nothing was ever written to grant; and three code
+paths were inventing authority *from the empty tables*, which mattered more than
+the disconnection did.
 
 ### Frontend / backend mismatch
 
@@ -594,6 +600,7 @@ unchanged; this section says which of its recommendations now exist in code.
 | Frontend workspace state (map items 8–11) | **Done** | `AuthContext.workspaces`, `WorkspaceSwitcher`, shell entries |
 | Contextual navigation per workspace | **Done** | `shared/navigation/workspaceNav.ts`, `AppShell`, `MobileBottomNav` |
 | Workspace persistence | **Done** | migration 0098, `internal/workspace` preference service, `shared/workspace/landing.ts` |
+| `admin_user_roles` vs `RequireAdmin` (§11 P1-2) | **Done** | migration 0099, `internal/admin/domain`, `RequirePermission` on every admin route |
 
 ### Workspaces the resolver returns
 
@@ -896,3 +903,111 @@ recruiting preference and confirms `/admin/users` still refuses.
 - **No CHECK constraint listing workspace types.** It would be a copy of the
   domain vocabulary that migrations cannot keep in step, and it would buy
   nothing: an unrecognised key already fails the resolved-list comparison.
+
+### Reconciling the two admin systems
+
+§8 recorded two disconnected admin authorities: `RequireAdmin()` reading
+`users.role_id` from the token, and an `admin_user_roles` RBAC that nothing
+consulted. Reconciled by making the RBAC real as a **narrowing tier** beneath
+the middleware, never beside it.
+
+#### What was actually there
+
+Worse than "disconnected", and better, in different places:
+
+- **Nothing could grant a role.** `AssignUserRole` reached the repository, whose
+  `INSERT ... SELECT FROM admin_roles WHERE code = $1` matched no row against an
+  empty table and reported success. The console's Confirm button did not even
+  get that far — `handleAssign` set a success message and made no request.
+- **The console was invented.** Five roles held in component state
+  (`support_agent`, `analytics_viewer` and three more that exist nowhere), with
+  assignment counts of 2, 5, 12, 18 and 4 written as literals, and a third role
+  vocabulary agreeing with neither the backend's nor `features/admin/types.ts`.
+- **Three paths fabricated authority from the empty tables.** This is the part
+  that mattered. `GetUserPermissions` answered `users.read, reports.read,
+  health.read` when its query found nothing, and everything — including
+  `super_admin` and `*` — when built without a database. `GetUserRoles` answered
+  `super_admin`. All three fired for *every account in the product*, because
+  nothing had ever been assigned. They were unreachable only because no route
+  used them; wiring the middleware without fixing them would have handed three
+  real permissions to every authenticated user.
+- **`RequirePermission` reported an outage as a refusal** — `err != nil ||
+  !hasPerm` → 403 — the same defect the recruiter capability gate was fixed for.
+- **The audit trail named the wrong person.** Every role assignment was logged as
+  `admin@kirmya.com` with role `super_admin`, both literals in the source.
+
+#### The rule
+
+Stated once, in `internal/admin/domain`:
+
+> An account with **no** row in `admin_user_roles` holds **every** permission.
+> An account **with** rows holds **exactly** what those roles carry.
+
+Two properties follow, and tests hold both:
+
+- **Nobody is locked out.** Every administrator today has no assignment, so
+  every administrator keeps exactly the access they have and notices nothing.
+  Adding `RequirePermission` to fifty routes changed no behaviour on the day it
+  shipped.
+- **Nothing can be widened.** Since the no-assignment baseline is *everything*,
+  any assignment is necessarily a subset. There is no arrangement of roles that
+  grants more than assigning none — so this mechanism is incapable of admitting
+  anyone `RequireAdmin()` would refuse.
+
+`RequireAdmin()` still gates the group ahead of all of it. An account that is
+not an administrator never reaches the permission tier, and if it somehow did,
+"no assignment" would hand it everything — which is precisely why the outer gate
+is not optional, and why a test asserts a **403** rather than "403 or 401" for
+an authenticated non-administrator. The looser assertion passed with
+`RequireAdmin()` deleted, because nothing else on the group authenticates; a
+negative control caught that the test proved nothing.
+
+#### What changed
+
+| Piece | Before | After |
+| :--- | :--- | :--- |
+| Vocabulary | four empty tables | 10 roles, 29 permissions, seeded by 0099 |
+| Canonical definition | none | `internal/admin/domain`, with a conformance test holding the seed equal to it |
+| Enforcement | none | `RequirePermission` on every admin route, inside `RequireAdmin()` |
+| Empty-table answer | invented permissions and `super_admin` | nothing; the service decides what empty means |
+| Lookup failure | 403 | 500 |
+| Unknown role code | silent success, no row | 400 `UNKNOWN_ADMIN_ROLE`, no row |
+| Undoing an assignment | impossible outside the database | `POST /admin/roles/revoke` |
+| Self-narrowing | allowed, and irreversible | 403 `CANNOT_NARROW_SELF` |
+| Audit actor | `admin@kirmya.com` / `super_admin` | the acting administrator, or empty when unknown |
+| Console | five invented roles, no request | the served roles, real assign and revoke |
+
+`roles.manage` and `users.impersonate` are withheld from `platform_admin`, so
+among the seeded roles only `super_admin` can widen anyone or become anyone.
+`read_only_admin` is derived from `%.read` in both the seed and the code rather
+than listed, so a permission added later cannot silently fall out of the role
+whose whole definition is "can look at things".
+
+#### Narrowing covers the console, not yet the whole admin surface
+
+`RequirePermission` is applied to the ~50 routes in
+`internal/admin/delivery/http/routes.go`. Eighteen other modules — analytics,
+backup, billing, company, compliance, data_operations, landing, legal,
+messaging, networking, notification, onboarding, recommendation_engine,
+profile, security, support, system_health and trust_safety — register their own
+administrative groups behind the same `RequireAdmin()` and are **not** narrowed
+by these roles.
+
+This cannot widen anyone: those routes behave exactly as they did, and an
+account still needs `users.role_id ∈ AdminRoles()` to reach them. But it means a
+`read_only_admin` is read-only *in the console* and not everywhere, which is a
+misleading affordance if left unsaid — the same class of trap this slice
+closes. It is said, on the screen that does the narrowing and here.
+
+Extending it is mechanical but not small: each module needs its routes mapped to
+permissions, and several would want permissions this vocabulary does not yet
+have. Worth doing as its own slice, with the same no-lockout property.
+
+#### The escape hatch, stated deliberately
+
+An administrator cannot change their own assignments, which prevents the obvious
+self-lockout. It does not prevent every one: if every account holding
+`roles.manage` were narrowed by someone else, no one could undo it through the
+API. The way back is `users.role_id` — an account promoted there with no
+assignment holds everything again. That is a database operation on purpose; a
+console path to restore one's own authority is a console path to escalate.

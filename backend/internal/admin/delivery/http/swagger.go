@@ -495,6 +495,22 @@ func swaggerUpdateMaintenanceMode() {}
 // @Router       /api/v1/admin/roles [get]
 func swaggerListRoles() {}
 
+// swaggerRevokeUserRole documents POST /api/v1/admin/roles/revoke.
+//
+// @Summary      Revoke an administrative role
+// @Description  Removes one administrative role assignment from a user, widening what they may do. Removing the last assignment returns the account to holding every administrative permission, which is the state of every administrator who has never been assigned a role. Requires the roles.manage permission, held by super_admin alone among the seeded roles. An administrator may not change their own assignments.
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Param        request  body      models.AssignUserRolePayload  true  "The user and role to revoke"
+// @Success      200      {object}  swagger.SuccessResponse
+// @Failure      400      {object}  swagger.ErrorResponse  "Missing user or role"
+// @Failure      401      {object}  swagger.ErrorResponse  "Not authenticated"
+// @Failure      403      {object}  swagger.ErrorResponse  "Not an administrator, lacking roles.manage, or changing one's own roles"
+// @Security     BearerAuth
+// @Router       /api/v1/admin/roles/revoke [post]
+func swaggerRevokeUserRole() {}
+
 // swaggerAssignUserRole documents POST /api/v1/admin/roles/assign.
 //
 // @Summary      Assign Role to User

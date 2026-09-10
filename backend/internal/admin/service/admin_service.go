@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"kirmya/internal/admin/domain"
 	"kirmya/internal/admin/models"
 	"kirmya/internal/admin/repository"
 	"strings"
@@ -19,39 +20,49 @@ func NewAdminService(repo *repository.AdminRepository) *AdminService {
 	return &AdminService{repo: repo}
 }
 
-// CheckPermission validates whether an admin user holds a specific granular permission.
-func (s *AdminService) CheckPermission(ctx context.Context, adminID uuid.UUID, requiredPermission string) (bool, error) {
-	permissions, err := s.repo.GetUserPermissions(ctx, adminID)
+// EffectivePermissions returns what this administrator may do.
+//
+// The reconciliation between the two admin systems happens here, and the rule
+// is stated once in admin/domain: an account with no row in admin_user_roles
+// holds every permission, and an account with rows holds exactly what those
+// roles carry. Assignment therefore narrows and can never widen.
+//
+// Authorization reads the roles and maps them through the code's own table
+// rather than through the admin_role_permissions join. Both are seeded from one
+// definition and a conformance test proves they agree, but if they ever did
+// disagree, the enforcement path should follow the definition the reviewer read
+// rather than whatever a migration happened to write.
+func (s *AdminService) EffectivePermissions(ctx context.Context, adminID uuid.UUID) ([]string, error) {
+	roles, err := s.repo.GetUserRoles(ctx, adminID)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-
-	for _, perm := range permissions {
-		if perm == "super_admin" || perm == requiredPermission || perm == "*" {
-			return true, nil
-		}
-	}
-	return false, nil
+	return domain.EffectivePermissions(roles), nil
 }
 
-// CheckAnyPermission validates if the admin holds at least one of the required permissions.
-func (s *AdminService) CheckAnyPermission(ctx context.Context, adminID uuid.UUID, requiredPermissions ...string) (bool, error) {
-	permissions, err := s.repo.GetUserPermissions(ctx, adminID)
+// CheckPermission reports whether an administrator holds a granular permission.
+//
+// An error is returned rather than folded into false. A lookup that failed is
+// not a refusal, and a caller that cannot tell the two apart will report an
+// outage as a denial - see the middleware, which now answers 500 for the first
+// and 403 for the second.
+func (s *AdminService) CheckPermission(ctx context.Context, adminID uuid.UUID, requiredPermission string) (bool, error) {
+	effective, err := s.EffectivePermissions(ctx, adminID)
 	if err != nil {
 		return false, err
 	}
+	return domain.HasPermission(effective, requiredPermission), nil
+}
 
-	permMap := make(map[string]bool)
-	for _, p := range permissions {
-		permMap[p] = true
+// CheckAnyPermission reports whether an administrator holds at least one of the
+// permissions named.
+func (s *AdminService) CheckAnyPermission(ctx context.Context, adminID uuid.UUID, requiredPermissions ...string) (bool, error) {
+	effective, err := s.EffectivePermissions(ctx, adminID)
+	if err != nil {
+		return false, err
 	}
-
-	if permMap["super_admin"] || permMap["*"] {
-		return true, nil
-	}
-
-	for _, req := range requiredPermissions {
-		if permMap[req] {
+	for _, required := range requiredPermissions {
+		if domain.HasPermission(effective, required) {
 			return true, nil
 		}
 	}
@@ -287,19 +298,117 @@ func (s *AdminService) GetRoles(ctx context.Context) ([]models.AdminRole, error)
 }
 
 // AssignUserRole assigns an administrative role to a user account with audit logging.
+// ErrUnknownAdminRole reports a role code the platform does not define.
+var ErrUnknownAdminRole = errors.New("unknown administrative role")
+
+// ErrCannotNarrowSelf reports an attempt to change one's own assignment.
+var ErrCannotNarrowSelf = errors.New("an administrator cannot change their own administrative roles")
+
+// AssignUserRole narrows what a target administrator may do.
+//
+// "Narrows" is exact: an account with no assignment holds every permission, so
+// the first role assigned to anyone can only take access away. There is no
+// arrangement of roles that grants more than assigning none, and none of this
+// reaches an account that RequireAdmin() would refuse.
+//
+// Three refusals, none of which the previous implementation made:
+//
+//   - An unknown role code. The repository's INSERT ... SELECT FROM admin_roles
+//     WHERE code = $1 matched no row for an unrecognised code and reported
+//     success, so the console could report a role assigned that was not.
+//   - Assigning to oneself. An administrator who narrowed themselves would lose
+//     roles.manage along with everything else the new role omits, and could not
+//     undo it - the console would have handed them a door that locks from the
+//     inside.
+//   - An empty code, as before.
 func (s *AdminService) AssignUserRole(ctx context.Context, adminID uuid.UUID, targetUserID uuid.UUID, roleCode string, reason string, ip string, userAgent string) error {
+	return s.assignRole(ctx, actor{ID: adminID}, targetUserID, roleCode, reason, ip, userAgent)
+}
+
+// AssignUserRoleAs is AssignUserRole with the acting administrator's own
+// identity, so the audit entry names who actually did it.
+func (s *AdminService) AssignUserRoleAs(ctx context.Context, adminID uuid.UUID, adminEmail string, targetUserID uuid.UUID, roleCode string, reason string, ip string, userAgent string) error {
+	return s.assignRole(ctx, actor{ID: adminID, Email: adminEmail}, targetUserID, roleCode, reason, ip, userAgent)
+}
+
+// actor is who performed an administrative action.
+//
+// The audit trail used to record every role assignment as "admin@kirmya.com"
+// with role "super_admin" - a literal in the source, identical for every
+// administrator and every action. An audit log that names the wrong person is
+// worse than one that admits it does not know, so an unknown email is recorded
+// as empty rather than as somebody.
+type actor struct {
+	ID    uuid.UUID
+	Email string
+}
+
+func (s *AdminService) assignRole(ctx context.Context, by actor, targetUserID uuid.UUID, roleCode string, reason string, ip string, userAgent string) error {
 	if roleCode == "" {
 		return errors.New("roleCode is required")
 	}
+	if _, known := domain.PermissionsForRole(roleCode); !known {
+		return ErrUnknownAdminRole
+	}
+	if by.ID == targetUserID {
+		return ErrCannotNarrowSelf
+	}
 
-	prev := map[string]interface{}{"role": "none"}
-	next := map[string]interface{}{"role": roleCode}
+	// The real previous state, so the entry says what changed rather than
+	// asserting "none" whatever was there.
+	previousRoles, err := s.repo.GetUserRoles(ctx, targetUserID)
+	if err != nil {
+		return err
+	}
 
 	if err := s.repo.AssignUserRole(ctx, targetUserID, roleCode); err != nil {
 		return err
 	}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "super_admin", "role.assign", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
+	nextRoles, err := s.repo.GetUserRoles(ctx, targetUserID)
+	if err != nil {
+		// The write landed; failing here would report an error for an action
+		// that happened. Record what was intended and carry on.
+		nextRoles = append(append([]string(nil), previousRoles...), roleCode)
+	}
+
+	prev := map[string]interface{}{"roles": previousRoles}
+	next := map[string]interface{}{"roles": nextRoles}
+
+	return s.LogAction(ctx, by.ID, by.Email, "", "role.assign", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
+}
+
+// RevokeUserRole removes an assignment, widening the target back towards the
+// default - and, when the last one goes, back to every permission.
+//
+// It exists because a narrowing with no way back is a trap: without this, the
+// only route out of a mistaken assignment is the database.
+func (s *AdminService) RevokeUserRole(ctx context.Context, adminID uuid.UUID, adminEmail string, targetUserID uuid.UUID, roleCode string, reason string, ip string, userAgent string) error {
+	if roleCode == "" {
+		return errors.New("roleCode is required")
+	}
+	if adminID == targetUserID {
+		return ErrCannotNarrowSelf
+	}
+
+	previousRoles, err := s.repo.GetUserRoles(ctx, targetUserID)
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.RevokeUserRole(ctx, targetUserID, roleCode); err != nil {
+		return err
+	}
+
+	nextRoles, err := s.repo.GetUserRoles(ctx, targetUserID)
+	if err != nil {
+		nextRoles = nil
+	}
+
+	prev := map[string]interface{}{"roles": previousRoles}
+	next := map[string]interface{}{"roles": nextRoles}
+
+	return s.LogAction(ctx, adminID, adminEmail, "", "role.revoke", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
 }
 
 // CreateImpersonationSession creates a temporary support impersonation session.

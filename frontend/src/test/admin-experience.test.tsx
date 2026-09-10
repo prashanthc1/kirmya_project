@@ -144,10 +144,18 @@ describe('Admin, Moderation, Trust & Safety Experience (Prompt 29/50)', () => {
       expect(screen.getByText(/User Account Governance/i)).toBeDefined();
     });
 
-    it('renders administrative role matrix', () => {
+    it('renders administrative roles without inventing any', () => {
       renderWithTheme(<RoleManagement />);
 
-      expect(screen.getByText(/Role-Based Access Control/i)).toBeDefined();
+      expect(screen.getByText(/Administrative roles/i)).toBeDefined();
+
+      // The five roles this screen used to hold in component state, with
+      // assignment counts of 2, 5, 12, 18 and 4 written as literals. None of
+      // them exists in the platform; the roles come from GET /admin/roles now,
+      // and with the network disabled there are none to show.
+      expect(screen.queryByText(/support_agent/i)).toBeNull();
+      expect(screen.queryByText(/analytics_viewer/i)).toBeNull();
+      expect(screen.queryByText(/12 Admins/i)).toBeNull();
     });
   });
 

@@ -6793,6 +6793,63 @@
                 }
             }
         },
+        "/api/v1/admin/roles/revoke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes one administrative role assignment from a user, widening what they may do. Removing the last assignment returns the account to holding every administrative permission, which is the state of every administrator who has never been assigned a role. Requires the roles.manage permission, held by super_admin alone among the seeded roles. An administrator may not change their own assignments.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Revoke an administrative role",
+                "parameters": [
+                    {
+                        "description": "The user and role to revoke",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AssignUserRolePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing user or role",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not an administrator, lacking roles.manage, or changing one's own roles",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/security": {
             "get": {
                 "security": [

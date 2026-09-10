@@ -13128,6 +13128,48 @@ paths:
       summary: Assign Role to User
       tags:
       - Admin RBAC
+  /api/v1/admin/roles/revoke:
+    post:
+      consumes:
+      - application/json
+      description: Removes one administrative role assignment from a user, widening
+        what they may do. Removing the last assignment returns the account to holding
+        every administrative permission, which is the state of every administrator
+        who has never been assigned a role. Requires the roles.manage permission,
+        held by super_admin alone among the seeded roles. An administrator may not
+        change their own assignments.
+      parameters:
+      - description: The user and role to revoke
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssignUserRolePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Missing user or role
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Not authenticated
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Not an administrator, lacking roles.manage, or changing one's
+            own roles
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke an administrative role
+      tags:
+      - Admin
   /api/v1/admin/security:
     get:
       description: Returns platform-wide SOC metrics, active incidents, and event

@@ -223,9 +223,19 @@ describe('Admin & Platform Administration Module Test Suite', () => {
       expect(screen.queryByText(/Tariq Al-Mansoor/i)).not.toBeInTheDocument();
     });
 
-    it('renders RoleManagement RBAC console', () => {
+    it('renders RoleManagement without claiming roles it cannot name', () => {
       render(<RoleManagement />);
-      expect(screen.getByText(/Role-Based Access Control/i)).toBeInTheDocument();
+      expect(screen.getByText(/Administrative roles/i)).toBeInTheDocument();
+
+      // Same correction as the user directory above: the role list was five
+      // invented entries in component state, and Confirm set a success message
+      // without calling anything. Both come from the server now.
+      expect(screen.queryByText(/support_agent/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/analytics_viewer/i)).not.toBeInTheDocument();
+
+      // The page states the rule that makes an assignment safe, because it is
+      // the opposite of what "assign a role" usually implies.
+      expect(screen.getByText(/holds every administrative permission/i)).toBeInTheDocument();
     });
 
     it('renders JobModeration queue', () => {

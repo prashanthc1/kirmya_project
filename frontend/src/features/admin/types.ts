@@ -1,16 +1,25 @@
+/**
+ * The administrative roles the platform defines.
+ *
+ * These are the codes seeded by migration 0099 and served by
+ * GET /api/v1/admin/roles; internal/admin/domain is the canonical definition
+ * and a conformance test holds the database to it. This list previously
+ * carried recruiter_admin, company_admin, job_admin and community_moderator,
+ * which nothing has ever defined, and omitted operations_admin, which is real.
+ *
+ * A role restricts an administrator to its permissions. It never makes one:
+ * users.role_id decides who is an administrator, and no value here changes it.
+ */
 export type AdminRoleCode =
   | 'super_admin'
   | 'platform_admin'
   | 'user_admin'
-  | 'recruiter_admin'
-  | 'company_admin'
-  | 'job_admin'
-  | 'community_moderator'
   | 'trust_safety_admin'
-  | 'verification_admin'
   | 'content_moderator'
+  | 'verification_admin'
   | 'support_admin'
   | 'analytics_admin'
+  | 'operations_admin'
   | 'read_only_admin';
 
 export interface AdminRoleDTO {

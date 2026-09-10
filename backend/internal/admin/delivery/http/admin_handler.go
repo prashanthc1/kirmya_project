@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -706,13 +707,71 @@ func (h *AdminHandler) AssignUserRole(c *gin.Context) {
 		reason = payload.Reason
 	}
 
-	err := h.service.AssignUserRole(c.Request.Context(), adminID, targetUserID, roleCode, reason, c.ClientIP(), c.Request.UserAgent())
+	err := h.service.AssignUserRoleAs(c.Request.Context(), adminID, actorEmail(c), targetUserID, roleCode, reason, c.ClientIP(), c.Request.UserAgent())
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		respondRoleError(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Role assigned successfully"})
+}
+
+// RevokeUserRole removes an administrative role assignment.
+//
+// Its absence was a trap: an assignment could only ever be added, so a
+// narrowing applied by mistake had no route back except the database.
+func (h *AdminHandler) RevokeUserRole(c *gin.Context) {
+	adminID, ok := getUserID(c)
+	if !ok {
+		return
+	}
+
+	var payload models.AssignUserRolePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.service.RevokeUserRole(c.Request.Context(), adminID, actorEmail(c),
+		payload.UserID, payload.RoleCode, payload.Reason, c.ClientIP(), c.Request.UserAgent())
+	if err != nil {
+		respondRoleError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Role revoked successfully"})
+}
+
+// actorEmail is the acting administrator's own email, from the verified token.
+//
+// Empty when the claim is absent, which the audit trail records as unknown. It
+// used to record the literal "admin@kirmya.com" for every administrator alive,
+// which is worse than unknown: it names somebody, and the wrong somebody.
+func actorEmail(c *gin.Context) string {
+	if value, exists := c.Get("email"); exists {
+		if email, ok := value.(string); ok {
+			return email
+		}
+	}
+	return ""
+}
+
+// respondRoleError tells a refusal apart from a failure.
+func respondRoleError(c *gin.Context, err error) {
+	switch {
+	case errors.Is(err, service.ErrUnknownAdminRole):
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "That administrative role does not exist.",
+			"code":  "UNKNOWN_ADMIN_ROLE",
+		})
+	case errors.Is(err, service.ErrCannotNarrowSelf):
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "An administrator cannot change their own administrative roles.",
+			"code":  "CANNOT_NARROW_SELF",
+		})
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 }
 
 // Feature Flag Creation Handler

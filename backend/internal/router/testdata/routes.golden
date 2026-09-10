@@ -584,6 +584,7 @@ POST /api/v1/admin/notifications/templates/:id/test
 POST /api/v1/admin/privacy/export
 POST /api/v1/admin/reports/:id/resolve
 POST /api/v1/admin/roles/assign
+POST /api/v1/admin/roles/revoke
 POST /api/v1/admin/safety/appeals/:id/resolve
 POST /api/v1/admin/safety/cases/:id/actions
 POST /api/v1/admin/security/alerts/:id/resolve

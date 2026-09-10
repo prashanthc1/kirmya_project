@@ -45,14 +45,25 @@ func TestAdminRepositoryRolesAndPermissions(t *testing.T) {
 	ctx := context.Background()
 
 	userID := uuid.New()
+
+	/*
+	 * An account with no assignment holds no administrative *role*.
+	 *
+	 * These two assertions used to read NotEmpty and Contains "super_admin",
+	 * which is what the code did: an empty table answered "super_admin" and a
+	 * fabricated permission list for every account in the product. That was the
+	 * defect, not the contract, so the test moved with the code.
+	 *
+	 * What an empty answer *means* is decided one layer up, in admin/domain:
+	 * no assignment is every permission. The repository reports storage.
+	 */
 	roles, err := repo.GetUserRoles(ctx, userID)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, roles)
+	assert.Empty(t, roles, "an unassigned account was given an administrative role by an empty table")
 
-	// Default permissions
 	perms, err := repo.GetUserPermissions(ctx, userID)
 	assert.NoError(t, err)
-	assert.Contains(t, perms, "super_admin")
+	assert.Empty(t, perms, "an unassigned account was given permissions by an empty table")
 
 	// Assign custom role
 	err = repo.AssignUserRole(ctx, userID, "content_moderator")
@@ -61,6 +72,21 @@ func TestAdminRepositoryRolesAndPermissions(t *testing.T) {
 	rolesAfter, err := repo.GetUserRoles(ctx, userID)
 	assert.NoError(t, err)
 	assert.Contains(t, rolesAfter, "content_moderator")
+
+	// And the assignment now carries that role's real permissions, from the one
+	// place they are defined, rather than a second list written here.
+	permsAfter, err := repo.GetUserPermissions(ctx, userID)
+	assert.NoError(t, err)
+	assert.Contains(t, permsAfter, "jobs.moderate")
+	assert.NotContains(t, permsAfter, "roles.manage",
+		"a content moderator may assign administrative roles")
+
+	// Revoking the last role returns the account to no assignment.
+	err = repo.RevokeUserRole(ctx, userID, "content_moderator")
+	assert.NoError(t, err)
+	rolesRevoked, err := repo.GetUserRoles(ctx, userID)
+	assert.NoError(t, err)
+	assert.Empty(t, rolesRevoked)
 
 	// Get predefined roles
 	allRoles, err := repo.GetRoles(ctx)
