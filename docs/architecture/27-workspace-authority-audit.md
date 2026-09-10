@@ -2,7 +2,7 @@
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | Audit complete. No production code changed. |
+| **Status** | Audit complete. Resolver implemented — see §18. |
 | **Date** | 2026-09-10 |
 | **Audited at** | `04e8ed2` |
 | **Target design** | [26-workspace-architecture.md](26-workspace-architecture.md) · [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) |
@@ -576,3 +576,78 @@ Two carry conditions, and neither blocks the slice:
 One decision remains open and is **not** on the critical path: whether
 `RequireAdmin()` should reconcile with `admin_user_roles` (P1-2). The resolver
 mirrors the current middleware rule, so it stays correct either way.
+
+---
+
+## 18. Implementation status
+
+Added after the audit, recording what has since been built. The audit above is
+unchanged; this section says which of its recommendations now exist in code.
+
+| Slice | Status | Where |
+| :--- | :--- | :--- |
+| P0 recruiter capability gate (§11 P0-1) | **Done** | `internal/recruiter` — `RequireRecruiterCapability`, migration 0097 |
+| Workspace eligibility resolver (§16) | **Done** | `internal/workspace` |
+| Company bulk grant lister (map item 4) | **Done** | `ManagementRepository.ListUserGrants` |
+| Community managed-membership lister (map item 5) | **Done** | `CommunityRepository.ListManagedMemberships` |
+| `/auth/me` integration (map items 6–7) | Not started | — |
+| Frontend workspace state (map items 8–11) | Not started | — |
+
+### Workspaces the resolver returns
+
+| Workspace | Implemented | Authority it mirrors |
+| :--- | :--- | :--- |
+| Professional | Yes | `users.status = 'active'` |
+| Freelancer | Yes | `freelancer_profiles` row exists, account active |
+| Recruiting | Yes | `RecruiterService.RecruiterCapability` = `active` |
+| Company | Yes | `domain.Grant.Has` over the company role map |
+| Community admin | Yes | `CommunityMember.CanModerate` |
+| Platform admin | Yes | `middleware.AdminRoles()` |
+| Page admin | **Blocked** | No Pages domain exists |
+
+Recruiting is no longer blocked: §12 marked it **NO** pending the P0 gate, and
+that gate has since landed. The resolver reads the capability lifecycle the fix
+introduced rather than the recruiter tables directly.
+
+### Decisions taken during implementation
+
+- **Failure is fail-closed and loud.** A domain lookup that errors aborts the
+  whole resolution rather than omitting that workspace. This differs from the
+  audit's §13 rule 2, deliberately: a silently omitted company reads to the user
+  as a revoked one, and a transient outage would be indistinguishable from
+  losing access to Acme. An error is recoverable by retry and keeps a missing
+  workspace meaning exactly one thing. Degrading to a usable subset is a policy
+  decision for the HTTP caller that serves this, which knows whether the request
+  can afford to fail; the next slice must make that choice explicitly for
+  `/auth/me` rather than inheriting it.
+- **A non-active account resolves to nothing at all**, not to Professional. An
+  account that may not use the product is not offered somewhere to use it.
+- **No `page_admin` constant.** Keeping one "for contract stability" would put a
+  value in the vocabulary that the resolver can never return; a type nobody can
+  be in is worse than a type that does not exist yet.
+- **Communities route by id.** The `communities` table has a `slug` column, but
+  the Go model does not map it and every link in the application is built from
+  `community.id`. The resolver matches what is served.
+- **Company routes use the handle**, matching `/companies/{handle}/admin`. A
+  company with no handle falls back to its id, so the path stays well-formed
+  rather than collapsing to `/companies//admin`.
+
+### Limitations found while implementing
+
+- **`freelancer_profiles` still has no standing column** (§5 unchanged). Profile
+  existence plus account-level status is the whole rule; a freelancer cannot be
+  suspended without suspending the account. No migration was added — it is not
+  needed for this slice.
+- **`FreelanceRepository.GetProfileByUserID` fabricates a profile** when the
+  database lookup misses, returning an invented "Software Engineer & Consultant"
+  for any account that asks. It is therefore unusable as an eligibility source.
+  `HasProfile` was added alongside it for that purpose; the fabricating method is
+  left in place because screens depend on it, and replacing it is its own change.
+  Same class of defect as the recruiter fabrication removed in `545c31a`.
+- **`admin_user_roles` vs `RequireAdmin()` remains unreconciled** (P1-2). The
+  resolver mirrors the middleware, so granting an admin role in the console still
+  grants neither route access nor a workspace.
+- **Active workspace is not persisted.** No `last_workspace` column, by design;
+  the architecture allows it later.
+- **The resolver has no HTTP caller.** It is proven independently, as §16
+  intended.

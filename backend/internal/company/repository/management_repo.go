@@ -879,6 +879,12 @@ func (r *ManagementRepository) ListFollowed(ctx context.Context, userID uuid.UUI
 // turning a dashboard load into a large scan.
 const maxMemberCompanies = 50
 
+// maxUserGrantRows caps ListUserGrants. One company can contribute several rows
+// (a membership role, several additional roles, ownership), so this is a row
+// budget rather than a company count, set well above what maxMemberCompanies
+// worth of companies could produce.
+const maxUserGrantRows = 500
+
 // ListMemberCompanies returns the companies where the user is the owner or an
 // approved member.
 //
@@ -922,6 +928,112 @@ func (r *ManagementRepository) ListMemberCompanies(ctx context.Context, userID u
 		items = append(items, item)
 	}
 	return items, rows.Err()
+}
+
+// UserGrant is one company the user has an approved relationship with, together
+// with the roles and extra permissions that relationship carries.
+//
+// It exists so a caller that needs authority across ALL of a user's companies
+// can ask once. LoadGrant answers for one company in two queries, so asking it
+// per membership is 2N round trips to answer a question the database can answer
+// in one - the shape the workspace resolver would otherwise have to adopt.
+type UserGrant struct {
+	CompanyID string
+	Name      string
+	Slug      string
+	Grant     domain.Grant
+}
+
+// ListUserGrants returns every company where the user holds an approved
+// membership or ownership, with the effective grant for each.
+//
+// Read-only, and filtered exactly as LoadGrant filters: membership rows count
+// only at status 'approved', and ownership is authority in its own right. The
+// role vocabulary is parsed through domain.ParseRole, so an unrecognised stored
+// role is dropped rather than admitted - the same choice LoadGrant makes.
+func (r *ManagementRepository) ListUserGrants(ctx context.Context, userID uuid.UUID) ([]UserGrant, error) {
+	if r.db == nil {
+		return nil, ErrNoDatabase
+	}
+	if userID == uuid.Nil {
+		return []UserGrant{}, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT c.id, c.name, COALESCE(c.handle, ''), src.role, src.extra_permissions, (c.owner_id = $1)
+		FROM companies c
+		JOIN (
+			SELECT mr.company_id, mr.role, mr.extra_permissions
+			FROM company_member_roles mr
+			JOIN company_members m ON m.id = mr.member_id AND m.company_id = mr.company_id
+			WHERE mr.user_id = $1 AND m.status = 'approved'
+			UNION
+			SELECT m.company_id, m.role, '[]'::jsonb
+			FROM company_members m
+			WHERE m.user_id = $1 AND m.status = 'approved'
+			UNION
+			SELECT c2.id, $2::text, '[]'::jsonb
+			FROM companies c2
+			WHERE c2.owner_id = $1
+		) src ON src.company_id = c.id
+		WHERE c.status <> 'archived'
+		ORDER BY c.name, c.id
+		LIMIT $3`, userID, string(domain.RoleCompanyOwner), maxUserGrantRows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	byCompany := map[string]*UserGrant{}
+	orderedIDs := []string{}
+	seenRole := map[string]bool{}
+	seenPerm := map[string]bool{}
+
+	for rows.Next() {
+		var companyID uuid.UUID
+		var name, slug, roleValue string
+		var extras []string
+		var isOwner bool
+		if err := rows.Scan(&companyID, &name, &slug, &roleValue, &extras, &isOwner); err != nil {
+			return nil, err
+		}
+
+		key := companyID.String()
+		entry, ok := byCompany[key]
+		if !ok {
+			entry = &UserGrant{
+				CompanyID: key,
+				Name:      name,
+				Slug:      slug,
+				Grant:     domain.Grant{CompanyID: key, UserID: userID.String()},
+			}
+			byCompany[key] = entry
+			orderedIDs = append(orderedIDs, key)
+		}
+		entry.Grant.IsOwner = entry.Grant.IsOwner || isOwner
+
+		if role, ok := domain.ParseRole(roleValue); ok && !seenRole[key+"|"+string(role)] {
+			seenRole[key+"|"+string(role)] = true
+			entry.Grant.Roles = append(entry.Grant.Roles, role)
+		}
+		for _, raw := range extras {
+			perm := domain.Permission(strings.TrimSpace(raw))
+			if perm == "" || seenPerm[key+"|"+string(perm)] {
+				continue
+			}
+			seenPerm[key+"|"+string(perm)] = true
+			entry.Grant.Extra = append(entry.Grant.Extra, perm)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	out := make([]UserGrant, 0, len(orderedIDs))
+	for _, id := range orderedIDs {
+		out = append(out, *byCompany[id])
+	}
+	return out, nil
 }
 
 // RecordProfileView appends a view event. visitorHash stands in for a signed-out

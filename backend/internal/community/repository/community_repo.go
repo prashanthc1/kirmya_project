@@ -420,6 +420,67 @@ func (r *CommunityRepository) ListMembers(ctx context.Context, communityID uuid.
 	return list, nil
 }
 
+// ManagedMembership is one community the user may administer or moderate,
+// carrying the community's display title alongside the membership.
+type ManagedMembership struct {
+	CommunityID uuid.UUID
+	Title       string
+	Membership  models.CommunityMember
+}
+
+// ErrNoDatabase reports that a query needing PostgreSQL was asked of a
+// repository that has none. Returned rather than answered from the in-memory
+// maps, because those maps hold whatever a test put there and an eligibility
+// question answered from them is a guess presented as a fact.
+var ErrNoDatabase = errors.New("community repository requires PostgreSQL")
+
+// ListManagedMemberships returns every community where the user holds an active
+// membership carrying management authority.
+//
+// One query for the whole list. The alternative - list the user's communities,
+// then read the membership for each - is the N+1 shape this exists to avoid,
+// and the resolver that calls it runs on a bootstrap path.
+//
+// The status and role filter is applied in Go through CanModerate rather than
+// in SQL, deliberately: the rule then has one definition, shared with the
+// per-request service checks, instead of a WHERE clause that has to be kept in
+// step with it by hand.
+func (r *CommunityRepository) ListManagedMemberships(ctx context.Context, userID uuid.UUID) ([]ManagedMembership, error) {
+	if r.db == nil {
+		return nil, ErrNoDatabase
+	}
+	if userID == uuid.Nil {
+		return []ManagedMembership{}, nil
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT m.id, m.community_id, m.user_id, m.role_name, m.status, m.joined_at, m.created_at,
+		       COALESCE(c.title, '')
+		FROM community_members m
+		JOIN communities c ON c.id = m.community_id
+		WHERE m.user_id = $1 AND m.status = $2
+		ORDER BY c.title, c.id`, userID, models.MemberStatusActive)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []ManagedMembership{}
+	for rows.Next() {
+		var m models.CommunityMember
+		var title string
+		if err := rows.Scan(&m.ID, &m.CommunityID, &m.UserID, &m.RoleName, &m.Status,
+			&m.JoinedAt, &m.CreatedAt, &title); err != nil {
+			return nil, err
+		}
+		if !m.CanModerate() {
+			continue
+		}
+		out = append(out, ManagedMembership{CommunityID: m.CommunityID, Title: title, Membership: m})
+	}
+	return out, rows.Err()
+}
+
 func (r *CommunityRepository) DeleteMember(ctx context.Context, communityID uuid.UUID, userID uuid.UUID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

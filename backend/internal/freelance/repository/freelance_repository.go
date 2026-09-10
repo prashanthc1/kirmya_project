@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ type FreelanceRepository interface {
 
 	SaveProfile(ctx context.Context, prof *domain.FreelancerProfile) error
 	GetProfileByUserID(ctx context.Context, userID uuid.UUID) (*domain.FreelancerProfile, error)
+	HasProfile(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 type pgxFreelanceRepository struct {
@@ -420,6 +422,31 @@ func (r *pgxFreelanceRepository) SaveProfile(ctx context.Context, prof *domain.F
 
 	r.profiles[prof.UserID] = prof
 	return nil
+}
+
+// ErrNoDatabase reports that a query needing PostgreSQL was asked of a
+// repository that has none.
+var ErrNoDatabase = errors.New("freelance repository requires PostgreSQL")
+
+// HasProfile reports whether a freelancer profile row exists for the user.
+//
+// Separate from GetProfileByUserID on purpose. That method falls back to an
+// in-memory map and, failing that, synthesises a profile - a "Software Engineer
+// & Consultant" charging 75 an hour - so it answers "yes" for every account
+// that ever asks. That is survivable for a screen that wants something to
+// render; it is not survivable for an eligibility question, where a fabricated
+// profile would hand the freelancer workspace to the entire user base. This
+// asks the database and reports what it says, or fails.
+func (r *pgxFreelanceRepository) HasProfile(ctx context.Context, userID uuid.UUID) (bool, error) {
+	if r.pool == nil {
+		return false, ErrNoDatabase
+	}
+	var exists bool
+	if err := r.pool.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM freelancer_profiles WHERE user_id = $1)`, userID).Scan(&exists); err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func (r *pgxFreelanceRepository) GetProfileByUserID(ctx context.Context, userID uuid.UUID) (*domain.FreelancerProfile, error) {

@@ -52,18 +52,15 @@ func (s *CommunityService) validateCommunityAccess(ctx context.Context, communit
 	return comm, mem, nil
 }
 
+// isModeratorOrHigher and isAdminOrHigher delegate to the membership rule on the
+// model, so the bulk lister the workspace resolver uses cannot drift from the
+// per-request checks here.
 func (s *CommunityService) isModeratorOrHigher(mem *models.CommunityMember) bool {
-	if mem == nil || mem.Status != "active" {
-		return false
-	}
-	return mem.RoleName == "owner" || mem.RoleName == "admin" || mem.RoleName == "moderator"
+	return mem.CanModerate()
 }
 
 func (s *CommunityService) isAdminOrHigher(mem *models.CommunityMember) bool {
-	if mem == nil || mem.Status != "active" {
-		return false
-	}
-	return mem.RoleName == "owner" || mem.RoleName == "admin"
+	return mem.CanAdminister()
 }
 
 // --- Communities CRUD & Discovery ---

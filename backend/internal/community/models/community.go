@@ -207,3 +207,46 @@ type CommunityFilterParams struct {
 	Skill       string `json:"skill"`
 	SearchQuery string `json:"searchQuery"`
 }
+
+// Community membership status and role vocabulary, named once.
+//
+// The strings were previously spelled out at each comparison site, which is how
+// "active" and "approved" came to mean the same thing in two modules without
+// anyone deciding they should differ. Community uses "active"; the company
+// module uses "approved". Both are correct in their own domain and neither may
+// be assumed by a caller that spans them.
+const (
+	MemberStatusActive = "active"
+
+	CommunityRoleOwner     = "owner"
+	CommunityRoleAdmin     = "admin"
+	CommunityRoleModerator = "moderator"
+	CommunityRoleMember    = "member"
+)
+
+// CanModerate reports whether this membership carries community management
+// authority: an active membership held as owner, admin or moderator.
+//
+// It is the community module's rule, exported so that callers which need to ask
+// it in bulk - the workspace resolver listing every community a user may
+// administer - get the same answer as the per-request service checks, from the
+// same code. Status is checked before role, deliberately: a banned owner is not
+// an owner, and checking the role first is how that inversion gets written.
+func (m *CommunityMember) CanModerate() bool {
+	if m == nil || m.Status != MemberStatusActive {
+		return false
+	}
+	return m.RoleName == CommunityRoleOwner ||
+		m.RoleName == CommunityRoleAdmin ||
+		m.RoleName == CommunityRoleModerator
+}
+
+// CanAdminister reports whether this membership carries full community
+// administration: an active membership held as owner or admin. Moderators are
+// excluded - they moderate content, they do not administer the community.
+func (m *CommunityMember) CanAdminister() bool {
+	if m == nil || m.Status != MemberStatusActive {
+		return false
+	}
+	return m.RoleName == CommunityRoleOwner || m.RoleName == CommunityRoleAdmin
+}
