@@ -129,10 +129,21 @@ func NewResolver(
 	}
 }
 
-// ErrAccountNotEligible reports that the account exists but may not enter any
-// workspace - it is not active. Distinct from "not found", which the account
-// reader surfaces as the auth module's own not-found error.
-var ErrAccountNotEligible = fmt.Errorf("account is not eligible for any workspace")
+// professionalOnly is the floor: the list every active account has whatever
+// else resolves, and the value ResolveForUser hands back alongside an error.
+func professionalOnly() []domain.Workspace {
+	return []domain.Workspace{{
+		Key:       domain.KeyFor(domain.TypeProfessional, ""),
+		Type:      domain.TypeProfessional,
+		Label:     labelProfessional,
+		Route:     routeProfessional,
+		IsDefault: true,
+	}}
+}
+
+// ErrAccountNotEligible is re-exported from the domain so callers of this
+// package need not import both.
+var ErrAccountNotEligible = domain.ErrAccountNotEligible
 
 // ResolveForUser returns the workspaces this account may currently enter.
 //
@@ -143,14 +154,17 @@ var ErrAccountNotEligible = fmt.Errorf("account is not eligible for any workspac
 // provisioned while answering "what may I enter?" would reintroduce it at six
 // times the surface area.
 //
-// Failure policy: fail-closed, and loudly. A domain lookup that errors aborts
-// the whole resolution rather than quietly dropping that workspace, because a
-// silently omitted company is indistinguishable to the user from a revoked one
-// - a transient outage would read as "you were removed from Acme". Returning the
-// error keeps a retry possible and keeps the absence of a workspace meaning
-// exactly one thing. Degrading to a usable subset is a policy decision for the
-// caller that serves this over HTTP, which knows whether the request can afford
-// to fail; it is not this function's to make silently.
+// Failure policy: fail-closed, and never silently. A domain lookup that errors
+// aborts the resolution and returns the error, because a silently omitted
+// company is indistinguishable to the user from a revoked one - a transient
+// outage would read as "you were removed from Acme".
+//
+// Alongside the error it returns the professional-only list, which is the most
+// any caller may serve when resolution failed. A caller on a path that cannot
+// afford to fail - the bootstrap API - can degrade to that value, and a caller
+// that ignores the error still cannot leak a privileged workspace. What such a
+// caller must not do is present a degraded list as complete; that is why the
+// error exists and why /auth/me carries a flag saying so.
 func (r *Resolver) ResolveForUser(ctx context.Context, userID uuid.UUID) ([]domain.Workspace, error) {
 	account, err := r.accounts.Account(ctx, userID)
 	if err != nil {
@@ -164,17 +178,11 @@ func (r *Resolver) ResolveForUser(ctx context.Context, userID uuid.UUID) ([]doma
 
 	// Professional first, and unconditionally for an active account. It is the
 	// floor: whatever else resolves, the account has somewhere to be.
-	workspaces := []domain.Workspace{{
-		Key:       domain.KeyFor(domain.TypeProfessional, ""),
-		Type:      domain.TypeProfessional,
-		Label:     labelProfessional,
-		Route:     routeProfessional,
-		IsDefault: true,
-	}}
+	workspaces := professionalOnly()
 
 	hasFreelancerProfile, err := r.freelancers.HasFreelancerProfile(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("resolve freelancer workspace: %w", err)
+		return professionalOnly(), fmt.Errorf("resolve freelancer workspace: %w", err)
 	}
 	if hasFreelancerProfile {
 		workspaces = append(workspaces, domain.Workspace{
@@ -187,7 +195,7 @@ func (r *Resolver) ResolveForUser(ctx context.Context, userID uuid.UUID) ([]doma
 
 	recruiting, err := r.recruiters.HasRecruitingCapability(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("resolve recruiting workspace: %w", err)
+		return professionalOnly(), fmt.Errorf("resolve recruiting workspace: %w", err)
 	}
 	if recruiting {
 		workspaces = append(workspaces, domain.Workspace{
@@ -200,7 +208,7 @@ func (r *Resolver) ResolveForUser(ctx context.Context, userID uuid.UUID) ([]doma
 
 	companies, err := r.companies.ManagedCompanies(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("resolve company workspaces: %w", err)
+		return professionalOnly(), fmt.Errorf("resolve company workspaces: %w", err)
 	}
 	for _, company := range companies {
 		companyID := company.CompanyID
@@ -216,7 +224,7 @@ func (r *Resolver) ResolveForUser(ctx context.Context, userID uuid.UUID) ([]doma
 
 	communities, err := r.communities.ManagedCommunities(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("resolve community workspaces: %w", err)
+		return professionalOnly(), fmt.Errorf("resolve community workspaces: %w", err)
 	}
 	for _, community := range communities {
 		communityID := community.CommunityID

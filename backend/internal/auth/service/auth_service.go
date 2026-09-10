@@ -23,6 +23,7 @@ import (
 	configPkg "kirmya/internal/shared/config"
 	"kirmya/internal/shared/mailer"
 	"kirmya/internal/shared/middleware"
+	workspaceDomain "kirmya/internal/workspace/domain"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -94,6 +95,28 @@ type AuthService struct {
 	// /auth/me. Optional: a deployment that has not wired it reports zero
 	// rather than a number nobody counted.
 	unreadNotifications func(ctx context.Context, userID uuid.UUID) (int, error)
+
+	// workspaces resolves which surfaces the caller may enter, for the
+	// /auth/me bootstrap payload. Optional, following the same pattern as the
+	// counter above: a service built without it serves the professional
+	// workspace and says the list is incomplete, rather than claiming an
+	// account has exactly one workspace on the strength of missing wiring.
+	workspaces workspaceResolver
+}
+
+// workspaceResolver is the one question /auth/me asks of the workspace module.
+//
+// Declared here, narrowly, so the auth service depends on a question rather
+// than on the resolver's package. The workspace domain type is imported for the
+// return value only; it carries labels and routes, never permissions.
+type workspaceResolver interface {
+	ResolveForUser(ctx context.Context, userID uuid.UUID) ([]workspaceDomain.Workspace, error)
+}
+
+// WithWorkspaceResolver supplies the resolver behind /auth/me's workspace list.
+func (s *AuthService) WithWorkspaceResolver(resolver workspaceResolver) *AuthService {
+	s.workspaces = resolver
+	return s
 }
 
 // WithUnreadNotificationCounter supplies the counter behind the /auth/me badge.
@@ -966,11 +989,70 @@ func (s *AuthService) GetUserMe(ctx context.Context, userID uuid.UUID) (*dto.Use
 		}
 	}
 
+	workspaces, complete := s.resolveWorkspaces(ctx, u.ID)
+
 	return &dto.UserMeDTO{
 		User:               userDTO,
 		Permissions:        permissions,
 		NotificationsCount: unread,
+		Workspaces:         workspaces,
+		WorkspacesComplete: complete,
 	}, nil
+}
+
+// resolveWorkspaces resolves the caller's workspaces for the bootstrap payload,
+// and reports whether the answer is complete.
+//
+// This is where the degradation decision for /auth/me is made, deliberately and
+// in one place. The resolver fails closed and returns an error rather than
+// quietly dropping a workspace; this endpoint runs on every page load and after
+// every token refresh, so failing the whole bootstrap over an unreachable
+// company database would take the entire product down rather than one menu.
+// It therefore degrades - but never silently: the caller is told the list is
+// incomplete, so a degraded list is not mistaken for a revocation, and a client
+// knows not to persist a selection against it.
+//
+// The degraded value comes from the resolver, not from here. Constructing a
+// professional workspace in the auth module would be a second definition of the
+// same thing, free to drift from the one the resolver serves.
+func (s *AuthService) resolveWorkspaces(ctx context.Context, userID uuid.UUID) ([]workspaceDomain.Workspace, bool) {
+	if s.workspaces == nil {
+		// Not wired. Serving an empty list would assert this account has no
+		// workspaces, which is a claim about the account rather than about the
+		// deployment; the flag says the difference.
+		return nil, false
+	}
+
+	resolved, err := s.workspaces.ResolveForUser(ctx, userID)
+	switch {
+	case err == nil:
+		return resolved, true
+	case errors.Is(err, workspaceDomain.ErrAccountNotEligible):
+		// A definite answer, not a failure: this account may enter nothing. The
+		// list is complete and it is empty.
+		return []workspaceDomain.Workspace{}, true
+	default:
+		slog.Warn("workspace resolution degraded for /auth/me",
+			"userId", userID.String(), "error", err)
+		// The resolver's contract is to return professional-only alongside an
+		// error, and this narrows the result to that anyway. Enforcing the
+		// invariant where it is served rather than trusting where it is
+		// produced costs one loop, and means a future resolver - or a different
+		// implementation behind the interface - cannot widen what a failed
+		// resolution hands to a client.
+		return onlyProfessional(resolved), false
+	}
+}
+
+// onlyProfessional keeps the personal workspace and discards everything else.
+func onlyProfessional(workspaces []workspaceDomain.Workspace) []workspaceDomain.Workspace {
+	kept := make([]workspaceDomain.Workspace, 0, 1)
+	for _, workspace := range workspaces {
+		if workspace.Type == workspaceDomain.TypeProfessional {
+			kept = append(kept, workspace)
+		}
+	}
+	return kept
 }
 
 // GetSessionInfo returns session metadata.

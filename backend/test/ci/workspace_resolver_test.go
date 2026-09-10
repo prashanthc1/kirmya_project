@@ -4,8 +4,10 @@ package ci
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -580,4 +582,246 @@ func TestWorkspaceResolutionQueryCountIsConstant(t *testing.T) {
 		t.Errorf("resolution issued %d queries, want 5 - one per domain", small)
 	}
 	t.Logf("workspace resolution: %d queries, constant across membership counts", small)
+}
+
+/*
+The resolver as served by GET /api/v1/auth/me.
+
+The tests above drive the resolver in-process; these go through the real HTTP
+endpoint, because that is where the integration can actually break: a field
+that never leaves the service, a payload shape the client cannot read, or a
+resolver that was built but never attached to the auth service. Wiring is not
+provable by a unit test - main.go is the thing under test here.
+*/
+
+// meWorkspaces is the workspace half of the /auth/me payload.
+type meWorkspaces struct {
+	Workspaces []struct {
+		Key       string  `json:"key"`
+		Type      string  `json:"type"`
+		EntityID  *string `json:"entityId"`
+		Label     string  `json:"label"`
+		Slug      string  `json:"slug"`
+		Route     string  `json:"route"`
+		IsDefault bool    `json:"isDefault"`
+	} `json:"workspaces"`
+	WorkspacesComplete bool `json:"workspacesComplete"`
+	// Read back so the additive change can be shown not to have displaced the
+	// fields the web client already depends on.
+	Permissions []string `json:"permissions"`
+	User        struct {
+		Email string `json:"email"`
+	} `json:"user"`
+}
+
+func getMe(t *testing.T, base, token string) meWorkspaces {
+	t.Helper()
+	resp := do(t, http.MethodGet, base+"/api/v1/auth/me", token, nil)
+	body, err := readBody(resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /auth/me: got %d want 200: %s", resp.StatusCode, body)
+	}
+	var payload meWorkspaces
+	if err := json.Unmarshal([]byte(body), &payload); err != nil {
+		t.Fatalf("decoding /auth/me: %v (body %s)", err, body)
+	}
+	return payload
+}
+
+func meKeys(payload meWorkspaces) []string {
+	keys := make([]string, 0, len(payload.Workspaces))
+	for _, workspace := range payload.Workspaces {
+		keys = append(keys, workspace.Key)
+	}
+	return keys
+}
+
+// A newly registered account bootstraps with exactly the professional
+// workspace, marked default, and the list is complete.
+func TestAuthMeServesWorkspacesForAFreshAccount(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	user := registerAndLogin(t, base)
+
+	payload := getMe(t, base, user.token)
+
+	if !payload.WorkspacesComplete {
+		t.Error("workspacesComplete is false: the resolver is not wired into /auth/me, or resolution failed")
+	}
+	assertResolved(t, meKeys(payload), "professional")
+	if !payload.Workspaces[0].IsDefault {
+		t.Error("the professional workspace is not marked default")
+	}
+	if payload.Workspaces[0].Route != "/feed" {
+		t.Errorf("professional route = %q, want /feed", payload.Workspaces[0].Route)
+	}
+	if payload.Workspaces[0].EntityID != nil {
+		t.Error("the professional workspace carries an entity id")
+	}
+
+	// The change is additive or it is a breaking change.
+	if payload.User.Email != user.email {
+		t.Errorf("user.email = %q, want %q", payload.User.Email, user.email)
+	}
+	if len(payload.Permissions) == 0 {
+		t.Error("permissions disappeared from the /auth/me payload")
+	}
+}
+
+// Completing recruiter onboarding adds the recruiting workspace to the next
+// bootstrap, without a new token and without signing in again. That is the
+// whole promise of one identity with several workspaces.
+func TestAuthMeReflectsCapabilityGainedWithoutReAuthenticating(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	user := registerAndLogin(t, base)
+
+	before := getMe(t, base, user.token)
+	assertResolved(t, meKeys(before), "professional")
+
+	becomeRecruiter(t, base, user)
+
+	// Same token, deliberately: scoped authority is resolved per request, not
+	// carried in the JWT, so it must appear without a refresh.
+	after := getMe(t, base, user.token)
+	assertResolved(t, meKeys(after), "professional", "recruiting")
+	if !after.WorkspacesComplete {
+		t.Error("workspacesComplete is false after a successful resolution")
+	}
+	for _, workspace := range after.Workspaces {
+		if workspace.Type == "recruiting" && workspace.Route != "/recruiter" {
+			t.Errorf("recruiting route = %q, want /recruiter", workspace.Route)
+		}
+	}
+}
+
+// A multi-capability account bootstraps with every workspace it holds, in the
+// documented order, through the real endpoint.
+func TestAuthMeServesEveryWorkspaceForAMultiCapabilityAccount(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	pool := connectDB(t)
+	user := registerAndLogin(t, base)
+
+	userID, err := uuid.Parse(user.id)
+	if err != nil {
+		t.Fatalf("parsing the registered account id %q: %v", user.id, err)
+	}
+
+	seedFreelancerProfile(t, pool, userID)
+	becomeRecruiter(t, base, user)
+
+	companyID, handle := seedWorkspaceCompany(t, pool, "AAA CI Auth Me Company")
+	addCompanyMember(t, pool, companyID, userID, "org_admin", "approved")
+	communityID := seedCommunity(t, pool, "AAA CI Auth Me Community")
+	addCommunityMember(t, pool, communityID, userID, "owner", "active")
+
+	// Platform administration is read from users.role_id, the same value
+	// RequireAdmin() enforces.
+	if _, err := pool.Exec(t.Context(),
+		`UPDATE users SET role_id = 'platform_admin' WHERE id = $1`, userID); err != nil {
+		t.Fatal(err)
+	}
+
+	payload := getMe(t, base, user.token)
+	if !payload.WorkspacesComplete {
+		t.Error("workspacesComplete is false for a successful resolution")
+	}
+	assertResolved(t, meKeys(payload),
+		"professional",
+		"freelancer",
+		"recruiting",
+		"company:"+companyID.String(),
+		"community_admin:"+communityID.String(),
+		"platform_admin",
+	)
+
+	byKey := map[string]string{}
+	defaults := 0
+	for _, workspace := range payload.Workspaces {
+		byKey[workspace.Key] = workspace.Route
+		if workspace.IsDefault {
+			defaults++
+		}
+	}
+	if defaults != 1 {
+		t.Errorf("%d default workspaces, want exactly 1", defaults)
+	}
+	if got, want := byKey["company:"+companyID.String()], "/companies/"+handle+"/admin"; got != want {
+		t.Errorf("company route = %q, want %q", got, want)
+	}
+	if got, want := byKey["community_admin:"+communityID.String()], "/communities/"+communityID.String()+"/admin"; got != want {
+		t.Errorf("community route = %q, want %q", got, want)
+	}
+}
+
+// The workspace list is navigation, never authorization.
+//
+// This is the invariant that makes serving the list safe at all: a client that
+// forges an entry, or a server that served one by mistake, gains nothing. The
+// account here holds no recruiting capability, so /recruiter/* must refuse it
+// regardless of what any list says.
+func TestAuthMeWorkspaceListIsNotAnAuthorizationInput(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	user := registerAndLogin(t, base)
+
+	payload := getMe(t, base, user.token)
+	for _, workspace := range payload.Workspaces {
+		if workspace.Type == "recruiting" || workspace.Type == "platform_admin" {
+			t.Fatalf("an ordinary account was served the %q workspace", workspace.Type)
+		}
+	}
+
+	// And the routes behind the workspaces it was not given still refuse it.
+	for _, path := range []string{
+		"/api/v1/recruiter/dashboard",
+		"/api/v1/search/candidates",
+	} {
+		resp := do(t, http.MethodPost, base+path, user.token, map[string]any{})
+		body, _ := readBody(resp)
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+			t.Errorf("%s served an account with no such workspace: %d %s", path, resp.StatusCode, body)
+		}
+	}
+}
+
+// Bootstrapping writes nothing.
+//
+// /auth/me now resolves six domains on every page load and every token
+// refresh, which is the highest-traffic read in the product. If any of it
+// provisioned, it would provision constantly.
+func TestAuthMeBootstrapCreatesNoRecords(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+	pool := connectDB(t)
+	user := registerAndLogin(t, base)
+
+	tables := []string{
+		"organizations", "recruiter_profiles", "recruiter_organization_profiles",
+		"freelancer_profiles", "companies", "company_members", "company_member_roles",
+		"communities", "community_members",
+	}
+	count := func() map[string]int {
+		counts := map[string]int{}
+		for _, table := range tables {
+			var n int
+			if err := pool.QueryRow(t.Context(), `SELECT count(*) FROM `+table).Scan(&n); err != nil {
+				t.Fatalf("counting %s: %v", table, err)
+			}
+			counts[table] = n
+		}
+		return counts
+	}
+
+	before := count()
+	for i := 0; i < 5; i++ {
+		getMe(t, base, user.token)
+	}
+	after := count()
+
+	for table, beforeCount := range before {
+		if after[table] != beforeCount {
+			t.Errorf("%s grew from %d to %d: bootstrapping created records",
+				table, beforeCount, after[table])
+		}
+	}
 }

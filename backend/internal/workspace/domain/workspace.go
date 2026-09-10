@@ -8,9 +8,19 @@
 package domain
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
+
+// ErrAccountNotEligible reports that the account exists but may not enter any
+// workspace, because the account itself is not active. Distinct from a lookup
+// failure: this is a definite answer, and the answer is "none".
+//
+// It lives in the domain rather than the service so that a caller which needs
+// to tell this apart from an outage - the bootstrap API, which degrades on one
+// and not the other - can do so without importing the resolver's package.
+var ErrAccountNotEligible = errors.New("account is not eligible for any workspace")
 
 // Type is a kind of workspace.
 type Type string

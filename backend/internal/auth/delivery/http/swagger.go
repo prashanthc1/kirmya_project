@@ -112,7 +112,7 @@ func swaggerGetSession() {}
 // swaggerGetMe documents GET /api/v1/auth/me.
 //
 // @Summary      Get authenticated user
-// @Description  Returns the signed-in user's profile together with their effective permissions and unread notification count.
+// @Description  Returns the signed-in user's profile together with their effective permissions, unread notification count, and the workspaces the account may enter. Workspaces are navigation metadata resolved from existing domain authority on every call - never a grant: each request the resulting screens make is authorized independently. When workspacesComplete is false, resolution failed and the list was degraded to the professional workspace alone; a client should not treat an absent workspace as revoked, nor persist a selection against an incomplete list.
 // @Tags         Authentication
 // @Produce      json
 // @Success      200  {object}  dto.UserMeDTO

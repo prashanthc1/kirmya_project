@@ -12325,7 +12325,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the signed-in user's profile together with their effective permissions and unread notification count.",
+                "description": "Returns the signed-in user's profile together with their effective permissions, unread notification count, and the workspaces the account may enter. Workspaces are navigation metadata resolved from existing domain authority on every call - never a grant: each request the resulting screens make is authorized independently. When workspacesComplete is false, resolution failed and the list was degraded to the professional workspace alone; a client should not treat an absent workspace as revoked, nor persist a selection against an incomplete list.",
                 "produces": [
                     "application/json"
                 ],
@@ -46808,6 +46808,25 @@
                 }
             }
         },
+        "domain.Type": {
+            "type": "string",
+            "enum": [
+                "professional",
+                "freelancer",
+                "recruiting",
+                "company",
+                "community_admin",
+                "platform_admin"
+            ],
+            "x-enum-varnames": [
+                "TypeProfessional",
+                "TypeFreelancer",
+                "TypeRecruiting",
+                "TypeCompany",
+                "TypeCommunityAdmin",
+                "TypePlatformAdmin"
+            ]
+        },
         "domain.UpdateConsentPayload": {
             "type": "object",
             "required": [
@@ -47071,6 +47090,43 @@
                 }
             }
         },
+        "domain.Workspace": {
+            "type": "object",
+            "properties": {
+                "entityId": {
+                    "description": "EntityID names the company or community for entity-scoped types, and is\nnil for the personal ones.",
+                    "type": "string"
+                },
+                "isDefault": {
+                    "description": "IsDefault marks the workspace to open when none was chosen. Exactly one\nentry in a list has it, and it is always Professional.",
+                    "type": "boolean"
+                },
+                "key": {
+                    "description": "Key is the stable identity of this workspace, unique within one list.\nThe frontend uses it to tell two entries apart and to remember a\nselection; labels are display text and change, so they are never identity.",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "Label is human-readable display text.",
+                    "type": "string"
+                },
+                "route": {
+                    "description": "Route is where entering this workspace lands.",
+                    "type": "string"
+                },
+                "slug": {
+                    "description": "Slug is the routing handle where the entity has one. Communities are\nrouted by id and carry none.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type is the kind of workspace.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.Type"
+                        }
+                    ]
+                }
+            }
+        },
         "dto.AuthResponseDTO": {
             "type": "object",
             "properties": {
@@ -47272,6 +47328,17 @@
                 },
                 "user": {
                     "$ref": "#/definitions/dto.UserProfileDTO"
+                },
+                "workspaces": {
+                    "description": "Workspaces lists the surfaces this account may enter, resolved from\nexisting domain authority on every call. Additive: existing consumers\nread named fields and are unaffected.\n\nIt is navigation data, not a grant. Every request the resulting screens\nmake is authorized independently by the domain that owns it, and a\nworkspace appearing here has never been sufficient to reach anything.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Workspace"
+                    }
+                },
+                "workspacesComplete": {
+                    "description": "WorkspacesComplete reports whether Workspaces is the whole answer.\n\nFalse means resolution failed and the list was degraded to the\nprofessional workspace alone. The flag exists because a degraded list and\na genuinely single-workspace account are otherwise identical on the wire,\nand a client that cannot tell them apart will cache \"you were removed\nfrom Acme\" as if it were a fact. A client should not persist a selection\nagainst an incomplete list, and should re-bootstrap instead.",
+                    "type": "boolean"
                 }
             }
         },

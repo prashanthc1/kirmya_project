@@ -1494,6 +1494,22 @@ definitions:
       vendor_name:
         type: string
     type: object
+  domain.Type:
+    enum:
+    - professional
+    - freelancer
+    - recruiting
+    - company
+    - community_admin
+    - platform_admin
+    type: string
+    x-enum-varnames:
+    - TypeProfessional
+    - TypeFreelancer
+    - TypeRecruiting
+    - TypeCompany
+    - TypeCommunityAdmin
+    - TypePlatformAdmin
   domain.UpdateConsentPayload:
     properties:
       consent_type:
@@ -1673,6 +1689,40 @@ definitions:
     required:
     - experiences
     type: object
+  domain.Workspace:
+    properties:
+      entityId:
+        description: |-
+          EntityID names the company or community for entity-scoped types, and is
+          nil for the personal ones.
+        type: string
+      isDefault:
+        description: |-
+          IsDefault marks the workspace to open when none was chosen. Exactly one
+          entry in a list has it, and it is always Professional.
+        type: boolean
+      key:
+        description: |-
+          Key is the stable identity of this workspace, unique within one list.
+          The frontend uses it to tell two entries apart and to remember a
+          selection; labels are display text and change, so they are never identity.
+        type: string
+      label:
+        description: Label is human-readable display text.
+        type: string
+      route:
+        description: Route is where entering this workspace lands.
+        type: string
+      slug:
+        description: |-
+          Slug is the routing handle where the entity has one. Communities are
+          routed by id and carry none.
+        type: string
+      type:
+        allOf:
+        - $ref: '#/definitions/domain.Type'
+        description: Type is the kind of workspace.
+    type: object
   dto.AuthResponseDTO:
     properties:
       access_token:
@@ -1806,6 +1856,29 @@ definitions:
         type: array
       user:
         $ref: '#/definitions/dto.UserProfileDTO'
+      workspaces:
+        description: |-
+          Workspaces lists the surfaces this account may enter, resolved from
+          existing domain authority on every call. Additive: existing consumers
+          read named fields and are unaffected.
+
+          It is navigation data, not a grant. Every request the resulting screens
+          make is authorized independently by the domain that owns it, and a
+          workspace appearing here has never been sufficient to reach anything.
+        items:
+          $ref: '#/definitions/domain.Workspace'
+        type: array
+      workspacesComplete:
+        description: |-
+          WorkspacesComplete reports whether Workspaces is the whole answer.
+
+          False means resolution failed and the list was degraded to the
+          professional workspace alone. The flag exists because a degraded list and
+          a genuinely single-workspace account are otherwise identical on the wire,
+          and a client that cannot tell them apart will cache "you were removed
+          from Acme" as if it were a fact. A client should not persist a selection
+          against an incomplete list, and should re-bootstrap instead.
+        type: boolean
     type: object
   dto.UserProfileDTO:
     properties:
@@ -16578,8 +16651,14 @@ paths:
       - Authentication
   /api/v1/auth/me:
     get:
-      description: Returns the signed-in user's profile together with their effective
-        permissions and unread notification count.
+      description: 'Returns the signed-in user''s profile together with their effective
+        permissions, unread notification count, and the workspaces the account may
+        enter. Workspaces are navigation metadata resolved from existing domain authority
+        on every call - never a grant: each request the resulting screens make is
+        authorized independently. When workspacesComplete is false, resolution failed
+        and the list was degraded to the professional workspace alone; a client should
+        not treat an absent workspace as revoked, nor persist a selection against
+        an incomplete list.'
       produces:
       - application/json
       responses:

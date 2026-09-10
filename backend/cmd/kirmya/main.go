@@ -53,6 +53,8 @@ import (
 	candidateSearchHttp "kirmya/internal/candidate_search/delivery/http"
 	candidateSearchRepo "kirmya/internal/candidate_search/repository"
 	candidateSearchSvc "kirmya/internal/candidate_search/service"
+	workspaceRepo "kirmya/internal/workspace/repository"
+	workspaceSvc "kirmya/internal/workspace/service"
 
 	careerAIHttp "kirmya/internal/career_ai/delivery/http"
 	careerAIPrompts "kirmya/internal/career_ai/prompts"
@@ -808,6 +810,24 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	sysHealthService := sysHealthSvc.NewSystemHealthServiceWithProbes(sysHealthRepository, sqlDB,
 		buildHealthProbes(cfg, appCache, brokerKind, deliveryOutbox, storageProvider, appMailer))
 	sysHealthHandler := sysHealthHttp.NewSystemHealthHandler(sysHealthService)
+
+	// The workspace resolver aggregates authority that five other modules own,
+	// so it is wired here, once every one of those repositories exists, rather
+	// than beside the auth service that consumes it. It is attached to the
+	// already-built auth service through the pointer the handler holds.
+	//
+	// It resolves on every /auth/me call, which is every page load and every
+	// token refresh - five queries, constant in the number of memberships. It
+	// is an aggregator and never an authority: the workspaces it serves are
+	// navigation, and every request the resulting screens make is authorized
+	// again by the module that owns the data.
+	authService.WithWorkspaceResolver(workspaceSvc.NewResolver(
+		workspaceRepo.NewAccountAdapter(authRepository),
+		workspaceRepo.NewFreelancerAdapter(freelanceRepository),
+		workspaceRepo.NewRecruiterAdapter(recruiterService),
+		workspaceRepo.NewCompanyAdapter(companyManagementRepository),
+		workspaceRepo.NewCommunityAdapter(commRepository),
+	))
 
 	fileRepository := mediaRepo.NewFileRepository(dbPool)
 	fileService := mediaSvc.NewFileService(fileRepository, storageProvider)

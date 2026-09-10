@@ -2,7 +2,7 @@
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | Audit complete. Resolver implemented — see §18. |
+| **Status** | Audit complete. Resolver implemented and served on `/auth/me` — see §18. |
 | **Date** | 2026-09-10 |
 | **Audited at** | `04e8ed2` |
 | **Target design** | [26-workspace-architecture.md](26-workspace-architecture.md) · [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) |
@@ -590,7 +590,7 @@ unchanged; this section says which of its recommendations now exist in code.
 | Workspace eligibility resolver (§16) | **Done** | `internal/workspace` |
 | Company bulk grant lister (map item 4) | **Done** | `ManagementRepository.ListUserGrants` |
 | Community managed-membership lister (map item 5) | **Done** | `CommunityRepository.ListManagedMemberships` |
-| `/auth/me` integration (map items 6–7) | Not started | — |
+| `/auth/me` integration (map items 6–7) | **Done** | `dto.UserMeDTO.workspaces`, `AuthService.resolveWorkspaces` |
 | Frontend workspace state (map items 8–11) | Not started | — |
 
 ### Workspaces the resolver returns
@@ -649,5 +649,50 @@ introduced rather than the recruiter tables directly.
   grants neither route access nor a workspace.
 - **Active workspace is not persisted.** No `last_workspace` column, by design;
   the architecture allows it later.
-- **The resolver has no HTTP caller.** It is proven independently, as §16
-  intended.
+- **`users.status` is gated inconsistently across the auth flows.** Login uses a
+  denylist (`locked`, `suspended`, `disabled`) while refresh uses an allowlist
+  (`status != 'active'`), so an account with `status = 'deleted'` can sign in but
+  cannot refresh. That makes the resolver's not-eligible path reachable through a
+  fresh access token. Not changed here — altering login admission is a security
+  decision of its own — but the resolver handles it correctly: such an account
+  gets an empty, complete workspace list.
+
+### `/auth/me` integration
+
+The resolver is served on `GET /api/v1/auth/me`, additively:
+
+| Field | Meaning |
+| :--- | :--- |
+| `workspaces` | The workspaces the account may enter, in the resolver's deterministic order |
+| `workspacesComplete` | Whether that list is the whole answer |
+
+**Degradation policy, decided here rather than in the resolver.** The resolver
+fails closed and returns an error; `/auth/me` runs on every page load and every
+token refresh, so failing the bootstrap over one unreachable domain would take
+the product down rather than one menu. It therefore degrades to the
+professional workspace alone — and says so through `workspacesComplete: false`,
+because a degraded list and a genuinely single-workspace account are otherwise
+identical on the wire, and a client that cannot tell them apart will cache "you
+were removed from Acme" as a fact.
+
+Three answers are distinguished:
+
+| Situation | `workspaces` | `workspacesComplete` |
+| :--- | :--- | :--- |
+| Resolved | the full list | `true` |
+| Account not eligible (inactive) | `[]` | `true` — "none" is an answer |
+| Domain lookup failed, or resolver unwired | professional only, or absent | `false` |
+
+The privileged-workspace invariant is enforced again where the payload is
+built, not only where it is produced: on the error path the auth service filters
+the result to the professional workspace, so a future resolver cannot widen what
+a failed resolution hands to a client.
+
+**Cost:** five queries, constant in membership count. Measured on `/auth/me`
+against the same database: median 1.58 ms before, 2.13 ms after (+0.55 ms);
+p95 2.30 ms → 2.77 ms. No caching added.
+
+Still not done: frontend workspace state, the switcher, navigation redesign, and
+persistence of the active workspace. The JWT is unchanged — scoped authority
+stays server-resolved per request, which is what lets a capability gained
+mid-session appear on the next bootstrap without a new token.

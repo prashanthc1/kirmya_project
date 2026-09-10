@@ -4,6 +4,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	// workspace carries only the navigation-facing workspace type. It holds no
+	// permissions and no authority; see UserMeDTO.Workspaces.
+	workspace "kirmya/internal/workspace/domain"
 )
 
 // RegisterRequest represents payload for sign up supporting both snake_case & camelCase.
@@ -136,6 +140,25 @@ type UserMeDTO struct {
 	User               UserProfileDTO `json:"user"`
 	Permissions        []string       `json:"permissions"`
 	NotificationsCount int            `json:"notificationsCount"`
+
+	// Workspaces lists the surfaces this account may enter, resolved from
+	// existing domain authority on every call. Additive: existing consumers
+	// read named fields and are unaffected.
+	//
+	// It is navigation data, not a grant. Every request the resulting screens
+	// make is authorized independently by the domain that owns it, and a
+	// workspace appearing here has never been sufficient to reach anything.
+	Workspaces []workspace.Workspace `json:"workspaces"`
+
+	// WorkspacesComplete reports whether Workspaces is the whole answer.
+	//
+	// False means resolution failed and the list was degraded to the
+	// professional workspace alone. The flag exists because a degraded list and
+	// a genuinely single-workspace account are otherwise identical on the wire,
+	// and a client that cannot tell them apart will cache "you were removed
+	// from Acme" as if it were a fact. A client should not persist a selection
+	// against an incomplete list, and should re-bootstrap instead.
+	WorkspacesComplete bool `json:"workspacesComplete"`
 }
 
 // SessionDTO returned for GET /api/v1/auth/session.

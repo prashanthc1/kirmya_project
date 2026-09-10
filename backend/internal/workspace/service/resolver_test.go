@@ -415,8 +415,12 @@ func TestFailedDomainLookupFailsClosed(t *testing.T) {
 	if !errors.Is(err, boom) {
 		t.Fatalf("error = %v, want the underlying failure", err)
 	}
-	if got != nil {
-		t.Errorf("workspaces = %v, want none when a domain lookup failed", got)
+	// Alongside the error, the most a caller may serve: professional only. A
+	// caller that ignores the error therefore cannot leak a privileged
+	// workspace, which is the point of returning a value here at all.
+	assertKeys(t, got, "professional")
+	if !got[0].IsDefault {
+		t.Error("the fail-closed value is not marked default")
 	}
 }
 
