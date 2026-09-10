@@ -151,9 +151,22 @@ npm run build
 
 ### End-to-End Browser Tests
 ```bash
-# Run Playwright E2E suites across Chromium, Firefox, WebKit, and Mobile Viewports
+# One domain suite, exactly as its pull-request CI job runs it (Chromium)
+npm run test:e2e:suite -- auth
+# Suites: auth, core-user, jobs-recruiting, social-workspace, api-critical,
+#         accessibility and discovery (the last two run in the full regression only)
+
+# Every spec across Chromium, Firefox, WebKit, Mobile and the two axe projects
 npm run test:e2e
+
+# Prove every spec under test/e2e is owned by a suite
+npm run test:e2e:validate
 ```
+
+Pull requests run only the suites the diff can affect; `main` and release
+branches run the complete regression. See
+[**Browser E2E in CI**](docs/ci/e2e.md) for the suite map, the path rules, the
+required check names, and how to assign a new spec.
 
 ---
 
@@ -165,5 +178,6 @@ For in-depth architectural specifications, guides, and runbooks, refer to the [`
 - [**Backend Architecture**](docs/backend-architecture.md): Layering, dependency injection, and module extraction
 - [**Database Schema & Migrations**](docs/database.md): Relational architecture, indexes, and concurrency controls
 - [**REST API & OpenAPI 3.0**](docs/api.md): API contract, standardized error formats, and Swagger documentation
+- [**Browser E2E in CI**](docs/ci/e2e.md): Playwright suite ownership, path-aware pull-request selection, and the full regression
 - [**Project Completion Plan**](docs/PROJECT_COMPLETION_PLAN_2026-09-06.md): Step-by-step audit remediation roadmap and delivery evidence
 - [**Batch 5 Delivery Evidence**](docs/BATCH5_DELIVERY_EVIDENCE_2026-09-08.md): List contract repairs, schema conformance, and sample data removal

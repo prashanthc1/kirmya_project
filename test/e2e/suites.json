@@ -1,0 +1,153 @@
+{
+  "$comment": [
+    "The single source of truth for how test/e2e/*.spec.ts is divided into CI suites.",
+    "",
+    "scripts/ci/e2e-suites.mjs reads this file to resolve a suite to its specs, to decide",
+    "which suites a pull request needs, and to prove that every spec is owned by exactly one",
+    "suite. .github/workflows/05-e2e-smoke.yml and 06-e2e-full.yml read it through that",
+    "script, so adding a spec here is the only edit a new spec needs.",
+    "",
+    "pr:true suites run on pull requests, Chromium only. pr:false suites are regression-only:",
+    "they are slower or engine-independent, and run in 06 E2E Browser Full Suite, which runs",
+    "every spec regardless of this partition.",
+    "",
+    "projects names the Playwright projects a suite is meaningful on, which is what",
+    "scripts/ci/run-e2e-suite.mjs uses locally. accessibility.spec.ts is testMatched only by",
+    "the two axe projects, so asking for it on chromium would run nothing at all.",
+    "",
+    "pathPatterns are JavaScript regular expressions matched against repository-relative",
+    "changed paths. A change matching sharedPathPatterns runs every pr:true suite instead,",
+    "because shared code cannot be attributed to one domain - and a missed regression costs",
+    "more than a suite that did not need to run."
+  ],
+  "sharedPathPatterns": [
+    "^backend/cmd/",
+    "^backend/tools/",
+    "^backend/go\\.(mod|sum)$",
+    "^backend/Makefile$",
+    "^backend/Dockerfile$",
+    "^backend/scripts/migrations/",
+    "^backend/internal/router/",
+    "^backend/internal/common/",
+    "^backend/internal/shared/",
+    "^backend/internal/auth/",
+    "^backend/internal/admin/",
+    "^backend/internal/security/",
+    "^frontend/src/app/(layout|providers|error|global-error|not-found|loading|page|robots|sitemap)\\.(tsx|ts)$",
+    "^frontend/src/app/auth/",
+    "^frontend/src/components/(shell|common|brand)/",
+    "^frontend/src/context/",
+    "^frontend/src/services/",
+    "^frontend/src/shared/",
+    "^frontend/src/theme/",
+    "^frontend/(next\\.config\\.mjs|package\\.json|package-lock\\.json|tsconfig\\.json|Dockerfile)$",
+    "^test/e2e/(helpers|suites)\\.",
+    "^playwright\\.config\\.ts$",
+    "^(package|package-lock)\\.json$",
+    "^\\.node-version$",
+    "^scripts/ci/",
+    "^\\.github/actions/",
+    "^\\.github/workflows/0[56]-e2e-"
+  ],
+  "ignoredPathPatterns": [
+    "^docs/",
+    "^audit-review/",
+    "^k8s/",
+    "^monitoring/",
+    "^deployments/",
+    "^mobile/",
+    "^\\.github/",
+    "^\\.(agents|claude|gemini|serena)/",
+    "^[^/]*\\.md$",
+    "^\\.gitignore$",
+    "^docker-compose[^/]*\\.yml$",
+    "^backend/(doc\\.go|railway\\.json)$",
+    "^frontend/(railway\\.json|vercel\\.json)$",
+    "^skills-lock\\.json$"
+  ],
+  "suites": [
+    {
+      "id": "auth",
+      "label": "Auth",
+      "pr": true,
+      "projects": ["chromium"],
+      "owns": "Sign-in, registration, password reset, session persistence across reloads, and credentialed CORS.",
+      "specs": ["auth.spec.ts", "auth-session.spec.ts"],
+      "pathPatterns": [
+        "^frontend/src/app/(signin|signup|login|register|forgot-password|reset-password)/",
+        "^frontend/src/components/auth/",
+        "^frontend/src/features/auth/",
+        "^frontend/src/hooks/[^/]*[Aa]uth"
+      ]
+    },
+    {
+      "id": "core-user",
+      "label": "Core User",
+      "pr": true,
+      "projects": ["chromium"],
+      "owns": "The signed-in person's own surfaces: profile, the pages a brand-new empty account lands on, and the navigation architecture across phone, tablet and desktop widths.",
+      "specs": ["profile.spec.ts", "empty-account-surfaces.spec.ts", "navigation.spec.ts"],
+      "pathPatterns": [
+        "^frontend/src/app/(profile|feed|network|notifications|endorsements|settings|dashboard|people|search|onboarding)/",
+        "^frontend/src/components/(profile|network|notifications|onboarding|search)/",
+        "^frontend/src/features/(profile|networking|notifications|onboarding|search|endorsement)/",
+        "^backend/internal/(profile|networking|notification|endorsement|onboarding|search|recommendation)/"
+      ]
+    },
+    {
+      "id": "jobs-recruiting",
+      "label": "Jobs & Recruiting",
+      "pr": true,
+      "projects": ["chromium"],
+      "owns": "The job board and its filters, and the recruiter journey against real postings, applicants and applications.",
+      "specs": ["jobs.spec.ts", "recruiter-journey.spec.ts"],
+      "pathPatterns": [
+        "^frontend/src/app/(jobs|saved-jobs|applications|recruiter|employer|job-alerts|companies|company|resume|resume-analysis|interviews|assessments)/",
+        "^frontend/src/components/(jobs|applications|recruiter|ats|job-alerts|company|resume)/",
+        "^frontend/src/features/(jobs|applications|recruiter|recruiter_ai|ats|companies|company|job-alerts|resume|resume_analysis|interview|assessment)/",
+        "^backend/internal/(jobs|applications|recruiter|recruiter_ai|candidate_search|job_alerts|company|resume|resume_analysis|interview|interview_prep|assessment)/"
+      ]
+    },
+    {
+      "id": "social-workspace",
+      "label": "Social & Workspace",
+      "pr": true,
+      "projects": ["chromium"],
+      "owns": "Messaging access control and the workspace switcher: which workspaces an account holds, which one it enters, and what the switcher may and may not authorize.",
+      "specs": ["messaging.spec.ts", "workspace-switcher.spec.ts"],
+      "pathPatterns": [
+        "^frontend/src/app/(messages|communities|events|mentorship|referrals|organization)/",
+        "^frontend/src/components/(messaging|community|mentorship)/",
+        "^frontend/src/features/(messaging|community|mentorship|event|organization|referral|workspace)/",
+        "^backend/internal/(messaging|community|workspace|mentorship|event|organization|referral)/"
+      ]
+    },
+    {
+      "id": "api-critical",
+      "label": "API Critical",
+      "pr": true,
+      "projects": ["chromium"],
+      "owns": "The production bundle talking to the real API: one API base with no doubled /api/v1, no synthetic bearer identity in the shipped bundle, and an application receipt that survives a reload against real storage.",
+      "specs": ["real-api.spec.ts"],
+      "pathPatterns": ["^(backend|frontend)/"]
+    },
+    {
+      "id": "accessibility",
+      "label": "Accessibility",
+      "pr": false,
+      "projects": ["a11y-desktop", "a11y-mobile"],
+      "owns": "The axe WCAG 2.1 AA scan of the core journey in dark and light mode, the posting page itself, and keyboard access. Engine-independent and slow, so it runs in the full regression on its own desktop and phone projects.",
+      "specs": ["accessibility.spec.ts"],
+      "pathPatterns": []
+    },
+    {
+      "id": "discovery",
+      "label": "Discovery & AI",
+      "pr": false,
+      "projects": ["chromium"],
+      "owns": "What a crawler receives - server-rendered postings, JobPosting structured data, the sitemap and robots.txt - and the AI career assistant studio shell. Each seeds several accounts and postings per test, so they run in the full regression rather than on every pull request.",
+      "specs": ["public-indexing.spec.ts", "ai.spec.ts"],
+      "pathPatterns": []
+    }
+  ]
+}
