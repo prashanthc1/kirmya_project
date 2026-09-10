@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "test:e2e": "playwright test --config=playwright.config.ts",
-    "test:gates": "node --test scripts/ci/check-results.test.mjs"
+    "test:e2e:suite": "node scripts/ci/run-e2e-suite.mjs",
+    "test:e2e:validate": "node scripts/ci/e2e-suites.mjs validate",
+    "test:gates": "node --test scripts/ci/check-results.test.mjs scripts/ci/e2e-suites.test.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

@@ -120,7 +120,12 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Execute Mandatory Report Script Negative Tests
-        run: mkdir -p artifacts && node --test scripts/ci/*.test.mjs 2>&1 | tee artifacts/report-controls.log
+        run: |
+          # pipefail, so a failing test fails the step rather than being
+          # swallowed by tee's exit status.
+          set -o pipefail
+          mkdir -p artifacts
+          node --test scripts/ci/*.test.mjs 2>&1 | tee artifacts/report-controls.log
 
       - name: Upload Diagnostics on Failure
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

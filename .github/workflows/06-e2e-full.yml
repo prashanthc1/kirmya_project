@@ -1,3 +1,16 @@
+# The complete browser regression.
+#
+# Everything under test/e2e runs here - including the specs the pull-request
+# smoke gate leaves out (accessibility, public indexing, the AI studio) - across
+# every engine and viewport playwright.config.ts declares.
+#
+# The partition is by Playwright project rather than by domain suite: each job
+# owns one engine, so all thirteen specs are covered by the four functional
+# projects, and accessibility.spec.ts by the two axe projects that testMatch it.
+# That is the axis that actually costs time here, and it needs one browser
+# download per job instead of three.
+#
+# The workflow name is load-bearing: 09-release-gate.yml waits on it by name.
 name: 06 E2E Browser Full Suite
 
 on:
@@ -21,9 +34,19 @@ defaults:
 
 jobs:
   e2e-full:
-    name: Complete Playwright Cross-Browser & A11y Suite
+    name: E2E Full / ${{ matrix.project.label }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - { id: chromium, label: 'Chromium', browser: chromium }
+          - { id: firefox, label: 'Firefox', browser: firefox }
+          - { id: webkit, label: 'WebKit', browser: webkit }
+          - { id: mobile-chromium, label: 'Mobile Chromium', browser: chromium }
+          - { id: a11y-desktop, label: 'Accessibility Desktop', browser: chromium }
+          - { id: a11y-mobile, label: 'Accessibility Mobile', browser: chromium }
     services:
       postgres:
         image: postgres:18.3
@@ -63,6 +86,7 @@ jobs:
       AUTH_RATE_LIMIT_BURST: '12000'
       AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
       AUTH_SESSION_RATE_LIMIT_BURST: '600'
+      PLAYWRIGHT_WORKERS: '2'
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
@@ -76,11 +100,37 @@ jobs:
       - name: Install Dependencies
         run: mkdir -p artifacts && npm ci && npm ci --prefix frontend
 
-      - name: Install All Playwright Browsers & Dependencies
-        run: npx --no-install playwright install --with-deps chromium firefox webkit
+      - name: Prove Every E2E Spec Is Owned By A Suite
+        run: node scripts/ci/e2e-suites.mjs validate
+
+      - name: Restore Playwright Browser Cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ matrix.project.browser }}
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            playwright-${{ runner.os }}-
+
+      # One engine per job, rather than all three in every job. Runs whether or
+      # not the cache hit: a cache from another Playwright version would leave
+      # the job with no usable browser.
+      - name: Install The Browser This Project Needs
+        run: npx --no-install playwright install --with-deps ${{ matrix.project.browser }}
+
+      - name: Restore Next.js Build Cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: frontend/.next/cache
+          key: nextbuild-${{ runner.os }}-full-${{ matrix.project.id }}-${{ hashFiles('frontend/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nextbuild-${{ runner.os }}-full-${{ matrix.project.id }}-${{ hashFiles('frontend/package-lock.json') }}-
+            nextbuild-${{ runner.os }}-full-${{ matrix.project.id }}-
 
       - name: Build Production Frontend
-        run: npm --prefix frontend run build 2>&1 | tee artifacts/build.log
+        run: |
+          set -o pipefail
+          npm --prefix frontend run build 2>&1 | tee artifacts/build.log
 
       - name: Build And Launch Real API
         run: |
@@ -97,8 +147,10 @@ jobs:
           done
           exit 1
 
-      - name: Execute Full Root Test E2E Specs Against Production Build
-        run: npm run test:e2e 2>&1 | tee artifacts/playwright.log
+      - name: Execute Every E2E Spec On ${{ matrix.project.label }}
+        run: |
+          set -o pipefail
+          npx playwright test --project=${{ matrix.project.id }} 2>&1 | tee artifacts/playwright.log
 
       - name: Reject Skipped Or Missing Browser Tests
         if: always()
@@ -115,10 +167,28 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: playwright-full-${{ github.sha }}
+          name: playwright-full-${{ matrix.project.id }}-${{ github.sha }}
           path: |
             artifacts/
             playwright-report/
             test-results/
           if-no-files-found: ignore
           retention-days: 14
+
+  gate:
+    name: E2E Full / Regression Gate
+    needs: e2e-full
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require Every Project To Have Passed
+        env:
+          RESULT: ${{ needs.e2e-full.result }}
+        run: |
+          set -euo pipefail
+          echo "full regression result: ${RESULT}"
+          if [ "$RESULT" != 'success' ]; then
+            echo "::error::the full browser regression did not pass (${RESULT})"
+            exit 1
+          fi

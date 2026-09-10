@@ -1,3 +1,22 @@
+# The pull-request browser gate.
+#
+# One matrix job per domain suite, each self-contained: its own PostgreSQL,
+# Redis, migrations, Go API and production frontend build, so no suite can be
+# held up by, or corrupted by, another. test/e2e/suites.json owns the partition;
+# scripts/ci/e2e-suites.mjs resolves it and decides which suites a diff needs.
+#
+# The workflow name is load-bearing: 09-release-gate.yml waits on it by name.
+#
+# It has no `paths:` filter on purpose. A workflow skipped by a path filter never
+# reports its checks at all, which leaves a required check pending forever; this
+# one always runs, and the cheap E2E / Plan job decides - from the same
+# suites.json - whether any browser work is actually needed. A documentation-only
+# change reaches E2E / Smoke Gate green in about a minute.
+#
+# E2E / Smoke Gate is the check to require in branch protection. The per-suite
+# checks are named from suites.json and are stable, but a suite the plan did not
+# select does not report, so requiring one individually would block such a pull
+# request forever.
 name: 05 E2E Browser Smoke
 
 on:
@@ -5,17 +24,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - 'test/e2e/**'
-      - 'playwright.config.ts'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.node-version'
-      - '.github/workflows/05-e2e-smoke.yml'
-      - '.github/actions/**'
   workflow_dispatch:
+    inputs:
+      suites:
+        description: 'Comma-separated suite ids to run, or "all"'
+        required: false
+        default: 'all'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,10 +43,88 @@ defaults:
     shell: bash
 
 jobs:
-  e2e-smoke:
-    name: Critical Path E2E Smoke (Chromium)
+  plan:
+    name: E2E / Plan
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 5
+    outputs:
+      suites: ${{ steps.plan.outputs.suites }}
+      count: ${{ steps.plan.outputs.count }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      reason: ${{ steps.plan.outputs.reason }}
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Prove Every E2E Spec Is Owned By A Suite
+        run: node scripts/ci/e2e-suites.mjs validate
+
+      - name: Collect The Paths This Change Touches
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -uo pipefail
+          changed="${RUNNER_TEMP}/e2e-changed.txt"
+          : > "$changed"
+          echo "changed-file=${changed}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != 'pull_request' ]; then exit 0; fi
+          # Any failure here leaves the file empty, and an empty file means
+          # "unknown blast radius", which selects every suite.
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "base commit ${BASE_SHA} is not present; falling back to the full critical set"
+            exit 0
+          fi
+          if ! merge_base=$(git merge-base "$BASE_SHA" "$HEAD_SHA" 2>/dev/null); then
+            echo "no merge base between ${BASE_SHA} and ${HEAD_SHA}; falling back to the full critical set"
+            exit 0
+          fi
+          git diff --name-only "$merge_base" "$HEAD_SHA" > "$changed" || : > "$changed"
+          echo "changed files:"
+          cat "$changed"
+
+      - name: Decide Which Suites This Change Needs
+        id: plan
+        env:
+          REQUESTED_SUITES: ${{ github.event.inputs.suites || 'all' }}
+          CHANGED_FILE: ${{ steps.changed.outputs.changed-file }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = 'pull_request' ]; then
+            node scripts/ci/e2e-suites.mjs plan --changed "$CHANGED_FILE" | tee "${RUNNER_TEMP}/plan.txt"
+          else
+            node scripts/ci/e2e-suites.mjs plan --all --only "$REQUESTED_SUITES" | tee "${RUNNER_TEMP}/plan.txt"
+          fi
+          {
+            echo '### E2E suite selection'
+            echo
+            echo '```'
+            cat "${RUNNER_TEMP}/plan.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  e2e:
+    name: E2E / ${{ matrix.suite.label }}
+    needs: plan
+    # Gated on the count rather than on the matrix: an empty matrix vector is a
+    # workflow error, not an empty run. The `matrix` context is not available in
+    # a job-level `if`, which is why the selection shapes the matrix instead of
+    # filtering a static one.
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      # { "suite": [ { "id": "auth", "label": "Auth" }, ... ] }, built by
+      # scripts/ci/e2e-suites.mjs from test/e2e/suites.json. The suite list lives
+      # in exactly one place and this workflow never restates it.
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     services:
       postgres:
         image: postgres:18.3
@@ -72,6 +164,7 @@ jobs:
       AUTH_RATE_LIMIT_BURST: '12000'
       AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
       AUTH_SESSION_RATE_LIMIT_BURST: '600'
+      PLAYWRIGHT_WORKERS: '2'
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
@@ -85,11 +178,34 @@ jobs:
       - name: Install Root & Frontend Dependencies
         run: mkdir -p artifacts && npm ci && npm ci --prefix frontend
 
+      - name: Restore Playwright Browser Cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ matrix.suite.id }}
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            playwright-${{ runner.os }}-
+
+      # Runs unconditionally, cache or not: a restored cache built for another
+      # Playwright version would otherwise leave the job with no usable browser.
+      # On a hit the download is skipped and only the OS dependencies are checked.
       - name: Install Chromium Only for Fast Smoke Execution
         run: npx --no-install playwright install --with-deps chromium
 
+      - name: Restore Next.js Build Cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: frontend/.next/cache
+          key: nextbuild-${{ runner.os }}-${{ matrix.suite.id }}-${{ hashFiles('frontend/package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nextbuild-${{ runner.os }}-${{ matrix.suite.id }}-${{ hashFiles('frontend/package-lock.json') }}-
+            nextbuild-${{ runner.os }}-${{ matrix.suite.id }}-
+
       - name: Build Production Frontend
-        run: npm --prefix frontend run build 2>&1 | tee artifacts/build.log
+        run: |
+          set -o pipefail
+          npm --prefix frontend run build 2>&1 | tee artifacts/build.log
 
       - name: Build And Launch Real API
         run: |
@@ -106,16 +222,12 @@ jobs:
           done
           exit 1
 
-      - name: Execute Critical User Journey E2E Specs (Chromium)
+      - name: Execute ${{ matrix.suite.label }} E2E Specs (Chromium)
         run: |
-          npx playwright test --project=chromium \
-            test/e2e/auth.spec.ts \
-            test/e2e/auth-session.spec.ts \
-            test/e2e/jobs.spec.ts \
-            test/e2e/real-api.spec.ts \
-            test/e2e/empty-account-surfaces.spec.ts \
-            test/e2e/messaging.spec.ts \
-            test/e2e/profile.spec.ts 2>&1 | tee artifacts/playwright.log
+          set -o pipefail
+          specs=$(node scripts/ci/e2e-suites.mjs specs '${{ matrix.suite.id }}')
+          echo "suite ${{ matrix.suite.id }} runs: ${specs}"
+          npx playwright test --project=chromium $specs 2>&1 | tee artifacts/playwright.log
 
       - name: Reject Skipped Or Missing Browser Tests
         if: always()
@@ -132,10 +244,37 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: failure()
         with:
-          name: playwright-smoke-failure-${{ github.sha }}
+          name: playwright-smoke-${{ matrix.suite.id }}-${{ github.sha }}
           path: |
             artifacts/
             playwright-report/
             test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  gate:
+    name: E2E / Smoke Gate
+    needs: [plan, e2e]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require Every Selected Suite To Have Passed
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          SUITE_RESULT: ${{ needs.e2e.result }}
+          SELECTED: ${{ needs.plan.outputs.suites }}
+          REASON: ${{ needs.plan.outputs.reason }}
+        run: |
+          set -euo pipefail
+          echo "selection: ${SELECTED:-<none>} (${REASON:-no reason recorded})"
+          echo "plan=${PLAN_RESULT} suites=${SUITE_RESULT}"
+          if [ "$PLAN_RESULT" != 'success' ]; then
+            echo "::error::the E2E plan job did not succeed, so no suite selection can be trusted"
+            exit 1
+          fi
+          case "$SUITE_RESULT" in
+            success) echo 'every selected E2E suite passed' ;;
+            skipped) echo 'no suite was selected for this change' ;;
+            *) echo "::error::at least one E2E suite did not pass (${SUITE_RESULT})"; exit 1 ;;
+          esac
