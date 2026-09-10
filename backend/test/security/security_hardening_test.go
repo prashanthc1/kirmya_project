@@ -130,7 +130,22 @@ func TestSecurity_LockedAndSuspendedAccountRejection(t *testing.T) {
 	}, "127.0.0.1", "test-agent")
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "locked or suspended")
+
+	// Refused for its standing, and typed so the delivery layer answers 401
+	// without inspecting the message text - which is how it used to decide,
+	// by searching the error for the word "locked".
+	var ineligible *authSvc.AccountNotEligibleError
+	require.ErrorAs(t, err, &ineligible)
+	assert.Equal(t, "locked", ineligible.Status, "the audit trail must still see the real reason")
+
+	// And the caller is told nothing about the account. This assertion required
+	// the opposite until the account-standing rule was unified -
+	// Contains(err, "locked or suspended") - which makes an unauthenticated
+	// endpoint into a membership test against the user table: guess an address,
+	// read back whether it exists and what has been done to it.
+	assert.NotContains(t, err.Error(), "locked")
+	assert.NotContains(t, err.Error(), "suspended")
+	assert.Equal(t, "invalid email or password", err.Error())
 }
 
 // 4. RBAC & PRIVILEGE ESCALATION DEFENSE
