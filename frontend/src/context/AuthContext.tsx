@@ -10,6 +10,7 @@ import {
   LoginPayload,
   RegisterPayload,
 } from '../services/authService';
+import type { Workspace } from '../shared/workspace/types';
 
 /**
  * The three states a session can be in, named rather than inferred.
@@ -25,6 +26,22 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 interface AuthContextType {
   user: UserProfile | null;
   permissions: string[];
+  /**
+   * The workspaces this account may enter, as the server resolved them.
+   *
+   * Navigation data, never authority. Rendering an entry does not grant
+   * anything and omitting one does not protect anything: every privileged
+   * route refuses an unauthorized caller on the server, whatever this list
+   * says. Empty until the first bootstrap settles.
+   */
+  workspaces: Workspace[];
+  /**
+   * Whether `workspaces` is the whole answer. False means the server could not
+   * resolve them and degraded to the professional workspace, so a missing
+   * company means "unknown", not "revoked" - which is why no selection is
+   * persisted against an incomplete list.
+   */
+  workspacesComplete: boolean;
   notificationsCount: number;
   setNotificationsCount: React.Dispatch<React.SetStateAction<number>>;
   status: AuthStatus;
@@ -67,6 +84,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspacesComplete, setWorkspacesComplete] = useState(false);
   const [notificationsCount, setNotificationsCount] = useState<number>(0);
   const [status, setStatus] = useState<AuthStatus>('loading');
 
@@ -81,10 +100,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const bootstrapped = useRef(false);
 
   const applyIdentity = useCallback(
-    (me: { user: UserProfile; permissions?: string[]; notificationsCount?: number }) => {
+    (me: {
+      user: UserProfile;
+      permissions?: string[];
+      notificationsCount?: number;
+      workspaces?: Workspace[];
+      workspacesComplete?: boolean;
+    }) => {
       setUser(me.user);
       setPermissions(me.permissions || []);
       setNotificationsCount(me.notificationsCount || 0);
+      // An older backend serves no workspaces at all. That is indistinguishable
+      // from a degraded answer and is treated as one: an empty list is never
+      // reported as complete, so nothing reads it as "this account has none".
+      setWorkspaces(me.workspaces || []);
+      setWorkspacesComplete(Boolean(me.workspacesComplete) && Array.isArray(me.workspaces));
       setStatus('authenticated');
     },
     []
@@ -94,6 +124,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setPermissions([]);
     setNotificationsCount(0);
+    setWorkspaces([]);
+    setWorkspacesComplete(false);
     setStatus('unauthenticated');
   }, []);
 
@@ -234,6 +266,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         permissions,
+        workspaces,
+        workspacesComplete,
         notificationsCount,
         setNotificationsCount,
         status,

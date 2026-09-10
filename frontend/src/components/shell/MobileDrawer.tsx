@@ -36,6 +36,9 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import BrandLockup from '../brand/BrandLockup';
 import { useAuth } from '../../hooks/useAuth';
+import { canAccessPlatformAdmin } from '../../shared/permissions';
+import { activeWorkspace } from '../../shared/workspace/active';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 import { ROUTES } from '../../shared/routes';
 import { PRIMARY_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '../../shared/navigation';
 import { tokens } from '../../theme/tokens';
@@ -56,7 +59,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
   const isDark = theme.palette.mode === 'dark';
   const pathname = usePathname();
   const router = useRouter();
-  const { user, authenticated, notificationsCount, logout } = useAuth();
+  const { user, authenticated, notificationsCount, permissions, workspaces, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -92,8 +95,22 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
     }
   };
 
-  const isRecruiter = user?.roleId === 'recruiter' || user?.roleId === 'company_admin';
-  const isAdmin = user?.roleId === 'platform_admin' || user?.roleId === 'admin';
+  /*
+   * Both of these read roleId, and both were wrong in a different direction.
+   *
+   * Recruiting checked for values registration never writes, so the entry was
+   * unreachable for every real account. Administration listed two roles by
+   * hand and omitted super_admin - which AppHeader's shared helper includes -
+   * so desktop and mobile disagreed about who is an administrator, and a
+   * super_admin the server admits was offered no way in on a phone.
+   *
+   * Recruiting now comes from the served workspace list and administration
+   * from the same helper the header uses, which is the same role set the API's
+   * RequireAdmin() enforces. Neither is what protects the routes.
+   */
+  const hasRecruiting = (workspaces ?? []).some(workspace => workspace.type === 'recruiting');
+  const isAdmin = canAccessPlatformAdmin({ permissions, role: user?.roleId });
+  const activeLabel = activeWorkspace(workspaces, pathname)?.label;
 
   return (
     <Drawer
@@ -162,11 +179,24 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
               <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
                 {user.firstName ? `${user.firstName} ${user.lastName}` : user.email}
               </Typography>
+              {/* roleId reads "user" for everyone; the workspace says something. */}
               <Typography variant="caption" color="text.secondary" noWrap>
-                {user.jobTitle || user.roleId || 'Member'}
+                {user.jobTitle || activeLabel || 'Member'}
               </Typography>
             </Box>
           </Stack>
+        )}
+
+        {/*
+          The switcher, at this breakpoint, opens from the account block rather
+          than enumerating every workspace in the navigation list - the phone
+          presentation the architecture asks for, and the same two interactions
+          as on desktop.
+        */}
+        {authenticated && user && (
+          <Box sx={{ px: 1, pb: 0.5 }}>
+            <WorkspaceSwitcher variant="drawer" onNavigate={onClose} />
+          </Box>
         )}
 
         {/* Navigation List */}
@@ -208,7 +238,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
           })}
 
           {/* Role Navigation Items */}
-          {authenticated && user && isRecruiter && (
+          {authenticated && user && hasRecruiting && (
             <>
               <Divider sx={{ my: 1 }} />
               <ListItem disablePadding>
@@ -231,16 +261,24 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
             <>
               <Divider sx={{ my: 1 }} />
               <ListItem disablePadding>
+                {/*
+                  This pointed at ROUTES.ADMIN.DASHBOARD - /admin/dashboard -
+                  which has no page, so the administration entry on a phone led
+                  to the not-found screen. It now goes where the header sends
+                  administrators and where the resolver routes the platform
+                  workspace, under the same name, so the two surfaces name and
+                  reach one destination instead of two.
+                */}
                 <ListItemButton
                   component={Link}
-                  href={ROUTES.ADMIN.DASHBOARD}
+                  href={ROUTES.ADMIN.ROOT}
                   onClick={onClose}
                   sx={{ borderRadius: `${tokens.radius.md}px`, color: 'error.main' }}
                 >
                   <ListItemIcon sx={{ minWidth: 36, color: 'error.main' }}>
                     <ShieldOutlinedIcon />
                   </ListItemIcon>
-                  <ListItemText primary="Admin Center" primaryTypographyProps={{ fontWeight: 700 }} />
+                  <ListItemText primary="Kirmya administration" primaryTypographyProps={{ fontWeight: 700 }} />
                 </ListItemButton>
               </ListItem>
             </>

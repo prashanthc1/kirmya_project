@@ -1,0 +1,102 @@
+import { test, expect } from '@playwright/test';
+import { becomeRecruiter, registerAccount } from './helpers';
+
+/*
+ * The workspace switcher against the real API and the production build.
+ *
+ * The unit tests drive the component with a mocked list; these prove the whole
+ * path - the server resolving workspaces from real capability, the bootstrap
+ * carrying them, and the control rendering what arrived. A switcher that works
+ * against a fixture and not against /auth/me would be worse than none.
+ */
+
+const password = 'Disposable-CI-password-123!';
+
+async function signIn(page: import('@playwright/test').Page, email: string) {
+  await page.goto('/signin');
+  await page.getByLabel(/email/i).first().fill(email);
+  await page.getByLabel(/password/i).first().fill(password);
+  await page.getByRole('button', { name: 'Sign In' }).click();
+  await page.waitForURL(/\/feed/, { timeout: 15_000 });
+}
+
+test('an account with one workspace is offered no switcher', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-single');
+
+  await signIn(page, account.email);
+
+  // A control that cannot switch is a control that does nothing.
+  await expect(page.getByRole('button', { name: /change workspace/i })).toHaveCount(0);
+});
+
+test('completing recruiter onboarding puts Recruiting in the switcher', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-recruit');
+  await becomeRecruiter(request, api, account);
+
+  await signIn(page, account.email);
+
+  const trigger = page.getByRole('button', { name: /current workspace: professional/i });
+  await expect(trigger).toBeVisible();
+
+  await trigger.click();
+  const menu = page.getByRole('menu');
+  await expect(menu.getByRole('menuitem', { name: /professional/i })).toHaveAttribute('href', '/feed');
+  await expect(menu.getByRole('menuitem', { name: /recruiting/i })).toHaveAttribute('href', '/recruiter');
+});
+
+test('switching enters the workspace, and the control follows the URL', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-switch');
+  await becomeRecruiter(request, api, account);
+
+  await signIn(page, account.email);
+  await page.getByRole('button', { name: /change workspace/i }).click();
+  await page.getByRole('menuitem', { name: /recruiting/i }).click();
+
+  await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
+
+  // The active workspace is derived from the address, so it is right here
+  // without anything having been stored...
+  await expect(page.getByRole('button', { name: /current workspace: recruiting/i })).toBeVisible();
+
+  // ...it survives a reload for the same reason...
+  await page.reload();
+  await expect(page.getByRole('button', { name: /current workspace: recruiting/i })).toBeVisible();
+
+  // ...and Back returns to the previous workspace without being taught to.
+  await page.goBack();
+  await expect(page.getByRole('button', { name: /current workspace: professional/i })).toBeVisible();
+});
+
+test('signing in lands every account on the feed, whatever it may enter', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-landing');
+  await becomeRecruiter(request, api, account);
+
+  // Post-login routing used to guess a destination from roleId, defaulting to a
+  // 'candidate' persona the backend has never had. Professional is the default
+  // workspace for everyone; the switcher is how the others are reached.
+  await page.goto('/signin');
+  await page.getByLabel(/email/i).first().fill(account.email);
+  await page.getByLabel(/password/i).first().fill(password);
+  await page.getByRole('button', { name: 'Sign In' }).click();
+
+  await page.waitForURL(/\/feed/, { timeout: 15_000 });
+  expect(new URL(page.url()).pathname).toBe('/feed');
+});
+
+test('the switcher is navigation, not authorization', async ({ page, request }) => {
+  const api = process.env.TEST_API_URL!;
+  const account = await registerAccount(request, api, 'ws-authz');
+
+  await signIn(page, account.email);
+
+  // This account never onboarded, so the server offers it no recruiting
+  // workspace - and the route refuses it regardless of what any menu shows.
+  const refused = await request.get(`${api}/api/v1/recruiter/dashboard`, {
+    headers: { Authorization: `Bearer ${account.token}` },
+  });
+  expect(refused.status()).toBe(403);
+});

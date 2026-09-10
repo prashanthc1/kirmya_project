@@ -3,7 +3,6 @@
 import React from 'react';
 import {
   Box,
-  Typography,
   Stack,
   IconButton,
   Avatar,
@@ -16,12 +15,16 @@ import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import VerifiedIcon from '@mui/icons-material/Verified';
+import Link from 'next/link';
 import { useColorMode } from '../../app/providers';
+import { useAuth } from '../../hooks/useAuth';
+import { ROUTES } from '../../shared/routes';
+import WorkspaceSwitcher from '../shell/WorkspaceSwitcher';
 
 export const RecruiterHeader: React.FC = () => {
   const theme = useTheme();
   const { mode, toggleColorMode } = useColorMode();
+  const { user, notificationsCount } = useAuth();
   const isDark = theme.palette.mode === 'dark';
 
   return (
@@ -54,35 +57,47 @@ export const RecruiterHeader: React.FC = () => {
       />
 
       <Stack direction="row" spacing={2} alignItems="center">
-        {/* Company Badge */}
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'none', sm: 'flex' } }}>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem', fontWeight: 800 }}>
-            E
-          </Avatar>
-          <Box>
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
-                Emaar Group HQ
-              </Typography>
-              <VerifiedIcon sx={{ color: '#0284c7', fontSize: 16 }} />
-            </Stack>
-            <Typography variant="caption" color="text.secondary">
-              Corporate Administrator
-            </Typography>
-          </Box>
-        </Stack>
+        {/*
+          The switcher, so recruiting is a workspace you can leave.
+          /recruiter/* is the one workspace with its own layout rather than the
+          global shell, so without this an account could switch in and have no
+          way back out - which is worse than never offering the control.
 
-        <IconButton onClick={toggleColorMode} color="inherit">
+          It replaces a badge that read "Emaar Group HQ / Corporate
+          Administrator" with a verified tick, for every recruiter, whoever they
+          were. It named a real company none of these accounts belong to and
+          asserted a verification nothing had performed. The workspace label
+          says the same kind of thing and is true.
+        */}
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+          <WorkspaceSwitcher />
+        </Box>
+
+        <IconButton onClick={toggleColorMode} color="inherit" aria-label="Toggle colour mode">
           {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
         </IconButton>
 
-        <IconButton color="inherit">
-          <Badge badgeContent={4} color="error">
+        {/*
+          The badge was the literal 4 for every recruiter on every page. A count
+          is either counted or it is absent; it is never decorative. This is the
+          same number the rest of the application shows, from /auth/me.
+        */}
+        <IconButton
+          component={Link}
+          href={ROUTES.NOTIFICATIONS}
+          color="inherit"
+          aria-label={
+            notificationsCount > 0 ? `Notifications, ${notificationsCount} unread` : 'Notifications'
+          }
+        >
+          <Badge badgeContent={notificationsCount} color="error" max={99}>
             <NotificationsIcon />
           </Badge>
         </IconButton>
 
-        <Avatar sx={{ bgcolor: '#6366f1', fontWeight: 800, width: 38, height: 38 }}>R</Avatar>
+        <Avatar sx={{ bgcolor: '#6366f1', fontWeight: 800, width: 38, height: 38 }}>
+          {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'R'}
+        </Avatar>
       </Stack>
     </Box>
   );

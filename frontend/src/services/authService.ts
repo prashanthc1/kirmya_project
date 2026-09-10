@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type { Workspace } from '../shared/workspace/types';
 
 /**
  * The single API base every authenticated call goes through.
@@ -247,6 +248,18 @@ export interface UserMeResponse {
   user: UserProfile;
   permissions: string[];
   notificationsCount: number;
+  /**
+   * The workspaces this account may enter, resolved server-side on every
+   * bootstrap. Optional on the type because a client can be pointed at an older
+   * backend; absent is treated the same as an incomplete answer.
+   */
+  workspaces?: Workspace[];
+  /**
+   * Whether `workspaces` is the whole answer. False means resolution failed and
+   * the server degraded the list to the professional workspace alone - so an
+   * absent company means "we could not tell", not "you were removed".
+   */
+  workspacesComplete?: boolean;
 }
 
 export interface SessionResponse {

@@ -103,21 +103,22 @@ export const SignInForm: React.FC = () => {
 
       setSuccessMessage('Authentication successful. Redirecting...');
 
-      const userRole = (res?.user?.roleId || 'candidate').toLowerCase();
+      /*
+       * Everyone lands on the feed unless they asked for somewhere specific.
+       *
+       * This used to branch on roleId, defaulting to 'candidate' - a persona
+       * that exists nowhere in the backend - and substring-matching the rest,
+       * so a role containing "admin" anywhere took the user to the console.
+       * Registration writes "user" for every account, so in practice the
+       * branches were unreachable and the default was the only live path.
+       *
+       * Professional is the default workspace for every account, and the
+       * switcher is how someone reaches the others. Guessing an entry point
+       * from a global role is exactly the single-role assumption the workspace
+       * architecture replaces.
+       */
       setTimeout(() => {
-        if (rawReturnUrl) {
-          router.push(safeReturnUrl);
-        } else if (userRole.includes('admin') || userRole === 'platform_admin') {
-          router.push(ROUTES.ADMIN.ROOT);
-        } else if (userRole.includes('company')) {
-          // Management is entity-scoped now; the directory is where a company
-          // administrator picks which of their companies to open.
-          router.push(ROUTES.COMPANIES);
-        } else if (userRole.includes('recruiter')) {
-          router.push(ROUTES.RECRUITER.DASHBOARD);
-        } else {
-          router.push(ROUTES.FEED);
-        }
+        router.push(rawReturnUrl ? safeReturnUrl : ROUTES.FEED);
       }, 400);
     } catch {
       // Handled via useLogin error state

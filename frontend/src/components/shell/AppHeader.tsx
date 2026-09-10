@@ -40,6 +40,8 @@ import { ROUTES } from '../../shared/routes';
 import { PRIMARY_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '../../shared/navigation';
 import { isItemActive, isWithin } from '../../shared/navigation/matchRoute';
 import { canAccessPlatformAdmin } from '../../shared/permissions';
+import { activeWorkspace } from '../../shared/workspace/active';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 import { tokens } from '../../theme/tokens';
 
 export interface AppHeaderProps {
@@ -57,7 +59,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
   const isDark = theme.palette.mode === 'dark';
   const pathname = usePathname();
   const router = useRouter();
-  const { user, authenticated, notificationsCount, permissions, logout } = useAuth();
+  const { user, authenticated, notificationsCount, permissions, workspaces, logout } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
@@ -102,11 +104,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
     }
   };
 
-  const isRecruiter = user?.roleId === 'recruiter' || user?.roleId === 'company_admin';
+  /*
+   * Recruiting used to be `roleId === 'recruiter' || roleId === 'company_admin'`.
+   * Registration hardcodes roleId "user" and nothing ever writes either value,
+   * so that entry was unreachable for every normally registered account - while
+   * the API behind it was open to all of them. Visibility and authorization
+   * pointed in opposite directions.
+   *
+   * It now reads the workspace list the server resolves from the recruiter
+   * capability itself, so the entry appears exactly when the routes behind it
+   * would admit the caller. Hiding it is still not what protects them.
+   */
+  const hasRecruiting = (workspaces ?? []).some(workspace => workspace.type === 'recruiting');
   // Centralised, and matching the role set the API's own RequireAdmin() uses.
   // Written out here it missed super_admin entirely, so an account the server
   // would have admitted was shown no way in.
   const isAdmin = canAccessPlatformAdmin({ permissions, role: user?.roleId });
+  const activeLabel = activeWorkspace(workspaces, pathname)?.label;
 
   return (
     <Box
@@ -241,6 +255,17 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
           {authenticated && user ? (
             <>
               {/*
+                The switcher sits beside the account controls rather than in the
+                primary navigation: changing workspace changes the contextual
+                navigation, and the five primary destinations stay five. On
+                small screens it moves into the drawer's account block, which is
+                the account control at that breakpoint.
+              */}
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <WorkspaceSwitcher />
+              </Box>
+
+              {/*
                 Notifications is a global action, not a destination, so it sits
                 here beside search and the account menu rather than taking one
                 of the five slots in the primary navigation. It was in that row
@@ -300,8 +325,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     {user.firstName ? `${user.firstName} ${user.lastName}` : user.email}
                   </Typography>
+                  {/*
+                    This displayed user.roleId, which is "user" for every
+                    normally registered account - a label that told the reader
+                    nothing and leaked an internal vocabulary to do it. The job
+                    title if there is one, otherwise the workspace they are in.
+                  */}
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                    {user.jobTitle || user.roleId || 'Member'}
+                    {user.jobTitle || activeLabel || 'Member'}
                   </Typography>
                 </Box>
                 <Divider sx={{ my: 0.5 }} />
@@ -317,7 +348,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                   <ListItemText primary="Your Profile" />
                 </MenuItem>
 
-                {isRecruiter && (
+                {hasRecruiting && (
                   <MenuItem
                     component={Link}
                     href={ROUTES.RECRUITER.DASHBOARD}

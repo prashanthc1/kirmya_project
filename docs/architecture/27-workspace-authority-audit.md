@@ -2,7 +2,7 @@
 
 | Field | Value |
 | :--- | :--- |
-| **Status** | Audit complete. Resolver implemented and served on `/auth/me` — see §18. |
+| **Status** | Audit complete. Resolver implemented, served on `/auth/me`, and switched in the UI — see §18. |
 | **Date** | 2026-09-10 |
 | **Audited at** | `04e8ed2` |
 | **Target design** | [26-workspace-architecture.md](26-workspace-architecture.md) · [ADR 0002](../decisions/0002-single-identity-multi-workspace-access.md) |
@@ -591,7 +591,7 @@ unchanged; this section says which of its recommendations now exist in code.
 | Company bulk grant lister (map item 4) | **Done** | `ManagementRepository.ListUserGrants` |
 | Community managed-membership lister (map item 5) | **Done** | `CommunityRepository.ListManagedMemberships` |
 | `/auth/me` integration (map items 6–7) | **Done** | `dto.UserMeDTO.workspaces`, `AuthService.resolveWorkspaces` |
-| Frontend workspace state (map items 8–11) | Not started | — |
+| Frontend workspace state (map items 8–11) | **Done** | `AuthContext.workspaces`, `WorkspaceSwitcher`, shell entries |
 
 ### Workspaces the resolver returns
 
@@ -692,7 +692,47 @@ a failed resolution hands to a client.
 against the same database: median 1.58 ms before, 2.13 ms after (+0.55 ms);
 p95 2.30 ms → 2.77 ms. No caching added.
 
-Still not done: frontend workspace state, the switcher, navigation redesign, and
+### Frontend switcher
+
+The switcher sits beside the account controls on desktop and inside the drawer's
+account block on a phone, opening from the account control at both breakpoints
+as §11.2 requires. It lists only entitled workspaces, grouped personal → entity
+→ platform, and renders nothing for an account with fewer than two: a control
+that cannot switch is a control that does nothing.
+
+**The active workspace is derived from the URL** (`activeWorkspace`), not stored
+beside it. That is the whole design — there is no selection to fall out of step
+with the address bar, Back and Forward work without being taught to, a reload
+lands where it left off, and a revoked workspace simply stops matching and falls
+back to Professional. Nothing is persisted, so §26 (no workspace persistence)
+still holds and needs no migration.
+
+Matching is longest-route-prefix and segment-aware, so `/recruiterly` is not
+inside `/recruiter`.
+
+Three P2 findings from §11 are closed by this, because the server now serves the
+truth those checks were guessing at:
+
+| Finding | Was | Now |
+| :--- | :--- | :--- |
+| P2-1 | `roleId === 'recruiter' \|\| 'company_admin'` — unreachable for every real account | The served `recruiting` workspace |
+| P2-2 | `MobileDrawer` omitted `super_admin` | `canAccessPlatformAdmin`, the same helper the header uses |
+| P2-3 | Post-login routed on `roleId`, defaulting to a `'candidate'` persona | Always `/feed` unless a safe `returnUrl` |
+| P2-4 | Both surfaces displayed `user.roleId` ("user" for everyone) | Job title, else the active workspace label |
+
+Two further defects were found while wiring it and fixed:
+
+- **The mobile administration entry led to a 404.** It pointed at
+  `/admin/dashboard`, which has no page, while the header sent administrators to
+  `/admin`. Both now use the platform workspace's own route and name.
+- **`/recruiter/*` had no way back.** It is the only workspace with its own
+  layout rather than the global shell, so the switcher was absent there — an
+  account could switch in and be stranded. `RecruiterHeader` now carries it, in
+  place of a fabricated "Emaar Group HQ / Corporate Administrator" badge with a
+  verified tick, shown to every recruiter whoever they were, and a notification
+  count hardcoded to 4.
+
+Still not done: the contextual navigation redesign per workspace, and
 persistence of the active workspace. The JWT is unchanged — scoped authority
 stays server-resolved per request, which is what lets a capability gained
 mid-session appear on the next bootstrap without a new token.
