@@ -715,7 +715,12 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	}
 
 	adminRepository := adminRepo.NewAdminRepository(dbPool)
-	adminService := adminSvc.NewAdminService(adminRepository)
+	// An account moved out of good standing loses its sessions immediately.
+	// Both collaborators are the auth module's own: there is one revocation
+	// path in the codebase and this reuses it rather than adding a second.
+	adminService := adminSvc.NewAdminService(adminRepository).
+		WithSessionRevoker(authRepository).
+		WithAccountReader(authRepository)
 	adminHandler := adminHttp.NewAdminHandler(adminService)
 
 	billingRepository := billingRepo.NewBillingRepository(sqlDB)

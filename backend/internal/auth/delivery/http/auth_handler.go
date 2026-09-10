@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	"kirmya/internal/auth/dto"
@@ -95,8 +94,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	accessToken, refreshToken, u, err := h.service.Login(c.Request.Context(), &payload, ipAddress, userAgent)
 	if err != nil {
-		if strings.Contains(err.Error(), "locked") || strings.Contains(err.Error(), "suspended") {
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		// An account refused for its standing answers exactly as a wrong
+		// password does: 401, same words. It used to be a 403 carrying "account
+		// is locked or suspended", selected by searching the error text for the
+		// word "locked" - which told an unauthenticated caller that an address
+		// has an account and what has been done to it, one guess at a time.
+		//
+		// The distinction is kept where it is useful and safe: the audit trail
+		// records the real reason and the status.
+		var ineligible *service.AccountNotEligibleError
+		if errors.As(err, &ineligible) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 			return
 		}
 		// Only a credential or account-state rejection is a 401. A lookup that
@@ -296,6 +304,17 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 
 	res, err := h.service.GetUserMe(c.Request.Context(), userID)
 	if err != nil {
+		// An account that may no longer authenticate has ended its session, and
+		// 401 is what says so: the client clears its state and returns to
+		// sign-in. Answering 404 here would read as "profile missing" and leave
+		// a signed-in shell over an account that may not sign in.
+		if errors.Is(err, service.ErrAccountNotEligible) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Your session has ended. Please sign in again.",
+				"code":  "ACCOUNT_NOT_ELIGIBLE",
+			})
+			return
+		}
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}

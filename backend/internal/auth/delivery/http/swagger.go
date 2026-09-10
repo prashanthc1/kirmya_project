@@ -39,8 +39,7 @@ func swaggerRegister() {}
 // @Param        request  body      dto.LoginRequest  true  "Login credentials"
 // @Success      200      {object}  dto.AuthResponseDTO
 // @Failure      400      {object}  swagger.ValidationErrorResponse  "Malformed request body"
-// @Failure      401      {object}  swagger.ErrorResponse            "Invalid email or password"
-// @Failure      403      {object}  swagger.ErrorResponse            "Account locked or suspended"
+// @Failure      401      {object}  swagger.ErrorResponse            "Invalid email or password, or an account that may not authenticate. The two are deliberately indistinguishable: only an account whose status is 'active' may sign in, and saying which of the two refused a caller would turn this endpoint into a membership test against the user table. The audit trail records the real reason."
 // @Failure      429      {object}  swagger.ErrorResponse            "Rate limit exceeded"
 // @Router       /api/v1/auth/login [post]
 func swaggerLogin() {}
@@ -52,7 +51,8 @@ func swaggerLogin() {}
 // @Tags         Authentication
 // @Produce      json
 // @Success      200  {object}  swagger.JWTResponse
-// @Failure      401  {object}  swagger.ErrorResponse  "Missing, expired or reused refresh token"
+// @Failure      401  {object}  swagger.ErrorResponse  "Missing, expired or reused refresh token, or an account that may no longer authenticate. Account standing is re-read on every refresh against the same rule login applies, so a status changed after sign-in - including one changed outside the application - ends the session here whether or not its tokens were revoked."
+// @Failure      409  {object}  swagger.ErrorResponse  "Two refreshes from one page load raced. Retry with the cookie the winning request set; nothing was issued twice."
 // @Failure      429  {object}  swagger.ErrorResponse  "Rate limit exceeded"
 // @Router       /api/v1/auth/refresh [post]
 func swaggerRefresh() {}
@@ -116,7 +116,7 @@ func swaggerGetSession() {}
 // @Tags         Authentication
 // @Produce      json
 // @Success      200  {object}  dto.UserMeDTO
-// @Failure      401  {object}  swagger.ErrorResponse  "Missing or invalid access token"
+// @Failure      401  {object}  swagger.ErrorResponse  "Missing or invalid access token, or an account that may no longer authenticate (code ACCOUNT_NOT_ELIGIBLE). Session restoration applies the same account-standing rule as login and refresh, so a client holding a token issued before the change is told its session has ended rather than being served a profile."
 // @Failure      404  {object}  swagger.ErrorResponse  "User no longer exists"
 // @Failure      429  {object}  swagger.ErrorResponse  "Rate limit exceeded"
 // @Failure      500  {object}  swagger.ErrorResponse  "Failed to load user"

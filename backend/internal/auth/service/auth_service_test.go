@@ -260,10 +260,25 @@ func TestDisabledAccountRejection(t *testing.T) {
 	_ = repo.UpdateUser(context.Background(), user)
 
 	// Login must be blocked
-	_, _, _, loginErr := svc.Login(context.Background(), &dto.LoginRequest{
+	_, accessToken, _, loginErr := svc.Login(context.Background(), &dto.LoginRequest{
 		Email:    "locked@kirmya.ae",
 		Password: "SecureP@ssw0rd123!",
 	}, "127.0.0.1", "UnitTest")
 	assert.Error(t, loginErr)
-	assert.Contains(t, loginErr.Error(), "suspended")
+	assert.Empty(t, accessToken, "a suspended account was issued a refresh token")
+
+	// Refused for its standing, and typed so the delivery layer can answer 401
+	// rather than guessing from the message text - which it used to do, by
+	// searching the error for the word "locked".
+	var ineligible *AccountNotEligibleError
+	assert.ErrorAs(t, loginErr, &ineligible)
+	assert.Equal(t, "suspended", ineligible.Status,
+		"the audit trail must still see the real reason")
+
+	// And the message the caller gets must not name it. This assertion used to
+	// require the opposite - Contains(err, "suspended") - which is an
+	// unauthenticated membership test against the user table: guess an address,
+	// read back whether it exists and what has been done to it.
+	assert.NotContains(t, loginErr.Error(), "suspend")
+	assert.Equal(t, "invalid email or password", loginErr.Error())
 }

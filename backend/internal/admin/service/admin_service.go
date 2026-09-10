@@ -6,6 +6,8 @@ import (
 	"kirmya/internal/admin/domain"
 	"kirmya/internal/admin/models"
 	"kirmya/internal/admin/repository"
+	authModels "kirmya/internal/auth/models"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -14,10 +16,49 @@ import (
 
 type AdminService struct {
 	repo *repository.AdminRepository
+
+	// sessions ends the sessions of an account whose standing has changed.
+	// Optional, following the pattern the auth service uses for its own
+	// collaborators: unwired, a status change still takes effect, because
+	// refresh and session restoration check standing independently. Revocation
+	// makes it immediate rather than making it true.
+	sessions sessionRevoker
+
+	// accounts reads an account's current standing, so the audit entry records
+	// what the status actually was rather than asserting it. Optional on the
+	// same terms.
+	accounts accountReader
+}
+
+// sessionRevoker is the one question the admin module asks of the auth module.
+//
+// Declared narrowly here so this package depends on a question rather than on
+// the auth repository, and so nothing is tempted to write a second revocation
+// path: the implementation is auth's own RevokeAllUserSessions.
+type sessionRevoker interface {
+	RevokeAllUserSessions(ctx context.Context, userID uuid.UUID) error
+}
+
+// accountReader loads an account, for the audit trail's "previous" value.
+type accountReader interface {
+	GetUserByID(ctx context.Context, id uuid.UUID) (*authModels.User, error)
 }
 
 func NewAdminService(repo *repository.AdminRepository) *AdminService {
 	return &AdminService{repo: repo}
+}
+
+// WithSessionRevoker supplies the session revocation used when an account is
+// moved out of good standing.
+func (s *AdminService) WithSessionRevoker(revoker sessionRevoker) *AdminService {
+	s.sessions = revoker
+	return s
+}
+
+// WithAccountReader supplies the account lookup used for audit detail.
+func (s *AdminService) WithAccountReader(reader accountReader) *AdminService {
+	s.accounts = reader
+	return s
 }
 
 // EffectivePermissions returns what this administrator may do.
@@ -137,19 +178,76 @@ func (s *AdminService) GetUserByID(ctx context.Context, id uuid.UUID) (map[strin
 	}, nil
 }
 
+// ErrUnknownAccountStatus reports a status the product does not define.
+var ErrUnknownAccountStatus = errors.New("unknown account status")
+
+// UpdateUserStatus changes an account's standing.
+//
+// Three things this did not do. It accepted any string at all, so a typo could
+// put an account into a standing nothing understands - which, under the
+// allowlist rule, means an account that can never sign in again and whose state
+// names no reason. It recorded the previous status as the literal "Active"
+// whatever it actually was. And it left every existing session alone, so an
+// account suspended here kept its access token until it expired and kept its
+// refresh token indefinitely.
+//
+// The status is now validated against the product's vocabulary, the audit entry
+// records the standing the account was actually in, and moving an account out
+// of good standing ends its sessions.
 func (s *AdminService) UpdateUserStatus(ctx context.Context, adminID uuid.UUID, targetUserID uuid.UUID, status string, reason string, ip string, userAgent string) error {
 	if reason == "" {
 		return errors.New("reason is required for updating user status")
 	}
 
-	prev := map[string]interface{}{"status": "Active"}
-	next := map[string]interface{}{"status": status}
+	normalized := authModels.NormalizeStatus(status)
+	if !normalized.IsKnown() {
+		return ErrUnknownAccountStatus
+	}
 
-	if err := s.repo.UpdateUserStatus(ctx, targetUserID, status); err != nil {
+	previous := s.currentStatus(ctx, targetUserID)
+
+	if err := s.repo.UpdateUserStatus(ctx, targetUserID, string(normalized)); err != nil {
 		return err
 	}
 
-	return s.LogAction(ctx, adminID, "admin@kirmya.com", "user_admin", "user.status_update", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
+	// Ending the sessions is what makes a suspension immediate. Without it the
+	// account keeps a valid access token for the remainder of its lifetime;
+	// refresh would refuse it afterwards, but "afterwards" is up to fifteen
+	// minutes of ordinary API access after an administrator decided otherwise.
+	//
+	// A failure here is logged and not returned: the status change has already
+	// landed and is the durable part, and refresh enforces standing whatever
+	// happened to the sessions. Reporting an error would invite an administrator
+	// to retry a suspension that already took effect.
+	if !normalized.CanAuthenticate() && s.sessions != nil {
+		if revokeErr := s.sessions.RevokeAllUserSessions(ctx, targetUserID); revokeErr != nil {
+			slog.Error("sessions could not be revoked after a status change",
+				slog.String("user_id", targetUserID.String()),
+				slog.String("status", string(normalized)),
+				slog.String("error", revokeErr.Error()))
+		} else {
+			slog.Warn("sessions revoked after account status change",
+				slog.String("user_id", targetUserID.String()),
+				slog.String("status", string(normalized)))
+		}
+	}
+
+	prev := map[string]interface{}{"status": previous}
+	next := map[string]interface{}{"status": string(normalized)}
+
+	return s.LogAction(ctx, adminID, "", "", "user.status_update", "User", targetUserID.String(), prev, next, reason, ip, userAgent, "")
+}
+
+// currentStatus reads the standing an account is in, for the audit entry.
+// Unknown rather than a guess when it cannot be read.
+func (s *AdminService) currentStatus(ctx context.Context, userID uuid.UUID) string {
+	if s.accounts == nil {
+		return ""
+	}
+	if u, err := s.accounts.GetUserByID(ctx, userID); err == nil && u != nil {
+		return u.Status
+	}
+	return ""
 }
 
 func (s *AdminService) ListCompanies(ctx context.Context, search string, status string, limit int, offset int) ([]map[string]interface{}, error) {

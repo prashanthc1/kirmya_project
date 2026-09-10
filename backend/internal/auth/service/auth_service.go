@@ -435,6 +435,53 @@ type LoginRejectedError struct{ Err error }
 func (e *LoginRejectedError) Error() string { return e.Err.Error() }
 func (e *LoginRejectedError) Unwrap() error { return e.Err }
 
+// AccountNotEligibleError marks a refusal that is about the account's standing
+// rather than the credentials presented.
+//
+// It embeds LoginRejectedError's role - the delivery layer must answer it as a
+// refusal, never as a server fault - while letting the audit trail record the
+// real reason. The status travels in the error for the log; it does not travel
+// to the caller, because "this address exists but is suspended" is a membership
+// test against the user table that anyone can run.
+type AccountNotEligibleError struct{ Status string }
+
+func (e *AccountNotEligibleError) Error() string {
+	// Deliberately the same words a wrong password gets. See the type comment.
+	return "invalid email or password"
+}
+
+// ErrRefreshAccountUnavailable is returned when a session cannot be refreshed
+// because the account may no longer authenticate. Unchanged in wording from
+// what this path already returned, so existing clients see no new string.
+var ErrRefreshAccountUnavailable = errors.New("user account unavailable")
+
+// ErrAccountNotEligible is returned by session restoration when the account may
+// no longer authenticate. The delivery layer answers 401, so the client treats
+// it as a session that has ended rather than as a permission it lacks.
+var ErrAccountNotEligible = errors.New("account is not eligible to authenticate")
+
+// recordIneligibleAuthAttempt writes the refusal to the existing audit trail.
+//
+// The reason the caller is not told is exactly the reason worth recording: a
+// run of these against one account is somebody testing whether a suspension
+// took. Never logs the password, the token or the hash.
+func (s *AuthService) recordIneligibleAuthAttempt(ctx context.Context, u *models.User, action, ipAddress string) {
+	if u == nil {
+		return
+	}
+	slog.Warn("authentication refused for account standing",
+		slog.String("action", action),
+		slog.String("user_id", u.ID.String()),
+		slog.String("status", u.Status))
+	_ = s.repo.CreateAuditLog(ctx, &models.AuditLog{
+		ID:        uuid.New(),
+		UserID:    u.ID,
+		Action:    action,
+		IPAddress: ipAddress,
+		CreatedAt: time.Now().UTC(),
+	})
+}
+
 // Login validates credentials, status, creates session & tokens.
 func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddress, userAgent string) (string, string, *models.User, error) {
 	email := strings.ToLower(strings.TrimSpace(req.Email))
@@ -450,8 +497,20 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddres
 		return "", "", nil, &LoginRejectedError{Err: errors.New("invalid email or password")}
 	}
 
-	if u.Status == "locked" || u.Status == "suspended" || u.Status == "disabled" {
-		return "", "", nil, &LoginRejectedError{Err: errors.New("account is locked or suspended. Please contact support")}
+	// Account standing, from the one rule login, refresh and session restoration
+	// all share. This was a denylist of locked/suspended/disabled, so an account
+	// marked "deleted" signed in normally - it was refused by refresh, which
+	// used an allowlist, and admitted here, which did not. It received an access
+	// token and a refresh session and read ordinary protected APIs until that
+	// token expired.
+	//
+	// Checked before the password comparison so an ineligible account is not put
+	// through bcrypt, and re-checked after it, immediately before anything is
+	// issued: an administrator can suspend an account while the hash is being
+	// compared, and the check that matters is the one closest to the tokens.
+	if !u.CanAuthenticate() {
+		s.recordIneligibleAuthAttempt(ctx, u, "LOGIN_DENIED_ACCOUNT_STATUS", ipAddress)
+		return "", "", nil, &AccountNotEligibleError{Status: u.Status}
 	}
 
 	// Password comparison
@@ -464,6 +523,22 @@ func (s *AuthService) Login(ctx context.Context, req *dto.LoginRequest, ipAddres
 			CreatedAt: time.Now().UTC(),
 		})
 		return "", "", nil, &LoginRejectedError{Err: errors.New("invalid email or password")}
+	}
+
+	// Read the account again, as close to issuing tokens as the code allows.
+	//
+	// Between the check above and here sits a bcrypt comparison at cost 12,
+	// which is deliberately slow - tens of milliseconds - and an administrator
+	// suspending an account does not wait for it. Without this, a login that
+	// began before the suspension completes after it and hands out a session.
+	// The window is not closed by locking; it is made small enough that the
+	// status is read after the expensive step rather than before it.
+	if fresh, refreshErr := s.repo.GetUserByID(ctx, u.ID); refreshErr == nil && fresh != nil {
+		if !fresh.CanAuthenticate() {
+			s.recordIneligibleAuthAttempt(ctx, fresh, "LOGIN_DENIED_ACCOUNT_STATUS", ipAddress)
+			return "", "", nil, &AccountNotEligibleError{Status: fresh.Status}
+		}
+		u = fresh
 	}
 
 	// The session's lifetime comes from the one resolved policy, so the row the
@@ -552,6 +627,30 @@ func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgen
 		return nil, fmt.Errorf("could not look up the session: %w", err)
 	}
 
+	// Account standing is decided before anything about this particular
+	// session, because it is the outer gate and the answer does not depend on
+	// session mechanics.
+	//
+	// The ordering is load-bearing. Suspending an account revokes its sessions,
+	// which sets revoked_at to now - and the rotation grace below reads a
+	// recently revoked session as two refreshes racing from one page load, so a
+	// just-suspended client would be told to retry a session that is never
+	// coming back. Asking whether the account may authenticate first means a
+	// suspension is answered as a suspension.
+	standing, err := s.repo.GetUserByID(ctx, sess.UserID)
+	if err != nil {
+		// A lookup that failed is an outage, not a refusal. Reporting it as a
+		// dead session signs out every user during a database blip.
+		return nil, fmt.Errorf("could not look up the account: %w", err)
+	}
+	if standing == nil {
+		return nil, ErrRefreshAccountUnavailable
+	}
+	if !standing.CanAuthenticate() {
+		s.recordIneligibleAuthAttempt(ctx, standing, "REFRESH_DENIED_ACCOUNT_STATUS", ipAddress)
+		return nil, ErrRefreshAccountUnavailable
+	}
+
 	// One page load can issue two refreshes with the same cookie: the first
 	// rotates and revokes it, and the second then presents a revoked token
 	// through no fault of the user. Treating that as theft revoked every session
@@ -596,10 +695,12 @@ func (s *AuthService) Refresh(ctx context.Context, tokenStr, ipAddress, userAgen
 		return nil, errors.New("session expired. Please sign in again")
 	}
 
-	u, err := s.repo.GetUserByID(ctx, sess.UserID)
-	if err != nil || u == nil || u.Status != "active" {
-		return nil, errors.New("user account unavailable")
-	}
+	// Standing was established above, before the session was reasoned about, and
+	// this is the same account. It is the enforcement point for a status changed
+	// after sign-in - including one changed outside the application, in SQL:
+	// whatever revocation did or did not happen, an ineligible account gets no
+	// new access token here.
+	u := standing
 
 	newAccessToken, err := s.GenerateAccessToken(u.ID, u.Email, u.RoleID)
 	if err != nil {
@@ -754,16 +855,17 @@ var ErrPasswordResetThrottled = errors.New("too many password reset requests for
 
 // accountEligibleForReset reports whether a reset link should be issued.
 //
-// Login already refuses locked, suspended and disabled accounts, so mailing one
-// a reset link only invites a user to set a password they still cannot sign in
-// with — and, for an account disabled in response to abuse, hands its holder a
-// working link to a mailbox they may still control.
+// Mailing a reset link to an account that cannot sign in only invites someone to
+// set a password they still cannot use - and, for an account disabled in
+// response to abuse, hands its holder a working link to a mailbox they may
+// still control. So the answer is the authentication rule itself.
+//
+// It used to be a third denylist: locked, suspended, disabled, deleted, banned.
+// That admitted any status not on it, and one of the five - "banned" - is a
+// community membership status that nothing has ever written to users.status.
+// Three rules for one question is how they came to disagree.
 func accountEligibleForReset(u *models.User) bool {
-	switch strings.ToLower(strings.TrimSpace(u.Status)) {
-	case "locked", "suspended", "disabled", "deleted", "banned":
-		return false
-	}
-	return true
+	return u.CanAuthenticate()
 }
 
 // ForgotPassword issues a single-use, time-limited reset token and emails it.
@@ -966,6 +1068,24 @@ func (s *AuthService) GetUserMe(ctx context.Context, userID uuid.UUID) (*dto.Use
 	u, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("user profile not found")
+	}
+
+	// Session restoration is an authentication path, and it applies the same
+	// rule as login and refresh.
+	//
+	// It costs nothing here: this endpoint already loads the account, so the
+	// standing is in hand and was simply not consulted. That omission is what
+	// let a deleted account bootstrap normally - the resolver below answered
+	// with an empty workspace list, correctly, and an empty list protects
+	// nothing while the session it belongs to is still good.
+	//
+	// This is the boundary that ejects an account whose standing changed after
+	// sign-in: the web client bootstraps here on every page load, so a refusal
+	// clears its state rather than leaving a signed-in shell over an account
+	// that may no longer sign in.
+	if !u.CanAuthenticate() {
+		s.recordIneligibleAuthAttempt(ctx, u, "BOOTSTRAP_DENIED_ACCOUNT_STATUS", "")
+		return nil, ErrAccountNotEligible
 	}
 
 	userDTO := dto.UserProfileDTO{

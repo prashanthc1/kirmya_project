@@ -251,6 +251,93 @@ stateDiagram-v2
 
 ---
 
+### 7.11 Account Standing & Authentication Eligibility
+
+**Account authentication eligibility is allowlisted and shared by login,
+refresh, and session restoration.**
+
+One rule, `models.User.CanAuthenticate()` in `internal/auth/models`, decides
+whether an account may authenticate and use ordinary protected APIs. It admits
+exactly one status:
+
+| `users.status` | Login | Refresh | Existing access token | `/auth/me` |
+| :--- | :--- | :--- | :--- | :--- |
+| `active` | allowed | allowed | valid | 200 |
+| `suspended` | 401 | 401 | works until it expires | 401 |
+| `disabled` | 401 | 401 | works until it expires | 401 |
+| `locked` | 401 | 401 | works until it expires | 401 |
+| `deleted` | 401 | 401 | works until it expires | 401 |
+| anything else | 401 | 401 | works until it expires | 401 |
+
+The last row is the point of an allowlist. `users.status` is a `VARCHAR(50)`
+with no `CHECK` constraint, so a status the code has never heard of — a new one,
+or a typo — is reachable. A denylist admits everything it has not been told to
+refuse; an allowlist refuses everything it has not been told to admit. Account
+standing is not a place to be generous with the defaults.
+
+`banned` is deliberately **not** a user status. It is a community *membership*
+status, and it had leaked into the password-reset denylist where it matched
+nothing.
+
+#### Why the three paths disagreed
+
+Before this rule existed the question was answered three ways in one file: login
+refused a denylist of `locked`/`suspended`/`disabled`, refresh required exactly
+`active`, and password reset refused a third, longer denylist. An account marked
+`deleted` was therefore refused by refresh and **admitted by login** — it signed
+in with HTTP 200, received an access token and a refresh session, and read
+ordinary protected APIs. Reproduced end to end before the fix.
+
+#### The residual access-token window, and why it is accepted
+
+`AuthRequired` verifies the JWT and does **not** re-read account standing from
+the database. This is deliberate — Option B of the two available designs — and
+the cost is stated rather than hidden:
+
+> An access token issued while an account was in good standing keeps working on
+> ordinary protected APIs until it expires, up to `authcookie.DefaultAccessTTL`
+> after the status changed.
+
+What bounds it:
+
+- **Session restoration refuses immediately.** `/auth/me` already loads the
+  account, so the check is free there. The web client bootstraps through it on
+  every page load, so an ineligible account's client clears its state and
+  returns to sign-in rather than holding a signed-in shell.
+- **Refresh refuses immediately**, so the session cannot be extended past the
+  current token's lifetime.
+- **Administrative suspension revokes sessions**, so the refresh token dies at
+  once rather than at expiry.
+
+The alternative — a database read on every authenticated request — was not taken
+for the cost it would add to every API call in the product. If that trade is
+ever revisited, this is the paragraph to revisit with it.
+
+#### Layering
+
+    authentication → account standing → workspace discovery (UX) → per-domain authorization
+
+Account standing is the outer gate. One identity can accumulate a recruiter
+capability, a freelancer profile, an approved company membership, a community
+administration role and a platform admin role; **none of them restores access to
+an account that may not authenticate**, and an integration test holds exactly
+that. An empty workspace list is *not* protection — the workspace resolver
+correctly returns nothing for an ineligible account, and that protected nothing
+while the session behind it was still good.
+
+#### Sessions and status transitions
+
+Changing a status through the administrative API revokes the account's sessions,
+reusing `AuthRepository.RevokeAllUserSessions` rather than adding a second
+revocation path. Data-deletion already removes session rows outright.
+
+A status changed **outside** the application — directly in SQL, a maintenance
+script — revokes nothing, and is still enforced: refresh and session restoration
+each re-read standing on every call, so revocation makes a suspension *immediate*
+rather than making it *true*.
+
+---
+
 ## 16. Functional Requirements Mapping
 - **FR-AUTH-MFA**: Supported by TOTP secret structures.
 - **FR-AUTH-SSO**: Managed using Okta/Entra ID integration pipelines.
