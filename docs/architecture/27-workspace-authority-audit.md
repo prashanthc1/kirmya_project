@@ -592,6 +592,7 @@ unchanged; this section says which of its recommendations now exist in code.
 | Community managed-membership lister (map item 5) | **Done** | `CommunityRepository.ListManagedMemberships` |
 | `/auth/me` integration (map items 6–7) | **Done** | `dto.UserMeDTO.workspaces`, `AuthService.resolveWorkspaces` |
 | Frontend workspace state (map items 8–11) | **Done** | `AuthContext.workspaces`, `WorkspaceSwitcher`, shell entries |
+| Contextual navigation per workspace | **Done** | `shared/navigation/workspaceNav.ts`, `AppShell`, `MobileBottomNav` |
 
 ### Workspaces the resolver returns
 
@@ -722,9 +723,17 @@ truth those checks were guessing at:
 
 Two further defects were found while wiring it and fixed:
 
-- **The mobile administration entry led to a 404.** It pointed at
-  `/admin/dashboard`, which has no page, while the header sent administrators to
-  `/admin`. Both now use the platform workspace's own route and name.
+- **The two administration entries disagreed.** The mobile drawer pointed at
+  `/admin/dashboard` while the header sent administrators to `/admin`; both now
+  use the platform workspace's own route and name, so there is one destination
+  and one label rather than two of each.
+
+  *Correction.* The commit that made this change, and an earlier revision of
+  this section, said the mobile entry led to a 404 because `/admin/dashboard`
+  had no page. That was wrong — `src/app/admin/dashboard/page.tsx` exists and
+  renders `AdminDashboard`. The claim came from misreading interleaved shell
+  output. The change stands on the consistency ground stated above, which is
+  what it was actually worth; it was never a broken link.
 - **`/recruiter/*` had no way back.** It is the only workspace with its own
   layout rather than the global shell, so the switcher was absent there — an
   account could switch in and be stranded. `RecruiterHeader` now carries it, in
@@ -732,7 +741,67 @@ Two further defects were found while wiring it and fixed:
   verified tick, shown to every recruiter whoever they were, and a notification
   count hardcoded to 4.
 
-Still not done: the contextual navigation redesign per workspace, and
-persistence of the active workspace. The JWT is unchanged — scoped authority
-stays server-resolved per request, which is what lets a capability gained
-mid-session appear on the next bootstrap without a new token.
+Still not done: persistence of the active workspace. The JWT is unchanged —
+scoped authority stays server-resolved per request, which is what lets a
+capability gained mid-session appear on the next bootstrap without a new token.
+
+### Contextual navigation per workspace
+
+The switcher moved an account between workspaces; the navigation around it did
+not move with them. Two surfaces were still keyed to the account rather than to
+where the account was.
+
+`AppShell` chose its sidebar context from the pathname alone, through
+`resolveContext`, and titled it from a static string. `MobileBottomNav` served
+the professional five — Feed, Network, Jobs, Messages, Profile — to everyone,
+everywhere, so a recruiter on their pipeline was offered four destinations that
+were not in the workspace they were in and none that were.
+
+`src/shared/navigation/workspaceNav.ts` derives both from the active workspace:
+
+| Workspace | Sidebar context | Bottom bar |
+| :--- | :--- | :--- |
+| Professional, Freelancer | none — the pathname decides, as before | the professional five |
+| Recruiting | none — `/recruiter/*` has its own layout | recruiting destinations |
+| Company | company, titled with the company's own name | company destinations |
+| Community admin | community, titled with the community's own name | community destinations |
+| Platform admin | platform administration | administration destinations |
+
+Two properties are worth stating because tests hold them:
+
+- **Every destination a workspace offers is inside that workspace.** The
+  recruiting bar's links all begin `/recruiter`; the company bar's all begin
+  `/companies/{handle}`. Leaving a workspace is the switcher's job, and it is
+  the only control that does it.
+- **The label is the tenant's own name**, taken from the served workspace's
+  `label` and escaped through `SafeLabel` at the resolver, not a name the client
+  composes or a role word like "Company Admin".
+
+The pathname-derived `resolveContext` remains as the fallback for accounts with
+no privileged workspace and for routes the resolver does not model, so this
+narrows behaviour to the workspace-shaped cases rather than replacing it.
+
+#### `AppSidebar` deleted
+
+`src/components/shell/AppSidebar.tsx` and the `RECRUITER_NAV_ITEMS` and
+`ADMIN_NAV_ITEMS` lists it read are gone. It selected its items from
+`user.roleId` — the same dead discriminator §11 P2-1 documents, which is
+`'user'` for every real account — so it could only ever render the professional
+list whatever the account held. Nothing rendered it after the switcher landed:
+its one entry point was `AppShell`'s `sidebarVariant` prop, which no caller
+passed. Keeping a role-keyed sidebar beside a workspace-keyed shell would leave
+two answers to the same question, one of them wrong.
+
+#### A test that measured the wrong landmark
+
+The first version of the bottom-bar E2E test decided whether it was on a phone
+by asking whether a `navigation` landmark named "Primary" was visible. Both the
+header's desktop row and the bottom bar carry that name — deliberately, since
+`display: none` keeps them out of the accessibility tree at opposite
+breakpoints and never at once — so on Desktop Chrome the guard found the
+header, concluded it was on a phone, and asserted against the wrong element.
+The test now sets its own phone viewport through `test.use`, which runs it on
+every engine instead of skipping it on three, and asserts the landmark resolves
+to exactly one element before using it. A `test.skip` would in any case have
+failed the mandatory gate in `scripts/ci/check-results.mjs`, which treats a
+skipped Playwright test as a failure.

@@ -6,10 +6,12 @@ import { usePathname } from 'next/navigation';
 import AppHeader from './AppHeader';
 import MobileDrawer from './MobileDrawer';
 import MobileBottomNav from './MobileBottomNav';
-import AppSidebar from './AppSidebar';
 import AppContainer from './AppContainer';
 import ContextNav from './ContextNav';
 import { resolveContext, type NavContext } from '../../shared/navigation/contexts';
+import { workspaceContext, workspaceMobileItems } from '../../shared/navigation/workspaceNav';
+import { activeWorkspace } from '../../shared/workspace/active';
+import { useAuth } from '../../hooks/useAuth';
 
 /**
  * How much navigation a screen gets.
@@ -41,7 +43,6 @@ export const useInsideAppShell = (): boolean => useContext(ShellMountedContext);
 
 export interface AppShellProps {
   children: React.ReactNode;
-  sidebarVariant?: 'recruiter' | 'admin' | null;
   maxWidth?: 'narrow' | 'standard' | 'wide' | 'max' | false;
   disableGutters?: boolean;
   showBottomNav?: boolean;
@@ -63,7 +64,6 @@ export interface AppShellProps {
  */
 export const AppShell: React.FC<AppShellProps> = ({
   children,
-  sidebarVariant = null,
   maxWidth = 'standard',
   disableGutters = false,
   showBottomNav = true,
@@ -75,10 +75,19 @@ export const AppShell: React.FC<AppShellProps> = ({
   const pathname = usePathname() || '/';
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  // Resolved from the path unless the caller decided. Doing it here is why a
-  // page does not have to know its own navigation.
+  // Resolved from the workspace first, then the path, unless the caller
+  // decided. Doing it here is why a page does not have to know its own
+  // navigation.
+  //
+  // The workspace goes first only where it knows something the path does not -
+  // an entity's real name, so the context row says "Acme LLC" rather than
+  // "Company management" in every company alike. Everywhere else the path is
+  // still the answer, and the registry stays the one place sections are listed.
   const alreadyMounted = useContext(ShellMountedContext);
-  const resolved = context === undefined ? resolveContext(pathname) : context;
+  const { workspaces } = useAuth();
+  const workspace = activeWorkspace(workspaces, pathname);
+  const resolved =
+    context === undefined ? workspaceContext(workspace) ?? resolveContext(pathname) : context;
   const showContext = variant === 'standard' && resolved !== null;
   const showBottom = showBottomNav && variant !== 'compact';
 
@@ -119,9 +128,6 @@ export const AppShell: React.FC<AppShellProps> = ({
           boxSizing: 'border-box',
         }}
       >
-        {/* Secondary Console Sidebar (Admin or Recruiter) */}
-        {sidebarVariant && <AppSidebar variant={sidebarVariant} />}
-
         {/* Primary Page Content Area */}
         <Box
           component="main"
@@ -143,7 +149,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       </Box>
 
       {/* Mobile Bottom Navigation Bar on Compact Screens */}
-      {showBottom && <MobileBottomNav />}
+      {showBottom && <MobileBottomNav items={workspaceMobileItems(workspace)} />}
     </Box>
     </ShellMountedContext.Provider>
   );

@@ -8,8 +8,8 @@ import AppShell, { AppShellProps } from './AppShell';
  * 
  * Used on unauthenticated, landing, marketing, and legal views.
  */
-export const PublicLayout: React.FC<Omit<AppShellProps, 'showBottomNav' | 'sidebarVariant'>> = (props) => {
-  return <AppShell {...props} showBottomNav={false} sidebarVariant={null} />;
+export const PublicLayout: React.FC<Omit<AppShellProps, 'showBottomNav'>> = (props) => {
+  return <AppShell {...props} showBottomNav={false} />;
 };
 
 export default PublicLayout;

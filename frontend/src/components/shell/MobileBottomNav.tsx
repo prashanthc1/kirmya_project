@@ -11,7 +11,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 
 import { useAuth } from '../../hooks/useAuth';
-import { MOBILE_NAV_ITEMS } from '../../shared/navigation';
+import { MOBILE_NAV_ITEMS, type NavItem } from '../../shared/navigation';
 import { findActiveId } from '../../shared/navigation/matchRoute';
 import { tokens } from '../../theme/tokens';
 
@@ -41,7 +41,19 @@ const ICONS: Record<string, React.ReactElement> = {
  * also on any path merely beginning with those characters. Matching is shared
  * and segment-aware.
  */
-export const MobileBottomNav: React.FC = () => {
+export interface MobileBottomNavProps {
+  /**
+   * The destinations to offer. Defaults to the professional five.
+   *
+   * The bar carries the primary destinations of the *active* workspace, so a
+   * recruiter working a pipeline is offered the recruiting destinations rather
+   * than Feed, Network and Jobs - none of which is where they are. The shell
+   * decides which set that is; this renders whichever it is handed.
+   */
+  items?: NavItem[];
+}
+
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ items = MOBILE_NAV_ITEMS }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const pathname = usePathname();
@@ -49,7 +61,7 @@ export const MobileBottomNav: React.FC = () => {
 
   if (!authenticated) return null;
 
-  const activeId = findActiveId(pathname || '/', MOBILE_NAV_ITEMS) ?? false;
+  const activeId = findActiveId(pathname || '/', items) ?? false;
 
   return (
     <Paper
@@ -90,7 +102,7 @@ export const MobileBottomNav: React.FC = () => {
           },
         }}
       >
-        {MOBILE_NAV_ITEMS.map(item => {
+        {items.map(item => {
           const icon = ICONS[item.iconName] ?? <HomeOutlinedIcon />;
           const badged =
             item.badgeKey === 'messages' && notificationsCount > 0 ? (

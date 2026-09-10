@@ -6,12 +6,9 @@ import { getTheme } from '../theme';
 import {
   PRIMARY_NAV_ITEMS,
   PUBLIC_NAV_ITEMS,
-  RECRUITER_NAV_ITEMS,
-  ADMIN_NAV_ITEMS,
   USER_MENU_ITEMS,
 } from '../shared/navigation';
 import { AppContainer } from '../components/shell/AppContainer';
-import { AppSidebar } from '../components/shell/AppSidebar';
 import { AuthProvider } from '../context/AuthContext';
 
 const theme = getTheme('light');
@@ -42,17 +39,14 @@ describe('Navigation System & App Shell (Prompt 14/50)', () => {
     });
   });
 
-  it('validates role-based navigation configuration', () => {
-    expect(RECRUITER_NAV_ITEMS.length).toBeGreaterThanOrEqual(4);
-    RECRUITER_NAV_ITEMS.forEach((item) => {
-      expect(item.roles).toContain('recruiter');
-    });
-
-    expect(ADMIN_NAV_ITEMS.length).toBeGreaterThanOrEqual(4);
-    ADMIN_NAV_ITEMS.forEach((item) => {
-      expect(item.roles).toContain('platform_admin');
-    });
-  });
+  /*
+   * The role-based navigation assertions that were here are gone with the
+   * navigation they described. They checked that RECRUITER_NAV_ITEMS carried
+   * roles: ['recruiter'] and ADMIN_NAV_ITEMS roles: ['platform_admin'] - a test
+   * that the dead vocabulary stayed dead, on two arrays nothing rendered.
+   * Navigation follows the workspace now, and workspace-nav.test.tsx asserts
+   * that instead.
+   */
 
   it('validates user menu dropdown routes', () => {
     expect(USER_MENU_ITEMS.length).toBeGreaterThanOrEqual(4);
@@ -77,11 +71,4 @@ describe('Navigation System & App Shell (Prompt 14/50)', () => {
     expect(screen.getByText('Narrow Content')).toBeDefined();
   });
 
-  it('renders AppSidebar for recruiter and admin variants', () => {
-    renderWithProviders(<AppSidebar variant="recruiter" />);
-    expect(screen.getByText('Recruiter Console')).toBeDefined();
-
-    renderWithProviders(<AppSidebar variant="admin" />);
-    expect(screen.getByText('Admin Center')).toBeDefined();
-  });
 });

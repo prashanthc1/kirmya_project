@@ -6,7 +6,13 @@ export interface NavItem {
   href: string;
   iconName: string;
   badgeKey?: 'notifications' | 'messages';
-  roles?: ('candidate' | 'recruiter' | 'company_admin' | 'platform_admin' | string)[];
+  /*
+   * There is deliberately no `roles` field. There was one, read from
+   * users.role_id, and nothing writes that column with anything but 'user', so
+   * every item it gated was either always shown or never shown. Whether an item
+   * belongs to an account is decided by which workspace the item is in, and the
+   * server decides which workspaces the account has.
+   */
   exact?: boolean;
 }
 
@@ -57,28 +63,18 @@ export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { id: 'help', label: 'Help', href: ROUTES.HELP, iconName: 'HelpOutline' },
 ];
 
-/**
- * Recruiter Secondary Console Navigation Items
+/*
+ * The recruiter and admin console sidebars used to live here, keyed to
+ * users.role_id: roles: ['recruiter', 'company_admin'] and
+ * ['platform_admin', 'admin']. They are gone.
+ *
+ * They were unreachable - AppShell's sidebarVariant defaults to null and no
+ * page ever passed one - and they were the role-keyed navigation the workspace
+ * model replaces. Navigation now follows the workspace the account is in, which
+ * the server resolves; see ./workspaceNav. Keeping a second, contradictory
+ * navigation around, one that reads a vocabulary registration never writes, is
+ * how role-keyed behaviour comes back.
  */
-export const RECRUITER_NAV_ITEMS: NavItem[] = [
-  { id: 'recruiter-dashboard', label: 'Recruiter Dashboard', href: ROUTES.RECRUITER.DASHBOARD, iconName: 'DashboardOutlined', roles: ['recruiter', 'company_admin'] },
-  { id: 'recruiter-jobs', label: 'Job Postings', href: ROUTES.RECRUITER.JOBS, iconName: 'WorkOutline', roles: ['recruiter', 'company_admin'] },
-  { id: 'recruiter-candidates', label: 'Candidates & Search', href: ROUTES.RECRUITER.CANDIDATES, iconName: 'SearchOutlined', roles: ['recruiter', 'company_admin'] },
-  { id: 'recruiter-pipeline', label: 'Hiring Pipeline', href: ROUTES.RECRUITER.PIPELINE, iconName: 'ViewKanbanOutlined', roles: ['recruiter', 'company_admin'] },
-  { id: 'recruiter-analytics', label: 'Talent Analytics', href: ROUTES.RECRUITER.ANALYTICS, iconName: 'BarChartOutlined', roles: ['recruiter', 'company_admin'] },
-];
-
-/**
- * Admin Console Navigation Items
- */
-export const ADMIN_NAV_ITEMS: NavItem[] = [
-  { id: 'admin-dashboard', label: 'Overview', href: ROUTES.ADMIN.DASHBOARD, iconName: 'DashboardOutlined', roles: ['platform_admin', 'admin'] },
-  { id: 'admin-users', label: 'User Directory', href: ROUTES.ADMIN.USERS, iconName: 'PeopleOutline', roles: ['platform_admin', 'admin'] },
-  { id: 'admin-moderation', label: 'Moderation Queue', href: ROUTES.ADMIN.MODERATION, iconName: 'GavelOutlined', roles: ['platform_admin', 'admin'] },
-  { id: 'admin-audit', label: 'Audit Logs', href: ROUTES.ADMIN.AUDIT_LOGS, iconName: 'HistoryOutlined', roles: ['platform_admin', 'admin'] },
-  { id: 'admin-analytics', label: 'Analytics', href: ROUTES.ADMIN.ANALYTICS, iconName: 'BarChartOutlined', roles: ['platform_admin', 'admin'] },
-  { id: 'admin-settings', label: 'System Settings', href: ROUTES.ADMIN.SETTINGS, iconName: 'MemoryOutlined', roles: ['platform_admin', 'admin'] },
-];
 
 /**
  * Account Menu Dropdown Items

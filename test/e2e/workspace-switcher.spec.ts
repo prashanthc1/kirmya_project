@@ -139,3 +139,57 @@ test('the switcher is navigation, not authorization', async ({ page, request }) 
   });
   expect(refused.status()).toBe(403);
 });
+
+/*
+ * Navigation that follows the workspace.
+ *
+ * The bottom bar is meant to carry the primary destinations of the workspace
+ * the account is in. On a phone that is the difference between a recruiter
+ * reaching their pipeline in one tap and being offered Feed, Network and Jobs -
+ * none of which is where they are.
+ *
+ * The bar only exists below `md` (768px in src/theme/breakpoints.ts), so this
+ * describes its own viewport rather than skipping on the desktop projects: the
+ * behaviour is worth checking on every engine, and a skipped test would fail
+ * the mandatory gate in scripts/ci/check-results.mjs anyway.
+ *
+ * Deciding phone-ness by asking whether a nav named "Primary" is on screen does
+ * not work, and the first version of this test was wrong for that reason: the
+ * header's desktop row carries the same landmark name, one of the two is always
+ * showing, and on Desktop Chrome the test ended up asserting against the header.
+ */
+test.describe('on a phone', () => {
+  test.use({ viewport: { width: 412, height: 915 } });
+
+  test('the bottom bar carries the destinations of the workspace you are in', async ({ page, request }) => {
+    const api = process.env.TEST_API_URL!;
+    const account = await registerAccount(request, api, 'ws-bottomnav');
+    await becomeRecruiter(request, api, account);
+
+    await signIn(page, account.email);
+
+    // Below `md` the header's row is display:none, which takes it out of the
+    // accessibility tree, so this name resolves to the bottom bar alone. The
+    // count assertion holds that guarantee rather than assuming it.
+    const bottomBar = page.getByRole('navigation', { name: 'Primary' });
+    await expect(bottomBar).toHaveCount(1);
+
+    // Professional: the five a thumb reaches for.
+    await expect(bottomBar.getByRole('link', { name: /feed/i })).toBeVisible();
+    await expect(bottomBar.getByRole('link', { name: /pipeline/i })).toHaveCount(0);
+
+    (await switcherTrigger(page)).click();
+    await page.getByRole('menuitem', { name: /recruiting/i }).click();
+    await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
+
+    // Recruiting: its own destinations, and every one of them inside it.
+    const recruitingBar = page.getByRole('navigation', { name: 'Primary' });
+    await expect(recruitingBar).toHaveCount(1);
+    await expect(recruitingBar.getByRole('link', { name: /pipeline/i })).toBeVisible();
+    await expect(recruitingBar.getByRole('link', { name: /^feed$/i })).toHaveCount(0);
+
+    for (const link of await recruitingBar.getByRole('link').all()) {
+      expect(await link.getAttribute('href')).toMatch(/^\/recruiter/);
+    }
+  });
+});
