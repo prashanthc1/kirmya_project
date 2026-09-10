@@ -20,13 +20,45 @@ async function signIn(page: import('@playwright/test').Page, email: string) {
   await page.waitForURL(/\/feed/, { timeout: 15_000 });
 }
 
+/**
+ * The switcher's trigger, wherever this viewport keeps it.
+ *
+ * On desktop it sits beside the account controls in the header. On a phone the
+ * header has no room for it, so it lives in the drawer's account block and
+ * opens from the account control there - the presentation the architecture
+ * asks for. A test that only knew about the desktop position would pass on
+ * three engines and fail on the phone, which is exactly what it did.
+ */
+async function switcherTrigger(page: import('@playwright/test').Page) {
+  const trigger = page.getByRole('button', { name: /change workspace|current workspace/i });
+  const drawerButton = page.getByRole('button', { name: /open mobile navigation/i });
+
+  // Wait for the shell to settle before deciding which position this viewport
+  // uses. Asking too early answers "neither", which is how this first went
+  // wrong after a Back navigation.
+  await expect(trigger.or(drawerButton).first()).toBeVisible({ timeout: 15_000 });
+
+  if (await trigger.isVisible().catch(() => false)) return trigger;
+  await drawerButton.click();
+  await expect(trigger).toBeVisible({ timeout: 15_000 });
+  return trigger;
+}
+
 test('an account with one workspace is offered no switcher', async ({ page, request }) => {
   const api = process.env.TEST_API_URL!;
   const account = await registerAccount(request, api, 'ws-single');
 
   await signIn(page, account.email);
 
-  // A control that cannot switch is a control that does nothing.
+  // A control that cannot switch is a control that does nothing - at either
+  // position, so the drawer is opened first where this viewport has one before
+  // concluding the switcher is absent. Visibility is checked rather than the
+  // click being attempted blind: clicking a hidden element waits out the whole
+  // timeout, which fails the test for the wrong reason.
+  const drawerButton = page.getByRole('button', { name: /open mobile navigation/i });
+  if (await drawerButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await drawerButton.click();
+  }
   await expect(page.getByRole('button', { name: /change workspace/i })).toHaveCount(0);
 });
 
@@ -37,8 +69,9 @@ test('completing recruiter onboarding puts Recruiting in the switcher', async ({
 
   await signIn(page, account.email);
 
-  const trigger = page.getByRole('button', { name: /current workspace: professional/i });
+  const trigger = await switcherTrigger(page);
   await expect(trigger).toBeVisible();
+  await expect(trigger).toHaveAccessibleName(/current workspace: professional/i);
 
   await trigger.click();
   const menu = page.getByRole('menu');
@@ -52,22 +85,28 @@ test('switching enters the workspace, and the control follows the URL', async ({
   await becomeRecruiter(request, api, account);
 
   await signIn(page, account.email);
-  await page.getByRole('button', { name: /change workspace/i }).click();
+  (await switcherTrigger(page)).click();
   await page.getByRole('menuitem', { name: /recruiting/i }).click();
 
   await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
 
   // The active workspace is derived from the address, so it is right here
-  // without anything having been stored...
-  await expect(page.getByRole('button', { name: /current workspace: recruiting/i })).toBeVisible();
+  // without anything having been stored. The recruiting workspace has its own
+  // layout and no drawer, so the switcher must be in its header at every
+  // breakpoint - otherwise a phone lands here with no way back out.
+  await expect(
+    page.getByRole('button', { name: /current workspace: recruiting/i })
+  ).toBeVisible();
 
   // ...it survives a reload for the same reason...
   await page.reload();
-  await expect(page.getByRole('button', { name: /current workspace: recruiting/i })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /current workspace: recruiting/i })
+  ).toBeVisible();
 
   // ...and Back returns to the previous workspace without being taught to.
   await page.goBack();
-  await expect(page.getByRole('button', { name: /current workspace: professional/i })).toBeVisible();
+  await expect(await switcherTrigger(page)).toHaveAccessibleName(/current workspace: professional/i);
 });
 
 test('signing in lands every account on the feed, whatever it may enter', async ({ page, request }) => {

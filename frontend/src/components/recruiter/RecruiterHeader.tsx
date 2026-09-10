@@ -46,7 +46,9 @@ export const RecruiterHeader: React.FC = () => {
       <TextField
         placeholder="Quick search candidates, active jobs, applications..."
         size="small"
-        sx={{ width: { xs: 240, md: 380 } }}
+        // Hidden on a phone so the switcher fits. A convenience gives way to
+        // the only control that leaves the workspace.
+        sx={{ display: { xs: 'none', sm: 'block' }, width: { sm: 240, md: 380 } }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -63,15 +65,18 @@ export const RecruiterHeader: React.FC = () => {
           global shell, so without this an account could switch in and have no
           way back out - which is worse than never offering the control.
 
+          Shown at every breakpoint, and the quick search below yields the room
+          for it on a phone. Hiding it on small screens recreated the same trap
+          there: this workspace has no drawer, so there would have been nothing
+          else to leave by.
+
           It replaces a badge that read "Emaar Group HQ / Corporate
           Administrator" with a verified tick, for every recruiter, whoever they
           were. It named a real company none of these accounts belong to and
           asserted a verification nothing had performed. The workspace label
           says the same kind of thing and is true.
         */}
-        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-          <WorkspaceSwitcher />
-        </Box>
+        <WorkspaceSwitcher />
 
         <IconButton onClick={toggleColorMode} color="inherit" aria-label="Toggle colour mode">
           {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
