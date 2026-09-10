@@ -2,17 +2,42 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"kirmya/internal/recruiter/service"
 	searchHttp "kirmya/internal/search/delivery/http"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 )
 
-func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandler *searchHttp.SearchHandler) {
+// RegisterRoutes wires the recruiter module in two tiers.
+//
+// The whole group used to sit behind AuthRequired() alone, which meant being
+// signed in was the only thing standing between any account and a live public
+// job posting: the handlers provisioned a recruiter profile on first touch.
+//
+//	onboardingGroup   authenticated, no capability yet - how an account becomes
+//	                  a recruiter in the first place
+//	capabilityGroup   authenticated AND holding an active standalone Recruiting
+//	                  capability - everything privileged
+//
+// The split is at the router rather than in each handler so that a route added
+// to the wrong group is visible here, in one place, rather than silently
+// unprotected in a file nobody re-reads.
+func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandler *searchHttp.SearchHandler, svc *service.RecruiterService) {
 	recruiterGroup := api.Group("/recruiter")
 	recruiterGroup.Use(sharedMiddleware.AuthRequired())
+
+	// Tier 1: reachable by any authenticated account. These are the routes an
+	// ordinary professional needs in order to *become* a recruiter, plus the
+	// read that tells the client which state it is in. None of them grants
+	// anything by being called; SubmitOnboarding is the one transition.
+	onboardingGroup := recruiterGroup.Group("")
 	{
-		// Profile & Onboarding
-		recruiterGroup.GET("/profile", handler.GetProfile)
-		recruiterGroup.POST("/onboarding", handler.SubmitOnboarding)
+		onboardingGroup.GET("/profile", handler.GetProfile)
+		onboardingGroup.POST("/onboarding", handler.SubmitOnboarding)
+	}
+
+	// Tier 2: everything that acts as a recruiter.
+	recruiterGroup.Use(RequireRecruiterCapability(svc))
+	{
 		recruiterGroup.GET("/dashboard", handler.GetDashboardOverview)
 
 		// Job Management

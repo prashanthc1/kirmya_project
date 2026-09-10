@@ -27,7 +27,13 @@ func NewSearchService(p SearchProvider, r *repository.SearchRepository, rec *rec
 
 // SearchCandidates processes FTS and facet search.
 func (s *SearchService) SearchCandidates(ctx context.Context, userID uuid.UUID, criteria *models.SearchCriteria) ([]models.CandidateSearchResult, error) {
-	p, err := s.recruitRepo.GetOrCreateProfile(ctx, userID, "")
+	// Read, never create. These five call sites were the second live path into
+	// the recruiter self-provisioning defect: /api/v1/search/* is gated on
+	// authentication alone, so searching candidates, saving one, or writing a
+	// note created a recruiter profile for whoever asked. The recruiter routes
+	// are behind a capability guard now; this module reaches the same data, so
+	// it must not provision either.
+	p, err := s.recruitRepo.ProfileByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +152,7 @@ func (s *SearchService) SearchCandidates(ctx context.Context, userID uuid.UUID, 
 
 // GetSearchHistory returns queries logs.
 func (s *SearchService) GetSearchHistory(ctx context.Context, userID uuid.UUID) ([]models.SearchHistory, error) {
-	p, err := s.recruitRepo.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.recruitRepo.ProfileByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +170,7 @@ func (s *SearchService) GetSearchHistory(ctx context.Context, userID uuid.UUID) 
 
 // SaveCandidate bookmarks.
 func (s *SearchService) SaveCandidate(ctx context.Context, userID, candidateID uuid.UUID, listName string) error {
-	p, err := s.recruitRepo.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.recruitRepo.ProfileByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -173,7 +179,7 @@ func (s *SearchService) SaveCandidate(ctx context.Context, userID, candidateID u
 
 // GetSavedCandidates lists folders.
 func (s *SearchService) GetSavedCandidates(ctx context.Context, userID uuid.UUID) ([]models.SavedCandidate, error) {
-	p, err := s.recruitRepo.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.recruitRepo.ProfileByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +201,7 @@ func (s *SearchService) RemoveSavedCandidate(ctx context.Context, bookmarkID uui
 
 // AddRecruiterNote logs notes.
 func (s *SearchService) AddRecruiterNote(ctx context.Context, userID, candidateID uuid.UUID, notes string) error {
-	p, err := s.recruitRepo.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.recruitRepo.ProfileByUser(ctx, userID)
 	if err != nil {
 		return err
 	}

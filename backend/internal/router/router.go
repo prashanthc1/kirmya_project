@@ -50,6 +50,7 @@ import (
 	recHttp "kirmya/internal/recommendation/delivery/http"
 	recommendationEngineHttp "kirmya/internal/recommendation_engine/delivery/http"
 	recruiterHttp "kirmya/internal/recruiter/delivery/http"
+	recruiterSvc "kirmya/internal/recruiter/service"
 	recruiterAIHttp "kirmya/internal/recruiter_ai/delivery/http"
 	referralHttp "kirmya/internal/referral/delivery/http"
 	resumeHttp "kirmya/internal/resume/delivery/http"
@@ -70,20 +71,23 @@ type RouterDependencies struct {
 	RateLimit      RateLimitConfig
 	Metrics        MetricsConfig
 
-	AuthMiddleware              *authMiddlewarePkg.AuthMiddleware
-	AuthHandler                 *authHttp.AuthHandler
-	ProfileHandler              *profileHttp.ProfileHandler
-	ResumeHandler               *resumeHttp.ResumeHandler
-	RecommendationHandler       *recHttp.RecommendationHandler
-	NetworkingHandler           *netHttp.NetworkingHandler
-	CommunityHandler            *commHttp.CommunityHandler
-	MessagingHandler            *msgHttp.MessagingHandler
-	NotificationHandler         *notifyHttp.NotificationHandler
-	AnalyticsHandler            *analyticsHttp.AnalyticsHandler
-	AIHandler                   *aiHttp.AIHandler
-	CompanyHandler              *companyHttp.CompanyHandler
-	CompanyManagementHandler    *companyHttp.ManagementHandler
-	RecruiterHandler            *recruiterHttp.RecruiterHandler
+	AuthMiddleware           *authMiddlewarePkg.AuthMiddleware
+	AuthHandler              *authHttp.AuthHandler
+	ProfileHandler           *profileHttp.ProfileHandler
+	ResumeHandler            *resumeHttp.ResumeHandler
+	RecommendationHandler    *recHttp.RecommendationHandler
+	NetworkingHandler        *netHttp.NetworkingHandler
+	CommunityHandler         *commHttp.CommunityHandler
+	MessagingHandler         *msgHttp.MessagingHandler
+	NotificationHandler      *notifyHttp.NotificationHandler
+	AnalyticsHandler         *analyticsHttp.AnalyticsHandler
+	AIHandler                *aiHttp.AIHandler
+	CompanyHandler           *companyHttp.CompanyHandler
+	CompanyManagementHandler *companyHttp.ManagementHandler
+	RecruiterHandler         *recruiterHttp.RecruiterHandler
+	// RecruiterService backs the recruiter capability guard on the privileged
+	// half of /recruiter/*.
+	RecruiterService            *recruiterSvc.RecruiterService
 	CandidateSearchHandler      *candidateSearchHttp.SearchHandler
 	InterviewHandler            *interviewHttp.InterviewHandler
 	LearningHandler             *learningHttp.LearningHandler
@@ -238,8 +242,8 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	aiHttp.RegisterRoutes(api, deps.AIHandler)
 
 	companyHttp.RegisterRoutes(api, deps.CompanyHandler, deps.CompanyManagementHandler, deps.AuthMiddleware)
-	recruiterHttp.RegisterRoutes(api, deps.RecruiterHandler, deps.UnifiedSearchHandler)
-	candidateSearchHttp.RegisterRoutes(api, deps.CandidateSearchHandler)
+	recruiterHttp.RegisterRoutes(api, deps.RecruiterHandler, deps.UnifiedSearchHandler, deps.RecruiterService)
+	candidateSearchHttp.RegisterRoutes(api, deps.CandidateSearchHandler, recruiterHttp.RequireRecruiterCapability(deps.RecruiterService))
 	interviewHttp.RegisterRoutes(api, deps.InterviewHandler)
 	learningHttp.RegisterRoutes(api, deps.LearningHandler)
 	assessmentHttp.RegisterRoutes(api, deps.AssessmentHandler)

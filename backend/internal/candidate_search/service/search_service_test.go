@@ -10,81 +10,41 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestSearchCandidatesOffline(t *testing.T) {
-	provider := NewPostgresSearchProvider(nil)
-	repo := repository.NewSearchRepository(nil)
-	recRepo := recruiterRepo.NewRecruiterRepository(nil)
-	svc := NewSearchService(provider, repo, recRepo)
+// Candidate search resolves the caller's recruiter profile first, so with no
+// database it fails.
+//
+// This was named "Offline" and asserted that searching without a database
+// succeeds. It did - because the recruiter repository answered a nil-database
+// caller with an invented profile marked Verified, which is the same
+// fabrication that let any authenticated account acquire recruiter authority
+// simply by calling a recruiter endpoint.
+func TestSearchCandidatesNeedsADatabase(t *testing.T) {
+	svc := NewSearchService(NewPostgresSearchProvider(nil), repository.NewSearchRepository(nil), recruiterRepo.NewRecruiterRepository(nil))
 
-	userID := uuid.New()
-	criteria := &models.SearchCriteria{
+	if _, err := svc.SearchCandidates(context.Background(), uuid.New(), &models.SearchCriteria{
 		Query: "Go",
-		Filters: models.SearchFilters{
-			Skills:   []string{"Go"},
-			Location: "Dubai, UAE",
-		},
-	}
-
-	results, err := svc.SearchCandidates(context.Background(), userID, criteria)
-	if err != nil {
-		t.Fatalf("Expected no error searching candidates, got %v", err)
-	}
-
-	if len(results) == 0 {
-		t.Errorf("Expected mock search results to be generated, got 0 results")
-	}
-
-	if results[0].Name != "Salim Al-Harthy" {
-		t.Errorf("Expected first match to be Salim Al-Harthy, got %s", results[0].Name)
+	}); err == nil {
+		t.Error("expected candidate search with no database to fail rather than answer")
 	}
 }
 
-func TestSaveAndRemoveSavedCandidate(t *testing.T) {
-	provider := NewPostgresSearchProvider(nil)
-	repo := repository.NewSearchRepository(nil)
-	recRepo := recruiterRepo.NewRecruiterRepository(nil)
-	svc := NewSearchService(provider, repo, recRepo)
+// Bookmarking a candidate writes a row against the caller's recruiter profile.
+// With no database it fails rather than reporting a save that did not happen.
+func TestSaveCandidateNeedsADatabase(t *testing.T) {
+	svc := NewSearchService(NewPostgresSearchProvider(nil), repository.NewSearchRepository(nil), recruiterRepo.NewRecruiterRepository(nil))
 
-	userID := uuid.New()
-	candidateID := uuid.New()
-
-	// Should succeed without error in mock fallback mode
-	err := svc.SaveCandidate(context.Background(), userID, candidateID, "Urgent Needs")
-	if err != nil {
-		t.Fatalf("Expected no error bookmarking candidate, got %v", err)
-	}
-
-	bookmarkID := uuid.New()
-	err = svc.RemoveSavedCandidate(context.Background(), bookmarkID)
-	if err != nil {
-		t.Fatalf("Expected no error deleting bookmark, got %v", err)
+	if err := svc.SaveCandidate(context.Background(), uuid.New(), uuid.New(), ""); err == nil {
+		t.Error("expected saving a candidate with no database to fail")
 	}
 }
 
-func TestAddAndGetRecruiterNotes(t *testing.T) {
-	provider := NewPostgresSearchProvider(nil)
-	repo := repository.NewSearchRepository(nil)
-	recRepo := recruiterRepo.NewRecruiterRepository(nil)
-	svc := NewSearchService(provider, repo, recRepo)
+// Recruiter notes are written against the caller's recruiter profile.
+func TestRecruiterNotesNeedADatabase(t *testing.T) {
+	svc := NewSearchService(NewPostgresSearchProvider(nil), repository.NewSearchRepository(nil), recruiterRepo.NewRecruiterRepository(nil))
 
-	userID := uuid.New()
-	candidateID := uuid.New()
-
-	err := svc.AddRecruiterNote(context.Background(), userID, candidateID, "Candidate cleared backend screening.")
-	if err != nil {
-		t.Fatalf("Expected no error writing notes, got %v", err)
-	}
-
-	notes, err := svc.GetRecruiterNotes(context.Background(), candidateID)
-	if err != nil {
-		t.Fatalf("Expected no error reading notes, got %v", err)
-	}
-
-	if len(notes) != 1 {
-		t.Errorf("Expected exactly 1 note stub, got %d", len(notes))
-	}
-
-	if notes[0].Notes != "Had a screening call; candidate represents strong backend architecture capabilities." {
-		t.Errorf("Expected notes mismatch, got: %s", notes[0].Notes)
+	// Writing a note resolves the caller's recruiter profile, so with no
+	// database it fails rather than provisioning one.
+	if err := svc.AddRecruiterNote(context.Background(), uuid.New(), uuid.New(), "note"); err == nil {
+		t.Error("expected writing a recruiter note with no database to fail")
 	}
 }

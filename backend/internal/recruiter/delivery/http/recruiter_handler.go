@@ -28,12 +28,45 @@ func (h *RecruiterHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	p, err := h.service.GetOrCreateProfile(c.Request.Context(), userID, "")
+	// This called GetOrCreateProfile, so simply reading the recruiter profile
+	// created one - an organization, a profile marked Verified, and a usable
+	// recruiter identity, produced by a GET. It reports state now and writes
+	// nothing.
+	//
+	// It stays reachable without the capability on purpose: the client needs to
+	// know whether to show recruiting or an onboarding prompt, and answering
+	// that must not itself require being a recruiter.
+	capability, err := h.service.RecruiterCapability(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Recruiter capability could not be determined", "code": "INTERNAL_ERROR"})
+		return
+	}
+
+	if capability != service.CapabilityActive {
+		// Not an error: "you are not a recruiter" is an ordinary answer, and the
+		// onboarding call to action is the point of asking.
+		//
+		// Suspended is the one non-active state where onboarding is NOT the way
+		// forward - onboarding again will not lift a withdrawn capability - so
+		// the client must not be told to offer it.
+		c.JSON(http.StatusOK, gin.H{
+			"capabilityStatus":   string(capability),
+			"onboardingRequired": capability != service.CapabilitySuspended,
+			"profile":            nil,
+		})
+		return
+	}
+
+	profile, err := h.service.GetRecruiterProfile(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, p)
+	c.JSON(http.StatusOK, gin.H{
+		"capabilityStatus":   string(capability),
+		"onboardingRequired": false,
+		"profile":            profile,
+	})
 }
 
 func (h *RecruiterHandler) SubmitOnboarding(c *gin.Context) {
@@ -51,6 +84,16 @@ func (h *RecruiterHandler) SubmitOnboarding(c *gin.Context) {
 
 	profile, err := h.service.SubmitOnboarding(c.Request.Context(), userID, &payload)
 	if err != nil {
+		// A suspension is a decision, not a fault. Reporting it as 500 told the
+		// client to retry something that will never succeed, and left the one
+		// account that must not be readmitted looking like an outage.
+		if errors.Is(err, service.ErrRecruiterSuspended) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Recruiting access has been disabled for this account.",
+				"code":  CodeRecruiterAccessDisabled,
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

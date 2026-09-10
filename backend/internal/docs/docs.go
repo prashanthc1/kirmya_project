@@ -36590,7 +36590,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns analytics via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns analytics via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -36623,6 +36623,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -36725,6 +36731,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -36736,7 +36748,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns applications via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns applications via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -36773,6 +36785,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -36789,7 +36807,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Bulk-updates update applications via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Bulk-updates update applications via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -36830,6 +36848,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -36846,7 +36870,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns application detail via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns application detail via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -36882,6 +36906,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -36898,7 +36928,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns AI evaluation via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns AI evaluation via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -36924,6 +36954,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -37034,6 +37070,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37077,6 +37119,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37088,7 +37136,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates pipeline stage via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Updates pipeline stage via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -37136,6 +37184,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -37152,7 +37206,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Searches candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Searches candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37188,6 +37242,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37199,7 +37259,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Compares candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Compares candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -37232,6 +37292,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37243,7 +37309,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns filter facets via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns filter facets via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37279,6 +37345,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37290,7 +37362,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns recommendations via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns recommendations via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37326,6 +37398,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37337,7 +37415,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns saved candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns saved candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37373,6 +37451,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37384,7 +37468,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Searches candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Searches candidates via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37420,6 +37504,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37431,7 +37521,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns candidate detail via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns candidate detail via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37460,6 +37550,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37471,7 +37567,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Connects with candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Connects with candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -37511,6 +37607,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37522,7 +37624,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Messages candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Messages candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -37559,6 +37661,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -37599,6 +37707,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -37669,7 +37783,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Saves candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Saves candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -37716,6 +37830,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -37730,7 +37850,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes the saved candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Removes the saved candidate via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37759,6 +37879,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -37770,7 +37896,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns dashboard overview via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns dashboard overview via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37807,6 +37933,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -37823,7 +37955,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns interviews via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns interviews via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -37860,6 +37992,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -37874,7 +38012,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Schedules interview via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Schedules interview via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -37911,6 +38049,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -37967,6 +38111,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Interview not found or not organised by the caller",
                         "schema": {
@@ -37983,7 +38133,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Submits interview feedback via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Submits interview feedback via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38031,6 +38181,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38047,7 +38203,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns jobs via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns jobs via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38084,6 +38240,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38098,7 +38260,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Creates job via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38139,6 +38301,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38155,7 +38323,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns one recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns one recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38185,6 +38353,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -38207,7 +38381,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Closes a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Closes a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38240,6 +38414,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -38262,7 +38442,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the candidates matched to a job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns the candidates matched to a job via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38306,6 +38486,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -38328,7 +38514,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Pauses a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Pauses a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38361,6 +38547,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -38383,7 +38575,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Publishes a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Publishes a recruiter job via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38416,6 +38608,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -38438,7 +38636,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates job offer via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Creates job offer via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38479,6 +38677,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38495,7 +38699,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates job offer status via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Updates job offer status via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38538,6 +38742,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -38615,7 +38825,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the hiring pipeline across jobs via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns the hiring pipeline across jobs via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38652,6 +38862,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38668,7 +38884,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns analytics via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns analytics via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38705,6 +38921,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38721,7 +38943,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates pipeline stage via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Updates pipeline stage via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38769,6 +38991,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -38785,7 +39013,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns pipeline via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns pipeline via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38817,6 +39045,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -38890,7 +39124,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns saved searches via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns saved searches via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -38926,6 +39160,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -38935,7 +39175,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates saved search via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Creates saved search via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38968,6 +39208,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -38979,7 +39225,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Deletes saved search via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Deletes saved search via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -39008,6 +39254,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -39019,7 +39271,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns talent pools via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns talent pools via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -39055,6 +39307,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -39064,7 +39322,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates talent pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Creates talent pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -39097,6 +39355,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -39108,7 +39372,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Deletes talent pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Deletes talent pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -39137,6 +39401,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -39148,7 +39418,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Adds candidate to pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Adds candidate to pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -39188,6 +39458,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -39199,7 +39475,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes candidate from pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Removes candidate from pool via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -39235,6 +39511,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -39246,7 +39528,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the hiring team members via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns the hiring team members via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -39267,6 +39549,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -39283,7 +39571,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns the recruiter outreach templates via the Kirmya recruiter ATS module. Requires a valid Bearer access token.",
+                "description": "Returns the recruiter outreach templates via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -39300,6 +39588,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -41572,7 +41866,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Searches candidates via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Searches candidates via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -41613,6 +41907,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -41629,7 +41929,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Contacts candidate via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Contacts candidate via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -41669,6 +41969,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -41680,7 +41986,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns history via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Returns history via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -41717,6 +42023,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -41733,7 +42045,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Adds note via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Adds note via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -41774,6 +42086,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -41790,7 +42108,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns notes via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Returns notes via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -41826,6 +42144,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -41842,7 +42166,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns saved candidates via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Returns saved candidates via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -41879,6 +42203,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -41893,7 +42223,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Saves candidate via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Saves candidate via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "consumes": [
                     "application/json"
                 ],
@@ -41934,6 +42264,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -41950,7 +42286,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes saved candidate via the Kirmya candidate search module. Requires a valid Bearer access token.",
+                "description": "Removes saved candidate via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.",
                 "produces": [
                     "application/json"
                 ],
@@ -41982,6 +42318,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }

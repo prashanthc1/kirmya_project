@@ -9,6 +9,7 @@ import (
 
 	"kirmya/internal/recruiter/models"
 	"kirmya/internal/recruiter/repository"
+	"kirmya/internal/shared/telemetry"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -59,7 +60,62 @@ func (s *RecruiterService) GetOrCreateProfile(ctx context.Context, userID uuid.U
 	return s.repo.GetOrCreateProfile(ctx, userID, companyName)
 }
 
+// Capability re-exports the repository lifecycle so callers outside the module
+// do not import the repository package directly.
+type Capability = repository.CapabilityStatus
+
+const (
+	CapabilityNone      = repository.CapabilityNone
+	CapabilityPending   = repository.CapabilityPending
+	CapabilityActive    = repository.CapabilityActive
+	CapabilitySuspended = repository.CapabilitySuspended
+)
+
+// RecruiterCapability answers the one question route protection asks: does this
+// authenticated account hold the standalone Recruiting capability right now?
+//
+// Server-side and authoritative. It reads the recruiter profile lifecycle and
+// nothing else - not users.role_id, not company membership, not any workspace
+// context the client claims to be in. Company-scoped recruiter roles are a
+// different concept and are checked by the company module against a company id.
+func (s *RecruiterService) RecruiterCapability(ctx context.Context, userID uuid.UUID) (Capability, error) {
+	return s.repo.RecruiterCapability(ctx, userID)
+}
+
+// GetRecruiterProfile reads the caller's profile for display. Read-only.
+func (s *RecruiterService) GetRecruiterProfile(ctx context.Context, userID uuid.UUID) (*models.RecruiterOrgProfile, error) {
+	return s.profileFor(ctx, userID)
+}
+
+// profileFor reads the caller's recruiter profile. It never creates one.
+//
+// Every handler behind RequireRecruiterCapability runs only for an account
+// whose capability is active, which means the profile exists - so a miss here
+// is a real error rather than an invitation to provision one. This is the
+// change that closes the self-provisioning path: eighteen call sites used to
+// reach GetOrCreateProfile, so loading any recruiter screen wrote an
+// organization and a profile for whoever asked.
+func (s *RecruiterService) profileFor(ctx context.Context, userID uuid.UUID) (*models.RecruiterOrgProfile, error) {
+	return s.repo.ProfileByUser(ctx, userID)
+}
+
+// ErrRecruiterSuspended is returned when a withdrawn capability is asked to
+// come back. Re-exported so the delivery layer can answer 403 with the
+// disabled code rather than reporting a policy decision as a server fault.
+var ErrRecruiterSuspended = repository.ErrRecruiterSuspended
+
 func (s *RecruiterService) SubmitOnboarding(ctx context.Context, userID uuid.UUID, payload *models.OnboardingPayload) (*models.RecruiterOrgProfile, error) {
+	// Checked before anything is written. Onboarding is not a way back in from a
+	// suspension, and a suspended account rewriting its company name on the way
+	// to being refused is a write that a refusal should not have allowed.
+	capability, err := s.RecruiterCapability(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if capability == CapabilitySuspended {
+		return nil, ErrRecruiterSuspended
+	}
+
 	p, err := s.GetOrCreateProfile(ctx, userID, payload.CompanyName)
 	if err != nil {
 		return nil, err
@@ -72,12 +128,32 @@ func (s *RecruiterService) SubmitOnboarding(ctx context.Context, userID uuid.UUI
 	p.ProfessionalInfo = payload.ProfessionalInfo
 	p.ContactPhone = payload.ContactPhone
 	p.ContactEmail = payload.ContactEmail
-	p.VerificationStatus = "Verified"
+	// Completing onboarding is not the same as being verified. It makes the
+	// capability usable; whether the organization has been checked by anyone is
+	// a separate question with a separate answer, and writing "Verified" here
+	// asserted a review that never happened.
+	p.VerificationStatus = "unverified"
 
 	err = s.repo.UpdateOrgProfile(ctx, p)
 	if err != nil {
 		return nil, err
 	}
+
+	// The capability becomes usable here and nowhere else. Creating the profile
+	// row does not grant it; this transition does.
+	if err := s.repo.ActivateRecruiterCapability(ctx, userID); err != nil {
+		return nil, err
+	}
+
+	// Two records, because they answer different questions. The activity row is
+	// the durable grant record - it is what the backfill reads to tell a real
+	// onboarding from a fallback row. The security event puts the grant in the
+	// same stream as the refusals in RequireRecruiterCapability, so a capability
+	// can be traced from first denial to grant without joining two systems.
+	telemetry.LogUserAction(ctx, userID.String(), "RECRUITER_CAPABILITY_GRANTED", map[string]interface{}{
+		"recruiterProfileId": p.ID.String(),
+		"companyName":        payload.CompanyName,
+	})
 
 	_ = s.repo.LogActivity(ctx, &models.RecruiterActivity{
 		ID:           uuid.New(),
@@ -91,7 +167,7 @@ func (s *RecruiterService) SubmitOnboarding(ctx context.Context, userID uuid.UUI
 }
 
 func (s *RecruiterService) CreateJob(ctx context.Context, userID uuid.UUID, payload *models.CreateJobPayload) (*models.RecruiterJob, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +236,10 @@ func (s *RecruiterService) CreateJob(ctx context.Context, userID uuid.UUID, payl
 }
 
 func (s *RecruiterService) GetJobByID(ctx context.Context, userID, jobID uuid.UUID) (*models.RecruiterJob, error) {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	job, err := s.repo.GetJobByID(ctx, userID, jobID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -173,8 +252,11 @@ func (s *RecruiterService) GetJobByID(ctx context.Context, userID, jobID uuid.UU
 }
 
 func (s *RecruiterService) UpdateJobStatus(ctx context.Context, userID, jobID uuid.UUID, status string) error {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
-	err := s.repo.UpdateJobStatus(ctx, userID, jobID, status)
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return err
+	}
+	err = s.repo.UpdateJobStatus(ctx, userID, jobID, status)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
 	}
@@ -191,7 +273,7 @@ func (s *RecruiterService) UpdateJobStatus(ctx context.Context, userID, jobID uu
 }
 
 func (s *RecruiterService) GetJobs(ctx context.Context, userID uuid.UUID) ([]models.RecruiterJob, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +350,7 @@ func (s *RecruiterService) GetDashboardOverview(ctx context.Context, userID uuid
 // kirmya.com that resolve to nothing - to every recruiter, ignoring the
 // database entirely.
 func (s *RecruiterService) GetCandidates(ctx context.Context, userID uuid.UUID) ([]models.RecruiterCandidateItem, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +408,10 @@ func (s *RecruiterService) GetCandidateMatch(ctx context.Context, userID, jobID,
 }
 
 func (s *RecruiterService) SaveCandidate(ctx context.Context, candidateID, userID uuid.UUID) error {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return err
+	}
 	return s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candidateID, p.CompanyName, "Candidate Saved")
 }
 
@@ -365,7 +450,10 @@ func (s *RecruiterService) ScheduleInterview(ctx context.Context, userID uuid.UU
 		CreatedAt:       time.Now(),
 	}
 
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candID, p.CompanyName, "Interview Scheduled")
 
 	return item, nil */
@@ -376,7 +464,10 @@ func (s *RecruiterService) CancelInterview(ctx context.Context, userID, intervie
 }
 
 func (s *RecruiterService) GetAnalytics(ctx context.Context, userID uuid.UUID) (*models.RecruiterAnalytics, error) {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	return s.repo.GetAnalytics(ctx, p.ID)
 }
 
@@ -461,7 +552,10 @@ func (s *RecruiterService) GetApplicationDetail(ctx context.Context, appID uuid.
 }
 
 func (s *RecruiterService) BulkUpdateApplications(ctx context.Context, userID uuid.UUID, payload *models.ATSBulkActionPayload) error {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return err
+	}
 	for _, appIDStr := range payload.ApplicationIDs {
 		appID, _ := uuid.Parse(appIDStr)
 		_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, appID, p.CompanyName, fmt.Sprintf("Bulk Action: %s to %s", payload.Action, payload.TargetStage))
@@ -505,7 +599,10 @@ func (s *RecruiterService) CreateJobOffer(ctx context.Context, userID uuid.UUID,
 		contractType = "Full-time"
 	}
 
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candID, p.CompanyName, "Offer Created")
 
 	return &models.JobOfferDTO{
@@ -528,7 +625,10 @@ func (s *RecruiterService) CreateJobOffer(ctx context.Context, userID uuid.UUID,
 }
 
 func (s *RecruiterService) UpdateJobOfferStatus(ctx context.Context, userID, offerID uuid.UUID, status string) error {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return err
+	}
 	return s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, offerID, p.CompanyName, fmt.Sprintf("Offer Status Updated to %s", status))
 }
 
@@ -608,7 +708,10 @@ func scoreSkillOverlap(required, held []string) skillOverlap {
 }
 
 func (s *RecruiterService) GetMessageTemplates(ctx context.Context, userID uuid.UUID) ([]models.MessageTemplateDTO, error) {
-	p, _ := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	return []models.MessageTemplateDTO{
 		{
 			ID:        uuid.New(),
@@ -637,7 +740,7 @@ func (s *RecruiterService) GetMessageTemplates(ctx context.Context, userID uuid.
 // return two colleagues who do not exist, with addresses at kirmya.ae, for
 // every recruiter on the platform.
 func (s *RecruiterService) GetTeamMembers(ctx context.Context, userID uuid.UUID) ([]models.TeamMemberDTO, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -652,7 +755,7 @@ func (s *RecruiterService) GetStageHistory(ctx context.Context, userID, applicat
 }
 
 func (s *RecruiterService) CreateCandidateNote(ctx context.Context, userID, candidateID uuid.UUID, payload *models.CreateNotePayload) (*models.CandidateNoteItem, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -693,7 +796,7 @@ func (s *RecruiterService) CreateCandidateNote(ctx context.Context, userID, cand
 }
 
 func (s *RecruiterService) GetCandidateNotes(ctx context.Context, userID, candidateID uuid.UUID) ([]models.CandidateNoteItem, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -704,7 +807,7 @@ func (s *RecruiterService) GetCandidateNotes(ctx context.Context, userID, candid
 }
 
 func (s *RecruiterService) CreateCandidateEvaluation(ctx context.Context, userID uuid.UUID, payload *models.CandidateEvaluationPayload) (*models.CandidateEvaluationDTO, error) {
-	p, err := s.GetOrCreateProfile(ctx, userID, "")
+	p, err := s.profileFor(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

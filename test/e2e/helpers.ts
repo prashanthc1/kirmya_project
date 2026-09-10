@@ -56,6 +56,8 @@ export async function publishJob(
   expect(login.status()).toBe(200);
   const token = (await login.json()).accessToken;
 
+  await becomeRecruiter(request, api, { email, token });
+
   const title = `Indexable Staff Engineer ${suffix}`;
   const created = await request.post(`${api}/api/v1/recruiter/jobs`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -113,6 +115,34 @@ export async function registerAccount(
 }
 
 /**
+ * Completes recruiter onboarding for an account, so it holds the standalone
+ * Recruiting capability.
+ *
+ * Every recruiter seed below used to skip this: registering an account was
+ * enough to publish a job, because the first call to a recruiter route
+ * provisioned the profile behind it. That was the defect. /recruiter/* now
+ * answers 403 RECRUITER_ONBOARDING_REQUIRED until this runs, so a spec that
+ * needs a recruiter has to say so - which is the same step a real person takes.
+ */
+export async function becomeRecruiter(
+  request: APIRequestContext,
+  api: string,
+  account: SeededAccount | { email: string; token: string }
+): Promise<void> {
+  const onboarded = await request.post(`${api}/api/v1/recruiter/onboarding`, {
+    headers: { Authorization: `Bearer ${account.token}` },
+    data: {
+      companyName: 'Playwright Recruiting Co',
+      jobTitle: 'Talent Partner',
+      recruiterRole: 'Recruiter',
+      department: 'Talent Acquisition',
+      contactEmail: account.email,
+    },
+  });
+  expect(onboarded.status(), await onboarded.text()).toBe(200);
+}
+
+/**
  * Seeds the whole hiring relationship these recruiter journeys need: a
  * recruiter with a published posting, and a real person who has applied to it.
  *
@@ -134,6 +164,7 @@ export async function seedRecruiterWithApplicant(
 }> {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   const recruiter = await registerAccount(request, api, 'rec', 'Journey', 'Recruiter');
+  await becomeRecruiter(request, api, recruiter);
 
   // A distinctive given name, so an assertion that finds it on the page cannot
   // be satisfied by anything the build happens to ship.

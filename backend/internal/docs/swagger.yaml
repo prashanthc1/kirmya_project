@@ -32393,8 +32393,11 @@ paths:
       - AI Matching
   /api/v1/recruiter/analytics:
     get:
-      description: Returns analytics via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns analytics via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -32415,6 +32418,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -32479,6 +32486,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get recruitment analytics overview
@@ -32486,8 +32497,11 @@ paths:
       - Recruiter ATS
   /api/v1/recruiter/applications:
     get:
-      description: Returns applications via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns applications via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -32510,6 +32524,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -32521,8 +32539,11 @@ paths:
       - Applications
   /api/v1/recruiter/applications/{id}:
     get:
-      description: Returns application detail via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Returns application detail via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32544,6 +32565,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -32555,8 +32580,11 @@ paths:
       - Applications
   /api/v1/recruiter/applications/{id}/ai-eval:
     get:
-      description: Returns AI evaluation via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns AI evaluation via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32572,6 +32600,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -32642,6 +32674,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List candidate evaluations
@@ -32670,6 +32706,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get application stage history
@@ -32679,8 +32719,11 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates pipeline stage via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Updates pipeline stage via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32708,6 +32751,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -32721,8 +32768,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Bulk-updates update applications via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Bulk-updates update applications via the Kirmya recruiter ATS
+        module. Requires a valid Bearer access token AND an active standalone Recruiting
+        capability. Authentication alone is not sufficient: an account that has not
+        completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -32745,6 +32795,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -32756,8 +32810,11 @@ paths:
       - Applications
   /api/v1/recruiter/candidates:
     get:
-      description: Searches candidates via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Searches candidates via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -32780,6 +32837,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Search candidates
@@ -32787,8 +32848,11 @@ paths:
       - Applications
   /api/v1/recruiter/candidates/{id}:
     get:
-      description: Returns candidate detail via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns candidate detail via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32806,6 +32870,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get candidate detail
@@ -32815,8 +32883,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Connects with candidate via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Connects with candidate via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32839,6 +32910,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Connect candidate
@@ -32848,8 +32923,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Messages candidate via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Messages candidate via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32870,6 +32948,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -32895,6 +32977,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -32941,8 +33027,11 @@ paths:
       - Recruiter ATS
   /api/v1/recruiter/candidates/{id}/save:
     delete:
-      description: Removes the saved candidate via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Removes the saved candidate via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32960,6 +33049,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Unsave candidate
@@ -32968,8 +33061,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Saves candidate via the Kirmya recruiter ATS module. Requires a
-        valid Bearer access token.
+      description: 'Saves candidate via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -32996,6 +33092,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33009,8 +33109,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Compares candidates via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Compares candidates via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -33028,6 +33131,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Compare candidates
@@ -33035,8 +33142,11 @@ paths:
       - Applications
   /api/v1/recruiter/candidates/filters:
     get:
-      description: Returns filter facets via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns filter facets via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33057,6 +33167,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -33066,8 +33180,11 @@ paths:
       - Applications
   /api/v1/recruiter/candidates/recommendations:
     get:
-      description: Returns recommendations via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns recommendations via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33088,6 +33205,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -33097,8 +33218,11 @@ paths:
       - Applications
   /api/v1/recruiter/candidates/saved:
     get:
-      description: Returns saved candidates via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns saved candidates via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33119,6 +33243,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -33128,8 +33256,11 @@ paths:
       - Applications
   /api/v1/recruiter/candidates/search:
     get:
-      description: Searches candidates via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Searches candidates via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33152,6 +33283,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Search candidates
@@ -33159,8 +33294,11 @@ paths:
       - Applications
   /api/v1/recruiter/dashboard:
     get:
-      description: Returns dashboard overview via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Returns dashboard overview via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33181,6 +33319,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -33194,8 +33336,11 @@ paths:
       - Applications
   /api/v1/recruiter/interviews:
     get:
-      description: Returns interviews via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns interviews via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33216,6 +33361,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -33230,8 +33379,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Schedules interview via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Schedules interview via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -33252,6 +33404,10 @@ paths:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -33288,6 +33444,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "404":
           description: Interview not found or not organised by the caller
           schema:
@@ -33301,8 +33461,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Submits interview feedback via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Submits interview feedback via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -33330,6 +33493,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33341,8 +33508,11 @@ paths:
       - Applications
   /api/v1/recruiter/jobs:
     get:
-      description: Returns jobs via the Kirmya recruiter ATS module. Requires a valid
-        Bearer access token.
+      description: 'Returns jobs via the Kirmya recruiter ATS module. Requires a valid
+        Bearer access token AND an active standalone Recruiting capability. Authentication
+        alone is not sufficient: an account that has not completed recruiter onboarding
+        is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose
+        capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33365,6 +33535,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33377,8 +33551,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates job via the Kirmya recruiter ATS module. Requires a valid
-        Bearer access token.
+      description: 'Creates job via the Kirmya recruiter ATS module. Requires a valid
+        Bearer access token AND an active standalone Recruiting capability. Authentication
+        alone is not sufficient: an account that has not completed recruiter onboarding
+        is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose
+        capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -33401,6 +33578,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33412,8 +33593,11 @@ paths:
       - Applications
   /api/v1/recruiter/jobs/{id}:
     get:
-      description: Returns one recruiter job via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Returns one recruiter job via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Job id
         in: path
@@ -33429,6 +33613,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "404":
@@ -33448,8 +33636,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Closes a recruiter job via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Closes a recruiter job via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Job id
         in: path
@@ -33467,6 +33658,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -33482,8 +33677,11 @@ paths:
       - Applications
   /api/v1/recruiter/jobs/{id}/matches:
     get:
-      description: Returns the candidates matched to a job via the Kirmya recruiter
-        ATS module. Requires a valid Bearer access token.
+      description: 'Returns the candidates matched to a job via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token AND an active standalone
+        Recruiting capability. Authentication alone is not sufficient: an account
+        that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Job id
         in: path
@@ -33511,6 +33709,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -33528,8 +33730,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Pauses a recruiter job via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Pauses a recruiter job via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Job id
         in: path
@@ -33545,6 +33750,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "404":
@@ -33564,8 +33773,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Publishes a recruiter job via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Publishes a recruiter job via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Job id
         in: path
@@ -33581,6 +33793,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "404":
@@ -33600,8 +33816,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates job offer via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Creates job offer via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -33624,6 +33843,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33637,8 +33860,11 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates job offer status via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Updates job offer status via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -33663,6 +33889,10 @@ paths:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -33713,8 +33943,11 @@ paths:
       - Applications
   /api/v1/recruiter/pipeline:
     get:
-      description: Returns the hiring pipeline across jobs via the Kirmya recruiter
-        ATS module. Requires a valid Bearer access token.
+      description: 'Returns the hiring pipeline across jobs via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token AND an active standalone
+        Recruiting capability. Authentication alone is not sufficient: an account
+        that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33737,6 +33970,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33750,8 +33987,11 @@ paths:
     put:
       consumes:
       - application/json
-      description: Updates pipeline stage via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Updates pipeline stage via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -33779,6 +34019,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33790,8 +34034,11 @@ paths:
       - Applications
   /api/v1/recruiter/pipeline/{jobId}:
     get:
-      description: Returns pipeline via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns pipeline via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Job id
         in: path
@@ -33813,6 +34060,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -33824,8 +34075,11 @@ paths:
       - Applications
   /api/v1/recruiter/pipeline/analytics:
     get:
-      description: Returns analytics via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns analytics via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33846,6 +34100,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -33894,8 +34152,11 @@ paths:
       - Applications
   /api/v1/recruiter/saved-searches:
     get:
-      description: Returns saved searches via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns saved searches via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -33916,6 +34177,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -33926,8 +34191,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates saved search via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Creates saved search via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -33945,6 +34213,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create saved search
@@ -33952,8 +34224,11 @@ paths:
       - Applications
   /api/v1/recruiter/saved-searches/{id}:
     delete:
-      description: Deletes saved search via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Deletes saved search via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -33971,6 +34246,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete saved search
@@ -33978,8 +34257,11 @@ paths:
       - Applications
   /api/v1/recruiter/talent-pools:
     get:
-      description: Returns talent pools via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Returns talent pools via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -34002,6 +34284,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get talent pools
@@ -34010,8 +34296,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates talent pool via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Creates talent pool via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -34029,6 +34318,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create talent pool
@@ -34036,8 +34329,11 @@ paths:
       - Applications
   /api/v1/recruiter/talent-pools/{id}:
     delete:
-      description: Deletes talent pool via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Deletes talent pool via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -34053,6 +34349,10 @@ paths:
             $ref: '#/definitions/swagger.SuccessResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       security:
@@ -34064,8 +34364,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds candidate to pool via the Kirmya recruiter ATS module. Requires
-        a valid Bearer access token.
+      description: 'Adds candidate to pool via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -34088,6 +34391,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Add candidate to pool
@@ -34095,8 +34402,11 @@ paths:
       - Applications
   /api/v1/recruiter/talent-pools/{id}/candidates/{candidateId}:
     delete:
-      description: Removes candidate from pool via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Removes candidate from pool via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -34119,6 +34429,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Remove candidate from pool
@@ -34126,8 +34440,11 @@ paths:
       - Applications
   /api/v1/recruiter/team:
     get:
-      description: Returns the hiring team members via the Kirmya recruiter ATS module.
-        Requires a valid Bearer access token.
+      description: 'Returns the hiring team members via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       produces:
       - application/json
       responses:
@@ -34137,6 +34454,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -34150,8 +34471,11 @@ paths:
       - Applications
   /api/v1/recruiter/templates:
     get:
-      description: Returns the recruiter outreach templates via the Kirmya recruiter
-        ATS module. Requires a valid Bearer access token.
+      description: 'Returns the recruiter outreach templates via the Kirmya recruiter
+        ATS module. Requires a valid Bearer access token AND an active standalone
+        Recruiting capability. Authentication alone is not sufficient: an account
+        that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       produces:
       - application/json
       responses:
@@ -34161,6 +34485,10 @@ paths:
             $ref: '#/definitions/swagger.PaginationResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":
@@ -35644,8 +35972,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Searches candidates via the Kirmya candidate search module. Requires
-        a valid Bearer access token.
+      description: 'Searches candidates via the Kirmya candidate search module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -35668,6 +35999,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -35681,8 +36016,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Contacts candidate via the Kirmya candidate search module. Requires
-        a valid Bearer access token.
+      description: 'Contacts candidate via the Kirmya candidate search module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -35705,6 +36043,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Contact candidate
@@ -35712,8 +36054,11 @@ paths:
       - Search
   /api/v1/search/history:
     get:
-      description: Returns history via the Kirmya candidate search module. Requires
-        a valid Bearer access token.
+      description: 'Returns history via the Kirmya candidate search module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -35736,6 +36081,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -35749,8 +36098,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Adds note via the Kirmya candidate search module. Requires a valid
-        Bearer access token.
+      description: 'Adds note via the Kirmya candidate search module. Requires a valid
+        Bearer access token AND an active standalone Recruiting capability. Authentication
+        alone is not sufficient: an account that has not completed recruiter onboarding
+        is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose
+        capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -35773,6 +36125,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -35784,8 +36140,11 @@ paths:
       - Search
   /api/v1/search/notes/{candidateId}:
     get:
-      description: Returns notes via the Kirmya candidate search module. Requires
-        a valid Bearer access token.
+      description: 'Returns notes via the Kirmya candidate search module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Candidate id
         in: path
@@ -35807,6 +36166,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -35818,8 +36181,11 @@ paths:
       - Search
   /api/v1/search/saved:
     get:
-      description: Returns saved candidates via the Kirmya candidate search module.
-        Requires a valid Bearer access token.
+      description: 'Returns saved candidates via the Kirmya candidate search module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - default: 1
         description: Page number (1-based)
@@ -35842,6 +36208,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -35854,8 +36224,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Saves candidate via the Kirmya candidate search module. Requires
-        a valid Bearer access token.
+      description: 'Saves candidate via the Kirmya candidate search module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Request payload
         in: body
@@ -35878,6 +36251,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -35889,8 +36266,11 @@ paths:
       - Search
   /api/v1/search/saved/{id}:
     delete:
-      description: Removes saved candidate via the Kirmya candidate search module.
-        Requires a valid Bearer access token.
+      description: 'Removes saved candidate via the Kirmya candidate search module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+        Authentication alone is not sufficient: an account that has not completed
+        recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED,
+        and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.'
       parameters:
       - description: Id
         in: path
@@ -35910,6 +36290,10 @@ paths:
             $ref: '#/definitions/swagger.ErrorResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
         "500":

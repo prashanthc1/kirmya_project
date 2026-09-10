@@ -10,7 +10,8 @@ import {
   StageHistoryItem,
   CandidateNote,
   CandidateEvaluation,
-  BulkActionPayload
+  BulkActionPayload,
+  RecruiterCapabilityResponse
 } from './types';
 
 /*
@@ -32,6 +33,19 @@ const apiClient = authApiClient;
 export const recruiterApi = {
   getDashboardOverview: async (): Promise<RecruiterDashboardOverview> => {
     const res = await apiClient.get<RecruiterDashboardOverview>('/recruiter/dashboard');
+    return res.data;
+  },
+
+  /*
+   * Reports whether this account holds the standalone Recruiting capability.
+   *
+   * Reachable by any signed-in account by design: the client has to be able to
+   * ask "am I a recruiter?" without already being one. It is a pure read - it
+   * used to create an organization and a recruiter profile as a side effect of
+   * being called, which is the defect the capability lifecycle closed.
+   */
+  getCapability: async (): Promise<RecruiterCapabilityResponse> => {
+    const res = await apiClient.get<RecruiterCapabilityResponse>('/recruiter/profile');
     return res.data;
   },
 

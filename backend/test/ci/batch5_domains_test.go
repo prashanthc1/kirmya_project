@@ -68,7 +68,6 @@ func TestListEndpointsAnswerWithArrays(t *testing.T) {
 		"/api/v1/notifications/schedules", "/api/v1/notifications/unread",
 		"/api/v1/people", "/api/v1/people/search",
 		"/api/v1/recommendation-engine/unified",
-		"/api/v1/recruiter/jobs",
 		"/api/v1/referrals/my-referrals", "/api/v1/referrals/requests",
 		"/api/v1/resume-analysis/history",
 		"/api/v1/safety/blocks", "/api/v1/safety/mutes", "/api/v1/safety/reports", "/api/v1/safety/restrictions",
@@ -76,15 +75,36 @@ func TestListEndpointsAnswerWithArrays(t *testing.T) {
 		"/api/v1/verifications/requests",
 	}
 
-	for _, path := range paths {
-		status, body := getJSON(t, base, path, user.token)
+	// The recruiter list endpoints need a caller that holds the recruiting
+	// capability, so they are checked separately rather than under the ordinary
+	// account above. Onboarding the shared probe account instead would have made
+	// every other path on this list be answered by a recruiter, which is not the
+	// caller these endpoints are meant to be checked with.
+	recruiterPaths := []string{
+		"/api/v1/recruiter/jobs",
+		"/api/v1/recruiter/candidates",
+		"/api/v1/recruiter/applications",
+		"/api/v1/recruiter/interviews",
+	}
+
+	check := func(path, token string) {
+		status, body := getJSON(t, base, path, token)
 		if status != http.StatusOK {
 			t.Errorf("%s: got %d, want 200. Body: %s", path, status, truncateBody(body))
-			continue
+			return
 		}
 		for _, field := range nullListFields(body) {
 			t.Errorf("%s: %s is null; a list endpoint must answer with an array", path, field)
 		}
+	}
+
+	for _, path := range paths {
+		check(path, user.token)
+	}
+
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
+	for _, path := range recruiterPaths {
+		check(path, recruiter.token)
 	}
 }
 
@@ -120,8 +140,12 @@ func nullListFields(body string) []string {
 // organization's posting and its applicants, and could close their job.
 func TestRecruiterCannotReachAnotherRecruitersJob(t *testing.T) {
 	base := batch5Base(t)
-	owner := registerAndLogin(t, base)
-	intruder := registerAndLogin(t, base)
+	// Both onboard, deliberately. If the intruder were left an ordinary
+	// account, its 403s would come from the capability guard and this would
+	// stop testing what it is named for - that one recruiter cannot reach
+	// another recruiter's job.
+	owner := becomeRecruiter(t, base, registerAndLogin(t, base))
+	intruder := becomeRecruiter(t, base, registerAndLogin(t, base))
 
 	jobID := publishJobForApplications(t, base, owner.token, "Batch5 Ownership Probe")
 
@@ -269,8 +293,8 @@ func TestMentorshipIdentityCannotBeSpoofed(t *testing.T) {
 // every application on the platform, with no ownership check at all.
 func TestRecruiterEvaluationIsScopedAndNotInvented(t *testing.T) {
 	base := batch5Base(t)
-	recruiter := registerAndLogin(t, base)
-	other := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
+	other := becomeRecruiter(t, base, registerAndLogin(t, base))
 
 	// A syntactically valid id that is not an application belonging to anyone.
 	jobID := publishJobForApplications(t, base, recruiter.token, "Batch5 Evaluation Probe")
