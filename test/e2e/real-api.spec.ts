@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { becomeRecruiter } from './helpers';
 
 test('built signin page makes a real API request and anonymous identity is denied', async ({ page, request }) => {
   const api = process.env.TEST_API_URL;
@@ -92,6 +93,12 @@ test('candidate application receipt survives reload against real storage and API
   };
   const recruiter = await register('Recruiter');
   const candidate = await register('Candidate');
+
+  // Registering is not becoming a recruiter. /recruiter/jobs answers 403
+  // RECRUITER_ONBOARDING_REQUIRED until this account completes onboarding, and
+  // the candidate below deliberately never does.
+  await becomeRecruiter(request, api, recruiter);
+
   const title = `Browser durable role ${suffix}`;
   const createdJob = await request.post(`${api}/api/v1/recruiter/jobs`, { headers: { Authorization: `Bearer ${recruiter.token}` }, data: { title, description: 'Browser batch 3 role', status: 'Active', workplaceType: 'Remote', employmentType: 'Full-time' } });
   expect(createdJob.status()).toBe(201);
