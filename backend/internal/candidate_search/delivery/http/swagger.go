@@ -15,7 +15,7 @@ import (
 // swaggerSearchCandidates documents POST /api/v1/search/candidates.
 //
 // @Summary      Search candidates
-// @Description  Searches candidates via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Searches candidates via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Accept       json
 // @Produce      json
@@ -23,6 +23,7 @@ import (
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/candidates [post]
@@ -31,13 +32,14 @@ func swaggerSearchCandidates() {}
 // swaggerGetHistory documents GET /api/v1/search/history.
 //
 // @Summary      Get history
-// @Description  Returns history via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Returns history via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Produce      json
 // @Param        page   query  int  false  "Page number (1-based)"  default(1)
 // @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
 // @Success      200  {object}  swagger.PaginationResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/history [get]
@@ -46,7 +48,7 @@ func swaggerGetHistory() {}
 // swaggerSaveCandidate documents POST /api/v1/search/saved.
 //
 // @Summary      Save candidate
-// @Description  Saves candidate via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Saves candidate via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Accept       json
 // @Produce      json
@@ -54,6 +56,7 @@ func swaggerGetHistory() {}
 // @Success      201  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/saved [post]
@@ -62,13 +65,14 @@ func swaggerSaveCandidate() {}
 // swaggerGetSavedCandidates documents GET /api/v1/search/saved.
 //
 // @Summary      Get saved candidates
-// @Description  Returns saved candidates via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Returns saved candidates via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Produce      json
 // @Param        page   query  int  false  "Page number (1-based)"  default(1)
 // @Param        limit  query  int  false  "Items per page (max 100)"  default(20)
 // @Success      200  {object}  swagger.PaginationResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/saved [get]
@@ -77,13 +81,14 @@ func swaggerGetSavedCandidates() {}
 // swaggerRemoveSavedCandidate documents DELETE /api/v1/search/saved/{id}.
 //
 // @Summary      Remove saved candidate
-// @Description  Removes saved candidate via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Removes saved candidate via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Produce      json
 // @Param        id  path  string  true  "Id"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/saved/{id} [delete]
@@ -92,7 +97,7 @@ func swaggerRemoveSavedCandidate() {}
 // swaggerAddNote documents POST /api/v1/search/notes.
 //
 // @Summary      Add note
-// @Description  Adds note via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Adds note via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Accept       json
 // @Produce      json
@@ -100,6 +105,7 @@ func swaggerRemoveSavedCandidate() {}
 // @Success      201  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/notes [post]
@@ -108,13 +114,14 @@ func swaggerAddNote() {}
 // swaggerGetNotes documents GET /api/v1/search/notes/{candidateId}.
 //
 // @Summary      Get notes
-// @Description  Returns notes via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Returns notes via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Produce      json
 // @Param        candidateId  path  string  true  "Candidate id"
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Failure      500  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/notes/{candidateId} [get]
@@ -123,7 +130,7 @@ func swaggerGetNotes() {}
 // swaggerContactCandidate documents POST /api/v1/search/contact.
 //
 // @Summary      Contact candidate
-// @Description  Contacts candidate via the Kirmya candidate search module. Requires a valid Bearer access token.
+// @Description  Contacts candidate via the Kirmya candidate search module. Requires a valid Bearer access token AND an active standalone Recruiting capability. Authentication alone is not sufficient: an account that has not completed recruiter onboarding is refused with 403 and code RECRUITER_ONBOARDING_REQUIRED, and one whose capability was withdrawn with 403 and code RECRUITER_ACCESS_DISABLED.
 // @Tags         Search
 // @Accept       json
 // @Produce      json
@@ -131,6 +138,7 @@ func swaggerGetNotes() {}
 // @Success      200  {object}  swagger.SuccessResponse
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/search/contact [post]
 func swaggerContactCandidate() {}

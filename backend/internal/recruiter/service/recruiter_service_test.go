@@ -10,178 +10,71 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestRecruiterService_FullWorkflow(t *testing.T) {
+// Onboarding, job creation and the rest of the workflow all write rows, so with
+// no database they fail.
+//
+// This asserted the opposite: that a service built on a nil repository could
+// onboard a recruiter, read back "Kirmya Tech Solutions", and create a job. It
+// passed because GetOrCreateProfile answered a nil-database caller with an
+// invented profile - "Senior Talent Partner" at recruiter@kirmya.ae, marked
+// Verified - and that same fabrication is what let any authenticated account
+// acquire recruiter authority by loading a page.
+func TestRecruiterService_WorkflowNeedsADatabase(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
 	ctx := context.Background()
 	userID := uuid.New()
 
-	// 1. Test Onboarding
-	onboardPayload := &models.OnboardingPayload{
+	if _, err := svc.SubmitOnboarding(ctx, userID, &models.OnboardingPayload{
 		CompanyName:   "Kirmya Tech Solutions",
 		JobTitle:      "Head of Talent",
 		RecruiterRole: "Organization Owner",
-		Department:    "People & Culture",
 		ContactEmail:  "headofpersonnel@kirmya.ae",
-	}
-	profile, err := svc.SubmitOnboarding(ctx, userID, onboardPayload)
-	if err != nil {
-		t.Fatalf("SubmitOnboarding failed: %v", err)
-	}
-	if profile.CompanyName != "Kirmya Tech Solutions" {
-		t.Errorf("Expected company name 'Kirmya Tech Solutions', got %s", profile.CompanyName)
+	}); err == nil {
+		t.Error("expected onboarding with no database to fail rather than answer with an invented profile")
 	}
 
-	// 2. Test Job Creation
-	jobPayload := &models.CreateJobPayload{
-		Title:           "Senior Go Engineer",
-		Department:      "Engineering",
-		EmploymentType:  "Full-time",
-		WorkplaceType:   "Remote",
-		Location:        "Dubai, UAE",
-		SalaryRange:     "$100,000 - $140,000",
-		Currency:        "USD",
-		ExperienceLevel: "Senior",
-		Description:     "Architect scalable backend microservices.",
-		Questions: []models.JobApplicationQuestionDTO{
-			{
-				QuestionText: "How many years of Go experience do you have?",
-				QuestionType: "Number",
-				IsRequired:   true,
-			},
-		},
-	}
-	job, err := svc.CreateJob(ctx, userID, jobPayload)
-	if err != nil {
-		t.Fatalf("CreateJob failed: %v", err)
-	}
-	if job.Title != "Senior Go Engineer" {
-		t.Errorf("Expected job title 'Senior Go Engineer', got %s", job.Title)
-	}
-
-	// 3. A match is computed from stored job and profile skills, so it needs the
-	//    database both to prove the job is the caller's and to read those
-	//    records. It used to answer 96% for a candidate id invented on the spot.
-	if _, err := svc.GetCandidateMatch(ctx, userID, job.ID, uuid.New()); err == nil {
-		t.Error("expected an error computing a match with no database behind it")
-	}
-
-	// 4. Test Interview Feedback & Offer
-	feedbackPayload := &models.InterviewFeedbackPayload{
-		InterviewID:          uuid.New().String(),
-		ApplicationID:        uuid.New().String(),
-		TechnicalSkillsScore: 5,
-		CommunicationScore:   5,
-		ProblemSolvingScore:  5,
-		CultureFitScore:      5,
-		LeadershipScore:      4,
-		OverallRating:        5,
-		Recommendation:       "Strong Hire",
-		Comments:             "Exceptional technical mastery and communication.",
-	}
-	feedback, err := svc.SubmitInterviewFeedback(ctx, userID, feedbackPayload)
-	if err != nil {
-		t.Fatalf("SubmitInterviewFeedback failed: %v", err)
-	}
-	if feedback.Recommendation != "Strong Hire" {
-		t.Errorf("Expected recommendation 'Strong Hire', got %s", feedback.Recommendation)
-	}
-
-	// 5. Test Offer Creation
-	offerPayload := &models.JobOfferPayload{
-		ApplicationID: uuid.New().String(),
-		JobID:         job.ID.String(),
-		CandidateID:   uuid.New().String(),
-		PositionTitle: "Senior Go Engineer",
-		Salary:        "$130,000",
-		Currency:      "USD",
-		Benefits:      "Health, 30 days annual leave, Remote stipend",
-		JoiningDate:   "2026-10-01",
-		ContractType:  "Full-time",
-	}
-	offer, err := svc.CreateJobOffer(ctx, userID, offerPayload)
-	if err != nil {
-		t.Fatalf("CreateJobOffer failed: %v", err)
-	}
-	if offer.Status != "Sent" {
-		t.Errorf("Expected offer status 'Sent', got %s", offer.Status)
+	if _, err := svc.CreateJob(ctx, userID, &models.CreateJobPayload{Title: "Senior Go Engineer"}); err == nil {
+		t.Error("expected job creation with no database to fail")
 	}
 }
 
-func TestRecruiterService_CandidateNotes(t *testing.T) {
+// Recruiter capability is read from the database and nothing else. With no
+// database the answer is an error, never a grant.
+func TestRecruiterCapabilityNeverGrantsWithoutADatabase(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
-	ctx := context.Background()
-	userID := uuid.New()
-	candidateID := uuid.MustParse("c1111111-1111-1111-1111-111111111111")
 
-	// Create Note
-	notePayload := &models.CreateNotePayload{
-		Note:           "Strong technical background in distributed systems.",
-		Score:          9,
-		Recommendation: "Strong Hire",
-		IsPinned:       true,
+	capability, err := svc.RecruiterCapability(context.Background(), uuid.New())
+	if err == nil {
+		t.Error("expected a capability lookup with no database to fail")
 	}
-	note, err := svc.CreateCandidateNote(ctx, userID, candidateID, notePayload)
-	if err != nil {
-		t.Fatalf("CreateCandidateNote failed: %v", err)
-	}
-	if note.Note != "Strong technical background in distributed systems." {
-		t.Errorf("Expected note text match, got %s", note.Note)
-	}
-	if note.Score != 9 {
-		t.Errorf("Expected score 9, got %d", note.Score)
-	}
-
-	// Get Notes (returns fallback data since db is nil)
-	notes, err := svc.GetCandidateNotes(ctx, userID, candidateID)
-	if err != nil {
-		t.Fatalf("GetCandidateNotes failed: %v", err)
-	}
-	if len(notes) == 0 {
-		t.Error("Expected at least one note")
+	if capability == CapabilityActive {
+		t.Error("a failed capability lookup reported an active capability; a failure must never become access")
 	}
 }
 
-func TestRecruiterService_CandidateEvaluation(t *testing.T) {
+// CandidateNotes reaches the database through the caller's recruiter profile, so with
+// no database it fails rather than operating on a fabricated one.
+func TestRecruiterService_CandidateNotesNeedsADatabase(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
 	ctx := context.Background()
-	userID := uuid.New()
 
-	evalPayload := &models.CandidateEvaluationPayload{
-		ApplicationID:      uuid.New().String(),
-		JobID:              uuid.New().String(),
-		CandidateID:        uuid.New().String(),
-		SkillsScore:        9,
-		ExperienceScore:    8,
-		CommunicationScore: 9,
-		TechnicalScore:     10,
-		CultureFitScore:    8,
-		RoleFitScore:       9,
-		OverallScore:       9,
-		Recommendation:     "Strong Hire",
-		Strengths:          "Exceptional Go and PostgreSQL skills",
-		Weaknesses:         "Limited Kafka experience",
-		Notes:              "Recommend fast-track to offer stage.",
+	if _, err := svc.GetRecruiterProfile(ctx, uuid.New()); err == nil {
+		t.Error("expected the profile read backing CandidateNotes to fail with no database")
 	}
+}
 
-	eval, err := svc.CreateCandidateEvaluation(ctx, userID, evalPayload)
-	if err != nil {
-		t.Fatalf("CreateCandidateEvaluation failed: %v", err)
-	}
-	if eval.OverallScore != 9 {
-		t.Errorf("Expected overall score 9, got %d", eval.OverallScore)
-	}
-	if eval.Recommendation != "Strong Hire" {
-		t.Errorf("Expected recommendation 'Strong Hire', got %s", eval.Recommendation)
-	}
+// CandidateEvaluation reaches the database through the caller's recruiter profile, so with
+// no database it fails rather than operating on a fabricated one.
+func TestRecruiterService_CandidateEvaluationNeedsADatabase(t *testing.T) {
+	repo := repository.NewRecruiterRepository(nil)
+	svc := NewRecruiterService(repo)
+	ctx := context.Background()
 
-	// Reading evaluations now requires proving the application belongs to a job
-	// this recruiter posted, and ownership cannot be established without the
-	// database. Fail closed rather than answer with another recruiter's notes.
-	if _, err := svc.GetCandidateEvaluations(ctx, userID, eval.ApplicationID); err == nil {
-		t.Error("expected an error reading evaluations with no database to check ownership against")
+	if _, err := svc.GetRecruiterProfile(ctx, uuid.New()); err == nil {
+		t.Error("expected the profile read backing CandidateEvaluation to fail with no database")
 	}
 }
 
@@ -226,22 +119,15 @@ func TestRecruiterService_CandidatesNeedADatabase(t *testing.T) {
 	}
 }
 
-func TestRecruiterService_BulkActions(t *testing.T) {
+// BulkActions reaches the database through the caller's recruiter profile, so with
+// no database it fails rather than operating on a fabricated one.
+func TestRecruiterService_BulkActionsNeedsADatabase(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
 	ctx := context.Background()
-	userID := uuid.New()
 
-	bulkPayload := &models.ATSBulkActionPayload{
-		ApplicationIDs: []string{uuid.New().String(), uuid.New().String()},
-		Action:         "move",
-		TargetStage:    "Shortlisted",
-		Notes:          "Batch shortlisting",
-	}
-
-	err := svc.BulkUpdateApplications(ctx, userID, bulkPayload)
-	if err != nil {
-		t.Fatalf("BulkUpdateApplications failed: %v", err)
+	if _, err := svc.GetRecruiterProfile(ctx, uuid.New()); err == nil {
+		t.Error("expected the profile read backing BulkActions to fail with no database")
 	}
 }
 
@@ -263,27 +149,14 @@ func TestRecruiterService_PipelineStageUpdate(t *testing.T) {
 	}
 }
 
-func TestRecruiterService_CompanyIsolation(t *testing.T) {
+// CompanyIsolation reaches the database through the caller's recruiter profile, so with
+// no database it fails rather than operating on a fabricated one.
+func TestRecruiterService_CompanyIsolationNeedsADatabase(t *testing.T) {
 	repo := repository.NewRecruiterRepository(nil)
 	svc := NewRecruiterService(repo)
 	ctx := context.Background()
-	userA := uuid.New()
-	userB := uuid.New()
 
-	// Both users get profiles (in nil-db mode, same org)
-	pA, _ := svc.GetOrCreateProfile(ctx, userA, "Company A")
-	pB, _ := svc.GetOrCreateProfile(ctx, userB, "Company B")
-
-	if pA == nil || pB == nil {
-		t.Fatal("Expected profiles to be created")
-	}
-
-	// Verify org access check (returns true in nil-db mode)
-	hasAccess, err := repo.VerifyRecruiterOrgAccess(ctx, pA.ID, pA.OrgID)
-	if err != nil {
-		t.Fatalf("VerifyRecruiterOrgAccess failed: %v", err)
-	}
-	if !hasAccess {
-		t.Error("Expected recruiter to have access to own org")
+	if _, err := svc.GetRecruiterProfile(ctx, uuid.New()); err == nil {
+		t.Error("expected the profile read backing CompanyIsolation to fail with no database")
 	}
 }

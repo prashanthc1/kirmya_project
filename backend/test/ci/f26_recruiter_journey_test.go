@@ -38,7 +38,7 @@ import (
 func TestF26RecruiterJourneyReadsRealRecords(t *testing.T) {
 	base := required(t, "TEST_API_URL")
 
-	recruiter := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
 	candidate := registerAndLogin(t, base)
 
 	// A recruiter with nothing posted starts at zero, and says zero rather
@@ -121,7 +121,7 @@ func TestF26RecruiterJourneyReadsRealRecords(t *testing.T) {
 func TestF26CandidateLookupIsScopedToTheRecruitersOwnApplicants(t *testing.T) {
 	base := required(t, "TEST_API_URL")
 
-	recruiter := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
 	applicant := registerAndLogin(t, base)
 	stranger := registerAndLogin(t, base)
 
@@ -157,7 +157,7 @@ func TestF26CandidateLookupIsScopedToTheRecruitersOwnApplicants(t *testing.T) {
 func TestF26SavingACandidateIsRefusedRatherThanFaked(t *testing.T) {
 	base := required(t, "TEST_API_URL")
 
-	recruiter := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
 	applicant := registerAndLogin(t, base)
 	jobID := publishJobAs(t, base, recruiter.token, "F26 Shortlist Platform Engineer")
 	applyTo(t, base, applicant.token, jobID)

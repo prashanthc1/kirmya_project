@@ -829,6 +829,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		CompanyHandler:              companyHandler,
 		CompanyManagementHandler:    companyManagementHandler,
 		RecruiterHandler:            recruiterHandler,
+		RecruiterService:            recruiterService,
 		CandidateSearchHandler:      candidateSearchHandler,
 		InterviewHandler:            interviewHandler,
 		LearningHandler:             learningHandler,

@@ -126,11 +126,16 @@ func TestRecruiterHiringWorkflow(t *testing.T) {
 	candidateID := uuid.New()
 	jobID := uuid.New()
 
-	// Step 1: Recruiter Profile & Organization Setup
+	// Step 1: Recruiter Profile & Organization Setup.
+	//
+	// With no database behind it this used to hand back a fully formed,
+	// "Verified" recruiter profile for a random uuid - a recruiter identity
+	// conjured out of a nil pool. It refuses now, and the refusal is the
+	// assertion: a recruiter profile is a database record or it is nothing.
 	recProfile, err := rRepo.GetOrCreateProfile(ctx, recruiterID, "Kirmya Technologies")
-	require.NoError(t, err)
-	require.NotNil(t, recProfile)
-	assert.Equal(t, "Kirmya Technologies", recProfile.CompanyName)
+	require.Error(t, err)
+	require.Nil(t, recProfile)
+	assert.Contains(t, err.Error(), "PostgreSQL")
 
 	// Step 2: Recruiter Reviews Candidate Application
 	appDetail, err := aRepo.CreateApplication(ctx, candidateID, appModels.CreateApplicationPayload{

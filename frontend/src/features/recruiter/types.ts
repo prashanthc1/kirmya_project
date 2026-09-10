@@ -178,3 +178,20 @@ export interface BulkActionPayload {
   message_text?: string;
   notes?: string;
 }
+
+/*
+ * The answer to "may this account act as a recruiter?", as reported by
+ * GET /recruiter/profile.
+ *
+ * The server is the only authority here - this type describes what it says, it
+ * does not decide anything. Hiding recruiter UI on `onboardingRequired` is a
+ * courtesy to the user; every privileged /recruiter/* route enforces the same
+ * rule again server-side and answers 403 regardless of what the client renders.
+ */
+export type RecruiterCapabilityStatus = 'none' | 'pending' | 'active' | 'suspended';
+
+export interface RecruiterCapabilityResponse {
+  capabilityStatus: RecruiterCapabilityStatus;
+  onboardingRequired: boolean;
+  profile: Record<string, unknown> | null;
+}

@@ -113,6 +113,117 @@ func (r *RecruiterRepository) JobCandidateMatchInputs(ctx context.Context, jobID
 
 // TeamMembers lists the recruiters sharing this organization, from the rows
 // that record their membership.
+
+// ProfileByUser reads an existing recruiter organization profile. It never
+// creates one.
+//
+// GetOrCreateProfile is reserved for onboarding. Every other caller uses this,
+// because a read that quietly writes is how loading a dashboard came to grant
+// recruiter authority. Returns pgx.ErrNoRows when the account has no profile.
+func (r *RecruiterRepository) ProfileByUser(ctx context.Context, userID uuid.UUID) (*models.RecruiterOrgProfile, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter profile requires PostgreSQL")
+	}
+	var p models.RecruiterOrgProfile
+	err := r.db.QueryRow(ctx, `
+		SELECT id, user_id, org_id, COALESCE(company_name,''), COALESCE(job_title,''),
+		       COALESCE(department,''), COALESCE(recruiter_role,''), COALESCE(professional_info,''),
+		       COALESCE(contact_phone,''), COALESCE(contact_email,''), COALESCE(verification_status,''), created_at
+		FROM recruiter_organization_profiles WHERE user_id = $1`, userID).
+		Scan(&p.ID, &p.UserID, &p.OrgID, &p.CompanyName, &p.JobTitle, &p.Department,
+			&p.RecruiterRole, &p.ProfessionalInfo, &p.ContactPhone, &p.ContactEmail,
+			&p.VerificationStatus, &p.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+// ErrRecruiterSuspended reports that the capability exists but was withdrawn.
+// Distinct from "not onboarded" so the API can tell the two apart: one is
+// resolved by onboarding, the other only by an administrator.
+var ErrRecruiterSuspended = errors.New("recruiter capability is suspended")
+
+// CapabilityStatus is the recruiter capability lifecycle for one account.
+type CapabilityStatus string
+
+const (
+	// CapabilityNone means no recruiter profile exists at all.
+	CapabilityNone CapabilityStatus = "none"
+	// CapabilityPending means a profile exists but onboarding is not complete.
+	CapabilityPending CapabilityStatus = "pending"
+	// CapabilityActive means onboarding completed and the capability is usable.
+	CapabilityActive CapabilityStatus = "active"
+	// CapabilitySuspended means an administrator withdrew the capability.
+	CapabilitySuspended CapabilityStatus = "suspended"
+)
+
+// RecruiterCapability reads the caller's recruiter capability state.
+//
+// This is the single authority for "does this account hold the standalone
+// Recruiting capability". It reads the database and nothing else: not
+// users.role_id, not company membership, not any client-supplied context.
+//
+// A missing profile is CapabilityNone, not an error, because "this account is
+// not a recruiter" is an ordinary answer rather than a failure.
+func (r *RecruiterRepository) RecruiterCapability(ctx context.Context, userID uuid.UUID) (CapabilityStatus, error) {
+	if r.db == nil {
+		return CapabilityNone, errors.New("recruiter capability requires PostgreSQL")
+	}
+	var status string
+	err := r.db.QueryRow(ctx,
+		`SELECT capability_status FROM recruiter_profiles WHERE user_id = $1`, userID).Scan(&status)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return CapabilityNone, nil
+	}
+	if err != nil {
+		// A failed lookup must not become access. It becomes no access, and the
+		// error is returned so the caller answers 500 rather than 403 - denying
+		// for the wrong reason hides an outage behind an authorization message.
+		return CapabilityNone, err
+	}
+	switch CapabilityStatus(status) {
+	case CapabilityActive, CapabilityPending, CapabilitySuspended:
+		return CapabilityStatus(status), nil
+	default:
+		// An unrecognised value is not a grant.
+		return CapabilityPending, nil
+	}
+}
+
+// ActivateRecruiterCapability completes onboarding for an existing profile.
+//
+// Separate from profile creation on purpose: creating the row and being allowed
+// to act are two decisions, and collapsing them is what let a page load grant
+// recruiter authority. A suspended capability is not reactivated here - that is
+// an administrative decision, not a self-service one.
+func (r *RecruiterRepository) ActivateRecruiterCapability(ctx context.Context, userID uuid.UUID) error {
+	if r.db == nil {
+		return errors.New("recruiter onboarding requires PostgreSQL")
+	}
+	tag, err := r.db.Exec(ctx,
+		`UPDATE recruiter_profiles SET capability_status = 'active'
+		 WHERE user_id = $1 AND capability_status = 'pending'`, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		// Either there is no profile, or it is already active, or it is
+		// suspended. Re-read so the caller can tell which.
+		status, statusErr := r.RecruiterCapability(ctx, userID)
+		if statusErr != nil {
+			return statusErr
+		}
+		if status == CapabilitySuspended {
+			return ErrRecruiterSuspended
+		}
+		if status == CapabilityNone {
+			return pgx.ErrNoRows
+		}
+	}
+	return nil
+}
+
 // SearchCandidates lists the candidates this recruiter actually has: the people
 // who have applied to one of their jobs. There is no platform-wide candidate
 // index behind this endpoint, and inventing one is what it used to do - two
@@ -446,19 +557,11 @@ func (r *RecruiterRepository) GetOwnedInterviews(ctx context.Context, recruiterI
 // GetOrCreateProfile loads or creates a recruiter profile for a user.
 func (r *RecruiterRepository) GetOrCreateProfile(ctx context.Context, userID uuid.UUID, companyName string) (*models.RecruiterOrgProfile, error) {
 	if r.db == nil {
-		return &models.RecruiterOrgProfile{
-			ID:                 uuid.MustParse("99999999-8888-7777-6666-555555555555"),
-			UserID:             userID,
-			OrgID:              uuid.MustParse("11111111-2222-3333-4444-555555555555"),
-			CompanyName:        companyName,
-			JobTitle:           "Senior Talent Partner",
-			Department:         "Human Resources",
-			RecruiterRole:      "Organization Owner",
-			ProfessionalInfo:   "Enterprise Technical Recruiter",
-			ContactEmail:       "recruiter@kirmya.ae",
-			VerificationStatus: "Verified",
-			CreatedAt:          time.Now(),
-		}, nil
+		// This returned an invented profile - "Senior Talent Partner" at
+		// recruiter@kirmya.ae, marked Verified - so a build with no database
+		// answered every caller with a recruiter who does not exist. Onboarding
+		// writes rows; with nowhere to write, it fails.
+		return nil, errors.New("recruiter onboarding requires PostgreSQL")
 	}
 
 	var p models.RecruiterOrgProfile
@@ -477,14 +580,17 @@ func (r *RecruiterRepository) GetOrCreateProfile(ctx context.Context, userID uui
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			p = models.RecruiterOrgProfile{
-				ID:                 uuid.New(),
-				UserID:             userID,
-				OrgID:              uuid.New(),
-				CompanyName:        companyName,
-				JobTitle:           "Recruiter",
-				Department:         "Talent Acquisition",
-				RecruiterRole:      "Recruiter",
-				VerificationStatus: "Verified",
+				ID:            uuid.New(),
+				UserID:        userID,
+				OrgID:         uuid.New(),
+				CompanyName:   companyName,
+				JobTitle:      "Recruiter",
+				Department:    "Talent Acquisition",
+				RecruiterRole: "Recruiter",
+				// Not "Verified". Nothing verified this profile; onboarding
+				// records a real transition, and until then the honest value is
+				// that no verification has happened.
+				VerificationStatus: "unverified",
 				CreatedAt:          time.Now(),
 				UpdatedAt:          time.Now(),
 			}
@@ -516,7 +622,7 @@ func (r *RecruiterRepository) GetOrCreateProfile(ctx context.Context, userID uui
 			case err == nil:
 				p.ID = existingRecruiterID
 			case errors.Is(err, pgx.ErrNoRows):
-				if _, err = tx.Exec(ctx, `INSERT INTO recruiter_profiles (id, user_id, company_name, verified, created_at) VALUES ($1, $2, $3, true, NOW())`, p.ID, userID, p.CompanyName); err != nil {
+				if _, err = tx.Exec(ctx, `INSERT INTO recruiter_profiles (id, user_id, company_name, verified, capability_status, created_at) VALUES ($1, $2, $3, false, 'pending', NOW())`, p.ID, userID, p.CompanyName); err != nil {
 					return nil, err
 				}
 			default:

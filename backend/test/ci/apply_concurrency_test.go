@@ -35,7 +35,7 @@ import (
 func TestConcurrentApplicationsToOneJobDoNotDeadlock(t *testing.T) {
 	base := required(t, "TEST_API_URL")
 
-	employer := registerAndLogin(t, base)
+	employer := becomeRecruiter(t, base, registerAndLogin(t, base))
 	jobID := publishJobForApplications(t, base, employer.token, "Concurrent application probe")
 
 	const applicants = 8
@@ -83,7 +83,7 @@ func TestConcurrentApplicationsToOneJobDoNotDeadlock(t *testing.T) {
 func TestRepeatedApplicationsFromOneCandidateAnswerConflict(t *testing.T) {
 	base := required(t, "TEST_API_URL")
 
-	employer := registerAndLogin(t, base)
+	employer := becomeRecruiter(t, base, registerAndLogin(t, base))
 	jobID := publishJobForApplications(t, base, employer.token, "Duplicate application probe")
 	candidate := registerAndLogin(t, base)
 

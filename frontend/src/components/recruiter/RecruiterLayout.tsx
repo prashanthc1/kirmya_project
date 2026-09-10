@@ -4,6 +4,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import RecruiterSidebar from './RecruiterSidebar';
 import RecruiterHeader from './RecruiterHeader';
+import RecruiterCapabilityGate from './RecruiterCapabilityGate';
 
 interface RecruiterLayoutProps {
   children: React.ReactNode;
@@ -27,7 +28,9 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({ children }) =>
       <RecruiterSidebar />
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <RecruiterHeader />
-        <Box sx={{ p: { xs: 2.5, md: 4 }, flexGrow: 1 }}>{children}</Box>
+        <Box sx={{ p: { xs: 2.5, md: 4 }, flexGrow: 1 }}>
+          <RecruiterCapabilityGate>{children}</RecruiterCapabilityGate>
+        </Box>
       </Box>
     </Box>
   );

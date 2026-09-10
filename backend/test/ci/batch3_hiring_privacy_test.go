@@ -74,8 +74,8 @@ func TestBatch3HiringAndPrivacyLifecycle(t *testing.T) {
 	defer pool.Close()
 	candidate := registerAndLogin(t, base)
 	foreignCandidate := registerAndLogin(t, base)
-	recruiter := registerAndLogin(t, base)
-	foreignRecruiter := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
+	foreignRecruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
 	accept := do(t, http.MethodPost, base+"/api/v1/legal/documents/terms/accept", candidate.token, map[string]any{"version": "1.0.0"})
 	accept.Body.Close()
 	if accept.StatusCode != http.StatusCreated {
@@ -617,7 +617,7 @@ func TestBatch3ConcurrentInterviewBooking(t *testing.T) {
 	}
 	defer pool.Close()
 	candidate := registerAndLogin(t, base)
-	recruiter := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
 	company := seedCompany(ctx, t, pool, "CI Batch3 Booking")
 	job := uuid.New()
 	if _, err = pool.Exec(ctx, `INSERT INTO jobs(id,company_id,recruiter_id,title,description,status,created_at) VALUES($1,$2,$3,'CI Batch3 booking role','batch3','active',NOW())`, job, company, uuid.MustParse(recruiter.id)); err != nil {
@@ -688,7 +688,7 @@ func TestBatch3RecruiterPublishesRealJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer pool.Close()
-	recruiter := registerAndLogin(t, base)
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
 
 	empty := do(t, http.MethodGet, base+"/api/v1/recruiter/jobs", recruiter.token, nil)
 	emptyRaw, _ := io.ReadAll(empty.Body)
