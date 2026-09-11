@@ -214,8 +214,30 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
+	// A platform edge proxy with nothing trusted makes every caller one client.
+	//
+	// Gin derives c.ClientIP() from X-Forwarded-For only for hops named in
+	// SetTrustedProxies; with none set it falls back to the socket peer. Behind
+	// Railway (or Heroku, or Fly) that peer is the edge proxy, which is the same
+	// address for the entire internet — so the per-IP limiter in
+	// shared/middleware/rate_limit.go collapses into a single global bucket.
+	//
+	// The credential bucket is what makes that serious: AUTH_RATE_LIMIT_REQUESTS
+	// defaults to 5 a minute, so the sixth sign-in anywhere in the world inside
+	// a minute is refused, and the product looks broken precisely when it is
+	// busiest. This is not fatal — the API serves correctly, it throttles wrongly
+	// — so it is reported rather than refused, and it is an error rather than a
+	// warning because nothing downstream will ever surface it.
+	if platformEdgeProxy() != "" && len(cfg.TrustedProxies) == 0 {
+		slog.Error("TRUSTED_PROXIES is unset behind a platform edge proxy: every client shares one rate-limit bucket, so the credential limiter throttles all users together. Set TRUSTED_PROXIES=\"*\" to key the limiter on X-Forwarded-For.",
+			slog.String("platform", platformEdgeProxy()),
+			slog.Float64("auth_rate_limit_requests_per_minute", cfg.AuthRateLimitRequestsPerMinute),
+		)
+	}
+
 	// Audit log optional service integrations without leaking credentials
 	slog.Info("Auditing platform service integrations",
+		slog.String("platform_edge_proxy", platformEdgeProxy()),
 		slog.Bool("redis_enabled", cfg.RedisEnabled),
 		slog.Bool("nats_enabled", cfg.NATSEnabled),
 		slog.Bool("opensearch_enabled", cfg.OpenSearchEn),
@@ -295,6 +317,25 @@ func resolveTrustedProxies() []string {
 		}
 	}
 	return proxies
+}
+
+// platformEdgeProxy names the hosting platform when the process is running
+// behind one whose edge address is not fixed, or "" when it is not. Those are
+// exactly the deployments where TRUSTED_PROXIES must be set for the client IP
+// to mean anything, because the socket peer is the platform's proxy rather than
+// the user. The variables are the ones each platform injects itself, so this
+// needs no configuration of its own.
+func platformEdgeProxy() string {
+	for _, probe := range []struct{ env, name string }{
+		{"RAILWAY_ENVIRONMENT", "railway"},
+		{"DYNO", "heroku"},
+		{"FLY_APP_NAME", "fly"},
+	} {
+		if strings.TrimSpace(os.Getenv(probe.env)) != "" {
+			return probe.name
+		}
+	}
+	return ""
 }
 
 // resolveServerPort picks the port the HTTP server binds to. PORT comes first

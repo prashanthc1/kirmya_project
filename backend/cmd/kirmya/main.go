@@ -809,6 +809,27 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		}, localStorageProvider)
 	}
 
+	// Local disk is not storage on a platform that rebuilds the container.
+	//
+	// With STORAGE_ENDPOINT unset every upload — avatars, cover images, resumes,
+	// documents — is written under UPLOAD_DIRECTORY inside the container's
+	// writable layer. On Railway that layer is discarded on every redeploy and
+	// every restart unless a volume is mounted over it, so the files disappear
+	// while the rows that name them remain: the profile keeps an avatar_url and
+	// the URL answers 404, which is indistinguishable to a user from the upload
+	// having silently failed.
+	//
+	// Reported rather than refused. Refusing would take a running deployment
+	// down over data that is already lost, and the fix is a volume or an object
+	// store rather than anything this process can do. It is an error so it is
+	// visible in the platform's log filter, which is where somebody diagnosing a
+	// vanished avatar will look.
+	if s3Endpoint == "" && (cfg.AppEnv == "production" || cfg.AppEnv == "prod") {
+		slog.Error("Uploads are being written to container-local disk in production: set STORAGE_ENDPOINT for object storage, or mount a persistent volume at UPLOAD_DIRECTORY. Without one, every uploaded file is lost on the next redeploy or restart.",
+			slog.String("upload_directory", uploadDir),
+		)
+	}
+
 	// Built here, after the storage provider, because the health report probes
 	// it: a status page that says storage is fine without touching storage is
 	// what this replaces.

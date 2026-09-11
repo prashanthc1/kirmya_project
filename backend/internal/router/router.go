@@ -3,6 +3,8 @@ package router
 import (
 	"log/slog"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -181,6 +183,22 @@ type RateLimitConfig struct {
 }
 
 func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
+	// Gin defaults to debug mode, which prints one line per registered route at
+	// startup. This application registers enough of them to matter: the
+	// production deployment emitted so many that Railway's 500 lines/second
+	// limit dropped 401 further messages, and what was dropped was the rest of
+	// the boot — the configuration audit, the database and Redis outcomes, the
+	// ephemeral-repository listing. The one log anybody reads to answer "did it
+	// come up correctly?" was being crowded out by a route dump.
+	//
+	// Release mode is also what gin's own startup warning asks for, and it stops
+	// the per-request debug output that the same limit was competing with.
+	// Anything other than an explicit production APP_ENV keeps debug mode, so a
+	// local checkout is unchanged.
+	if appEnv := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV"))); appEnv == "production" || appEnv == "prod" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	engine := gin.New()
 	engine.Use(middleware.PanicRecovery())
 	engine.Use(middleware.StructuredLogger())
