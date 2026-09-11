@@ -829,7 +829,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	// again by the module that owns the data.
 	workspaceResolver := workspaceSvc.NewResolver(
 		workspaceRepo.NewAccountAdapter(authRepository),
-		workspaceRepo.NewFreelancerAdapter(freelanceRepository),
+		workspaceRepo.NewFreelancerAdapter(freelanceService),
 		workspaceRepo.NewRecruiterAdapter(recruiterService),
 		workspaceRepo.NewCompanyAdapter(companyManagementRepository),
 		workspaceRepo.NewCommunityAdapter(commRepository),
@@ -888,6 +888,8 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		RecruiterAIHandler:          recruiterAIHandler,
 		MarketplaceHandler:          marketplaceHandler,
 		FreelanceHandler:            freelanceHandler,
+		FreelanceService:            freelanceService,
+		AdminFreelanceHandler:       freelanceHttp.NewAdminFreelanceHandler(freelanceService),
 		EnterpriseHandler:           enterpriseHandler,
 		TrustHandler:                trustHandler,
 		TrustSafetyHandler:          trustSafetyHandler,

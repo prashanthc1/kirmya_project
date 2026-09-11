@@ -80,9 +80,13 @@ type AccountReader interface {
 	Account(ctx context.Context, userID uuid.UUID) (Account, error)
 }
 
-// FreelancerReader answers whether a freelancer profile exists.
+// FreelancerReader answers whether the Freelancer capability is currently
+// active. It must not be satisfied by checking whether a freelancer profile
+// row exists: the capability lifecycle is the freelance module's to interpret,
+// and profile existence was the old rule precisely because there was nothing
+// else to ask.
 type FreelancerReader interface {
-	HasFreelancerProfile(ctx context.Context, userID uuid.UUID) (bool, error)
+	HasFreelancerCapability(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 // RecruiterReader answers whether the standalone Recruiting capability is
@@ -180,11 +184,11 @@ func (r *Resolver) ResolveForUser(ctx context.Context, userID uuid.UUID) ([]doma
 	// floor: whatever else resolves, the account has somewhere to be.
 	workspaces := professionalOnly()
 
-	hasFreelancerProfile, err := r.freelancers.HasFreelancerProfile(ctx, userID)
+	freelancing, err := r.freelancers.HasFreelancerCapability(ctx, userID)
 	if err != nil {
 		return professionalOnly(), fmt.Errorf("resolve freelancer workspace: %w", err)
 	}
-	if hasFreelancerProfile {
+	if freelancing {
 		workspaces = append(workspaces, domain.Workspace{
 			Key:   domain.KeyFor(domain.TypeFreelancer, ""),
 			Type:  domain.TypeFreelancer,

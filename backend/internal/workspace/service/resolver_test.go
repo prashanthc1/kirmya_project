@@ -44,7 +44,7 @@ func (r *recordingReaders) Account(_ context.Context, _ uuid.UUID) (Account, err
 	return r.account, r.accountErr
 }
 
-func (r *recordingReaders) HasFreelancerProfile(_ context.Context, _ uuid.UUID) (bool, error) {
+func (r *recordingReaders) HasFreelancerCapability(_ context.Context, _ uuid.UUID) (bool, error) {
 	r.calls = append(r.calls, "read:freelancer")
 	return r.freelancer, r.freelanceErr
 }

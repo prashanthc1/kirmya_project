@@ -61,6 +61,7 @@ GET    /api/v1/admin/data-operations/imports                          data_opera
 GET    /api/v1/admin/data-operations/imports/:id                      data_operations.read
 GET    /api/v1/admin/data-operations/migrations                       data_operations.read
 GET    /api/v1/admin/feature-flags                                    feature_flags.manage
+GET    /api/v1/admin/freelancers/:id                                  freelancers.read
 GET    /api/v1/admin/incidents                                        incidents.manage
 GET    /api/v1/admin/incidents/:id                                    incidents.manage
 GET    /api/v1/admin/jobs                                             jobs.read
@@ -178,6 +179,8 @@ POST   /api/v1/admin/data-operations/exports                          data_opera
 POST   /api/v1/admin/data-operations/imports                          data_operations.manage
 POST   /api/v1/admin/data-operations/imports/preview                  data_operations.manage
 POST   /api/v1/admin/feature-flags                                    feature_flags.manage
+POST   /api/v1/admin/freelancers/:id/reinstate                        freelancers.manage
+POST   /api/v1/admin/freelancers/:id/suspend                          freelancers.manage
 POST   /api/v1/admin/impersonation/:id/revoke                         users.impersonate
 POST   /api/v1/admin/incidents                                        incidents.manage
 POST   /api/v1/admin/jobs/:id/moderate                                jobs.moderate

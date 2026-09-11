@@ -376,6 +376,12 @@ func TestFreelanceProposalAcceptanceIsOwnedAndSingleUse(t *testing.T) {
 	client := registerAndLogin(t, base)
 	freelancer := registerAndLogin(t, base)
 
+	// Submitting a proposal now requires an active Freelancer capability, so
+	// the fixture completes onboarding rather than relying on a signed-in
+	// account being enough. Posting the project does not: hiring is not
+	// freelancing, and the client stays an ordinary professional account.
+	onboardFreelancer(t, base, freelancer)
+
 	projectID := createdID(t, do(t, http.MethodPost, base+"/api/v1/freelance/projects", client.token, map[string]any{
 		"title":       "Batch5 Lifecycle Probe",
 		"description": "Posted by the batch 5 lifecycle checks.",

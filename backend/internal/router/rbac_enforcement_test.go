@@ -21,6 +21,7 @@ import (
 	companyHttp "kirmya/internal/company/delivery/http"
 	complianceHttp "kirmya/internal/compliance/delivery/http"
 	dataOpsHttp "kirmya/internal/data_operations/delivery/http"
+	freelanceHttp "kirmya/internal/freelance/delivery/http"
 	landingHttp "kirmya/internal/landing/delivery/http"
 	legalHttp "kirmya/internal/legal/delivery/http"
 	msgHttp "kirmya/internal/messaging/delivery/http"
@@ -57,6 +58,7 @@ func adminSurfaceHandlers() Handlers {
 		CompanyManagementHandler:    &companyHttp.ManagementHandler{},
 		ComplianceHandler:           &complianceHttp.ComplianceHandler{},
 		DataOperationsHandler:       &dataOpsHttp.DataOperationsHandler{},
+		AdminFreelanceHandler:       &freelanceHttp.AdminFreelanceHandler{},
 		LandingHandler:              &landingHttp.LandingHandler{},
 		LegalHandler:                &legalHttp.LegalHandler{},
 		AdminLegalHandler:           &legalHttp.AdminLegalHandler{},

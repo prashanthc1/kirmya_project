@@ -30,6 +30,7 @@ import (
 	enterpriseHttp "kirmya/internal/enterprise_hiring/delivery/http"
 	eventHttp "kirmya/internal/event/delivery/http"
 	freelanceHttp "kirmya/internal/freelance/delivery/http"
+	freelanceSvc "kirmya/internal/freelance/service"
 	marketplaceHttp "kirmya/internal/global_marketplace/delivery/http"
 	interviewHttp "kirmya/internal/interview/delivery/http"
 	interviewPrepHttp "kirmya/internal/interview_prep/delivery/http"
@@ -99,26 +100,32 @@ type RouterDependencies struct {
 	WorkspaceHandler         *workspaceHttp.WorkspaceHandler
 	// RecruiterService backs the recruiter capability guard on the privileged
 	// half of /recruiter/*.
-	RecruiterService            *recruiterSvc.RecruiterService
-	CandidateSearchHandler      *candidateSearchHttp.SearchHandler
-	InterviewHandler            *interviewHttp.InterviewHandler
-	LearningHandler             *learningHttp.LearningHandler
-	AssessmentHandler           *assessmentHttp.AssessmentHandler
-	CareerAIHandler             *careerAIHttp.CareerAIHandler
-	ResumeAnalysisHandler       *resumeAnalysisHttp.ResumeAnalysisHandler
-	VerificationHandler         *verificationHttp.VerificationHandler
-	EndorsementHandler          *endorsementHttp.EndorsementHandler
-	ReferralHandler             *referralHttp.ReferralHandler
-	EventHandler                *eventHttp.EventHandler
-	OrganizationHandler         *organizationHttp.OrganizationHandler
-	UnifiedSearchHandler        *unifiedSearchHttp.SearchHandler
-	MobileHandler               *mobileHttp.MobileHandler
-	NativeMobileHandler         *nativeMobileHttp.NativeMobileHandler
-	CompanionHandler            *companionHttp.CompanionHandler
-	JobMatchHandler             *jobMatchHttp.MatchingHandler
-	RecruiterAIHandler          *recruiterAIHttp.RecruiterAIHandler
-	MarketplaceHandler          *marketplaceHttp.MarketplaceHandler
-	FreelanceHandler            *freelanceHttp.FreelanceHandler
+	RecruiterService       *recruiterSvc.RecruiterService
+	CandidateSearchHandler *candidateSearchHttp.SearchHandler
+	InterviewHandler       *interviewHttp.InterviewHandler
+	LearningHandler        *learningHttp.LearningHandler
+	AssessmentHandler      *assessmentHttp.AssessmentHandler
+	CareerAIHandler        *careerAIHttp.CareerAIHandler
+	ResumeAnalysisHandler  *resumeAnalysisHttp.ResumeAnalysisHandler
+	VerificationHandler    *verificationHttp.VerificationHandler
+	EndorsementHandler     *endorsementHttp.EndorsementHandler
+	ReferralHandler        *referralHttp.ReferralHandler
+	EventHandler           *eventHttp.EventHandler
+	OrganizationHandler    *organizationHttp.OrganizationHandler
+	UnifiedSearchHandler   *unifiedSearchHttp.SearchHandler
+	MobileHandler          *mobileHttp.MobileHandler
+	NativeMobileHandler    *nativeMobileHttp.NativeMobileHandler
+	CompanionHandler       *companionHttp.CompanionHandler
+	JobMatchHandler        *jobMatchHttp.MatchingHandler
+	RecruiterAIHandler     *recruiterAIHttp.RecruiterAIHandler
+	MarketplaceHandler     *marketplaceHttp.MarketplaceHandler
+	FreelanceHandler       *freelanceHttp.FreelanceHandler
+	// FreelanceService backs the capability guard on the freelancer-only half
+	// of /freelance/*.
+	FreelanceService freelanceSvc.FreelanceService
+	// AdminFreelanceHandler serves the administrative freelancer capability
+	// surface: read standing, suspend, reinstate.
+	AdminFreelanceHandler       *freelanceHttp.AdminFreelanceHandler
 	EnterpriseHandler           *enterpriseHttp.EnterpriseHandler
 	TrustHandler                *trustHttp.TrustHandler
 	ComplianceHandler           *complianceHttp.ComplianceHandler
@@ -283,7 +290,8 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	jobMatchHttp.RegisterRoutes(api, deps.JobMatchHandler)
 	recruiterAIHttp.RegisterRoutes(api, deps.RecruiterAIHandler)
 	marketplaceHttp.RegisterRoutes(api, deps.MarketplaceHandler)
-	freelanceHttp.RegisterRoutes(api, deps.FreelanceHandler)
+	freelanceHttp.RegisterRoutes(api, deps.FreelanceHandler, deps.FreelanceService)
+	freelanceHttp.RegisterAdminRoutes(api, deps.AdminFreelanceHandler, adminGuard)
 	enterpriseHttp.RegisterRoutes(api, deps.EnterpriseHandler)
 	trustHttp.RegisterRoutes(api, deps.TrustHandler, adminGuard)
 	complianceHttp.RegisterRoutes(api, deps.ComplianceHandler, adminGuard)

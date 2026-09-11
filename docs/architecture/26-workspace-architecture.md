@@ -479,7 +479,7 @@ Verified against the CI database on 2026-09-10.
 | `company_member_roles` | `company_id, member_id, user_id, role, extra_permissions, granted_by` | **Keep.** Already supports several roles and per-member extra permissions. |
 | `community_members` | `community_id, user_id, role_name, status` | **Keep.** Unique on `uniq_community_membership`; indexed for lookup. |
 | `admin_user_roles` | `user_id, role_id, assigned_by, assigned_at` | **Keep.** Platform roles are already many-to-many. |
-| `freelancer_profiles` | `user_id` unique | **Keep.** Its existence *is* the freelancer capability. |
+| `freelancer_profiles` | `user_id` unique, `capability_status` | **Kept and extended.** Row existence was the capability, which is why freelancing could not be withdrawn without suspending the account. Since migration `0101` the capability is `capability_status = 'active'`; `user_id` stays unique, so one account has at most one freelancer identity. |
 | `recruiter_profiles`, `recruiters`, `recruiter_organization_profiles` | | **Keep**, but see 14.3 — the capability signal needs to be settled. |
 | `user_preferences` | `user_id, profile_visibility` | **Extend** — see 14.4. |
 
@@ -499,11 +499,20 @@ the permission list in `auth_service.go`.
 
 ### 14.3 What needs deciding, not inventing
 
-**The capability signal.** Freelancer is unambiguous: a `freelancer_profiles`
-row exists or it does not. Recruiter has three candidate tables and no single
-agreed signal. **Settle which row means "this account has the recruiter
-capability" before Phase 2** — inferring it from three places is how two
-subsystems come to disagree about who is a recruiter.
+**The capability signal.** *Settled, for both.* Each capability now has exactly
+one column that means "this account may act", and one function that reads it:
+
+| Capability | Signal | Read by |
+| :--- | :--- | :--- |
+| Freelancer | `freelancer_profiles.capability_status = 'active'` | `FreelanceService.FreelancerCapability` |
+| Recruiter | `recruiter_profiles.capability_status = 'active'` | `RecruiterService.RecruiterCapability` |
+
+Freelancer was recorded here as unambiguous because a row existed or it did not.
+That was unambiguous and wrong: it made the capability unrevocable, since the
+only way to withdraw it was to delete the profile — and with it the portfolio,
+proposals and contracts — or to suspend the whole Kirmya account. Existence
+answers *has this person ever freelanced*, which is not the question route
+protection asks.
 
 **Membership status vocabulary.** `company_members.status` and
 `community_members.status` are independent strings today. Invariant 7 requires

@@ -41,6 +41,7 @@ export const ROUTES = {
   APPLICATION_DETAIL: (id: string) => `/applications/${encodeURIComponent(id)}`,
   SAVED_JOBS: '/saved-jobs',
   JOB_ALERTS: '/job-alerts',
+  FREELANCE_ONBOARDING: '/freelance/onboarding',
 
   // Profile & Documents
   PROFILE: '/profile',
@@ -180,7 +181,11 @@ export const routes = {
     alerts: () => ROUTES.JOB_ALERTS,
   },
 
-  freelance: { home: () => '/freelance' },
+  freelance: {
+    home: () => '/freelance',
+    /** Becoming a freelancer. Reachable by any signed-in professional account. */
+    onboarding: () => ROUTES.FREELANCE_ONBOARDING,
+  },
   events: { home: () => '/events' },
 
   companies: { home: () => ROUTES.COMPANIES },

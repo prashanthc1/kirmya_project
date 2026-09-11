@@ -247,6 +247,47 @@ This matrix defines the capabilities allocated to each role across the platform:
 
 ---
 
+### 7.8 Account-independent capabilities
+
+Kirmya is one identity with several workspaces, so authorization is not a single
+ladder. An account's global role (`users.role_id`) says whether it is a platform
+administrator; it says nothing about which capabilities the account holds.
+Capabilities are independent of one another, and each has exactly one persisted
+signal and one function that reads it.
+
+| Capability | Signal | Canonical reader | Route gate |
+| :--- | :--- | :--- | :--- |
+| Freelancer | `freelancer_profiles.capability_status = 'active'` | `FreelanceService.FreelancerCapability` | `RequireFreelancerCapability` |
+| Recruiter | `recruiter_profiles.capability_status = 'active'` | `RecruiterService.RecruiterCapability` | `RequireRecruiterCapability` |
+| Company management | `company_members` + effective permissions | `LoadGrant` | company module, per `company_id` |
+| Community moderation | `community_members.status` + `role_name` | community module | community module, per `community_id` |
+| Platform administration | `users.role_id ∈ AdminRoles()` | `RequireAdmin()` | `RequireAdmin` → `RequirePermission` |
+
+**Freelancer capability is independent of account authentication, recruiter
+capability, and company/community/platform memberships.** Concretely:
+
+- Suspending freelancing leaves the Kirmya account usable — feed, network,
+  messages and job applications are untouched — and leaves every other
+  capability the account holds exactly as it was.
+- The account-standing rule remains the outer gate. An account that may not
+  authenticate has no workspaces at all, whatever its capabilities say; an
+  active capability never overrides `users.status`.
+- No capability is carried in the JWT. Each is resolved server-side per request,
+  so granting or withdrawing one takes effect on the next request without a new
+  token and without a re-login.
+
+Each lifecycle is `pending → active`, self-service and requiring a complete
+profile, with `active ↔ suspended` reserved to an administrator. Withdrawal is
+a status transition, never a deletion: profiles, portfolios and history survive
+it, and reinstatement restores the same identity rather than creating a second.
+
+Capability is not a substitute for resource-level authorization. It answers
+*may this account act in this domain at all*; handlers still resolve the
+resource and verify ownership, so one active freelancer cannot reach another's
+proposals, contracts or drafts.
+
+---
+
 ### 7.8 Attribute-Based Access Control (ABAC) Compatibility Roadmap
 As Kirmya expands, the RBAC model can be extended to support Attribute-Based Access Control (ABAC) to enforce more complex security rules:
 - **Attribute Context**: The authorization service accepts attributes related to the user, resource, and environment (e.g. client IP geolocation, time of day, candidate DRS score, transaction value).

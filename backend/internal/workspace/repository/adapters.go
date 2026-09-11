@@ -20,7 +20,7 @@ import (
 	communityRepo "kirmya/internal/community/repository"
 	companyDomain "kirmya/internal/company/domain"
 	companyRepo "kirmya/internal/company/repository"
-	freelanceRepo "kirmya/internal/freelance/repository"
+	freelanceService "kirmya/internal/freelance/service"
 	recruiterService "kirmya/internal/recruiter/service"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 	workspaceService "kirmya/internal/workspace/service"
@@ -67,25 +67,36 @@ func (a *AccountAdapter) Account(ctx context.Context, userID uuid.UUID) (workspa
 	}, nil
 }
 
-// FreelancerAdapter answers whether a freelancer profile exists.
+// FreelancerAdapter answers whether the Freelancer capability is active.
 type FreelancerAdapter struct {
-	freelance freelanceRepo.FreelanceRepository
+	freelance freelanceService.FreelanceService
 }
 
 // NewFreelancerAdapter builds the freelancer reader.
-func NewFreelancerAdapter(freelance freelanceRepo.FreelanceRepository) *FreelancerAdapter {
+func NewFreelancerAdapter(freelance freelanceService.FreelanceService) *FreelancerAdapter {
 	return &FreelancerAdapter{freelance: freelance}
 }
 
-// HasFreelancerProfile reports whether the account has a freelancer profile.
+// HasFreelancerCapability reports whether the account currently holds usable
+// Freelancer capability.
 //
-// Existence is the whole rule, because it is the whole signal that exists:
-// freelancer_profiles carries no standing column, and availability_status
-// describes willingness to take work rather than whether the account may
-// freelance at all. Account-level suspension is honoured one level up, where
-// the resolver refuses every workspace for a non-active account.
-func (a *FreelancerAdapter) HasFreelancerProfile(ctx context.Context, userID uuid.UUID) (bool, error) {
-	return a.freelance.HasProfile(ctx, userID)
+// It asks the freelance service rather than reading freelancer_profiles, so the
+// answer here and the answer RequireFreelancerCapability gives on every
+// freelancer-only route come from the same code. Only an active capability
+// qualifies: none, pending and suspended are all "no", and none of them is
+// distinguished in a navigation list.
+//
+// This used to be profile existence, which is why a freelancer could not be
+// suspended without suspending their whole Kirmya account - there was no state
+// between "has a row" and "has no row". Account-level standing is still honoured
+// one level up, where the resolver refuses every workspace for an account that
+// may not authenticate.
+func (a *FreelancerAdapter) HasFreelancerCapability(ctx context.Context, userID uuid.UUID) (bool, error) {
+	capability, err := a.freelance.FreelancerCapability(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	return capability == freelanceService.CapabilityActive, nil
 }
 
 // RecruiterAdapter answers whether the standalone Recruiting capability holds.

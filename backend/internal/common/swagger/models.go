@@ -144,3 +144,12 @@ type ApplicationResponse struct {
 	AppliedAt   string `json:"applied_at" example:"2026-02-03T13:22:00Z"`
 	UpdatedAt   string `json:"updated_at" example:"2026-02-05T09:10:00Z"`
 }
+
+// ReasonRequest is a decision that must be explained.
+//
+// Administrative status changes carry one: the audit entry is the point of the
+// endpoint, and a standing change nobody can explain later is not much better
+// than one nobody recorded.
+type ReasonRequest struct {
+	Reason string `json:"reason" example:"Repeated contract disputes; see case 1042"`
+}

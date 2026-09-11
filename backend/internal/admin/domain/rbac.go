@@ -64,6 +64,12 @@ const (
 	PermDataOpsManage       = "data_operations.manage"
 	PermSecurityManage      = "security.manage"
 	PermAnalyticsManage     = "analytics.manage"
+
+	// Freelancer capability standing. Separate from users.suspend, which
+	// suspends the whole Kirmya account - the freelancer lifecycle exists
+	// precisely so that freelancing can be withdrawn without doing that.
+	PermFreelancersRead   = "freelancers.read"
+	PermFreelancersManage = "freelancers.manage"
 )
 
 // Role codes.
@@ -101,6 +107,7 @@ var allPermissions = []string{
 	PermDataOpsRead, PermDataOpsManage,
 	PermSecurityManage,
 	PermAnalyticsManage,
+	PermFreelancersRead, PermFreelancersManage,
 }
 
 // AllPermissions returns every permission the admin surface enforces.
@@ -149,10 +156,12 @@ var rolePermissions = map[string][]string{
 	RoleUserAdmin: {
 		PermDashboardRead, PermUsersRead, PermUsersUpdate, PermUsersSuspend,
 		PermCompaniesRead, PermRecruitersRead,
+		PermFreelancersRead, PermFreelancersManage,
 	},
 	RoleTrustSafetyAdmin: {
 		PermDashboardRead, PermReportsRead, PermReportsResolve, PermModerationReview,
 		PermCommunitiesModerate, PermUsersRead, PermUsersSuspend,
+		PermFreelancersRead, PermFreelancersManage,
 	},
 	RoleContentModerator: {
 		PermDashboardRead, PermJobsRead, PermJobsModerate, PermApplicationsRead,

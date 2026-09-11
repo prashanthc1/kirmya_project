@@ -28,9 +28,13 @@ import AssignmentCheckIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CodeIcon from '@mui/icons-material/Code';
 
+import Link from 'next/link';
+
 import { freelanceApi } from '../../features/freelance/api';
+import { ROUTES } from '../../shared/routes';
 import {
   Contract,
+  FreelancerCapability,
   Project,
   Proposal,
 } from '../../features/freelance/types';
@@ -41,6 +45,16 @@ export default function FreelanceMarketplacePage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  /*
+   * Whether this account may act as a freelancer.
+   *
+   * The page is reachable by anyone - browsing the marketplace is how somebody
+   * decides whether to become a freelancer - so it has to render for an
+   * account that holds no capability at all. The server refuses a proposal from
+   * such an account with 403; offering the button anyway would be an
+   * affordance that exists only to fail.
+   */
+  const [capability, setCapability] = useState<FreelancerCapability>('none');
 
   // Submit Proposal Modal State
   const [openProposalModal, setOpenProposalModal] = useState(false);
@@ -64,18 +78,22 @@ export default function FreelanceMarketplacePage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [pRes, cRes] = await Promise.all([
+      const [pRes, cRes, onboarding] = await Promise.all([
         freelanceApi.getProjects('ALL'),
         freelanceApi.getContracts(),
+        freelanceApi.getOnboardingStatus(),
       ]);
       setProjects(pRes.data || []);
       setContracts(cRes.data || []);
+      setCapability(onboarding.capability);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const isFreelancer = capability === 'active';
 
   const handleOpenProposal = (proj: Project) => {
     setSelectedProject(proj);
@@ -151,6 +169,45 @@ export default function FreelanceMarketplacePage() {
           </Alert>
         )}
 
+        {/*
+          * The route in, and the only one.
+          *
+          * Freelancing is a capability obtained by completing onboarding, not a
+          * consequence of visiting this page - so an account that does not hold
+          * it needs to be told how to get it rather than shown controls that
+          * answer 403. The three states say different things because they need
+          * different things: start, finish, or talk to support.
+          *
+          * This is not the workspace switcher. The switcher lists workspaces the
+          * account actually has; an opportunity to acquire one is not a
+          * workspace, and putting it there would make the control lie.
+          */}
+        {!loading && !isFreelancer && (
+          <Alert
+            severity={capability === 'suspended' ? 'warning' : 'info'}
+            icon={<WorkIcon fontSize="inherit" />}
+            sx={{ mb: 3, bgcolor: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
+            action={
+              capability === 'suspended' ? undefined : (
+                <Button
+                  size="small"
+                  component={Link}
+                  href={ROUTES.FREELANCE_ONBOARDING}
+                  sx={{ color: '#10b981', fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                >
+                  {capability === 'pending' ? 'Continue setup' : 'Become a freelancer'}
+                </Button>
+              )
+            }
+          >
+            {capability === 'suspended'
+              ? 'Freelancing is suspended for this account. Your Kirmya account, profile and history are unaffected — contact support to discuss reinstatement.'
+              : capability === 'pending'
+                ? 'Your freelancer profile is saved but not finished. Complete setup to start sending proposals.'
+                : 'Browse freely. To send proposals and be hired, set up a freelancer profile first.'}
+          </Alert>
+        )}
+
         {/* Navigation Tabs */}
         <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
           <Tabs
@@ -210,9 +267,12 @@ export default function FreelanceMarketplacePage() {
                       fullWidth
                       startIcon={<SendIcon />}
                       onClick={() => handleOpenProposal(proj)}
+                      disabled={!isFreelancer}
                       sx={{ borderColor: '#10b981', color: '#10b981', fontWeight: 'bold', mt: 'auto' }}
                     >
-                      Submit Proposal ({proj.proposals_count || 0} Proposals)
+                      {isFreelancer
+                        ? `Submit Proposal (${proj.proposals_count || 0} Proposals)`
+                        : `${proj.proposals_count || 0} Proposals`}
                     </Button>
                   </CardContent>
                 </Card>

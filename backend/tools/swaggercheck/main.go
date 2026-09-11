@@ -243,6 +243,7 @@ func compareRoutes(documented map[string]bool) []string {
 		RecruiterAIHandler:          &recruiterAIHttp.RecruiterAIHandler{},
 		MarketplaceHandler:          &marketplaceHttp.MarketplaceHandler{},
 		FreelanceHandler:            &freelanceHttp.FreelanceHandler{},
+		AdminFreelanceHandler:       &freelanceHttp.AdminFreelanceHandler{},
 		EnterpriseHandler:           &enterpriseHttp.EnterpriseHandler{},
 		TrustHandler:                &trustHttp.TrustHandler{},
 		ComplianceHandler:           &complianceHttp.ComplianceHandler{},

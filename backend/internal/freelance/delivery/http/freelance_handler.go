@@ -100,7 +100,18 @@ func (h *FreelanceHandler) SubmitProposal(c *gin.Context) {
 	}
 	prop, err := h.svc.SubmitProposal(c.Request.Context(), freelancerID, projID, payload)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// The middleware ahead of this route has already refused a caller
+		// without an active capability; this covers the service-level check,
+		// which exists so the rule holds for any caller that reaches the
+		// service another way.
+		if errors.Is(err, service.ErrFreelancerNotActive) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "An active freelancer capability is required to submit a proposal.",
+				"code":  CodeFreelancerOnboardingRequired,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not submit this proposal"})
 		return
 	}
 
@@ -174,12 +185,19 @@ func (h *FreelanceHandler) SaveProfile(c *gin.Context) {
 	}
 	prof, err := h.svc.SaveProfile(c.Request.Context(), userID, payload)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.Is(err, service.ErrFreelancerSuspended) {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Freelancing has been suspended for this account.",
+				"code":  CodeFreelancerAccessSuspended,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save this freelancer profile"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Freelancer profile updated successfully",
+		"message": "Freelancer profile saved",
 		"profile": prof,
 	})
 }
@@ -192,10 +210,84 @@ func (h *FreelanceHandler) GetProfile(c *gin.Context) {
 	}
 	prof, err := h.svc.GetProfileByUserID(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// An account with no freelancer profile gets 404. This used to answer
+		// 200 with a fabricated one, so the endpoint could never say "you are
+		// not a freelancer" - which is the answer a client needs in order to
+		// offer onboarding.
+		if errors.Is(err, service.ErrProfileNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "This account has no freelancer profile.",
+				"code":  CodeFreelancerOnboardingRequired,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read this freelancer profile"})
 		return
 	}
 	c.JSON(http.StatusOK, prof)
+}
+
+// GetOnboardingStatus handles GET /freelance/onboarding
+//
+// Read-only, and it creates nothing. An ordinary professional account asking
+// this gets capability "none" and the list of details onboarding will want,
+// which is what lets the client render "Become a freelancer" without the act of
+// asking having provisioned anybody.
+func (h *FreelanceHandler) GetOnboardingStatus(c *gin.Context) {
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
+	status, err := h.svc.OnboardingStatus(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read freelancer onboarding status"})
+		return
+	}
+	c.JSON(http.StatusOK, status)
+}
+
+// CompleteOnboarding handles POST /freelance/onboarding/complete
+//
+// The one transition that grants the capability. It is refused unless a profile
+// draft already exists and carries the details a client needs in order to hire:
+// a rate, a tagline and at least one skill.
+func (h *FreelanceHandler) CompleteOnboarding(c *gin.Context) {
+	userID, ok := h.getUserID(c)
+	if !ok {
+		return
+	}
+	prof, err := h.svc.CompleteOnboarding(c.Request.Context(), userID)
+	if err != nil {
+		var incomplete *service.IncompleteOnboardingError
+		switch {
+		case errors.As(err, &incomplete):
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Freelancer onboarding is not complete.",
+				"code":    CodeFreelancerOnboardingRequired,
+				"missing": incomplete.Missing,
+			})
+		case errors.Is(err, service.ErrFreelancerSuspended):
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Freelancing has been suspended for this account.",
+				"code":  CodeFreelancerAccessSuspended,
+			})
+		case errors.Is(err, service.ErrNotAFreelancer), errors.Is(err, service.ErrProfileNotFound):
+			// Completing onboarding does not create the profile. Saving one
+			// does, and that is a separate, deliberate request.
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Save a freelancer profile before completing onboarding.",
+				"code":  CodeFreelancerOnboardingRequired,
+			})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "could not complete freelancer onboarding"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Freelancer onboarding complete",
+		"profile": prof,
+	})
 }
 
 // getUserID returns the verified caller. It reports failure rather than

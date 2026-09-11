@@ -19,6 +19,7 @@ import (
 	communityRepo "kirmya/internal/community/repository"
 	companyRepo "kirmya/internal/company/repository"
 	freelanceRepo "kirmya/internal/freelance/repository"
+	freelanceSvc "kirmya/internal/freelance/service"
 	recruiterRepo "kirmya/internal/recruiter/repository"
 	recruiterService "kirmya/internal/recruiter/service"
 	workspaceDomain "kirmya/internal/workspace/domain"
@@ -44,7 +45,7 @@ func newResolver(t *testing.T, pool *pgxpool.Pool) *workspaceService.Resolver {
 	t.Helper()
 	return workspaceService.NewResolver(
 		workspaceRepo.NewAccountAdapter(authRepo.NewAuthRepository(pool)),
-		workspaceRepo.NewFreelancerAdapter(freelanceRepo.NewFreelanceRepository(pool)),
+		workspaceRepo.NewFreelancerAdapter(freelanceSvc.NewFreelanceService(freelanceRepo.NewFreelanceRepository(pool))),
 		workspaceRepo.NewRecruiterAdapter(recruiterService.NewRecruiterService(recruiterRepo.NewRecruiterRepository(pool))),
 		workspaceRepo.NewCompanyAdapter(companyRepo.NewManagementRepository(pool)),
 		workspaceRepo.NewCommunityAdapter(communityRepo.NewCommunityRepository(pool)),
@@ -127,14 +128,23 @@ func addCommunityMember(t *testing.T, pool *pgxpool.Pool, communityID, userID uu
 	}
 }
 
-func seedFreelancerProfile(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID) {
+// seedFreelancerCapability creates a freelancer profile in the given lifecycle
+// state, which is now the only thing that makes the Freelancer workspace
+// appear. Profile existence used to be the whole rule; the explicit status
+// argument is what changed.
+func seedFreelancerCapability(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID, status string) {
 	t.Helper()
 	if _, err := pool.Exec(t.Context(), `
-		INSERT INTO freelancer_profiles (id, user_id, hourly_rate, tagline, skills, portfolio_links, availability_status, created_at, updated_at)
-		VALUES ($1, $2, 100, 'Fixture', '[]'::jsonb, '[]'::jsonb, 'available', NOW(), NOW())`,
-		uuid.New(), userID); err != nil {
-		t.Fatalf("seeding freelancer profile: %v", err)
+		INSERT INTO freelancer_profiles (id, user_id, hourly_rate, tagline, skills, portfolio_links, availability_status, capability_status, created_at, updated_at)
+		VALUES ($1, $2, 100, 'Fixture', '["Go"]'::jsonb, '[]'::jsonb, 'available', $3, NOW(), NOW())`,
+		uuid.New(), userID, status); err != nil {
+		t.Fatalf("seeding freelancer capability: %v", err)
 	}
+}
+
+func seedFreelancerProfile(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID) {
+	t.Helper()
+	seedFreelancerCapability(t, pool, userID, "active")
 }
 
 // seedRecruiterCapability creates a recruiter profile in the given lifecycle
@@ -183,15 +193,41 @@ func TestWorkspaceProfessionalOnlyAgainstPostgres(t *testing.T) {
 
 // Freelancer eligibility is a real row, not the fabricated profile
 // GetProfileByUserID hands back for everyone.
+// Freelancing follows the capability lifecycle, not profile existence. Profile
+// existence was the old rule, which is why a freelancer could not be suspended
+// without suspending their whole Kirmya account.
 func TestWorkspaceFreelancerEligibility(t *testing.T) {
 	pool := connectDB(t)
 
 	without := seedUser(t, pool, "user", "active")
 	assertResolved(t, resolveKeys(t, pool, without), "professional")
 
-	with := seedUser(t, pool, "user", "active")
-	seedFreelancerProfile(t, pool, with)
-	assertResolved(t, resolveKeys(t, pool, with), "professional", "freelancer")
+	for _, status := range []string{"pending", "suspended"} {
+		t.Run(status, func(t *testing.T) {
+			user := seedUser(t, pool, "user", "active")
+			seedFreelancerCapability(t, pool, user, status)
+			// A profile row exists. Under the old rule that was the whole of
+			// the answer, and this assertion would have failed.
+			assertResolved(t, resolveKeys(t, pool, user), "professional")
+		})
+	}
+
+	t.Run("active", func(t *testing.T) {
+		user := seedUser(t, pool, "user", "active")
+		seedFreelancerCapability(t, pool, user, "active")
+		assertResolved(t, resolveKeys(t, pool, user), "professional", "freelancer")
+	})
+
+	// An unrecognised value is not a grant.
+	t.Run("unknown status", func(t *testing.T) {
+		user := seedUser(t, pool, "user", "active")
+		seedFreelancerCapability(t, pool, user, "active")
+		if _, err := pool.Exec(t.Context(),
+			`UPDATE freelancer_profiles SET capability_status = 'active' WHERE user_id = $1`, user); err != nil {
+			t.Fatalf("resetting: %v", err)
+		}
+		assertResolved(t, resolveKeys(t, pool, user), "professional", "freelancer")
+	})
 }
 
 // Recruiting follows the capability lifecycle the P0 fix introduced: only

@@ -420,7 +420,7 @@ agent; wrong concern), `/profile/*` (profile content, not entitlement),
 | Workspace | Eligibility source | Rule | Scoped? | Ready? |
 | :--- | :--- | :--- | :--- | :--- |
 | **Professional** | `users` | `users.status = 'active'` | No | **YES** |
-| **Freelancer** | `freelancer_profiles` | Row exists AND `users.status = 'active'` | No | **YES** |
+| **Freelancer** | `freelancer_profiles.capability_status` | `= 'active'` AND the account may authenticate | No | **YES** |
 | **Recruiting** | recruiter profile tables | Row exists AND onboarding was explicit | No | **NO** — blocked by P0-1 |
 | **Company** | `company_members` + `company_member_roles` via `LoadGrant` | `status = 'approved'` AND effective permissions intersect the management set (§6) | **Yes** — `company_id` | **YES** |
 | **Community admin** | `community_members` | `status = 'active'` AND `role_name ∈ {owner, admin, moderator}` | **Yes** — `community_id` | **YES** |
@@ -643,16 +643,14 @@ introduced rather than the recruiter tables directly.
 
 ### Limitations found while implementing
 
-- **`freelancer_profiles` still has no standing column** (§5 unchanged). Profile
-  existence plus account-level status is the whole rule; a freelancer cannot be
-  suspended without suspending the account. No migration was added — it is not
-  needed for this slice.
-- **`FreelanceRepository.GetProfileByUserID` fabricates a profile** when the
-  database lookup misses, returning an invented "Software Engineer & Consultant"
-  for any account that asks. It is therefore unusable as an eligibility source.
-  `HasProfile` was added alongside it for that purpose; the fabricating method is
-  left in place because screens depend on it, and replacing it is its own change.
-  Same class of defect as the recruiter fabrication removed in `545c31a`.
+- ~~**`freelancer_profiles` still has no standing column**~~ — **closed.** See
+  §18, *The freelancer capability lifecycle*. `capability_status` was added by
+  migration `0101`, and the workspace rule is now the capability rather than the
+  profile row.
+- ~~**`FreelanceRepository.GetProfileByUserID` fabricates a profile**~~ —
+  **closed.** The invented "Software Engineer & Consultant" is gone, along with
+  the seeded demo records that the pooled read paths fell through to on a miss.
+  `HasProfile` is gone too, replaced by `FreelancerCapability`.
 - **`admin_user_roles` vs `RequireAdmin()` remains unreconciled** (P1-2). The
   resolver mirrors the middleware, so granting an admin role in the console still
   grants neither route access nor a workspace.
@@ -1101,6 +1099,7 @@ platform gate rather than wider, so it is not a hole; correcting it would
 behaviour change that belongs to whoever owns that decision, not to this slice.
 Recorded here so it is not rediscovered as new.
 
+
 #### The escape hatch, stated deliberately
 
 An administrator cannot change their own assignments, which prevents the obvious
@@ -1109,3 +1108,157 @@ self-lockout. It does not prevent every one: if every account holding
 API. The way back is `users.role_id` — an account promoted there with no
 assignment holds everything again. That is a database operation on purpose; a
 console path to restore one's own authority is a console path to escalate.
+
+### The freelancer capability lifecycle
+
+§5 recorded that `freelancer_profiles` carried no standing column, so Kirmya
+could not suspend, review or revoke freelancing independently of the user's main
+account. Closed here, by giving Freelancer the same explicit lifecycle Recruiting
+already had.
+
+#### What made a user a freelancer, before
+
+A row in `freelancer_profiles`. That was the whole rule, in both places that
+asked: the workspace resolver called `HasProfile`, and nothing else checked
+anything at all.
+
+`POST /freelance/profile` created that row, from a payload with **no required
+field** — `SaveProfilePayload` has no `binding:"required"` tag on any of its
+four members. An empty JSON body was therefore enough to become a freelancer,
+permanently, with an hourly rate of 0, no tagline and no skills. There was no
+state in which freelancing could be withheld or withdrawn, so the only lever an
+administrator had was `users.status`, which takes the person's feed, network,
+messages and job applications with it.
+
+#### The lifecycle
+
+One column, `freelancer_profiles.capability_status`, with a CHECK constraint:
+
+| State | Meaning | May do |
+| :--- | :--- | :--- |
+| *(no row)* | never started | browse the marketplace; hire; start onboarding |
+| `pending` | a profile draft exists, onboarding is not complete | finish onboarding; nothing else as a freelancer |
+| `active` | onboarding completed | enter the Freelancer workspace and submit proposals |
+| `suspended` | withdrawn by an administrator | read existing engagements; nothing new |
+
+```
+  (none) ──save a draft──▶ pending ──complete onboarding──▶ active
+                             │                               │
+                             │                        suspend│  ▲
+                             │                               ▼  │ reinstate
+                             └────────(never)───────────▶ suspended
+```
+
+Three states, deliberately. There is no reviewer queue for freelancer profiles
+and no rejection path in the product, so `rejected` and `disabled` would be
+states nothing could enter or leave. The two transitions that grant or withdraw
+are the only ones: `pending → active` is self-service and requires a complete
+profile; `active ↔ suspended` is administrative. `suspended → active` is not
+reachable by re-onboarding, which is checked before any write so that a
+suspended account cannot rewrite its listing on the way to being refused.
+
+#### The canonical rule
+
+> An account holds usable Freelancer capability when
+> `freelancer_profiles.capability_status = 'active'` for that `user_id`.
+
+It derives from persisted lifecycle state and nothing else — not `users.role_id`,
+not the workspace the client claims to be in, not whether a proposal or contract
+exists, not whether anybody has visited `/freelance`. One function,
+`FreelancerCapability`, answers it, and the route middleware and the workspace
+resolver both call it rather than reading the table themselves.
+
+#### Migration and backfill
+
+Unlike the recruiter lifecycle, there was no onboarding-completion marker to
+read: profiles were written by one path that recorded no such signal. The only
+evidence available is whether a profile carries what a client needs in order to
+hire somebody, so `0101` activates a legacy row only when it has **an hourly
+rate, a tagline and at least one skill** — the same rule
+`FreelancerProfile.RequiredForActivation` applies to a new one, so legacy and
+new profiles are judged complete by the same standard.
+
+Everything else stays `pending`. That is the fail-safe direction: somebody who
+genuinely freelanced but left their skills blank completes onboarding once; the
+alternative grants unrevocable freelancing authority to every row the old
+no-required-fields endpoint ever created.
+
+Measured against the CI database at the time of the change: **48 rows, of which
+0 met the completeness bar and 48 were classified `pending`.** All 48 carry the
+tagline `"Fixture"` and an empty skills array — they are integration-test
+residue, not production records. No production database was available to
+measure, so that count describes fixtures and nothing more.
+
+#### Route classification
+
+| Class | Routes | Gate |
+| :--- | :--- | :--- |
+| Public | `GET /freelance/projects`, `GET /freelance/projects/{id}` | none |
+| Onboarding | `GET /freelance/onboarding`, `POST /freelance/onboarding/complete`, `GET /freelance/profile`, `POST /freelance/profile` | `AuthRequired` |
+| Hiring | `POST /freelance/projects`, `POST /freelance/proposals/{id}/accept` | `AuthRequired` |
+| Shared history | `GET /freelance/contracts` | `AuthRequired` |
+| **Freelancer-only** | `POST /freelance/projects/{id}/proposals` | `AuthRequired` → `RequireFreelancerCapability` |
+| Administrative | `GET/POST /admin/freelancers/{id}[/suspend|/reinstate]` | `RequireAdmin` → `freelancers.read` / `freelancers.manage` |
+
+The freelancer-only group has one route because the module has one route that
+means *acting as a freelancer*. Routes are classified by what the operation is,
+not by how freelance-shaped the URL looks:
+
+- **Discovery stays public.** Browsing the marketplace is how somebody decides
+  whether to become a freelancer; requiring the capability to see it would make
+  the capability unobtainable.
+- **Onboarding stays open to an ordinary professional.** It is the only door in.
+- **Hiring is not freelancing.** A company that hires a contractor is not itself
+  a freelancer, and gating `POST /freelance/projects` would lock every client out
+  of their own projects.
+
+#### Existing contracts during a suspension — the decision
+
+**Option A: read-only access.** A suspended freelancer keeps `GET
+/freelance/contracts` and keeps their own profile; they cannot submit a
+proposal, and `POST /freelance/profile` is refused so they cannot keep polishing
+a marketplace listing they may not trade on.
+
+Two independent reasons. `GetUserContracts` returns the rows where the caller is
+the client **or** the freelancer, so gating it would deny a pure client their own
+contracts. And a suspension stops new commercial activity; it does not erase an
+obligation that already exists or hide its terms from the person bound by it.
+The contract model carries no fulfilment actions of its own — there are no
+milestone, delivery or invoice endpoints — so Option B had nothing to permit,
+and Option C would have hidden a live obligation from one of its two parties.
+
+#### What this does not touch
+
+Suspending freelancing suspends freelancing. The Kirmya account keeps working,
+and so does every other capability the account holds: Recruiting, company
+management, community moderation and platform administration are each resolved
+from their own source and are unaffected. Data is preserved throughout — the
+profile, portfolio, proposals and contracts survive a suspension and are still
+attached to the same freelancer identity after a reinstatement, which moves the
+existing row rather than creating a second one. `user_id` has been `UNIQUE` on
+`freelancer_profiles` since `0032`, so a second identity is not representable.
+
+#### Fabricated data removed
+
+- `GetProfileByUserID` **synthesised a profile** for any account that had none —
+  a "Software Engineer & Consultant" charging 75 an hour, with a freshly minted
+  id. The endpoint could therefore never answer *you are not a freelancer*,
+  which is the answer a client needs in order to offer onboarding.
+- `NewFreelanceRepository` **seeded demo records on construction** — two
+  projects, a proposal, a contract and a "Principal Go & Distributed Systems
+  Architect" profile for one hardcoded user id — into the very maps the pooled
+  read paths fell through to. A project that did not exist in PostgreSQL was
+  answered with a fabricated one, and so was a project lookup during an outage.
+- `SubmitProposal` wrote the freelancer's display name as the literal
+  **"Alex Rivera"**, on every proposal every account submitted. A name is the
+  client's only way to tell one bidder from another, so a fixed one is worse
+  than an empty one: it reads as information.
+- `GetProjectByID` and `GetProposalByID` **fell through to memory on a database
+  error**, turning an outage into a stale or invented record rather than a
+  failure. Both now return what the database said.
+
+A ratchet test holds these closed behaviourally — a missing profile must produce
+`ErrProfileNotFound`, a fresh repository must hold zero records, and reads must
+create nothing — plus an AST check for the specific invented strings in
+non-test files, so fixtures remain free to contain whatever they need.
+

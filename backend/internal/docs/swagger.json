@@ -3815,6 +3815,216 @@
                 }
             }
         },
+        "/api/v1/admin/freelancers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reports one account's freelancer capability standing. Platform administration: requires the `freelancers.read` permission inside RequireAdmin.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Read a freelancer capability",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/freelancers/{id}/reinstate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a suspended account to active freelancing. It moves the existing profile back rather than creating one, so portfolio, reviews, proposals and contracts stay attached to the same freelancer identity and no second profile is produced. It cannot make a freelancer out of an account that never onboarded: that returns 404. A reason is required and is recorded. Requires the `freelancers.manage` permission inside RequireAdmin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Reinstate a freelancer capability",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason for the decision",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "A reason is required",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "This account has no freelancer profile",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/freelancers/{id}/suspend": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Withdraws freelancing from an account, and nothing else. The Kirmya account remains usable - feed, network, messages, job applications and every other capability the account holds are unaffected - and the freelancer profile, portfolio, proposals and contracts are preserved rather than deleted. The account keeps read access to contracts it is already party to; it cannot submit new proposals, and the Freelancer workspace stops being served by /api/v1/auth/me on the next request. A reason is required and is recorded. Requires the `freelancers.manage` permission inside RequireAdmin; this is deliberately not `users.suspend`, which suspends the whole account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Suspend a freelancer capability",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason for the decision",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "A reason is required",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "This account has no freelancer profile",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/impersonation/{id}/revoke": {
             "post": {
                 "security": [
@@ -23315,6 +23525,92 @@
                 }
             }
         },
+        "/api/v1/freelance/onboarding": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reports where the caller stands on becoming a freelancer, and what onboarding still needs. `capability` is one of `none` (never started), `pending` (a profile draft exists but onboarding is not complete), `active` (the Freelancer capability is usable and the Freelancer workspace is served by /api/v1/auth/me) or `suspended` (an administrator withdrew freelancing; the Kirmya account itself is unaffected). This is a read: calling it never creates a freelancer profile, so an ordinary professional account may ask it in order to offer \"Become a freelancer\". Requires a valid Bearer access token, and nothing more - it is an onboarding route, not a freelancer-only one.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get freelancer onboarding status",
+                "responses": {
+                    "200": {
+                        "description": "Capability, the fields still required, and the caller's own draft",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/onboarding/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Activates the Freelancer capability. This is the only transition that grants it: saving a profile draft with POST /api/v1/freelance/profile creates a `pending` profile and grants nothing, and no read path creates the capability as a side effect. The draft must already carry an hourly rate, a tagline and at least one skill; otherwise the response is 400 with `missing` naming the fields. A suspended capability is not restored here - that is an administrative decision (POST /api/v1/admin/freelancers/{id}/reinstate). On success the Freelancer workspace appears in the next /api/v1/auth/me response without a new token.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Complete freelancer onboarding",
+                "responses": {
+                    "200": {
+                        "description": "The activated freelancer profile",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Onboarding is incomplete; `missing` names the fields",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Freelancing is suspended for this account",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/freelance/profile": {
             "get": {
                 "security": [
@@ -23568,7 +23864,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Submits proposal via the Kirmya freelance marketplace module. Requires a valid Bearer access token.",
+                "description": "Submits a proposal on a project. Requires a valid Bearer access token AND an active Freelancer capability: an account that has not completed freelancer onboarding, or whose freelancing has been suspended, is refused with 403 and a machine-readable code (FREELANCER_ONBOARDING_REQUIRED or FREELANCER_ACCESS_SUSPENDED). Freelancer capability is independent of the Kirmya account: suspending it stops freelancing only.",
                 "consumes": [
                     "application/json"
                 ],
@@ -23612,6 +23908,12 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Freelancer capability is not active",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -57606,6 +57908,15 @@
                 "total_pages": {
                     "type": "integer",
                     "example": 7
+                }
+            }
+        },
+        "swagger.ReasonRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "example": "Repeated contract disputes; see case 1042"
                 }
             }
         },

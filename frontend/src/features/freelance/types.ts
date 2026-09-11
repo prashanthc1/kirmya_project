@@ -3,9 +3,33 @@ export interface PortfolioItem {
   url: string;
 }
 
+/**
+ * The freelancer capability lifecycle, as the server resolves it.
+ *
+ * 'none' means the account has never started onboarding. Freelancing is not the
+ * same as having a Kirmya account, and it is not the same as having a freelancer
+ * profile row either - a saved draft is 'pending' until onboarding completes.
+ */
+export type FreelancerCapability = 'none' | 'pending' | 'active' | 'suspended';
+
+export interface SaveFreelancerProfilePayload {
+  hourly_rate: number;
+  tagline: string;
+  skills: string[];
+  portfolio_links?: PortfolioItem[];
+}
+
+export interface FreelancerOnboardingStatus {
+  capability: FreelancerCapability;
+  /** Profile fields still required before the capability can be activated. */
+  missing?: string[];
+  profile?: FreelancerProfile;
+}
+
 export interface FreelancerProfile {
   id: string;
   user_id: string;
+  capability_status: FreelancerCapability;
   hourly_rate: number;
   tagline: string;
   skills: string[];
