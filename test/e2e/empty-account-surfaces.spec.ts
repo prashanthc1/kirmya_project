@@ -24,6 +24,32 @@ import { test, expect, Page, APIRequestContext } from '@playwright/test';
 
 const PASSWORD = 'Disposable-CI-password-123!';
 
+/*
+ * A request the browser cancelled is not an exception the page threw.
+ *
+ * Next.js prefetches every destination in the global navigation as soon as the
+ * page reached after signing in hydrates - one RSC request per <Link>, each
+ * carrying a `?_rsc=` query - and the `page.goto` below cancels whichever of
+ * them are still open. Chromium and Firefox report that as a failed request and
+ * nothing more. WebKit also raises it on the page, as an uncaught "Fetch API
+ * cannot load <url> ... due to access control checks.", which arrives here
+ * through `pageerror`.
+ *
+ * That is how this file went red on WebKit: on whichever surface happened to
+ * navigate while prefetches were still in flight - /network and /communities in
+ * one run, neither in the next, both passing on retry. The page had not changed
+ * and neither had this spec; the test was being shown its own navigation.
+ *
+ * Only a message naming an RSC prefetch is set aside, and only the Next.js
+ * router builds those URLs - no application code constructs a `?_rsc=` request,
+ * so nothing the product can throw matches this. The defect this file exists
+ * for, `Cannot read properties of null (reading 'length')` on an account with
+ * no connections, carries no URL at all and still fails the assertion below.
+ */
+function isCancelledPrefetch(message: string): boolean {
+  return message.includes('?_rsc=');
+}
+
 async function registerAccount(request: APIRequestContext, api: string): Promise<string> {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   const email = `pw-empty-${suffix}@example.invalid`;
@@ -75,7 +101,9 @@ test.describe('A brand-new account can open the pages it lands on', () => {
       expect(api, 'TEST_API_URL is mandatory').toBeTruthy();
 
       const crashes: string[] = [];
-      page.on('pageerror', (error) => crashes.push(error.message));
+      page.on('pageerror', (error) => {
+        if (!isCancelledPrefetch(error.message)) crashes.push(error.message);
+      });
 
       const email = await registerAccount(request, api!);
       await signIn(page, api!, email);
