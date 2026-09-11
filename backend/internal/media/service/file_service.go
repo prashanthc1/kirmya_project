@@ -140,6 +140,32 @@ func (s *DefaultFileService) validateContentAndType(category, filename string, f
 	return mediaType, detectedMime, nil
 }
 
+// publicURL is the address a browser can actually fetch a public file from.
+//
+// A storage provider that serves objects directly - S3 behind a CDN, say -
+// answers with its own URL, and that is preferred: it is one hop rather than
+// two and does not spend an API request on a static asset. A provider with no
+// direct public address, which is every local deployment, answers "" and the
+// file is addressed through the route this application really serves.
+//
+// The provider used to be asked for both, and the local one replied with a
+// route that does not exist. Nothing noticed, because the URL is written to a
+// record rather than requested at write time - it only fails later, in a
+// browser, as an avatar that will not load.
+func (s *DefaultFileService) publicURL(ctx context.Context, file *domain.FileRecord) string {
+	if direct := strings.TrimSpace(s.storage.GetPublicURL(ctx, file.StorageKey)); direct != "" {
+		return direct
+	}
+	return PublicViewPath(file.ID)
+}
+
+// PublicViewPath is the one place that knows how a stored file is addressed.
+// It matches the route registered in the media delivery package; a change to
+// one without the other is the defect this consolidates.
+func PublicViewPath(fileID uuid.UUID) string {
+	return "/api/v1/files/" + fileID.String() + "/view"
+}
+
 func (s *DefaultFileService) UploadFile(
 	ctx context.Context,
 	ownerID uuid.UUID,
@@ -151,9 +177,14 @@ func (s *DefaultFileService) UploadFile(
 		category = domain.CategoryGeneral
 	}
 	if visibility == "" {
-		if category == domain.CategoryAvatar || category == domain.CategoryCompanyLogo {
+		// Cover photos belong here alongside avatars and company logos: they
+		// are rendered on a profile page that other people look at, so storing
+		// one privately makes it unfetchable by exactly the audience it exists
+		// for.
+		switch category {
+		case domain.CategoryAvatar, domain.CategoryCover, domain.CategoryCompanyLogo:
 			visibility = domain.VisibilityPublic
-		} else {
+		default:
 			visibility = domain.VisibilityPrivate
 		}
 	}
@@ -223,7 +254,7 @@ func (s *DefaultFileService) UploadFile(
 	}
 
 	if visibility == domain.VisibilityPublic {
-		fileRecord.URL = s.storage.GetPublicURL(ctx, savedKey)
+		fileRecord.URL = s.publicURL(ctx, fileRecord)
 	}
 
 	if err := s.repo.CreateFile(ctx, fileRecord); err != nil {
@@ -262,7 +293,7 @@ func (s *DefaultFileService) GetFile(ctx context.Context, requesterID uuid.UUID,
 	}
 
 	if file.Visibility == domain.VisibilityPublic {
-		file.URL = s.storage.GetPublicURL(ctx, file.StorageKey)
+		file.URL = s.publicURL(ctx, file)
 	}
 	return file, nil
 }
@@ -355,7 +386,7 @@ func (s *DefaultFileService) GetEntityAttachments(ctx context.Context, requester
 
 	for i := range files {
 		if files[i].Visibility == domain.VisibilityPublic {
-			files[i].URL = s.storage.GetPublicURL(ctx, files[i].StorageKey)
+			files[i].URL = s.publicURL(ctx, &files[i])
 		}
 	}
 	return files, nil

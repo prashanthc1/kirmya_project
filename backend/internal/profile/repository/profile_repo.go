@@ -506,20 +506,44 @@ func (r *ProfileRepository) UpdatePreferences(ctx context.Context, p *models.Use
 	return err
 }
 
+// ErrProfileNotFound means the account has no user_profiles row, so there was
+// nothing for the update to change.
+//
+// It exists because these two methods used to report success when their UPDATE
+// matched no row - which is every account that has not yet had a profile row
+// created. The photo URL went nowhere, the handler answered "Profile photo
+// updated successfully", and the avatar was missing with nothing anywhere
+// saying why.
+var ErrProfileNotFound = errors.New("user profile not found")
+
 func (r *ProfileRepository) UpdatePhoto(ctx context.Context, userID uuid.UUID, avatarURL string) error {
-	if r == nil || r.db == nil {
-		return nil
-	}
-	_, err := r.db.Exec(ctx, "UPDATE user_profiles SET avatar_url = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", avatarURL, userID)
-	return err
+	return r.updateProfileImage(ctx, userID, "avatar_url", avatarURL)
 }
 
 func (r *ProfileRepository) UpdateCover(ctx context.Context, userID uuid.UUID, coverURL string) error {
+	return r.updateProfileImage(ctx, userID, "cover_url", coverURL)
+}
+
+// updateProfileImage writes one image column, and reports when it changed
+// nothing.
+//
+// The column name is not a parameter a caller supplies - it is chosen from the
+// two constants above by the two methods that call this - so it is safe to
+// interpolate and there is no way for a request to reach it.
+func (r *ProfileRepository) updateProfileImage(ctx context.Context, userID uuid.UUID, column, url string) error {
 	if r == nil || r.db == nil {
 		return nil
 	}
-	_, err := r.db.Exec(ctx, "UPDATE user_profiles SET cover_url = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2", coverURL, userID)
-	return err
+	tag, err := r.db.Exec(ctx,
+		"UPDATE user_profiles SET "+column+" = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2",
+		url, userID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrProfileNotFound
+	}
+	return nil
 }
 
 func (r *ProfileRepository) CreateReport(ctx context.Context, reporterID, reportedUserID uuid.UUID, reason, desc string) error {

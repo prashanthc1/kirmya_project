@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"errors"
 	"mime/multipart"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	mediaDomain "kirmya/internal/media/domain"
 	"kirmya/internal/profile/models"
 	"kirmya/internal/profile/service"
 
@@ -15,12 +17,78 @@ import (
 	"github.com/google/uuid"
 )
 
+// ImageStore persists profile imagery and reports the URL it can be fetched
+// from.
+//
+// A narrow interface over the media file service, so the profile module depends
+// on "store this image and tell me where it lives" rather than on the media
+// module's repository, storage provider and handlers. *media/service.
+// DefaultFileService satisfies it.
+type ImageStore interface {
+	UploadFile(
+		ctx context.Context,
+		ownerID uuid.UUID,
+		header *multipart.FileHeader,
+		category, visibility string,
+		metadata map[string]interface{},
+	) (*mediaDomain.FileRecord, error)
+}
+
 type ProfileHandler struct {
 	service *service.ProfileService
+	// images is where an uploaded avatar or cover actually goes.
+	//
+	// Before it existed, UploadPhoto validated the file, composed a URL from the
+	// user id, saved that string, and dropped the bytes on the floor. The
+	// response said "Profile photo updated successfully" and the avatar was
+	// never anywhere.
+	images ImageStore
 }
 
 func NewProfileHandler(s *service.ProfileService) *ProfileHandler {
 	return &ProfileHandler{service: s}
+}
+
+// WithImageStore wires the store that avatar and cover uploads are written to.
+//
+// Separate from the constructor because the file service is assembled later in
+// startup than the profile handler. A handler without one does not fall back to
+// inventing a URL: the upload routes refuse, because answering "saved" for an
+// image that was not saved is the whole of the defect this removes.
+func (h *ProfileHandler) WithImageStore(store ImageStore) *ProfileHandler {
+	h.images = store
+	return h
+}
+
+// storeProfileImage persists one uploaded image and returns its fetchable URL.
+func (h *ProfileHandler) storeProfileImage(c *gin.Context, userID uuid.UUID, file *multipart.FileHeader, category string) (string, bool) {
+	if h.images == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Profile image storage is not configured",
+			"code":  "IMAGE_STORAGE_UNAVAILABLE",
+		})
+		return "", false
+	}
+
+	// Visibility is left to the media service, which makes avatars and covers
+	// public because they are rendered on a page other people look at.
+	record, err := h.images.UploadFile(c.Request.Context(), userID, file, category, "", map[string]interface{}{
+		"source": "profile",
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not store the uploaded image"})
+		return "", false
+	}
+	url := strings.TrimSpace(record.URL)
+	if url == "" {
+		// A stored file with no address is not a stored file, as far as anything
+		// that has to render it is concerned. Trimmed first: a URL of one space
+		// is as unrenderable as an empty one, and passing it on would put a
+		// broken <img src> on the page rather than an honest failure here.
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "The uploaded image was stored without a retrievable address"})
+		return "", false
+	}
+	return url, true
 }
 
 func getUserID(c *gin.Context) (uuid.UUID, bool) {
@@ -602,10 +670,12 @@ func (h *ProfileHandler) UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	photoURL := "/uploads/profiles/" + userID.String() + "_avatar" + ext
+	photoURL, ok := h.storeProfileImage(c, userID, file, mediaDomain.CategoryAvatar)
+	if !ok {
+		return
+	}
 	if err := h.service.UpdatePhoto(c.Request.Context(), userID, photoURL); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not attach the uploaded image to this profile"})
 		return
 	}
 
@@ -644,10 +714,12 @@ func (h *ProfileHandler) UploadCover(c *gin.Context) {
 		return
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	coverURL := "/uploads/profiles/" + userID.String() + "_cover" + ext
+	coverURL, ok := h.storeProfileImage(c, userID, file, mediaDomain.CategoryCover)
+	if !ok {
+		return
+	}
 	if err := h.service.UpdateCover(c.Request.Context(), userID, coverURL); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not attach the uploaded image to this profile"})
 		return
 	}
 

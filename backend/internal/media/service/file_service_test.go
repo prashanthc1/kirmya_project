@@ -3,9 +3,11 @@ package service
 import (
 	"bytes"
 	"context"
+	"io"
 	"mime/multipart"
 	"net/textproto"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -213,5 +215,144 @@ func TestDeleteFile_Lifecycle(t *testing.T) {
 	exists, _ := storageProv.Exists(ctx, record.StorageKey)
 	if exists {
 		t.Errorf("Expected storage object to be purged after delete")
+	}
+}
+
+// pngBytes is a real 1x1 PNG, so magic-byte sniffing sees an image.
+func pngBytes() []byte {
+	return []byte{
+		0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+		0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+		0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89,
+	}
+}
+
+// TestPublicFileURLIsFetchable is the regression test for the missing avatar.
+//
+// A public file's URL used to be whatever the storage provider said, and the
+// local provider said "/api/v1/files/view?key=<storage key>" - a route this
+// application does not serve, addressed by a parameter its view handler does
+// not read. So every avatar uploaded on a local or self-hosted deployment was
+// recorded with an address that answers 404, and nothing noticed, because the
+// URL is written into a row rather than requested at write time. It fails
+// later, in somebody's browser, as a profile picture that will not load.
+//
+// The assertion is deliberately about the shape the router serves rather than
+// about a literal string: it must be the view route, and it must carry the
+// file's own id, because that is what ViewFile reads.
+func TestPublicFileURLIsFetchable(t *testing.T) {
+	svc, _, _, cleanup := setupTestService(t)
+	defer cleanup()
+
+	record, err := svc.UploadFile(context.Background(), uuid.New(),
+		createTestFileHeader("avatar.png", pngBytes()), domain.CategoryAvatar, "", nil)
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+
+	if record.URL == "" {
+		t.Fatal("a public file was stored with no URL at all")
+	}
+	if want := PublicViewPath(record.ID); record.URL != want {
+		t.Errorf("public URL = %q, want %q", record.URL, want)
+	}
+	if strings.Contains(record.URL, "?key=") {
+		t.Errorf("public URL addresses the file by storage key (%q); the view route "+
+			"takes the file id as a path parameter and ignores any key", record.URL)
+	}
+}
+
+// Avatars and covers are rendered on a page other people look at. Storing one
+// privately makes it unfetchable by exactly the audience it exists for, which
+// is the same missing-avatar symptom by a different route.
+func TestProfileImageryDefaultsToPublic(t *testing.T) {
+	svc, _, _, cleanup := setupTestService(t)
+	defer cleanup()
+
+	for _, category := range []string{domain.CategoryAvatar, domain.CategoryCover, domain.CategoryCompanyLogo} {
+		t.Run(category, func(t *testing.T) {
+			record, err := svc.UploadFile(context.Background(), uuid.New(),
+				createTestFileHeader("image.png", pngBytes()), category, "", nil)
+			if err != nil {
+				t.Fatalf("upload: %v", err)
+			}
+			if record.Visibility != domain.VisibilityPublic {
+				t.Errorf("%s stored as %q, want %q", category, record.Visibility, domain.VisibilityPublic)
+			}
+			if record.URL == "" {
+				t.Errorf("%s stored with no URL, so nothing can render it", category)
+			}
+		})
+	}
+}
+
+// And the default does not leak: a category that is not profile imagery stays
+// private, and carries no public URL.
+func TestNonProfileImageryStaysPrivate(t *testing.T) {
+	svc, _, _, cleanup := setupTestService(t)
+	defer cleanup()
+
+	record, err := svc.UploadFile(context.Background(), uuid.New(),
+		createTestFileHeader("cv.pdf", []byte("%PDF-1.4\n%aaaa\n")), domain.CategoryResume, "", nil)
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+	if record.Visibility != domain.VisibilityPrivate {
+		t.Errorf("a resume was stored as %q, want %q", record.Visibility, domain.VisibilityPrivate)
+	}
+	if record.URL != "" {
+		t.Errorf("a private file carries a public URL: %q", record.URL)
+	}
+}
+
+// An explicit visibility from the caller still wins over the category default.
+func TestExplicitVisibilityIsHonoured(t *testing.T) {
+	svc, _, _, cleanup := setupTestService(t)
+	defer cleanup()
+
+	record, err := svc.UploadFile(context.Background(), uuid.New(),
+		createTestFileHeader("avatar.png", pngBytes()), domain.CategoryAvatar, domain.VisibilityPrivate, nil)
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+	if record.Visibility != domain.VisibilityPrivate {
+		t.Errorf("an explicitly private avatar was stored as %q", record.Visibility)
+	}
+}
+
+// The bytes must actually be there. This is the other half of the missing
+// avatar: the profile handler validated an upload, composed a URL and dropped
+// the file, so "stored" meant a string in a column and nothing else.
+func TestUploadedBytesArePersistedAndReadable(t *testing.T) {
+	svc, _, provider, cleanup := setupTestService(t)
+	defer cleanup()
+
+	content := pngBytes()
+	record, err := svc.UploadFile(context.Background(), uuid.New(),
+		createTestFileHeader("avatar.png", content), domain.CategoryAvatar, "", nil)
+	if err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+	if record.FileSize != int64(len(content)) {
+		t.Errorf("stored size %d, uploaded %d", record.FileSize, len(content))
+	}
+
+	stream, contentType, size, err := provider.Download(context.Background(), record.StorageKey)
+	if err != nil {
+		t.Fatalf("the stored object could not be read back: %v", err)
+	}
+	defer stream.Close()
+	if size != int64(len(content)) {
+		t.Errorf("storage reports %d bytes, uploaded %d", size, len(content))
+	}
+	if !strings.HasPrefix(contentType, "image/") {
+		t.Errorf("stored content type %q is not an image", contentType)
+	}
+	got, err := io.ReadAll(stream)
+	if err != nil {
+		t.Fatalf("read back: %v", err)
+	}
+	if !bytes.Equal(got, content) {
+		t.Errorf("read back %d bytes, uploaded %d; the stored object is not what was sent", len(got), len(content))
 	}
 }

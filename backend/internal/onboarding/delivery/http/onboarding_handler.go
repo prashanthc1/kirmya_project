@@ -1,13 +1,16 @@
 package http
 
 import (
+	"context"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	mediaDomain "kirmya/internal/media/domain"
 	"kirmya/internal/onboarding/domain"
 	"kirmya/internal/onboarding/service"
 
@@ -17,9 +20,37 @@ import (
 
 var DemoUserID = uuid.MustParse("00000000-0000-0000-0000-000000000001")
 
+// ImageStore persists an uploaded image and reports where it can be fetched.
+// Satisfied by the media file service; see the profile module's identical
+// narrow interface, which exists for the same reason.
+type ImageStore interface {
+	UploadFile(
+		ctx context.Context,
+		ownerID uuid.UUID,
+		header *multipart.FileHeader,
+		category, visibility string,
+		metadata map[string]interface{},
+	) (*mediaDomain.FileRecord, error)
+}
+
 type OnboardingHandler struct {
 	svc           service.OnboardingService
 	allowDemoUser bool
+	// images is where an onboarding photo upload actually goes.
+	//
+	// This endpoint used to answer every caller with the same literal,
+	// "/uploads/profile_photo_demo.jpg", having stored nothing and recorded
+	// nothing. It reported success, so onboarding appeared to accept a photo
+	// that was never anywhere and belonged to nobody.
+	images ImageStore
+}
+
+// WithImageStore wires the store onboarding photo uploads are written to.
+//
+// Without one the upload route refuses rather than inventing a URL.
+func (h *OnboardingHandler) WithImageStore(store ImageStore) *OnboardingHandler {
+	h.images = store
+	return h
 }
 
 func NewOnboardingHandler(svc service.OnboardingService) *OnboardingHandler {
@@ -191,7 +222,11 @@ func (h *OnboardingHandler) GetProfileCompletion(c *gin.Context) {
 }
 
 func (h *OnboardingHandler) UploadProfilePhoto(c *gin.Context) {
-	if _, ok := h.resolveUserID(c); !ok {
+	// The caller's identity was resolved and then discarded here, which is the
+	// tell: an upload that does not need to know whose photo it is, is an
+	// upload that is not storing one.
+	userID, ok := h.resolveUserID(c)
+	if !ok {
 		return
 	}
 
@@ -212,9 +247,30 @@ func (h *OnboardingHandler) UploadProfilePhoto(c *gin.Context) {
 		return
 	}
 
+	if h.images == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Profile image storage is not configured",
+			"code":  "IMAGE_STORAGE_UNAVAILABLE",
+		})
+		return
+	}
+
+	record, err := h.images.UploadFile(c.Request.Context(), userID, file, mediaDomain.CategoryAvatar, "", map[string]interface{}{
+		"source": "onboarding",
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not store the uploaded image"})
+		return
+	}
+	photoURL := strings.TrimSpace(record.URL)
+	if photoURL == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "The uploaded image was stored without a retrievable address"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message":   "Profile photo uploaded successfully",
-		"photo_url": "/uploads/profile_photo_demo.jpg",
+		"photo_url": photoURL,
 	})
 }
 

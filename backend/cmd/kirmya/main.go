@@ -851,6 +851,16 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	fileService := mediaSvc.NewFileService(fileRepository, storageProvider)
 	fileHandler := mediaHttp.NewFileHandler(fileService)
 
+	// Avatar and cover uploads go to the same store as every other file.
+	//
+	// They used to go nowhere: both handlers composed a URL from the user id,
+	// saved the string, discarded the bytes, and answered "updated
+	// successfully". The file service is assembled here rather than beside the
+	// handlers because it needs the storage provider, so the two handlers are
+	// given it once it exists.
+	pHandler.WithImageStore(fileService)
+	onboardingHandler.WithImageStore(fileService)
+
 	return router.RouterDependencies{
 		AuthHandler:                 authHandler,
 		WorkspaceHandler:            workspaceHandler,

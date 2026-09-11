@@ -160,11 +160,19 @@ func (p *LocalStorageProvider) Exists(ctx context.Context, key string) (bool, er
 	return false, err
 }
 
+// GetPublicURL returns "" because local storage has no direct public URL.
+//
+// It used to return /api/v1/files/view?key=<storage key>, which is not a route
+// this application serves - the only view route is /api/v1/files/:id/view, and
+// its handler reads a path parameter and ignores any key. So every public file
+// stored locally carried a URL that answered 404, which is what made uploaded
+// avatars invisible.
+//
+// Returning empty is the honest answer and the one the interface documents. The
+// file service turns it into the API view route, which is the only way a
+// locally stored object can actually be fetched.
 func (p *LocalStorageProvider) GetPublicURL(ctx context.Context, key string) string {
-	if p.baseURL == "" {
-		return fmt.Sprintf("/api/v1/files/view?key=%s", url.QueryEscape(key))
-	}
-	return fmt.Sprintf("%s/api/v1/files/view?key=%s", p.baseURL, url.QueryEscape(key))
+	return ""
 }
 
 func (p *LocalStorageProvider) GenerateSignedURL(ctx context.Context, key string, expiry time.Duration) (string, error) {

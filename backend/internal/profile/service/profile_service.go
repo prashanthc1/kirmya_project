@@ -807,6 +807,13 @@ func (s *ProfileService) UpdatePreferences(ctx context.Context, userID uuid.UUID
 
 func (s *ProfileService) UpdatePhoto(ctx context.Context, userID uuid.UUID, avatarURL string) error {
 	if s.repo != nil {
+		// The profile row has to exist before a column on it can be set. An
+		// account that has never opened its profile page has no row, and the
+		// UPDATE behind this used to match nothing and report success - so the
+		// very first avatar somebody uploaded was the one guaranteed to vanish.
+		if _, err := s.GetOrCreateProfile(ctx, userID); err != nil {
+			return err
+		}
 		if err := s.repo.UpdatePhoto(ctx, userID, avatarURL); err != nil {
 			return err
 		}
@@ -826,6 +833,9 @@ func (s *ProfileService) UpdatePhoto(ctx context.Context, userID uuid.UUID, avat
 
 func (s *ProfileService) UpdateCover(ctx context.Context, userID uuid.UUID, coverURL string) error {
 	if s.repo != nil {
+		if _, err := s.GetOrCreateProfile(ctx, userID); err != nil {
+			return err
+		}
 		return s.repo.UpdateCover(ctx, userID, coverURL)
 	}
 	p, _ := s.GetOrCreateProfile(ctx, userID)

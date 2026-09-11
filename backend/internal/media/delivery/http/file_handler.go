@@ -70,7 +70,12 @@ func (h *FileHandler) Upload(c *gin.Context) {
 	}
 
 	category := c.DefaultPostForm("category", domain.CategoryGeneral)
-	visibility := c.DefaultPostForm("visibility", domain.VisibilityPrivate)
+	// Deliberately empty when the caller says nothing, rather than "private".
+	// The service decides from the category - avatars, covers and company logos
+	// are public, everything else is private - and defaulting here to "private"
+	// overrode that rule for every caller who did not know to ask, which is how
+	// an uploaded avatar ended up unreadable by anyone but its owner.
+	visibility := c.PostForm("visibility")
 
 	record, err := h.service.UploadFile(c.Request.Context(), userID, file, category, visibility, nil)
 	if err != nil {

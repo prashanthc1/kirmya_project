@@ -288,3 +288,13 @@ artifacts/
 # Redis writes a snapshot into whatever directory it was started from. One
 # reached a commit in this batch; it is runtime state, not source.
 dump.rdb
+
+# Locally stored user uploads. STORAGE_LOCAL_PATH defaults to ./uploads, so a
+# development server writes avatars, covers and resumes straight into the
+# working tree. They are user data, sometimes private, and never source.
+#
+# Nothing landed here before: the profile upload handlers composed a URL and
+# discarded the bytes, so the directory stayed empty and the gap went unnoticed
+# until they started actually storing what they were sent.
+backend/uploads/
+uploads/
