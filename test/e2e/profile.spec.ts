@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+import { registerAccount, signIn } from './helpers';
+
 // GET /api/v1/profile/me is registered under AuthRequired
 // (backend/internal/profile/delivery/http/routes.go).
 //
@@ -36,10 +38,46 @@ test.describe('User Profile Flow', () => {
     expect(response.status()).toBe(401);
   });
 
-  test('Profile editor route is reachable and distinct from the read view', async ({ page }) => {
+  /*
+   * Signed in, deliberately.
+   *
+   * This navigated anonymously and asserted the URL stayed on /profile/edit,
+   * which the product does not do: ProfileEditLayout renders inside
+   * <AuthenticatedLayout>, the same guard the first test in this file asserts
+   * for /profile. The two tests contradicted each other, and this one could
+   * only pass by winning a race - toHaveURL checks immediately, so it passed
+   * whenever the auth bootstrap had not yet resolved to 'unauthenticated' and
+   * fired the redirect.
+   *
+   * It went red on Firefox when the redirect happened to land first. Nothing
+   * about the page had changed; the commit that surfaced it touched no frontend
+   * file at all. A test that passes because a redirect was slow is not testing
+   * the route, so it now signs in and asserts what it was actually for: the
+   * editor route exists, is not a 404, and is a different page from the read
+   * view.
+   */
+  test('Profile editor route is reachable and distinct from the read view', async ({ request, page }) => {
+    const api = process.env.TEST_API_URL!;
+    const account = await registerAccount(request, api, 'profile-editor');
+    await signIn(page, api, account.email);
+
     await page.goto('/profile/edit');
     await expect(page).toHaveURL(/\/profile\/edit$/);
     // A 404 would render Next.js's not-found page instead of the app shell.
     await expect(page.getByText('404')).toHaveCount(0);
+    // And it is the editor, not the read view rendered at a second URL.
+    await expect(page.getByRole('button', { name: /save/i }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+  });
+
+  /*
+   * The other half, now that the case above is signed in: the editor is guarded
+   * like every other authenticated page. This is the assertion the old test
+   * accidentally inverted.
+   */
+  test('The profile editor sends an anonymous visitor to sign in', async ({ page }) => {
+    await page.goto('/profile/edit');
+    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
   });
 });
