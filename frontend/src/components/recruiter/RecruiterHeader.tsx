@@ -18,6 +18,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { useColorMode } from '../../app/providers';
+import WorkspaceSwitcher from '../shell/WorkspaceSwitcher';
 
 export const RecruiterHeader: React.FC = () => {
   const theme = useTheme();
@@ -33,6 +34,8 @@ export const RecruiterHeader: React.FC = () => {
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
+        flexWrap: 'wrap',
+        gap: 1,
         alignItems: 'center',
         justifyContent: 'space-between',
         position: 'sticky',
@@ -54,6 +57,7 @@ export const RecruiterHeader: React.FC = () => {
       />
 
       <Stack direction="row" spacing={2} alignItems="center">
+        <WorkspaceSwitcher />
         {/* Company Badge */}
         <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'none', sm: 'flex' } }}>
           <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem', fontWeight: 800 }}>

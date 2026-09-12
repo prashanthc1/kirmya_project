@@ -34,6 +34,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 
 import BrandLockup from '../brand/BrandLockup';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 import ThemeToggle from '../landing/ThemeToggle';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../shared/routes';
@@ -236,6 +237,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
 
         {/* Right Actions: Theme Toggle & User Menu */}
         <Stack direction="row" alignItems="center" spacing={1}>
+          <WorkspaceSwitcher />
           <ThemeToggle />
 
           {authenticated && user ? (
