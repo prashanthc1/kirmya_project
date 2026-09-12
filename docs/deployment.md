@@ -1,5 +1,16 @@
 # Kirmya Deployment, CI/CD, Containerization & Disaster Recovery Guide
 
+> **Superseded — this file names CI workflows that no longer exist.**
+>
+> It refers to `.github/workflows/backend.yml`, `frontend.yml` and `security.yml`.
+> The pipeline is now nine numbered workflows (`01-backend-fast.yml` through
+> `09-release-gate.yml`). It also describes the backend image as `alpine:3.20`
+> running as `appuser` (UID 10001); `backend/Dockerfile` uses `alpine:3.19` and a
+> user named `kirmya`.
+>
+> Use [`docs/deployment/deployment-runbook.md`](deployment/deployment-runbook.md)
+> for anything operational.
+
 ## 1. CI/CD Architecture
 
 Kirmya utilizes automated GitHub Actions workflows for continuous integration, code quality, static security scans, and container builds:

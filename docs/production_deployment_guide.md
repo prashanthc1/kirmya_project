@@ -1,5 +1,18 @@
 # Kirmya Production Infrastructure & Deployment Guide
 
+> **Superseded — this guide does not describe the live deployment.**
+>
+> It states that the frontend is deployed on Vercel at `https://kirmya.vercel.app`.
+> It is not. The frontend is a Railway service built from `frontend/Dockerfile`
+> and served at `https://kirmya.com`; `frontend/vercel.json` is dead
+> configuration. The environment-variable tables below name Vercel projects and
+> origins that do not exist, so following this guide configures a platform that
+> serves no traffic.
+>
+> Use [`docs/deployment/deployment-runbook.md`](deployment/deployment-runbook.md),
+> which was checked against the live Railway project. This file is kept only
+> because parts of the SSL and CORS discussion are still referenced elsewhere.
+
 This guide details the production deployment architecture for **Kirmya**, covering backend container deployment on **Railway**, frontend deployment on **Vercel**, database provision, SSL/HTTPS, CORS security, and environment configuration.
 
 ---
