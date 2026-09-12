@@ -32,7 +32,7 @@ func swaggerRegister() {}
 // swaggerLogin documents POST /api/v1/auth/login.
 //
 // @Summary      User login
-// @Description  Authenticates a user using email and password. Returns a short-lived access token in the body and sets the refresh token as an HttpOnly, Secure, SameSite=Strict cookie scoped to /api/v1/auth.
+// @Description  Authenticates a user using email and password. Returns a short-lived access token in the body and sets the refresh token as an HttpOnly, SameSite=Lax cookie scoped to /api/v1/auth, Secure outside local development.
 // @Tags         Authentication
 // @Accept       json
 // @Produce      json

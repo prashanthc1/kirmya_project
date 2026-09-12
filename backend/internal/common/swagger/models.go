@@ -68,8 +68,9 @@ type PaginationResponse struct {
 }
 
 // JWTResponse is the credential payload returned by the auth endpoints. The
-// refresh token is deliberately absent: it is delivered as an HttpOnly, Secure,
-// SameSite=Strict cookie scoped to /api/v1/auth.
+// refresh token is deliberately absent: it is delivered as an HttpOnly,
+// SameSite=Lax cookie scoped to /api/v1/auth, Secure outside local development.
+// See internal/shared/authcookie for why Lax rather than Strict.
 type JWTResponse struct {
 	AccessToken string       `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 	TokenType   string       `json:"token_type" example:"Bearer"`

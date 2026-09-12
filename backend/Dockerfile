@@ -1,7 +1,8 @@
 # 1. Builder Stage
-# Keep this in step with the go directive in go.mod and the go-version in
-# .github/workflows/backend.yml: an older toolchain here fails the image build
-# with "go.mod requires go >= 1.26.8" long after the tests have gone green.
+# Keep this in step with the go directive in backend/go.mod, which is also what
+# .github/actions/setup-go-env resolves the CI toolchain from (go-version-file).
+# An older toolchain here fails the image build with
+# "go.mod requires go >= 1.26.8" long after the tests have gone green.
 FROM golang:1.26.8-alpine AS builder
 
 WORKDIR /app

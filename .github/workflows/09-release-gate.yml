@@ -56,41 +56,66 @@ jobs:
           const repo = process.env.GITHUB_REPOSITORY;
           console.log(`Querying check runs for ${repo}@${sha}...`);
 
+          // A gate that cannot see the checks must not report success. Every exit
+          // below is either a conclusion drawn from real check runs, or a
+          // failure - there is no path that passes on missing evidence.
+          function fail(message) {
+            console.error(`::error::${message}`);
+            process.exit(1);
+          }
+
           let data;
           try {
             const raw = execSync(`gh api repos/${repo}/commits/${sha}/check-runs --paginate`, { encoding: 'utf8' });
             data = JSON.parse(raw);
           } catch (err) {
-            console.warn('Could not query check runs via gh api (may run in local/fork context):', err.message);
-            // Fallback: if triggered by workflow_run, inspect triggering workflow
+            // The old fallback exited 0 here, so an unreadable API - an expired
+            // token, a rate limit, a malformed response - was reported as a
+            // green release gate. This workflow only runs on this repository's
+            // own main branch and on workflow_dispatch, so there is no fork
+            // context to be lenient for: failing closed is the correct answer.
             const eventPath = process.env.GITHUB_EVENT_PATH;
             if (eventPath && fs.existsSync(eventPath)) {
-              const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
-              if (event.workflow_run) {
-                console.log(`Evaluating triggering workflow: ${event.workflow_run.name} -> ${event.workflow_run.conclusion}`);
-                if (['failure', 'cancelled', 'timed_out'].includes(event.workflow_run.conclusion)) {
-                  process.exit(1);
+              try {
+                const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+                if (event.workflow_run) {
+                  console.log(`Triggering workflow: ${event.workflow_run.name} -> ${event.workflow_run.conclusion}`);
                 }
-              }
+              } catch { /* the event file is a diagnostic here, not a verdict */ }
             }
-            process.exit(0);
+            fail(`Could not query check runs for ${sha}: ${err.message}`);
           }
 
-          const runs = data.check_runs || [];
+          const runs = (data.check_runs || []).filter(
+            (run) => run.name !== 'Consolidated Release & Quality Status Gate',
+          );
           console.log(`Found ${runs.length} check run entries.`);
+
+          // No check runs at all means nothing has attested this commit. That is
+          // the state a brand-new commit is in before any workflow starts, and
+          // reporting it as "passed" is the most misleading answer available.
+          if (runs.length === 0) {
+            fail(`No check runs found for ${sha}; the release gate has nothing to attest.`);
+          }
+
+          // action_required and stale are terminal conclusions that are not a
+          // pass: the first is a workflow waiting on manual approval, the second
+          // a run GitHub abandoned. Neither was counted before.
+          const FAILING = ['failure', 'timed_out', 'cancelled', 'action_required', 'stale'];
 
           const summary = [];
           summary.push('| Check Name | Status | Conclusion |');
           summary.push('| --- | --- | --- |');
 
-          let hasFailure = false;
+          const failed = [];
+          const pending = [];
           for (const run of runs) {
-            if (run.name === 'Consolidated Release & Quality Status Gate') continue;
-            const status = run.status;
             const conclusion = run.conclusion || 'pending';
-            summary.push(`| ${run.name} | ${status} | ${conclusion} |`);
-            if (['failure', 'timed_out', 'cancelled'].includes(conclusion)) {
-              hasFailure = true;
+            summary.push(`| ${run.name} | ${run.status} | ${conclusion} |`);
+            if (FAILING.includes(conclusion)) {
+              failed.push(`${run.name} (${conclusion})`);
+            } else if (run.status !== 'completed') {
+              pending.push(run.name);
             }
           }
 
@@ -102,9 +127,19 @@ jobs:
             fs.appendFileSync(summaryFile, `### Release Status Gate Evaluation\n\nCommit: \`${sha}\`\n\n${output}\n`);
           }
 
-          if (hasFailure) {
-            console.error('::error::Release gate detected failed upstream checks.');
-            process.exit(1);
+          if (failed.length > 0) {
+            fail(`Release gate detected ${failed.length} failed upstream check(s): ${failed.join(', ')}`);
           }
-          console.log('All completed upstream checks passed or skipped successfully.');
+
+          // This workflow fires once per upstream workflow completion, so checks
+          // still running is the normal mid-pipeline state rather than a fault.
+          // It is reported as exactly that: the run that sees the last check
+          // finish is the one that attests the commit.
+          if (pending.length > 0) {
+            console.log(`${pending.length} check(s) still running: ${pending.join(', ')}`);
+            console.log('Release gate is not yet conclusive for this commit; no failure seen so far.');
+            process.exit(0);
+          }
+
+          console.log(`All ${runs.length} upstream checks for ${sha} passed or were skipped.`);
           EOF
