@@ -331,8 +331,8 @@ func TestAccumulatedAuthorityCannotRestoreAnIneligibleAccount(t *testing.T) {
 	// Give the account every other authority the product has, directly, so the
 	// test does not depend on the console paths that create them.
 	if _, err := pool.Exec(t.Context(),
-		`INSERT INTO freelancer_profiles (id, user_id, hourly_rate, tagline, created_at, updated_at)
-		 VALUES (gen_random_uuid(), $1, 75, 'CI account-standing fixture', NOW(), NOW())
+		`INSERT INTO freelancer_profiles (id, user_id, hourly_rate_minor_units, currency, tagline, created_at, updated_at)
+		 VALUES (gen_random_uuid(), $1, 7500, 'AED', 'CI account-standing fixture', NOW(), NOW())
 		 ON CONFLICT DO NOTHING`, user.id); err != nil {
 		t.Fatalf("seeding a freelancer profile: %v", err)
 	}

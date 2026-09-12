@@ -125,37 +125,40 @@ type RouterDependencies struct {
 	FreelanceService freelanceSvc.FreelanceService
 	// AdminFreelanceHandler serves the administrative freelancer capability
 	// surface: read standing, suspend, reinstate.
-	AdminFreelanceHandler       *freelanceHttp.AdminFreelanceHandler
-	EnterpriseHandler           *enterpriseHttp.EnterpriseHandler
-	TrustHandler                *trustHttp.TrustHandler
-	ComplianceHandler           *complianceHttp.ComplianceHandler
-	IntelligenceHandler         *intelligenceHttp.IntelligenceHandler
-	RecommendationEngineHandler *recommendationEngineHttp.RecommendationHandler
-	LandingHandler              *landingHttp.LandingHandler
-	NewsletterHandler           *landingHttp.NewsletterHandler
-	OnboardingHandler           *onboardingHttp.OnboardingHandler
-	ApplicationsHandler         *applicationsHttp.ApplicationsHandler
-	JobAlertsHandler            *jobAlertsHttp.JobAlertsHandler
-	JobsHandler                 *jobsHttp.JobHandler
-	CoverLetterHandler          *coverLetterHttp.CoverLetterHandler
-	InterviewPrepHandler        *interviewPrepHttp.InterviewPrepHandler
-	AdminHandler                *adminHttp.AdminHandler
-	BillingHandler              *billingHttp.BillingHandler
-	AdminBillingHandler         *billingHttp.AdminBillingHandler
-	LegalHandler                *legalHttp.LegalHandler
-	AdminLegalHandler           *legalHttp.AdminLegalHandler
-	TrustSafetyHandler          *trustHttp.TrustSafetyHandler
-	AdminTrustSafetyHandler     *trustHttp.AdminTrustSafetyHandler
-	AdminAnalyticsHandler       *analyticsHttp.AdminAnalyticsHandler
-	SecurityHandler             *securityHttp.SecurityHandler
-	AdminSecurityHandler        *securityHttp.AdminSecurityHandler
-	SupportHandler              *supportHttp.SupportHandler
-	AdminSupportHandler         *supportHttp.AdminSupportHandler
-	AdminBackupHandler          *backupHttp.BackupHandler
-	DataOperationsHandler       *dataOpsHttp.DataOperationsHandler
-	SystemHealthHandler         *sysHealthHttp.SystemHealthHandler
-	MentorshipHandler           *mentorshipHttp.MentorshipHandler
-	FileHandler                 *mediaHttp.FileHandler
+	AdminFreelanceHandler *freelanceHttp.AdminFreelanceHandler
+	// AdminFreelanceMarketplaceHandler serves the administrative marketplace
+	// surface - the projects themselves, as opposed to the capability above.
+	AdminFreelanceMarketplaceHandler *freelanceHttp.AdminMarketplaceHandler
+	EnterpriseHandler                *enterpriseHttp.EnterpriseHandler
+	TrustHandler                     *trustHttp.TrustHandler
+	ComplianceHandler                *complianceHttp.ComplianceHandler
+	IntelligenceHandler              *intelligenceHttp.IntelligenceHandler
+	RecommendationEngineHandler      *recommendationEngineHttp.RecommendationHandler
+	LandingHandler                   *landingHttp.LandingHandler
+	NewsletterHandler                *landingHttp.NewsletterHandler
+	OnboardingHandler                *onboardingHttp.OnboardingHandler
+	ApplicationsHandler              *applicationsHttp.ApplicationsHandler
+	JobAlertsHandler                 *jobAlertsHttp.JobAlertsHandler
+	JobsHandler                      *jobsHttp.JobHandler
+	CoverLetterHandler               *coverLetterHttp.CoverLetterHandler
+	InterviewPrepHandler             *interviewPrepHttp.InterviewPrepHandler
+	AdminHandler                     *adminHttp.AdminHandler
+	BillingHandler                   *billingHttp.BillingHandler
+	AdminBillingHandler              *billingHttp.AdminBillingHandler
+	LegalHandler                     *legalHttp.LegalHandler
+	AdminLegalHandler                *legalHttp.AdminLegalHandler
+	TrustSafetyHandler               *trustHttp.TrustSafetyHandler
+	AdminTrustSafetyHandler          *trustHttp.AdminTrustSafetyHandler
+	AdminAnalyticsHandler            *analyticsHttp.AdminAnalyticsHandler
+	SecurityHandler                  *securityHttp.SecurityHandler
+	AdminSecurityHandler             *securityHttp.AdminSecurityHandler
+	SupportHandler                   *supportHttp.SupportHandler
+	AdminSupportHandler              *supportHttp.AdminSupportHandler
+	AdminBackupHandler               *backupHttp.BackupHandler
+	DataOperationsHandler            *dataOpsHttp.DataOperationsHandler
+	SystemHealthHandler              *sysHealthHttp.SystemHealthHandler
+	MentorshipHandler                *mentorshipHttp.MentorshipHandler
+	FileHandler                      *mediaHttp.FileHandler
 }
 
 type Handlers = RouterDependencies
@@ -292,6 +295,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	marketplaceHttp.RegisterRoutes(api, deps.MarketplaceHandler)
 	freelanceHttp.RegisterRoutes(api, deps.FreelanceHandler, deps.FreelanceService)
 	freelanceHttp.RegisterAdminRoutes(api, deps.AdminFreelanceHandler, adminGuard)
+	freelanceHttp.RegisterAdminMarketplaceRoutes(api, deps.AdminFreelanceMarketplaceHandler, adminGuard)
 	enterpriseHttp.RegisterRoutes(api, deps.EnterpriseHandler)
 	trustHttp.RegisterRoutes(api, deps.TrustHandler, adminGuard)
 	complianceHttp.RegisterRoutes(api, deps.ComplianceHandler, adminGuard)

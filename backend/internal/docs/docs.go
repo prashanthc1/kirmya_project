@@ -3817,6 +3817,166 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/freelance/projects": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Administrative, cross-account view of freelance projects. Requires an administrator session AND the freelance.admin.read permission - RequireAdmin is the outer gate and the named permission is the inner one, so a generic administrator who has been narrowed to a role without this permission is refused with 403 ADMIN_PERMISSION_REQUIRED. Unlike GET /api/v1/freelance/my/projects, this endpoint accepts a client_id parameter and is not scoped to the caller; that is precisely why it is gated on a named permission rather than on RequireAdmin alone. Accepts the same filters and returns the same pagination envelope as the owner-scoped listing.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List marketplace projects across accounts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Restrict to one client's projects",
+                        "name": "client_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number (1-based)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated project statuses",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "newest",
+                            "oldest",
+                            "budget_high",
+                            "budget_low",
+                            "recently_updated"
+                        ],
+                        "type": "string",
+                        "description": "Ordering",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.PaginationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/freelance/projects/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Takes an abusive or fraudulent project off the marketplace. Requires an administrator session AND the freelance.admin.write permission; the read permission alone is not sufficient, so a support desk can see a posting without being able to remove it. A reason is mandatory and is recorded in the audit entry alongside the administrator, the project, its owner and the state it was cancelled from - an administrative removal with no stated justification is indistinguishable from a mistake after the fact. The cancellation goes through the same project lifecycle a client's own edit does: a project already completed or cancelled cannot be cancelled again and answers 409 FREELANCE_ILLEGAL_TRANSITION.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Cancel a marketplace project",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason for removal",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/freelancers/{id}": {
             "get": {
                 "security": [
@@ -23527,6 +23687,244 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/freelance/my/projects": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the projects posted by the authenticated account, including drafts, which the public board at GET /api/v1/freelance/projects never shows. The listing is always scoped to the caller: the owner is taken from the verified session and there is no client_id parameter, so this endpoint cannot be pointed at another account's projects. Results use Kirmya's standard pagination envelope (page, limit, total_items, total_pages, data). Monetary filters are expressed in minor units - the same unit the amounts are stored in - so a range boundary cannot be shifted by a decimal conversion.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "List the caller's own projects",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number (1-based)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated project statuses: draft, published, accepting_proposals, hired, active, completed, cancelled, disputed",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated skills; matches a project requiring any of them",
+                        "name": "skills",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "fixed",
+                            "hourly"
+                        ],
+                        "type": "string",
+                        "description": "fixed or hourly",
+                        "name": "budget_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ISO 4217 currency code, e.g. AED",
+                        "name": "currency",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum budget, in minor units (fils for AED)",
+                        "name": "min_budget_minor_units",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum budget, in minor units (fils for AED)",
+                        "name": "max_budget_minor_units",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Free-text search across title and description",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "newest",
+                            "oldest",
+                            "budget_high",
+                            "budget_low",
+                            "recently_updated"
+                        ],
+                        "type": "string",
+                        "description": "Ordering",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.PaginationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/my/projects/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a project the authenticated account posted, together with the proposals submitted to it - which the public read at GET /api/v1/freelance/projects/{id} does not include, because a bidding freelancer must not see what anybody else offered. A project belonging to another account answers 404 rather than 403: a 403 would confirm that the id names a real project, which would let an attacker map the board, including every unpublished draft, by walking identifiers.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get one of the caller's own projects",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Project"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Applies a partial update to a project the authenticated account posted. Every field is optional; a field that is absent is left alone, which is what distinguishes \"clear this description\" from \"do not touch the description\". A project owned by another account answers 404, for the same reason as the read above. A status change is checked against the project lifecycle rather than assigned freely: moving a draft straight to completed, or reviving a cancelled project, is refused with 409 and the code FREELANCE_ILLEGAL_TRANSITION naming both ends of the attempted move. A completed or cancelled project is terminal and refuses edits entirely.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Update one of the caller's own projects",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to change",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.UpdateProjectPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Project"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/freelance/onboarding": {
             "get": {
                 "security": [
@@ -23708,6 +24106,49 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/profile/enable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Turns freelancing on for the authenticated account, creating the freelancer profile row if there is none. The capability this produces is 'pending', not 'active': enabling is not activation, and POST /api/v1/freelance/onboarding/complete is still required before the account may bid. Idempotent - calling it again on an account that already has a profile returns the current onboarding status and writes nothing, so it cannot reset a profile that has been filled in. An account whose freelancing has been suspended is refused with 403 and the code FREELANCER_ACCESS_SUSPENDED; enabling is not a route back from a suspension.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Enable freelancing for the caller",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.OnboardingStatus"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/swagger.ErrorResponse"
                         }
@@ -45110,6 +45551,43 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.AvailabilityStatus": {
+            "type": "string",
+            "enum": [
+                "available",
+                "busy",
+                "unavailable"
+            ],
+            "x-enum-varnames": [
+                "AvailabilityAvailable",
+                "AvailabilityBusy",
+                "AvailabilityUnavailable"
+            ]
+        },
+        "domain.BudgetType": {
+            "type": "string",
+            "enum": [
+                "fixed",
+                "hourly"
+            ],
+            "x-enum-varnames": [
+                "BudgetFixed",
+                "BudgetHourly"
+            ]
+        },
+        "domain.CapabilityStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "active",
+                "suspended"
+            ],
+            "x-enum-varnames": [
+                "CapabilityPending",
+                "CapabilityActive",
+                "CapabilitySuspended"
+            ]
+        },
         "domain.CareerPreferences": {
             "type": "object",
             "properties": {
@@ -45538,16 +46016,17 @@ const docTemplate = `{
         "domain.CreateProjectPayload": {
             "type": "object",
             "required": [
-                "budget",
                 "description",
                 "title"
             ],
             "properties": {
                 "budget": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "budget_type": {
-                    "description": "'fixed', 'hourly'",
+                    "type": "string"
+                },
+                "currency": {
                     "type": "string"
                 },
                 "description": {
@@ -46150,6 +46629,56 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.FreelancerProfile": {
+            "type": "object",
+            "properties": {
+                "availability_status": {
+                    "$ref": "#/definitions/domain.AvailabilityStatus"
+                },
+                "capability_status": {
+                    "description": "CapabilityStatus is the lifecycle state; see CapabilityStatus above.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.CapabilityStatus"
+                        }
+                    ]
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "hourly_rate": {
+                    "description": "HourlyRate is minor units of Currency. It marshals as the decimal number\nthe existing client already sends and reads - see Amount in money.go for\nwhy the conversion never touches a float64.",
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "portfolio_links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.PortfolioItem"
+                    }
+                },
+                "skills": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tagline": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.GenerateCareerRequest": {
             "type": "object",
             "required": [
@@ -46516,6 +47045,15 @@ const docTemplate = `{
         "domain.PortfolioItem": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
                 "title": {
                     "type": "string"
                 },
@@ -46650,6 +47188,138 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "domain.Project": {
+            "type": "object",
+            "properties": {
+                "budget": {
+                    "type": "integer"
+                },
+                "budget_type": {
+                    "$ref": "#/definitions/domain.BudgetType"
+                },
+                "client_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "proposals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Proposal"
+                    }
+                },
+                "proposals_count": {
+                    "type": "integer"
+                },
+                "skills_required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProjectStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProjectStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "published",
+                "accepting_proposals",
+                "hired",
+                "active",
+                "completed",
+                "cancelled",
+                "disputed"
+            ],
+            "x-enum-varnames": [
+                "ProjectDraft",
+                "ProjectPublished",
+                "ProjectAcceptingProposals",
+                "ProjectHired",
+                "ProjectActive",
+                "ProjectCompleted",
+                "ProjectCancelled",
+                "ProjectDisputed"
+            ]
+        },
+        "domain.Proposal": {
+            "type": "object",
+            "properties": {
+                "bid_amount": {
+                    "type": "integer"
+                },
+                "cover_letter": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "estimated_days": {
+                    "type": "integer"
+                },
+                "freelancer_id": {
+                    "type": "string"
+                },
+                "freelancer_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProposalStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ProposalStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "submitted",
+                "viewed",
+                "shortlisted",
+                "accepted",
+                "rejected",
+                "withdrawn"
+            ],
+            "x-enum-varnames": [
+                "ProposalDraft",
+                "ProposalSubmitted",
+                "ProposalViewed",
+                "ProposalShortlisted",
+                "ProposalAccepted",
+                "ProposalRejected",
+                "ProposalWithdrawn"
+            ]
         },
         "domain.PushNotificationPayload": {
             "type": "object",
@@ -46851,8 +47521,15 @@ const docTemplate = `{
         "domain.SaveProfilePayload": {
             "type": "object",
             "properties": {
+                "availability_status": {
+                    "description": "Availability is optional; an empty string leaves the stored value alone.",
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
                 "hourly_rate": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "portfolio_links": {
                     "type": "array",
@@ -47087,15 +47764,17 @@ const docTemplate = `{
         "domain.SubmitProposalPayload": {
             "type": "object",
             "required": [
-                "bid_amount",
                 "cover_letter",
                 "estimated_days"
             ],
             "properties": {
                 "bid_amount": {
-                    "type": "number"
+                    "type": "integer"
                 },
                 "cover_letter": {
+                    "type": "string"
+                },
+                "currency": {
                     "type": "string"
                 },
                 "estimated_days": {
@@ -47308,6 +47987,35 @@ const docTemplate = `{
                 },
                 "time_spent_minutes": {
                     "type": "integer"
+                }
+            }
+        },
+        "domain.UpdateProjectPayload": {
+            "type": "object",
+            "properties": {
+                "budget": {
+                    "type": "integer"
+                },
+                "budget_type": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "skills_required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -48310,6 +49018,21 @@ const docTemplate = `{
                 "VerificationVerified",
                 "VerificationRejected",
                 "VerificationExpired"
+            ]
+        },
+        "kirmya_internal_freelance_service.Capability": {
+            "type": "string",
+            "enum": [
+                "none",
+                "pending",
+                "active",
+                "suspended"
+            ],
+            "x-enum-varnames": [
+                "CapabilityNone",
+                "CapabilityPending",
+                "CapabilityActive",
+                "CapabilitySuspended"
             ]
         },
         "kirmya_internal_job_alerts_models.JobRecommendation": {
@@ -57818,6 +58541,34 @@ const docTemplate = `{
                 },
                 "startDate": {
                     "type": "string"
+                }
+            }
+        },
+        "service.OnboardingStatus": {
+            "type": "object",
+            "properties": {
+                "capability": {
+                    "description": "Capability is the lifecycle state: none, pending, active or suspended.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/kirmya_internal_freelance_service.Capability"
+                        }
+                    ]
+                },
+                "missing": {
+                    "description": "Missing names the profile fields still required before activation. Empty\nonce the profile carries everything, and empty for a suspended account\ntoo - what that account is missing is not a field.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "profile": {
+                    "description": "Profile is the caller's own draft, or nil when none exists yet.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.FreelancerProfile"
+                        }
+                    ]
                 }
             }
         },

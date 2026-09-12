@@ -9,6 +9,7 @@ import (
 
 	"kirmya/internal/freelance/domain"
 	"kirmya/internal/freelance/repository"
+	"kirmya/internal/shared/events"
 	"kirmya/internal/shared/telemetry"
 
 	"github.com/google/uuid"
@@ -90,6 +91,19 @@ type FreelanceService interface {
 	SaveProfile(ctx context.Context, userID uuid.UUID, payload domain.SaveProfilePayload) (*domain.FreelancerProfile, error)
 	GetProfileByUserID(ctx context.Context, userID uuid.UUID) (*domain.FreelancerProfile, error)
 
+	// The owner-scoped use-cases. Each takes the caller's id and refuses a row
+	// that is not theirs - see internal/freelance/service/projects.go for why
+	// that check lives here rather than in the handlers.
+	EnableFreelanceProfile(ctx context.Context, userID uuid.UUID) (*OnboardingStatus, error)
+	GetOwnProject(ctx context.Context, clientID, projectID uuid.UUID) (*domain.Project, error)
+	ListOwnProjects(ctx context.Context, clientID uuid.UUID, filter domain.ProjectFilter, limit, offset int) ([]domain.Project, int, error)
+	UpdateOwnProject(ctx context.Context, clientID, projectID uuid.UUID, payload domain.UpdateProjectPayload) (*domain.Project, error)
+
+	// The administrative marketplace use-cases, behind freelance.admin.read and
+	// freelance.admin.write respectively.
+	ListAllProjects(ctx context.Context, filter domain.ProjectFilter, limit, offset int) ([]domain.Project, int, error)
+	AdminCancelProject(ctx context.Context, adminID, projectID uuid.UUID, reason string) (*domain.Project, error)
+
 	// FreelancerCapability answers the one question route protection asks: does
 	// this authenticated account hold usable Freelancer capability right now?
 	FreelancerCapability(ctx context.Context, userID uuid.UUID) (Capability, error)
@@ -103,39 +117,122 @@ type FreelanceService interface {
 
 type freelanceService struct {
 	repo repository.FreelanceRepository
+	// bus is optional. The module works without one - every caller today wires
+	// nil - and publish() below is a no-op when it is absent, so a deployment
+	// that has not configured an event bus does not lose writes, it loses
+	// notifications about them.
+	bus events.EventBus
 }
 
 func NewFreelanceService(repo repository.FreelanceRepository) FreelanceService {
 	return &freelanceService{repo: repo}
 }
 
+// NewFreelanceServiceWithEvents wires the module into the repository's existing
+// in-process event bus (internal/shared/events).
+//
+// Events are published after the transaction commits, never inside it. The bus
+// is in-memory and dispatches asynchronously, so publishing before the commit
+// would let a subscriber act on a contract that a rollback then removed. The
+// consequence is the usual one for a non-transactional bus: a crash between
+// commit and publish drops the event. A transactional outbox for this module is
+// deliberately not built here - see the completion notes - because the only
+// outbox in the repository today is notification-specific, and the marketplace
+// flows that would need durable delivery are not implemented yet.
+func NewFreelanceServiceWithEvents(repo repository.FreelanceRepository, bus events.EventBus) FreelanceService {
+	return &freelanceService{repo: repo, bus: bus}
+}
+
+// publish emits a domain event, if a bus was configured.
+func (s *freelanceService) publish(ctx context.Context, eventType string, payload map[string]interface{}) {
+	if s.bus == nil {
+		return
+	}
+	// A failed publish is not a failed write: the row is already committed, and
+	// returning an error here would tell the caller their project was not
+	// created when it was.
+	_ = s.bus.Publish(ctx, events.DomainEvent{
+		Type:     eventType,
+		Producer: "freelance",
+		Payload:  payload,
+	})
+}
+
+// CreateProject writes a client's project as a draft.
+//
+// A draft, not a published posting. 0032 defaulted a new project to 'open',
+// which made writing one down and showing it to every freelancer on the
+// platform the same irreversible act; publishing is now its own transition.
+//
+// The caller is the owner by construction: clientID comes from the
+// authenticated session, never from the payload, so a client cannot post a
+// project in somebody else's name.
 func (s *freelanceService) CreateProject(ctx context.Context, clientID uuid.UUID, payload domain.CreateProjectPayload) (*domain.Project, error) {
-	budgetType := payload.BudgetType
-	if budgetType == "" {
-		budgetType = domain.BudgetTypeFixed
+	if clientID == uuid.Nil {
+		return nil, domain.ErrUnauthenticated
 	}
 
-	proj := &domain.Project{
-		ID:             uuid.New(),
-		ClientID:       clientID,
-		Title:          payload.Title,
-		Description:    payload.Description,
-		Budget:         payload.Budget,
-		BudgetType:     budgetType,
-		SkillsRequired: payload.SkillsRequired,
-		Status:         domain.ProjectStatusOpen,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+	proj, err := buildProjectFromPayload(clientID, payload)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := s.repo.CreateProject(ctx, proj); err != nil {
 		return nil, err
 	}
+
+	// Audit: who created what, not what it pays. Through the same telemetry
+	// stream the capability transitions use, rather than a second audit system.
+	telemetry.LogUserAction(ctx, clientID.String(), domain.AuditProjectCreated, map[string]interface{}{
+		"projectId":  proj.ID.String(),
+		"status":     string(proj.Status),
+		"skillCount": len(proj.SkillsRequired),
+	})
 	return proj, nil
 }
 
+// GetProjects is the public project board.
+//
+// Two rules, and the second one is load-bearing.
+//
+// An unknown status is refused rather than silently ignored: a client filtering
+// on a typo used to receive the unfiltered board, which reads as "there are no
+// such projects" only if you assume the filter worked.
+//
+// And a draft never appears here, whatever is asked for. Drafts became possible
+// in this change - before it, every project was public the moment it was posted
+// - so without this filter the new state would have leaked every client's
+// unpublished working copy onto an anonymous endpoint. The filter is applied
+// after the status is parsed, so asking for status=draft explicitly returns
+// nothing rather than returning the drafts.
 func (s *freelanceService) GetProjects(ctx context.Context, status string) ([]domain.Project, error) {
-	return s.repo.GetProjects(ctx, status)
+	trimmed := strings.TrimSpace(status)
+	if trimmed == "" || strings.EqualFold(trimmed, "ALL") {
+		all, err := s.repo.GetProjects(ctx, "")
+		if err != nil {
+			return nil, err
+		}
+		return withoutDrafts(all), nil
+	}
+	parsed, ok := domain.ParseProjectStatus(trimmed)
+	if !ok {
+		return nil, domain.NewValidationError("status", "is not a project status")
+	}
+	if !parsed.IsPubliclyVisible() {
+		return []domain.Project{}, nil
+	}
+	return s.repo.GetProjects(ctx, parsed)
+}
+
+// withoutDrafts removes the projects an anonymous visitor must not see.
+func withoutDrafts(projects []domain.Project) []domain.Project {
+	visible := make([]domain.Project, 0, len(projects))
+	for _, project := range projects {
+		if project.Status.IsPubliclyVisible() {
+			visible = append(visible, project)
+		}
+	}
+	return visible
 }
 
 func (s *freelanceService) GetProjectByID(ctx context.Context, id uuid.UUID) (*domain.Project, error) {
@@ -161,6 +258,29 @@ func (s *freelanceService) SubmitProposal(ctx context.Context, freelancerID uuid
 		return nil, ErrFreelancerNotActive
 	}
 
+	// The project has to exist and has to be taking bids. Without this a
+	// freelancer could bid on a draft nobody published, or on a project already
+	// hired, and the row would sit in the client's inbox looking legitimate.
+	proj, err := s.repo.GetProjectByID(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	if !proj.Status.AcceptsProposals() {
+		return nil, fmt.Errorf("%w: this project is %s", ErrProposalNotOpen, proj.Status)
+	}
+	// Bidding on your own project is not a bid.
+	if proj.OwnedBy(freelancerID) {
+		return nil, domain.NewValidationError("project_id", "cannot be a project you posted yourself")
+	}
+
+	currency, err := resolveCurrency(payload.Currency, proj.Currency)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateProposalPayload(payload); err != nil {
+		return nil, err
+	}
+
 	prop := &domain.Proposal{
 		ID:           uuid.New(),
 		ProjectID:    projectID,
@@ -172,10 +292,11 @@ func (s *freelanceService) SubmitProposal(ctx context.Context, freelancerID uuid
 		// from the profile by whatever renders the proposal.
 		FreelancerName: "",
 		BidAmount:      payload.BidAmount,
+		Currency:       currency,
 		EstimatedDays:  payload.EstimatedDays,
 		CoverLetter:    payload.CoverLetter,
-		Status:         domain.ProposalStatusSubmitted,
-		CreatedAt:      time.Now(),
+		Status:         domain.ProposalSubmitted,
+		CreatedAt:      time.Now().UTC(),
 	}
 
 	if err := s.repo.SubmitProposal(ctx, prop); err != nil {
@@ -199,21 +320,20 @@ func (s *freelanceService) AcceptProposal(ctx context.Context, clientID uuid.UUI
 	// was unchecked, so the freelancer who wrote the proposal could accept it
 	// themselves - and could do it repeatedly, each time writing another
 	// contract for the same work.
-	if proj.ClientID != clientID {
+	if !proj.OwnedBy(clientID) {
 		return nil, ErrNotProjectOwner
 	}
-	if prop.Status == domain.ProposalStatusAccepted {
+	if prop.Status == domain.ProposalAccepted {
 		return nil, ErrProposalAlreadyAccepted
 	}
-	if prop.Status != "" && prop.Status != domain.ProposalStatusSubmitted {
+	if !prop.Status.IsOpen() {
 		return nil, fmt.Errorf("%w: proposal is %s", ErrProposalNotOpen, prop.Status)
 	}
-
-	if err := s.repo.UpdateProposalStatus(ctx, proposalID, domain.ProposalStatusAccepted); err != nil {
-		return nil, fmt.Errorf("accept proposal: %w", err)
-	}
-	if err := s.repo.UpdateProjectStatus(ctx, proj.ID, domain.ProjectStatusInProgress); err != nil {
-		return nil, fmt.Errorf("move project to in progress: %w", err)
+	// The project must legally be able to reach 'hired' from where it is. A
+	// cancelled project with an old open proposal on it would otherwise produce
+	// a live contract against work nobody is doing.
+	if !proj.Status.CanTransitionTo(domain.ProjectHired) {
+		return nil, &domain.TransitionError{Entity: "project", From: string(proj.Status), To: string(domain.ProjectHired)}
 	}
 
 	contract := &domain.Contract{
@@ -224,14 +344,36 @@ func (s *freelanceService) AcceptProposal(ctx context.Context, clientID uuid.UUI
 		ClientID:     clientID,
 		FreelancerID: prop.FreelancerID,
 		TotalAmount:  prop.BidAmount,
-		Status:       domain.ContractStatusActive,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		Currency:     prop.Currency,
+		Status:       domain.ContractPending,
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
-	if err := s.repo.CreateContract(ctx, contract); err != nil {
+	// One transaction for all four writes. See AcceptProposalTx: accepting a
+	// proposal, rejecting the competing ones, moving the project and writing the
+	// contract have to commit together or not at all.
+	if err := s.repo.AcceptProposalTx(ctx, proposalID, contract); err != nil {
 		return nil, err
 	}
+
+	telemetry.LogUserAction(ctx, clientID.String(), domain.AuditProposalAccepted, map[string]interface{}{
+		"proposalId":   proposalID.String(),
+		"projectId":    proj.ID.String(),
+		"contractId":   contract.ID.String(),
+		"freelancerId": prop.FreelancerID.String(),
+	})
+	s.publish(ctx, domain.EventProposalAccepted, map[string]interface{}{
+		"proposal_id": proposalID.String(),
+		"project_id":  proj.ID.String(),
+		"contract_id": contract.ID.String(),
+	})
+	s.publish(ctx, domain.EventContractCreated, map[string]interface{}{
+		"contract_id":   contract.ID.String(),
+		"project_id":    proj.ID.String(),
+		"client_id":     clientID.String(),
+		"freelancer_id": prop.FreelancerID.String(),
+	})
 	return contract, nil
 }
 
@@ -259,21 +401,44 @@ func (s *freelanceService) SaveProfile(ctx context.Context, userID uuid.UUID, pa
 		return nil, ErrFreelancerSuspended
 	}
 
+	currency, err := resolveCurrency(payload.Currency, domain.DefaultCurrency)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateProfilePayload(payload); err != nil {
+		return nil, err
+	}
+
+	availability := domain.AvailabilityAvailable
+	if strings.TrimSpace(payload.Availability) != "" {
+		parsed, ok := domain.ParseAvailabilityStatus(payload.Availability)
+		if !ok {
+			return nil, domain.NewValidationError("availability_status", "is not one of available, busy, unavailable")
+		}
+		availability = parsed
+	}
+
 	prof := &domain.FreelancerProfile{
 		ID:                 uuid.New(),
 		UserID:             userID,
 		HourlyRate:         payload.HourlyRate,
-		Tagline:            payload.Tagline,
-		Skills:             payload.Skills,
+		Currency:           currency,
+		Tagline:            strings.TrimSpace(payload.Tagline),
+		Skills:             normalizeSkills(payload.Skills),
 		PortfolioLinks:     payload.PortfolioLinks,
-		AvailabilityStatus: "available",
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
+		AvailabilityStatus: availability,
+		CreatedAt:          time.Now().UTC(),
+		UpdatedAt:          time.Now().UTC(),
 	}
 
 	if err := s.repo.SaveProfile(ctx, prof); err != nil {
 		return nil, err
 	}
+
+	telemetry.LogUserAction(ctx, userID.String(), domain.AuditProfileUpdated, map[string]interface{}{
+		"freelancerProfileId": prof.ID.String(),
+		"skillCount":          len(prof.Skills),
+	})
 	return prof, nil
 }
 

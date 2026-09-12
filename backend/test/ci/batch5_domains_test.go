@@ -388,6 +388,24 @@ func TestFreelanceProposalAcceptanceIsOwnedAndSingleUse(t *testing.T) {
 		"budget":      900.0,
 	}), "project")
 
+	// A project is now posted as a draft and published as a separate,
+	// deliberate act, so the fixture has to walk it to the state that takes
+	// bids. Before migration 0102 there was no draft state: posting a project
+	// and showing it to every freelancer on the platform were the same
+	// irreversible step.
+	publish := do(t, http.MethodPatch, base+"/api/v1/freelance/my/projects/"+projectID, client.token,
+		map[string]any{"status": "published"})
+	if publish.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(publish.Body)
+		t.Fatalf("publishing the project: got %d, want 200. Body: %s", publish.StatusCode, body)
+	}
+	accepting := do(t, http.MethodPatch, base+"/api/v1/freelance/my/projects/"+projectID, client.token,
+		map[string]any{"status": "accepting_proposals"})
+	if accepting.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(accepting.Body)
+		t.Fatalf("opening the project for proposals: got %d, want 200. Body: %s", accepting.StatusCode, body)
+	}
+
 	proposalID := createdID(t, do(t, http.MethodPost, base+"/api/v1/freelance/projects/"+projectID+"/proposals", freelancer.token, map[string]any{
 		"bid_amount":     800.0,
 		"estimated_days": 10,

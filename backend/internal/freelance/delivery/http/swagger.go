@@ -225,3 +225,112 @@ func swaggerAdminSuspendFreelancer() {}
 // @Security     BearerAuth
 // @Router       /api/v1/admin/freelancers/{id}/reinstate [post]
 func swaggerAdminReinstateFreelancer() {}
+
+// swaggerEnableFreelanceProfile documents POST /api/v1/freelance/profile/enable.
+//
+// @Summary      Enable freelancing for the caller
+// @Description  Turns freelancing on for the authenticated account, creating the freelancer profile row if there is none. The capability this produces is 'pending', not 'active': enabling is not activation, and POST /api/v1/freelance/onboarding/complete is still required before the account may bid. Idempotent - calling it again on an account that already has a profile returns the current onboarding status and writes nothing, so it cannot reset a profile that has been filled in. An account whose freelancing has been suspended is refused with 403 and the code FREELANCER_ACCESS_SUSPENDED; enabling is not a route back from a suspension.
+// @Tags         Jobs
+// @Produce      json
+// @Success      200  {object}  service.OnboardingStatus
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/freelance/profile/enable [post]
+func swaggerEnableFreelanceProfile() {}
+
+// swaggerListOwnProjects documents GET /api/v1/freelance/my/projects.
+//
+// @Summary      List the caller's own projects
+// @Description  Returns the projects posted by the authenticated account, including drafts, which the public board at GET /api/v1/freelance/projects never shows. The listing is always scoped to the caller: the owner is taken from the verified session and there is no client_id parameter, so this endpoint cannot be pointed at another account's projects. Results use Kirmya's standard pagination envelope (page, limit, total_items, total_pages, data). Monetary filters are expressed in minor units - the same unit the amounts are stored in - so a range boundary cannot be shifted by a decimal conversion.
+// @Tags         Jobs
+// @Produce      json
+// @Param        page                    query  int     false  "Page number (1-based)"  default(1)
+// @Param        limit                   query  int     false  "Items per page (max 100)"  default(20)
+// @Param        status                  query  string  false  "Comma-separated project statuses: draft, published, accepting_proposals, hired, active, completed, cancelled, disputed"
+// @Param        skills                  query  string  false  "Comma-separated skills; matches a project requiring any of them"
+// @Param        budget_type             query  string  false  "fixed or hourly"  Enums(fixed, hourly)
+// @Param        currency                query  string  false  "ISO 4217 currency code, e.g. AED"
+// @Param        min_budget_minor_units  query  int     false  "Minimum budget, in minor units (fils for AED)"
+// @Param        max_budget_minor_units  query  int     false  "Maximum budget, in minor units (fils for AED)"
+// @Param        q                       query  string  false  "Free-text search across title and description"
+// @Param        sort                    query  string  false  "Ordering"  Enums(newest, oldest, budget_high, budget_low, recently_updated)
+// @Success      200  {object}  swagger.PaginationResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/freelance/my/projects [get]
+func swaggerListOwnProjects() {}
+
+// swaggerGetOwnProject documents GET /api/v1/freelance/my/projects/{id}.
+//
+// @Summary      Get one of the caller's own projects
+// @Description  Returns a project the authenticated account posted, together with the proposals submitted to it - which the public read at GET /api/v1/freelance/projects/{id} does not include, because a bidding freelancer must not see what anybody else offered. A project belonging to another account answers 404 rather than 403: a 403 would confirm that the id names a real project, which would let an attacker map the board, including every unpublished draft, by walking identifiers.
+// @Tags         Jobs
+// @Produce      json
+// @Param        id  path  string  true  "Project ID"
+// @Success      200  {object}  domain.Project
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/freelance/my/projects/{id} [get]
+func swaggerGetOwnProject() {}
+
+// swaggerUpdateOwnProject documents PATCH /api/v1/freelance/my/projects/{id}.
+//
+// @Summary      Update one of the caller's own projects
+// @Description  Applies a partial update to a project the authenticated account posted. Every field is optional; a field that is absent is left alone, which is what distinguishes "clear this description" from "do not touch the description". A project owned by another account answers 404, for the same reason as the read above. A status change is checked against the project lifecycle rather than assigned freely: moving a draft straight to completed, or reviving a cancelled project, is refused with 409 and the code FREELANCE_ILLEGAL_TRANSITION naming both ends of the attempted move. A completed or cancelled project is terminal and refuses edits entirely.
+// @Tags         Jobs
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string                      true  "Project ID"
+// @Param        request  body  domain.UpdateProjectPayload  true  "Fields to change"
+// @Success      200  {object}  domain.Project
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      409  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/freelance/my/projects/{id} [patch]
+func swaggerUpdateOwnProject() {}
+
+// swaggerAdminListFreelanceProjects documents GET /api/v1/admin/freelance/projects.
+//
+// @Summary      List marketplace projects across accounts
+// @Description  Administrative, cross-account view of freelance projects. Requires an administrator session AND the freelance.admin.read permission - RequireAdmin is the outer gate and the named permission is the inner one, so a generic administrator who has been narrowed to a role without this permission is refused with 403 ADMIN_PERMISSION_REQUIRED. Unlike GET /api/v1/freelance/my/projects, this endpoint accepts a client_id parameter and is not scoped to the caller; that is precisely why it is gated on a named permission rather than on RequireAdmin alone. Accepts the same filters and returns the same pagination envelope as the owner-scoped listing.
+// @Tags         Admin
+// @Produce      json
+// @Param        client_id  query  string  false  "Restrict to one client's projects"
+// @Param        page       query  int     false  "Page number (1-based)"  default(1)
+// @Param        limit      query  int     false  "Items per page (max 100)"  default(20)
+// @Param        status     query  string  false  "Comma-separated project statuses"
+// @Param        sort       query  string  false  "Ordering"  Enums(newest, oldest, budget_high, budget_low, recently_updated)
+// @Success      200  {object}  swagger.PaginationResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/freelance/projects [get]
+func swaggerAdminListFreelanceProjects() {}
+
+// swaggerAdminCancelFreelanceProject documents POST /api/v1/admin/freelance/projects/{id}/cancel.
+//
+// @Summary      Cancel a marketplace project
+// @Description  Takes an abusive or fraudulent project off the marketplace. Requires an administrator session AND the freelance.admin.write permission; the read permission alone is not sufficient, so a support desk can see a posting without being able to remove it. A reason is mandatory and is recorded in the audit entry alongside the administrator, the project, its owner and the state it was cancelled from - an administrative removal with no stated justification is indistinguishable from a mistake after the fact. The cancellation goes through the same project lifecycle a client's own edit does: a project already completed or cancelled cannot be cancelled again and answers 409 FREELANCE_ILLEGAL_TRANSITION.
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Param        id       path  string  true  "Project ID"
+// @Param        request  body  object  true  "Reason for removal"
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      400  {object}  swagger.ErrorResponse
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      409  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/admin/freelance/projects/{id}/cancel [post]
+func swaggerAdminCancelFreelanceProject() {}

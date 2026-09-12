@@ -135,8 +135,8 @@ func addCommunityMember(t *testing.T, pool *pgxpool.Pool, communityID, userID uu
 func seedFreelancerCapability(t *testing.T, pool *pgxpool.Pool, userID uuid.UUID, status string) {
 	t.Helper()
 	if _, err := pool.Exec(t.Context(), `
-		INSERT INTO freelancer_profiles (id, user_id, hourly_rate, tagline, skills, portfolio_links, availability_status, capability_status, created_at, updated_at)
-		VALUES ($1, $2, 100, 'Fixture', '["Go"]'::jsonb, '[]'::jsonb, 'available', $3, NOW(), NOW())`,
+		INSERT INTO freelancer_profiles (id, user_id, hourly_rate_minor_units, currency, tagline, skills, availability_status, capability_status, created_at, updated_at)
+		VALUES ($1, $2, 10000, 'AED', 'Fixture', '["Go"]'::jsonb, 'available', $3, NOW(), NOW())`,
 		uuid.New(), userID, status); err != nil {
 		t.Fatalf("seeding freelancer capability: %v", err)
 	}

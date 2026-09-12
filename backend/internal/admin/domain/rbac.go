@@ -70,6 +70,18 @@ const (
 	// precisely so that freelancing can be withdrawn without doing that.
 	PermFreelancersRead   = "freelancers.read"
 	PermFreelancersManage = "freelancers.manage"
+
+	// The freelance marketplace records, as opposed to the capability above.
+	// freelancers.* answers "may this person freelance at all"; these two answer
+	// "may this administrator look at, and act on, the projects and engagements
+	// themselves". A support desk answering a question about a posting needs the
+	// first without the second.
+	//
+	// Both are enforced by routes in internal/freelance/delivery/http:
+	// GET /api/v1/admin/freelance/projects reads, and
+	// POST /api/v1/admin/freelance/projects/:id/cancel writes.
+	PermFreelanceAdminRead  = "freelance.admin.read"
+	PermFreelanceAdminWrite = "freelance.admin.write"
 )
 
 // Role codes.
@@ -108,6 +120,7 @@ var allPermissions = []string{
 	PermSecurityManage,
 	PermAnalyticsManage,
 	PermFreelancersRead, PermFreelancersManage,
+	PermFreelanceAdminRead, PermFreelanceAdminWrite,
 }
 
 // AllPermissions returns every permission the admin surface enforces.
@@ -157,11 +170,18 @@ var rolePermissions = map[string][]string{
 		PermDashboardRead, PermUsersRead, PermUsersUpdate, PermUsersSuspend,
 		PermCompaniesRead, PermRecruitersRead,
 		PermFreelancersRead, PermFreelancersManage,
+		// The read side only. Answering an account question may need to show
+		// what somebody posted; taking a posting down is a moderation decision
+		// and belongs to the desk that makes those.
+		PermFreelanceAdminRead,
 	},
 	RoleTrustSafetyAdmin: {
 		PermDashboardRead, PermReportsRead, PermReportsResolve, PermModerationReview,
 		PermCommunitiesModerate, PermUsersRead, PermUsersSuspend,
 		PermFreelancersRead, PermFreelancersManage,
+		// The desk that already rules on abuse reports is the desk that takes a
+		// fraudulent project off the marketplace.
+		PermFreelanceAdminRead, PermFreelanceAdminWrite,
 	},
 	RoleContentModerator: {
 		PermDashboardRead, PermJobsRead, PermJobsModerate, PermApplicationsRead,

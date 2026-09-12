@@ -46,6 +46,34 @@ definitions:
       user_id:
         type: string
     type: object
+  domain.AvailabilityStatus:
+    enum:
+    - available
+    - busy
+    - unavailable
+    type: string
+    x-enum-varnames:
+    - AvailabilityAvailable
+    - AvailabilityBusy
+    - AvailabilityUnavailable
+  domain.BudgetType:
+    enum:
+    - fixed
+    - hourly
+    type: string
+    x-enum-varnames:
+    - BudgetFixed
+    - BudgetHourly
+  domain.CapabilityStatus:
+    enum:
+    - pending
+    - active
+    - suspended
+    type: string
+    x-enum-varnames:
+    - CapabilityPending
+    - CapabilityActive
+    - CapabilitySuspended
   domain.CareerPreferences:
     properties:
       desired_job_titles:
@@ -334,9 +362,10 @@ definitions:
   domain.CreateProjectPayload:
     properties:
       budget:
-        type: number
+        type: integer
       budget_type:
-        description: '''fixed'', ''hourly'''
+        type: string
+      currency:
         type: string
       description:
         type: string
@@ -347,7 +376,6 @@ definitions:
       title:
         type: string
     required:
-    - budget
     - description
     - title
     type: object
@@ -747,6 +775,42 @@ definitions:
       visibility:
         type: string
     type: object
+  domain.FreelancerProfile:
+    properties:
+      availability_status:
+        $ref: '#/definitions/domain.AvailabilityStatus'
+      capability_status:
+        allOf:
+        - $ref: '#/definitions/domain.CapabilityStatus'
+        description: CapabilityStatus is the lifecycle state; see CapabilityStatus
+          above.
+      created_at:
+        type: string
+      currency:
+        type: string
+      hourly_rate:
+        description: |-
+          HourlyRate is minor units of Currency. It marshals as the decimal number
+          the existing client already sends and reads - see Amount in money.go for
+          why the conversion never touches a float64.
+        type: integer
+      id:
+        type: string
+      portfolio_links:
+        items:
+          $ref: '#/definitions/domain.PortfolioItem'
+        type: array
+      skills:
+        items:
+          type: string
+        type: array
+      tagline:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
   domain.GenerateCareerRequest:
     properties:
       topic:
@@ -1015,6 +1079,12 @@ definitions:
     type: object
   domain.PortfolioItem:
     properties:
+      description:
+        type: string
+      id:
+        type: string
+      position:
+        type: integer
       title:
         type: string
       url:
@@ -1105,6 +1175,102 @@ definitions:
       unassigned_dpa_processor_count:
         type: integer
     type: object
+  domain.Project:
+    properties:
+      budget:
+        type: integer
+      budget_type:
+        $ref: '#/definitions/domain.BudgetType'
+      client_id:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      proposals:
+        items:
+          $ref: '#/definitions/domain.Proposal'
+        type: array
+      proposals_count:
+        type: integer
+      skills_required:
+        items:
+          type: string
+        type: array
+      status:
+        $ref: '#/definitions/domain.ProjectStatus'
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.ProjectStatus:
+    enum:
+    - draft
+    - published
+    - accepting_proposals
+    - hired
+    - active
+    - completed
+    - cancelled
+    - disputed
+    type: string
+    x-enum-varnames:
+    - ProjectDraft
+    - ProjectPublished
+    - ProjectAcceptingProposals
+    - ProjectHired
+    - ProjectActive
+    - ProjectCompleted
+    - ProjectCancelled
+    - ProjectDisputed
+  domain.Proposal:
+    properties:
+      bid_amount:
+        type: integer
+      cover_letter:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      estimated_days:
+        type: integer
+      freelancer_id:
+        type: string
+      freelancer_name:
+        type: string
+      id:
+        type: string
+      project_id:
+        type: string
+      status:
+        $ref: '#/definitions/domain.ProposalStatus'
+      updated_at:
+        type: string
+    type: object
+  domain.ProposalStatus:
+    enum:
+    - draft
+    - submitted
+    - viewed
+    - shortlisted
+    - accepted
+    - rejected
+    - withdrawn
+    type: string
+    x-enum-varnames:
+    - ProposalDraft
+    - ProposalSubmitted
+    - ProposalViewed
+    - ProposalShortlisted
+    - ProposalAccepted
+    - ProposalRejected
+    - ProposalWithdrawn
   domain.PushNotificationPayload:
     properties:
       badge:
@@ -1239,8 +1405,14 @@ definitions:
     type: object
   domain.SaveProfilePayload:
     properties:
+      availability_status:
+        description: Availability is optional; an empty string leaves the stored value
+          alone.
+        type: string
+      currency:
+        type: string
       hourly_rate:
-        type: number
+        type: integer
       portfolio_links:
         items:
           $ref: '#/definitions/domain.PortfolioItem'
@@ -1400,13 +1572,14 @@ definitions:
   domain.SubmitProposalPayload:
     properties:
       bid_amount:
-        type: number
+        type: integer
       cover_letter:
+        type: string
+      currency:
         type: string
       estimated_days:
         type: integer
     required:
-    - bid_amount
     - cover_letter
     - estimated_days
     type: object
@@ -1550,6 +1723,25 @@ definitions:
     required:
     - completed_lessons
     - course_id
+    type: object
+  domain.UpdateProjectPayload:
+    properties:
+      budget:
+        type: integer
+      budget_type:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      skills_required:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      title:
+        type: string
     type: object
   domain.UpdateRecommendationStatusPayload:
     properties:
@@ -2271,6 +2463,18 @@ definitions:
     - VerificationVerified
     - VerificationRejected
     - VerificationExpired
+  kirmya_internal_freelance_service.Capability:
+    enum:
+    - none
+    - pending
+    - active
+    - suspended
+    type: string
+    x-enum-varnames:
+    - CapabilityNone
+    - CapabilityPending
+    - CapabilityActive
+    - CapabilitySuspended
   kirmya_internal_job_alerts_models.JobRecommendation:
     properties:
       application_deadline:
@@ -8692,6 +8896,26 @@ definitions:
     - jobTitle
     - startDate
     type: object
+  service.OnboardingStatus:
+    properties:
+      capability:
+        allOf:
+        - $ref: '#/definitions/kirmya_internal_freelance_service.Capability'
+        description: 'Capability is the lifecycle state: none, pending, active or
+          suspended.'
+      missing:
+        description: |-
+          Missing names the profile fields still required before activation. Empty
+          once the profile carries everything, and empty for a suspended account
+          too - what that account is missing is not a field.
+        items:
+          type: string
+        type: array
+      profile:
+        allOf:
+        - $ref: '#/definitions/domain.FreelancerProfile'
+        description: Profile is the caller's own draft, or nil when none exists yet.
+    type: object
   service.RoleDescriptor:
     properties:
       permissions:
@@ -11250,6 +11474,127 @@ paths:
       summary: Update Feature Flag (Admin)
       tags:
       - Admin Config
+  /api/v1/admin/freelance/projects:
+    get:
+      description: Administrative, cross-account view of freelance projects. Requires
+        an administrator session AND the freelance.admin.read permission - RequireAdmin
+        is the outer gate and the named permission is the inner one, so a generic
+        administrator who has been narrowed to a role without this permission is refused
+        with 403 ADMIN_PERMISSION_REQUIRED. Unlike GET /api/v1/freelance/my/projects,
+        this endpoint accepts a client_id parameter and is not scoped to the caller;
+        that is precisely why it is gated on a named permission rather than on RequireAdmin
+        alone. Accepts the same filters and returns the same pagination envelope as
+        the owner-scoped listing.
+      parameters:
+      - description: Restrict to one client's projects
+        in: query
+        name: client_id
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Comma-separated project statuses
+        in: query
+        name: status
+        type: string
+      - description: Ordering
+        enum:
+        - newest
+        - oldest
+        - budget_high
+        - budget_low
+        - recently_updated
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List marketplace projects across accounts
+      tags:
+      - Admin
+  /api/v1/admin/freelance/projects/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 'Takes an abusive or fraudulent project off the marketplace. Requires
+        an administrator session AND the freelance.admin.write permission; the read
+        permission alone is not sufficient, so a support desk can see a posting without
+        being able to remove it. A reason is mandatory and is recorded in the audit
+        entry alongside the administrator, the project, its owner and the state it
+        was cancelled from - an administrative removal with no stated justification
+        is indistinguishable from a mistake after the fact. The cancellation goes
+        through the same project lifecycle a client''s own edit does: a project already
+        completed or cancelled cannot be cancelled again and answers 409 FREELANCE_ILLEGAL_TRANSITION.'
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reason for removal
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel a marketplace project
+      tags:
+      - Admin
   /api/v1/admin/freelancers/{id}:
     get:
       description: 'Reports one account''s freelancer capability standing. Platform
@@ -24096,6 +24441,183 @@ paths:
       summary: Get user contracts
       tags:
       - Jobs
+  /api/v1/freelance/my/projects:
+    get:
+      description: 'Returns the projects posted by the authenticated account, including
+        drafts, which the public board at GET /api/v1/freelance/projects never shows.
+        The listing is always scoped to the caller: the owner is taken from the verified
+        session and there is no client_id parameter, so this endpoint cannot be pointed
+        at another account''s projects. Results use Kirmya''s standard pagination
+        envelope (page, limit, total_items, total_pages, data). Monetary filters are
+        expressed in minor units - the same unit the amounts are stored in - so a
+        range boundary cannot be shifted by a decimal conversion.'
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: 'Comma-separated project statuses: draft, published, accepting_proposals,
+          hired, active, completed, cancelled, disputed'
+        in: query
+        name: status
+        type: string
+      - description: Comma-separated skills; matches a project requiring any of them
+        in: query
+        name: skills
+        type: string
+      - description: fixed or hourly
+        enum:
+        - fixed
+        - hourly
+        in: query
+        name: budget_type
+        type: string
+      - description: ISO 4217 currency code, e.g. AED
+        in: query
+        name: currency
+        type: string
+      - description: Minimum budget, in minor units (fils for AED)
+        in: query
+        name: min_budget_minor_units
+        type: integer
+      - description: Maximum budget, in minor units (fils for AED)
+        in: query
+        name: max_budget_minor_units
+        type: integer
+      - description: Free-text search across title and description
+        in: query
+        name: q
+        type: string
+      - description: Ordering
+        enum:
+        - newest
+        - oldest
+        - budget_high
+        - budget_low
+        - recently_updated
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List the caller's own projects
+      tags:
+      - Jobs
+  /api/v1/freelance/my/projects/{id}:
+    get:
+      description: 'Returns a project the authenticated account posted, together with
+        the proposals submitted to it - which the public read at GET /api/v1/freelance/projects/{id}
+        does not include, because a bidding freelancer must not see what anybody else
+        offered. A project belonging to another account answers 404 rather than 403:
+        a 403 would confirm that the id names a real project, which would let an attacker
+        map the board, including every unpublished draft, by walking identifiers.'
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get one of the caller's own projects
+      tags:
+      - Jobs
+    patch:
+      consumes:
+      - application/json
+      description: 'Applies a partial update to a project the authenticated account
+        posted. Every field is optional; a field that is absent is left alone, which
+        is what distinguishes "clear this description" from "do not touch the description".
+        A project owned by another account answers 404, for the same reason as the
+        read above. A status change is checked against the project lifecycle rather
+        than assigned freely: moving a draft straight to completed, or reviving a
+        cancelled project, is refused with 409 and the code FREELANCE_ILLEGAL_TRANSITION
+        naming both ends of the attempted move. A completed or cancelled project is
+        terminal and refuses edits entirely.'
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to change
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateProjectPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update one of the caller's own projects
+      tags:
+      - Jobs
   /api/v1/freelance/onboarding:
     get:
       description: 'Reports where the caller stands on becoming a freelancer, and
@@ -24237,6 +24759,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Save profile
+      tags:
+      - Jobs
+  /api/v1/freelance/profile/enable:
+    post:
+      description: 'Turns freelancing on for the authenticated account, creating the
+        freelancer profile row if there is none. The capability this produces is ''pending'',
+        not ''active'': enabling is not activation, and POST /api/v1/freelance/onboarding/complete
+        is still required before the account may bid. Idempotent - calling it again
+        on an account that already has a profile returns the current onboarding status
+        and writes nothing, so it cannot reset a profile that has been filled in.
+        An account whose freelancing has been suspended is refused with 403 and the
+        code FREELANCER_ACCESS_SUSPENDED; enabling is not a route back from a suspension.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.OnboardingStatus'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Enable freelancing for the caller
       tags:
       - Jobs
   /api/v1/freelance/projects:
