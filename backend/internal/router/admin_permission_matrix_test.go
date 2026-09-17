@@ -204,10 +204,12 @@ func TestAdminPermissionMatrixIsPinned(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read %s: %v (regenerate with UPDATE_GOLDEN=1)", golden, err)
 	}
-	if string(want) != got {
+	wantStr := strings.ReplaceAll(string(want), "\r\n", "\n")
+	gotStr := strings.ReplaceAll(got, "\r\n", "\n")
+	if wantStr != gotStr {
 		t.Errorf("the administrative permission matrix changed.\n"+
 			"Review the difference, then regenerate with UPDATE_GOLDEN=1 go test ./internal/router/ -run AdminPermissionMatrix\n"+
-			"%s", firstDifference(string(want), got))
+			"%s", firstDifference(wantStr, gotStr))
 	}
 }
 

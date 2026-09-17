@@ -6,7 +6,7 @@ import JobEditor from '../../../../components/recruiter/JobEditor';
 
 export default function CreateJobPage() {
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <JobEditor />
     </AuthenticatedLayout>
   );

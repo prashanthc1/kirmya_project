@@ -8,7 +8,7 @@ import InterviewScheduler from '../../../components/recruiter/InterviewScheduler
 
 export default function InterviewsPage() {
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <PageHeader 
         title="Interview Management & Scorecards" 
         subtitle="Schedule candidate interviews, assign interviewers, send meeting links, and submit structured feedback scorecards." 

@@ -22,7 +22,7 @@ export default function RecruiterDashboardPage() {
   }, []);
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <PageHeader 
         title="Welcome Back, Corporate Talent Team" 
         subtitle="Manage job vacancies, review ATS candidate applications, schedule interviews, and analyze hiring performance." 

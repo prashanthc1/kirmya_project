@@ -12,7 +12,7 @@ export default function RecruiterJobsPage() {
   const router = useRouter();
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <PageHeader 
           title="Job Management" 

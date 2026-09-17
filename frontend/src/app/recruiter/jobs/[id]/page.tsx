@@ -15,7 +15,7 @@ export default function JobDetailPage() {
   const jobId = (params?.id as string) || '11111111-1111-1111-1111-111111111111';
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/recruiter/jobs')} sx={{ fontWeight: 700 }}>

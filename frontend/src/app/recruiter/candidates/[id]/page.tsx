@@ -10,7 +10,7 @@ export default function CandidateDetailPage() {
   const candidateId = (params?.id as string) || 'c1111111-1111-1111-1111-111111111111';
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <CandidateProfile candidateId={candidateId} />
     </AuthenticatedLayout>
   );

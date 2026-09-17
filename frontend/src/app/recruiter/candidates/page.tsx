@@ -51,7 +51,7 @@ export default function CandidatesMainPage() {
   });
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <PageHeader 
         title="Candidate Discovery & Search" 
         subtitle="Find verified candidates, match resumes against open jobs, and shortlist talent."

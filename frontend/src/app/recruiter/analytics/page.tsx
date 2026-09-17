@@ -8,7 +8,7 @@ import AnalyticsDashboard from '../../../components/recruiter/AnalyticsDashboard
 
 export default function AnalyticsPage() {
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <PageHeader 
         title="Recruitment Analytics & Reports" 
         subtitle="Track conversion rates, time to hire, candidate sourcing metrics, and job posting performance." 

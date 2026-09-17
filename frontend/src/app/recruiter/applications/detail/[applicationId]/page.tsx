@@ -10,7 +10,7 @@ export default function ApplicationDetailPage() {
   const applicationId = (params?.applicationId as string) || 'a1111111-1111-1111-1111-111111111111';
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <ApplicationDetails applicationId={applicationId} />
     </AuthenticatedLayout>
   );

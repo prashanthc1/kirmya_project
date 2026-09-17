@@ -282,10 +282,12 @@ func compareRoutes(documented map[string]bool) []string {
 		key := rt.Method + " " + rt.Path
 
 		// Exclude legacy alias groups maintained solely for backwards compatibility
+		// and static asset mounts not part of the REST OpenAPI specification.
 		if strings.HasPrefix(rt.Path, "/api/v1/profiles/") ||
 			strings.HasPrefix(rt.Path, "/api/v1/messaging/") ||
 			strings.HasPrefix(rt.Path, "/api/v1/networking/") ||
-			strings.HasPrefix(rt.Path, "/api/v1/admin/safety/") {
+			strings.HasPrefix(rt.Path, "/api/v1/admin/safety/") ||
+			strings.HasPrefix(rt.Path, "/uploads") {
 			continue
 		}
 

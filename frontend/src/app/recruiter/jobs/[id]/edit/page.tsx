@@ -10,7 +10,7 @@ export default function EditJobPage() {
   const jobId = (params?.id as string) || '11111111-1111-1111-1111-111111111111';
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <JobEditor jobId={jobId} />
     </AuthenticatedLayout>
   );

@@ -12,14 +12,14 @@ export default function ApplicationsMainPage() {
 
   if (selectedAppId) {
     return (
-        <AuthenticatedLayout sidebarVariant="recruiter">
+        <AuthenticatedLayout>
           <ApplicationDetails applicationId={selectedAppId} />
         </AuthenticatedLayout>
     );
   }
 
   return (
-    <AuthenticatedLayout sidebarVariant="recruiter">
+    <AuthenticatedLayout>
       <PageHeader 
         title="ATS Application Pipeline" 
         subtitle="Track candidates across customizable stages, move applicants, and initiate interview scheduling." 
