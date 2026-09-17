@@ -27,7 +27,7 @@ test.describe('Authentication & User Identity Flow', () => {
   });
 
   test('Registration form enforces its schema before calling the API', async ({ page }) => {
-    await page.goto('/register');
+    await page.goto('/signup');
 
     await settled(page.getByRole('heading', { name: 'Create your account' }));
 
@@ -45,7 +45,7 @@ test.describe('Authentication & User Identity Flow', () => {
 
     await expect(page.getByText('Password must be at least 12 characters long')).toBeVisible();
     // Nothing was submitted, so the page must not have navigated away.
-    await expect(page).toHaveURL(/\/register$/);
+    await expect(page).toHaveURL(/\/signup$/);
   });
 
   test('Forgot password rejects a malformed address before sending', async ({ page }) => {

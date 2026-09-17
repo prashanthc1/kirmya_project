@@ -147,7 +147,7 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
                     backgroundColor: theme.palette.primary.dark,
                   },
                 }}
-                aria-label="Upload avatar photo"
+                aria-label="Upload avatar image"
               >
                 <PhotoCameraRoundedIcon fontSize="small" />
               </IconButton>

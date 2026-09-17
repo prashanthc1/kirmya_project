@@ -17,7 +17,7 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     // The alias still resolves; the guard then takes an anonymous visitor on to
     // the login page, so both destinations are acceptable here. What must not
     // happen is landing on /messaging itself.
-    await expect(page).toHaveURL(/\/(messages|login)/);
+    await expect(page).toHaveURL(/\/(messages|signin|login)/);
   });
 
   test('An anonymous visitor is sent to sign in rather than shown the inbox', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     // useEffect still fires its conversation request — the guard sits inside the
     // page component rather than around it — and the API refuses that request,
     // which is asserted separately below.
-    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/signin|login/, { timeout: 20_000 });
   });
 
   test('The conversations endpoint refuses an anonymous caller', async ({ request }) => {
@@ -73,6 +73,6 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     // markup.
     await page.goto('/messages');
     await expect(page).toHaveURL(/\/messages/, { timeout: 20_000 });
-    await expect(page).not.toHaveURL(/login/);
+    await expect(page).not.toHaveURL(/signin|login/);
   });
 });

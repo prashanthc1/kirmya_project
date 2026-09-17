@@ -22,7 +22,7 @@ import { publishJob } from './helpers';
  * on a landmark ordering nit.
  */
 
-const CORE_JOURNEY = ['/', '/jobs', '/signin', '/register', '/forgot-password'];
+const CORE_JOURNEY = ['/', '/jobs', '/signin', '/signup', '/forgot-password'];
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 

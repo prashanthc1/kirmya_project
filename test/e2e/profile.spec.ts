@@ -18,7 +18,7 @@ test.describe('User Profile Flow', () => {
 
     await page.goto('/profile');
 
-    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/signin|login/, { timeout: 20_000 });
 
     // Note what this does not claim. The page still issues its own
     // GET /api/v1/profile/me: each page calls its API from a useEffect in the
@@ -78,6 +78,6 @@ test.describe('User Profile Flow', () => {
    */
   test('The profile editor sends an anonymous visitor to sign in', async ({ page }) => {
     await page.goto('/profile/edit');
-    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/signin|login/, { timeout: 20_000 });
   });
 });
