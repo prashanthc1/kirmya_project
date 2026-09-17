@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
-import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
+import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
 import PageHeader from '../../../components/shell/PageHeader';
 import DashboardCards from '../../../components/recruiter/DashboardCards';
 import HiringCharts from '../../../components/recruiter/HiringCharts';
@@ -22,7 +22,7 @@ export default function RecruiterDashboardPage() {
   }, []);
 
   return (
-    <AuthenticatedLayout>
+    <RecruiterLayout>
       <PageHeader 
         title="Welcome Back, Corporate Talent Team" 
         subtitle="Manage job vacancies, review ATS candidate applications, schedule interviews, and analyze hiring performance." 
@@ -42,6 +42,6 @@ export default function RecruiterDashboardPage() {
 
       {/* AI Recruiter Assistant */}
       <AIRecruiterAssistant />
-    </AuthenticatedLayout>
+    </RecruiterLayout>
   );
 }
