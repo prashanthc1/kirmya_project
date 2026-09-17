@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Box, Typography, Button, Card, Stack, Chip, Grid, Divider } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
-import RecruiterLayout from '../../../../components/recruiter/RecruiterLayout';
+import AuthenticatedLayout from '../../../../components/shell/AuthenticatedLayout';
+import PageHeader from '../../../../components/shell/PageHeader';
 import PipelineBoard from '../../../../components/recruiter/PipelineBoard';
 
 export default function JobDetailPage() {
@@ -14,15 +15,15 @@ export default function JobDetailPage() {
   const jobId = (params?.id as string) || '11111111-1111-1111-1111-111111111111';
 
   return (
-    <RecruiterLayout>
+    <AuthenticatedLayout sidebarVariant="recruiter">
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/recruiter/jobs')} sx={{ fontWeight: 700 }}>
             Back to Jobs
           </Button>
-          <Typography variant="h4" sx={{ fontWeight: 900 }}>
-            Senior Go Backend Architect
-          </Typography>
+          <PageHeader 
+            title="Senior Go Backend Architect" 
+          />
           <Chip label="ACTIVE" color="success" size="small" sx={{ fontWeight: 800 }} />
         </Stack>
 
@@ -61,6 +62,6 @@ export default function JobDetailPage() {
         Job Candidate ATS Pipeline
       </Typography>
       <PipelineBoard jobId={jobId} />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

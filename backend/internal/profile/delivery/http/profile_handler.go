@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"os"
 
 	"kirmya/internal/profile/models"
 	"kirmya/internal/profile/service"
@@ -604,6 +605,16 @@ func (h *ProfileHandler) UploadPhoto(c *gin.Context) {
 
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	photoURL := "/uploads/profiles/" + userID.String() + "_avatar" + ext
+	uploadDir := "./uploads/profiles"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create upload directory"})
+		return
+	}
+	dst := filepath.Join(uploadDir, filepath.Base(photoURL))
+	if err := c.SaveUploadedFile(file, dst); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save uploaded file"})
+		return
+	}
 	if err := h.service.UpdatePhoto(c.Request.Context(), userID, photoURL); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

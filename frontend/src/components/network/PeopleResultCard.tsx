@@ -24,6 +24,7 @@ interface PeopleResultCardProps {
   onStatusChange?: () => void;
 }
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export const PeopleResultCard: React.FC<PeopleResultCardProps> = ({ person, onStatusChange }) => {
   const [currentStatus, setCurrentStatus] = useState<string>(person.connectionStatus || 'none');
 
@@ -60,7 +61,7 @@ export const PeopleResultCard: React.FC<PeopleResultCardProps> = ({ person, onSt
           <Avatar
             component={Link}
             href={profileHref}
-            src={person.avatarUrl}
+            src={resolveAssetUrl(person.avatarUrl)}
             sx={{
               width: 56,
               height: 56,

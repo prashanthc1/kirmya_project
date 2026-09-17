@@ -1,21 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
+import { Box } from '@mui/material';
+import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
+import PageHeader from '../../../components/shell/PageHeader';
 import InterviewScheduler from '../../../components/recruiter/InterviewScheduler';
 
 export default function InterviewsPage() {
   return (
-    <RecruiterLayout>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
-          Interview Management &amp; Scorecards
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Schedule candidate interviews, assign interviewers, send meeting links, and submit structured feedback scorecards.
-        </Typography>
-      </Box>
+    <AuthenticatedLayout sidebarVariant="recruiter">
+      <PageHeader 
+        title="Interview Management & Scorecards" 
+        subtitle="Schedule candidate interviews, assign interviewers, send meeting links, and submit structured feedback scorecards." 
+      />
 
       {/*
         * The scorecard used to be rendered here on its own, with no interview
@@ -25,6 +22,6 @@ export default function InterviewsPage() {
         * belongs to one interview, so it is opened from that interview.
         */}
       <InterviewScheduler />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
-import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
+import { Box } from '@mui/material';
+import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
+import PageHeader from '../../../components/shell/PageHeader';
 import DashboardCards from '../../../components/recruiter/DashboardCards';
 import HiringCharts from '../../../components/recruiter/HiringCharts';
 import QuickActions from '../../../components/recruiter/QuickActions';
@@ -21,15 +22,11 @@ export default function RecruiterDashboardPage() {
   }, []);
 
   return (
-    <RecruiterLayout>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
-          Welcome Back, Corporate Talent Team
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Manage job vacancies, review ATS candidate applications, schedule interviews, and analyze hiring performance.
-        </Typography>
-      </Box>
+    <AuthenticatedLayout sidebarVariant="recruiter">
+      <PageHeader 
+        title="Welcome Back, Corporate Talent Team" 
+        subtitle="Manage job vacancies, review ATS candidate applications, schedule interviews, and analyze hiring performance." 
+      />
 
       {/* Quick Action Navigation Buttons */}
       <QuickActions />
@@ -45,6 +42,6 @@ export default function RecruiterDashboardPage() {
 
       {/* AI Recruiter Assistant */}
       <AIRecruiterAssistant />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

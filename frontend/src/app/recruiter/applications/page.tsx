@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
+import { Box } from '@mui/material';
+import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
+import PageHeader from '../../../components/shell/PageHeader';
 import PipelineBoard from '../../../components/recruiter/PipelineBoard';
 import ApplicationDetails from '../../../components/recruiter/ApplicationDetails';
 
@@ -11,24 +12,20 @@ export default function ApplicationsMainPage() {
 
   if (selectedAppId) {
     return (
-      <RecruiterLayout>
-        <ApplicationDetails applicationId={selectedAppId} />
-      </RecruiterLayout>
+        <AuthenticatedLayout sidebarVariant="recruiter">
+          <ApplicationDetails applicationId={selectedAppId} />
+        </AuthenticatedLayout>
     );
   }
 
   return (
-    <RecruiterLayout>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
-          ATS Application Pipeline
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Track candidates across customizable stages, move applicants, and initiate interview scheduling.
-        </Typography>
-      </Box>
+    <AuthenticatedLayout sidebarVariant="recruiter">
+      <PageHeader 
+        title="ATS Application Pipeline" 
+        subtitle="Track candidates across customizable stages, move applicants, and initiate interview scheduling." 
+      />
 
       <PipelineBoard onSelectCandidate={(c) => setSelectedAppId(c.applicationId)} />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

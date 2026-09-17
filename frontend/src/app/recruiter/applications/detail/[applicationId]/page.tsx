@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import ATSLayout from '../../../../../components/ats/ATSLayout';
+import AuthenticatedLayout from '../../../../../components/shell/AuthenticatedLayout';
 import ApplicationDetails from '../../../../../components/ats/ApplicationDetails';
 
 export default function ApplicationDetailPage() {
@@ -10,8 +10,8 @@ export default function ApplicationDetailPage() {
   const applicationId = (params?.applicationId as string) || 'a1111111-1111-1111-1111-111111111111';
 
   return (
-    <ATSLayout>
+    <AuthenticatedLayout sidebarVariant="recruiter">
       <ApplicationDetails applicationId={applicationId} />
-    </ATSLayout>
+    </AuthenticatedLayout>
   );
 }

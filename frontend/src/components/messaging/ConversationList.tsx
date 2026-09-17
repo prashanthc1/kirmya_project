@@ -32,6 +32,7 @@ interface ConversationListProps {
   onRefresh?: () => void;
 }
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export const ConversationList: React.FC<ConversationListProps> = ({
   conversations,
   selectedId,
@@ -148,7 +149,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                     overlap="circular"
                   >
                     <Avatar
-                      src={conv.participantAvatar}
+                      src={resolveAssetUrl(conv.participantAvatar)}
                       sx={{
                         width: 44,
                         height: 44,

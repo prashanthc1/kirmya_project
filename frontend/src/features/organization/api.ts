@@ -1,8 +1,4 @@
-// The shared authenticated client: it attaches the signed-in user's access
-// token and handles refresh. This module previously created its own axios
-// instance pointed at http://localhost:8080 with a fixed bearer, so in a
-// production build it called the developer's machine as a synthetic user.
-import { authApiClient as client } from '../../services/authService';
+import { authApiClient } from '../../services/api';
 import {
   CreateOrganizationPayload,
   InviteMemberPayload,
@@ -11,40 +7,37 @@ import {
   OrganizationUser,
 } from './types';
 
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
-
-
-client.interceptors.request.use((config: any) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  // Tenant header support
+const getTenantHeaders = (): Record<string, string> => {
+  if (typeof window === 'undefined') {
+    return { 'X-Tenant-ID': '00000000-0000-0000-0000-000000000000' };
+  }
   const tenantID = localStorage.getItem('active_tenant_id') || '00000000-0000-0000-0000-000000000000';
-  config.headers['X-Tenant-ID'] = tenantID;
-  return config;
-});
+  return { 'X-Tenant-ID': tenantID };
+};
 
 export const organizationApi = {
   createOrganization: async (payload: CreateOrganizationPayload): Promise<{ message: string; organization: Organization }> => {
-    const response = await client.post('/organizations', payload);
+    const response = await authApiClient.post('/organizations', payload, { headers: getTenantHeaders() });
     return response.data;
   },
 
   getOrganizationsForUser: async (): Promise<{ data: Organization[]; count: number }> => {
-    const response = await client.get('/organizations');
+    const response = await authApiClient.get('/organizations', { headers: getTenantHeaders() });
     return response.data;
   },
 
   addMember: async (orgId: string, payload: InviteMemberPayload): Promise<{ message: string; member: OrganizationUser }> => {
-    const response = await client.post(`/organizations/${orgId}/members`, payload);
+    const response = await authApiClient.post(`/organizations/${orgId}/members`, payload, { headers: getTenantHeaders() });
     return response.data;
   },
 
   getOrgMembers: async (orgId: string): Promise<{ data: OrganizationUser[]; count: number }> => {
-    const response = await client.get(`/organizations/${orgId}/members`);
+    const response = await authApiClient.get(`/organizations/${orgId}/members`, { headers: getTenantHeaders() });
     return response.data;
   },
 
   getAllPermissions: async (): Promise<{ data: OrganizationPermission[]; count: number }> => {
-    const response = await client.get('/organizations/permissions');
+    const response = await authApiClient.get('/organizations/permissions', { headers: getTenantHeaders() });
     return response.data;
   },
 };

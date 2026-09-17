@@ -128,27 +128,30 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
           </Box>
         ) : (
           <Tooltip title={disabled ? '' : 'Change Avatar'}>
-            <IconButton
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              sx={{
-                position: 'absolute',
-                bottom: -2,
-                right: -2,
-                width: 32,
-                height: 32,
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.primary.contrastText,
-                border: `2px solid ${theme.palette.background.paper}`,
-                boxShadow: theme.shadows[2],
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                },
-              }}
-              aria-label="Upload avatar image"
-            >
-              <PhotoCameraRoundedIcon sx={{ fontSize: 16 }} />
-            </IconButton>
+            <span>
+              <IconButton
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                sx={{
+                  position: 'absolute',
+                  bottom: -2,
+                  right: -2,
+                  width: 32,
+                  height: 32,
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  border: `2px solid ${theme.palette.background.paper}`,
+                  boxShadow: theme.shadows[2],
+                  borderRadius: '50%',
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+                aria-label="Upload avatar photo"
+              >
+                <PhotoCameraRoundedIcon fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         )}
       </Box>

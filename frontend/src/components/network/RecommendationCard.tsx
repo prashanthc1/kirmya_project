@@ -26,6 +26,7 @@ interface RecommendationCardProps {
   onDismiss?: () => void;
 }
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export const RecommendationCard: React.FC<RecommendationCardProps> = ({ cand, onDismiss }) => {
   const [dismissed, setDismissed] = useState(false);
 
@@ -72,7 +73,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({ cand, on
             <Avatar
               component={Link}
               href={profileHref}
-              src={cand.avatarUrl}
+              src={resolveAssetUrl(cand.avatarUrl)}
               sx={{
                 width: 56,
                 height: 56,

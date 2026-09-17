@@ -38,6 +38,7 @@ interface ChatHeaderProps {
   onReport?: () => void;
 }
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   conversation,
   isTyping = false,
@@ -97,7 +98,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <Avatar
             component={Link}
             href={profileHref}
-            src={conversation.participantAvatar}
+            src={resolveAssetUrl(conversation.participantAvatar)}
             sx={{
               width: 44,
               height: 44,

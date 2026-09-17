@@ -67,8 +67,8 @@ export default function HomePage() {
       {/* Mobile Drawer */}
       <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
 
-      {/* 2. Main Landmark for Accessibility */}
-      <main id="main-content">
+      {/* 2. Page Content */}
+      <div>
         {/* 3. Hero Section */}
         <HeroSection />
 
@@ -108,7 +108,7 @@ export default function HomePage() {
 
         {/* 16. Final Call To Action */}
         <CTASection />
-      </main>
+      </div>
 
       {/* 17. Standardized Footer */}
       <Footer />

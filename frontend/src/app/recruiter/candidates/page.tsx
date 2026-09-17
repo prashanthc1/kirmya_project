@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import { Box, Typography, Grid, Card, Stack, Button, Alert, CircularProgress } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { recruiterApi } from '../../../features/recruiter/api';
-import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
+import AuthenticatedLayout from '../../../components/shell/AuthenticatedLayout';
 import CandidateFilters, { CandidateSearchFilters } from '../../../components/recruiter/CandidateFilters';
 import CandidateCard from '../../../components/recruiter/CandidateCard';
+import PageHeader from '../../../components/shell/PageHeader';
+import { RecruiterCandidateItem } from '../../../features/recruiter/types';
 
 export default function CandidatesMainPage() {
   const [filters, setFilters] = useState<CandidateSearchFilters>({
@@ -49,16 +51,11 @@ export default function CandidatesMainPage() {
   });
 
   return (
-    <RecruiterLayout>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
-          Candidate Discovery &amp; Search
-        </Typography>
-
-        <Typography variant="subtitle1" color="text.secondary">
-          Find verified candidates, match resumes against open jobs, and shortlist talent.
-        </Typography>
-      </Box>
+    <AuthenticatedLayout sidebarVariant="recruiter">
+      <PageHeader 
+        title="Candidate Discovery & Search" 
+        subtitle="Find verified candidates, match resumes against open jobs, and shortlist talent."
+      />
 
       <Box sx={{ mb: 4 }}>
         <CandidateFilters
@@ -111,9 +108,9 @@ export default function CandidatesMainPage() {
           </Typography>
         )}
         {candidates.map((cand) => (
-          <CandidateCard key={cand.id} candidate={cand as any} />
+          <CandidateCard key={cand.id} candidate={cand as RecruiterCandidateItem} />
         ))}
       </Stack>
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

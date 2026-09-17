@@ -105,6 +105,17 @@ export const STATIC_CONTEXTS = {
       { id: 'messages', label: 'Messages', href: '/notifications/messages' },
     ],
   },
+  ats: {
+    id: 'ats',
+    title: 'Enterprise Applicant Tracking System (ATS)',
+    items: [
+      { id: 'pipeline', label: 'Kanban Pipeline', href: '/recruiter/pipeline', exact: true },
+      { id: 'applications', label: 'All Applications', href: '/recruiter/applications' },
+      { id: 'interviews', label: 'Interviews & Schedules', href: '/recruiter/interviews' },
+      { id: 'offers', label: 'Job Offers & Contracts', href: '/recruiter/offers' },
+      { id: 'analytics', label: 'Recruitment Analytics', href: '/recruiter/analytics' },
+    ],
+  },
   platformAdmin: {
     id: 'platform-admin',
     title: 'Kirmya administration',
@@ -254,6 +265,8 @@ export const resolveContext = (pathname: string): NavContext | null => {
       return STATIC_CONTEXTS.settings;
     case 'notifications':
       return STATIC_CONTEXTS.notifications;
+    case 'recruiter':
+      return STATIC_CONTEXTS.ats;
     case 'admin':
       return STATIC_CONTEXTS.platformAdmin;
     default:

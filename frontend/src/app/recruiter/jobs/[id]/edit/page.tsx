@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import RecruiterLayout from '../../../../../components/recruiter/RecruiterLayout';
+import AuthenticatedLayout from '../../../../../components/shell/AuthenticatedLayout';
 import JobEditor from '../../../../../components/recruiter/JobEditor';
 
 export default function EditJobPage() {
@@ -10,8 +10,8 @@ export default function EditJobPage() {
   const jobId = (params?.id as string) || '11111111-1111-1111-1111-111111111111';
 
   return (
-    <RecruiterLayout>
+    <AuthenticatedLayout sidebarVariant="recruiter">
       <JobEditor jobId={jobId} />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

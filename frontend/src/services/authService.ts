@@ -218,6 +218,7 @@ export interface UserProfile {
   currentLocation?: string;
   jobTitle?: string;
   employmentStatus?: string;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

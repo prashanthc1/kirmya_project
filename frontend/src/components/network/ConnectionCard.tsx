@@ -36,6 +36,7 @@ interface ConnectionCardProps {
   onRemove?: () => void;
 }
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection, onRemove }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
@@ -94,7 +95,7 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection, onRe
             <Avatar
               component={Link}
               href={profileHref}
-              src={connection.avatarUrl}
+              src={resolveAssetUrl(connection.avatarUrl)}
               sx={{
                 width: 56,
                 height: 56,

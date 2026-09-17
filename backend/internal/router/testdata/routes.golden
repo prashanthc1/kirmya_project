@@ -547,6 +547,8 @@ GET /health/live
 GET /health/ready
 GET /health/startup
 GET /status
+GET /uploads/*filepath
+HEAD /uploads/*filepath
 PATCH /api/v1/admin/compliance/dsr/:id
 PATCH /api/v1/admin/compliance/legal-holds/:id/release
 POST /api/v1/admin/analytics/cleanup

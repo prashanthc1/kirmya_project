@@ -41,6 +41,7 @@ interface ProfileHeaderProps {
   onCoverUpload?: (url: string) => void;
 }
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   isOwner = true,
@@ -155,7 +156,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         {/* Avatar & Photo Upload */}
         <Box sx={{ position: 'relative', flexShrink: 0 }}>
           <Avatar
-            src={profile.avatarUrl || undefined}
+            src={resolveAssetUrl(profile.avatarUrl)}
             sx={{
               width: { xs: 96, sm: 112 },
               height: { xs: 96, sm: 112 },
@@ -180,24 +181,26 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 onChange={handleAvatarFileChange}
               />
               <Tooltip title="Upload new photo">
-                <IconButton
-                  size="small"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={uploadingAvatar}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    right: 0,
-                    bgcolor: 'background.paper',
-                    boxShadow: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    '&:hover': { bgcolor: 'action.hover' },
-                  }}
-                  aria-label="Upload profile photo"
-                >
-                  {uploadingAvatar ? <CircularProgress size={16} /> : <PhotoCameraOutlinedIcon fontSize="small" />}
-                </IconButton>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      bgcolor: 'background.paper',
+                      boxShadow: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
+                    aria-label="Upload profile photo"
+                  >
+                    {uploadingAvatar ? <CircularProgress size={16} /> : <PhotoCameraOutlinedIcon fontSize="small" />}
+                  </IconButton>
+                </span>
               </Tooltip>
             </>
           )}

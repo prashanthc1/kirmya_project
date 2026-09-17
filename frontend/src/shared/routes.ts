@@ -69,7 +69,7 @@ export const ROUTES = {
   // Career AI & Tools
   AI_JOB_MATCH: '/ai-job-match',
   CAREER_COMPANION: '/career-companion',
-  CAREER_ASSISTANT: '/career-assistant',
+  CAREER_ASSISTANT: '/career-companion',
   INTERVIEW_PREP: '/interview-prep',
   INTERVIEWS: '/interviews',
   INTERVIEW_ROOM: (id: string) => `/interviews/${encodeURIComponent(id)}`,
