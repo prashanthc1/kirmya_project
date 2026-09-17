@@ -65,7 +65,7 @@ import {
 
 export default function CareerCompanionPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chat' | 'roadmap' | 'interview' | 'studio'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'roadmap' | 'interview' | 'studio'>('studio');
 
   // Career Companion State
   const [conversations, setConversations] = useState<AIConversation[]>([]);
@@ -293,8 +293,8 @@ export default function CareerCompanionPage() {
               <AutoAwesomeIcon />
             </Avatar>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Kirmya AI Career Companion & Studio
+              <Typography variant="h4" component="h1" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                AI-Ready Career Assistant Studio
               </Typography>
               <Typography variant="body2" sx={{ color: subTextColor }}>
                 AI-Powered Career Recovery, Resume Optimization, Skill Roadmaps & Interview Coaching
