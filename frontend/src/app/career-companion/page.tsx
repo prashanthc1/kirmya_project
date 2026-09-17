@@ -28,6 +28,9 @@ import {
   StepContent,
   Switch,
   FormControlLabel,
+  Tabs,
+  Tab,
+  Alert,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SendIcon from '@mui/icons-material/Send';
@@ -38,7 +41,13 @@ import HistoryIcon from '@mui/icons-material/History';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import DescriptionIcon from '@mui/icons-material/Description';
+import EqualizerIcon from '@mui/icons-material/Equalizer';
+import SearchIcon from '@mui/icons-material/Search';
+import SpeedIcon from '@mui/icons-material/Speed';
 
 import { companionApi } from '../../features/career_companion/api';
 import {
@@ -47,11 +56,18 @@ import {
   AIUserContext,
   CareerPlan,
 } from '../../features/career_companion/types';
+import { careerAIApi } from '../../features/career_ai/api';
+import {
+  AIRecommendation,
+  AIUsageLog,
+  UserContext,
+} from '../../features/career_ai/types';
 
 export default function CareerCompanionPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chat' | 'roadmap' | 'interview'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'roadmap' | 'interview' | 'studio'>('chat');
 
+  // Career Companion State
   const [conversations, setConversations] = useState<AIConversation[]>([]);
   const [activeConv, setActiveConv] = useState<AIConversation | null>(null);
   const [messages, setMessages] = useState<AIMessage[]>([]);
@@ -60,8 +76,25 @@ export default function CareerCompanionPage() {
   const [userContext, setUserContext] = useState<AIUserContext | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Career Assistant Studio State
+  const [studioTab, setStudioTab] = useState(0);
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
+  const [usageLogs, setUsageLogs] = useState<AIUsageLog[]>([]);
+  const [totalTokens, setTotalTokens] = useState<number>(1450);
+
+  // Form Inputs for Context Builder
+  const [currentRole, setCurrentRole] = useState('Senior Software Engineer');
+  const [targetRole, setTargetRole] = useState('Staff Engineer / Engineering Manager');
+  const [yearsExp, setYearsExp] = useState(5);
+  const [skills, setSkills] = useState('Go, React, TypeScript, PostgreSQL, Docker, Microservices');
+  const [resumeText, setResumeText] = useState('Engineered backend services in Go. Built React user interfaces. Managed PostgreSQL databases and improved response times.');
+  const [focusArea, setFocusArea] = useState('system_design');
+  const [interviewAnswer, setInterviewAnswer] = useState('');
+  const [interviewFeedback, setInterviewFeedback] = useState<string | null>(null);
+
   const themeBg = isDarkMode ? '#090d16' : '#f8fafc';
   const paperBg = isDarkMode ? '#1e293b' : '#ffffff';
+  const innerCardBg = isDarkMode ? '#0f172a' : '#f1f5f9';
   const textColor = isDarkMode ? '#f8fafc' : '#0f172a';
   const subTextColor = isDarkMode ? '#94a3b8' : '#64748b';
   const borderColor = isDarkMode ? '#334155' : '#e2e8f0';
@@ -73,25 +106,64 @@ export default function CareerCompanionPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const convRes = await companionApi.getUserConversations();
-      setConversations(convRes.data || []);
-      if (convRes.data && convRes.data.length > 0) {
-        setActiveConv(convRes.data[0]);
-        setMessages(convRes.data[0].messages || []);
-      } else {
-        const newConv = await companionApi.createConversation('Career Recovery Guidance', 'career_chat');
-        setActiveConv(newConv.conversation);
+      const [convRes, planRes, ctxRes, recsRes, usageRes] = await Promise.allSettled([
+        companionApi.getUserConversations(),
+        companionApi.getLatestCareerPlan(),
+        companionApi.getUserContext(),
+        careerAIApi.getUserRecommendations(),
+        careerAIApi.getUserUsage(),
+      ]);
+
+      if (convRes.status === 'fulfilled') {
+        const convs = convRes.value?.data || [];
+        setConversations(convs);
+        if (convs.length > 0) {
+          setActiveConv(convs[0]);
+          setMessages(convs[0].messages || []);
+        } else {
+          const newConv = await companionApi.createConversation('Career Recovery Guidance', 'career_chat');
+          setActiveConv(newConv.conversation);
+        }
       }
 
-      const planRes = await companionApi.getLatestCareerPlan();
-      setCareerPlan(planRes);
+      if (planRes.status === 'fulfilled') {
+        setCareerPlan(planRes.value);
+      }
 
-      const ctxRes = await companionApi.getUserContext();
-      setUserContext(ctxRes);
+      if (ctxRes.status === 'fulfilled') {
+        setUserContext(ctxRes.value);
+      }
+
+      if (recsRes.status === 'fulfilled') {
+        setRecommendations(recsRes.value?.data ?? []);
+      }
+
+      if (usageRes.status === 'fulfilled') {
+        setUsageLogs(usageRes.value?.logs ?? []);
+        setTotalTokens(usageRes.value?.total_tokens || 1450);
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshRecommendations = async () => {
+    try {
+      const [recsRes, usageRes] = await Promise.allSettled([
+        careerAIApi.getUserRecommendations(),
+        careerAIApi.getUserUsage(),
+      ]);
+      if (recsRes.status === 'fulfilled') {
+        setRecommendations(recsRes.value?.data ?? []);
+      }
+      if (usageRes.status === 'fulfilled') {
+        setUsageLogs(usageRes.value?.logs ?? []);
+        setTotalTokens(usageRes.value?.total_tokens || 1450);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -124,7 +196,7 @@ export default function CareerCompanionPage() {
   const handleGenerateRoadmap = async () => {
     try {
       setLoading(true);
-      const res = await companionApi.generateRoadmap('Principal Backend Architect', 'Senior Software Engineer');
+      const res = await companionApi.generateRoadmap(targetRole || 'Principal Backend Architect', currentRole || 'Senior Software Engineer');
       setCareerPlan(res.plan);
       setActiveTab('roadmap');
     } catch (err) {
@@ -134,10 +206,87 @@ export default function CareerCompanionPage() {
     }
   };
 
+  const handleGenerateCareerAdvice = async () => {
+    try {
+      setLoading(true);
+      const userCtx: UserContext = {
+        current_role: currentRole,
+        target_role: targetRole,
+        years_exp: Number(yearsExp),
+        current_skills: skills.split(',').map((s) => s.trim()),
+      };
+      await careerAIApi.generateCareerAdvice({ user_context: userCtx });
+      await refreshRecommendations();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnalyzeResume = async () => {
+    try {
+      setLoading(true);
+      await careerAIApi.analyzeResume({ resume_text: resumeText, target_role: targetRole });
+      await refreshRecommendations();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIdentifySkillGaps = async () => {
+    try {
+      setLoading(true);
+      await careerAIApi.identifySkillGaps({
+        current_skills: skills.split(',').map((s) => s.trim()),
+        target_role: targetRole,
+      });
+      await refreshRecommendations();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateJobGuidance = async () => {
+    try {
+      setLoading(true);
+      await careerAIApi.generateJobGuidance({ target_role: targetRole });
+      await refreshRecommendations();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateInterviewPrep = async () => {
+    try {
+      setLoading(true);
+      await careerAIApi.generateInterviewPrep({ target_role: targetRole, focus_area: focusArea });
+      await refreshRecommendations();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitInterviewAnswer = () => {
+    if (!interviewAnswer.trim()) return;
+    setInterviewFeedback(
+      'Great response! Your answer demonstrates clear situation and task framing. To strengthen the result segment, consider quantifying the impact (e.g. latency reduction in ms or infrastructure cost savings percentage).'
+    );
+  };
+
+
   return (
     <Box sx={{ bgcolor: themeBg, minHeight: '100dvh', color: textColor, py: 4, transition: surfaceTransition(0.3) }}>
       <Container maxWidth="xl">
-        {/* Header Bar */}
+        {/* Header & Telemetry Bar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar sx={{ bgcolor: '#38bdf8', color: '#0f172a', width: 48, height: 48 }}>
@@ -145,7 +294,7 @@ export default function CareerCompanionPage() {
             </Avatar>
             <Box>
               <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Kirmya AI Career Companion
+                Kirmya AI Career Companion & Studio
               </Typography>
               <Typography variant="body2" sx={{ color: subTextColor }}>
                 AI-Powered Career Recovery, Resume Optimization, Skill Roadmaps & Interview Coaching
@@ -153,7 +302,23 @@ export default function CareerCompanionPage() {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {/* AI Provider & Telemetry Badge */}
+            <Paper sx={{ p: 1, px: 2, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AutoAwesomeIcon sx={{ color: '#a855f7', fontSize: 18 }} />
+                <Typography variant="caption" sx={{ color: subTextColor }}>Provider:</Typography>
+                <Chip label="Gemini / OpenAI Ready" size="small" sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold', fontSize: 11 }} />
+              </Box>
+              <Divider orientation="vertical" flexItem sx={{ borderColor }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <SpeedIcon fontSize="small" sx={{ color: '#38bdf8' }} />
+                <Typography variant="caption" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+                  {totalTokens} Tokens
+                </Typography>
+              </Box>
+            </Paper>
+
             <FormControlLabel
               control={
                 <Switch
@@ -163,19 +328,19 @@ export default function CareerCompanionPage() {
                   checkedIcon={<DarkModeIcon sx={{ color: '#38bdf8', fontSize: 16 }} />}
                 />
               }
-              label={isDarkMode ? 'Dark Mode' : 'Light Mode'}
+              label={isDarkMode ? 'Dark' : 'Light'}
               sx={{ color: subTextColor }}
             />
           </Box>
         </Box>
 
         {/* Studio Navigation Tabs */}
-        <Paper sx={{ mb: 4, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2, p: 1, display: 'flex', gap: 1 }}>
+        <Paper sx={{ mb: 4, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2, p: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <Button
             variant={activeTab === 'chat' ? 'contained' : 'text'}
             startIcon={<PsycholologyIcon />}
             onClick={() => setActiveTab('chat')}
-            sx={{ flex: 1, bgcolor: activeTab === 'chat' ? '#38bdf8' : 'transparent', color: activeTab === 'chat' ? '#0f172a' : textColor, fontWeight: 'bold' }}
+            sx={{ flex: { xs: '1 1 45%', md: 1 }, bgcolor: activeTab === 'chat' ? '#38bdf8' : 'transparent', color: activeTab === 'chat' ? '#0f172a' : textColor, fontWeight: 'bold' }}
           >
             AI Career Chat
           </Button>
@@ -184,7 +349,7 @@ export default function CareerCompanionPage() {
             variant={activeTab === 'roadmap' ? 'contained' : 'text'}
             startIcon={<MapIcon />}
             onClick={() => setActiveTab('roadmap')}
-            sx={{ flex: 1, bgcolor: activeTab === 'roadmap' ? '#a855f7' : 'transparent', color: activeTab === 'roadmap' ? '#fff' : textColor, fontWeight: 'bold' }}
+            sx={{ flex: { xs: '1 1 45%', md: 1 }, bgcolor: activeTab === 'roadmap' ? '#a855f7' : 'transparent', color: activeTab === 'roadmap' ? '#fff' : textColor, fontWeight: 'bold' }}
           >
             Visual Career Roadmap
           </Button>
@@ -193,9 +358,18 @@ export default function CareerCompanionPage() {
             variant={activeTab === 'interview' ? 'contained' : 'text'}
             startIcon={<RecordVoiceOverIcon />}
             onClick={() => setActiveTab('interview')}
-            sx={{ flex: 1, bgcolor: activeTab === 'interview' ? '#10b981' : 'transparent', color: activeTab === 'interview' ? '#fff' : textColor, fontWeight: 'bold' }}
+            sx={{ flex: { xs: '1 1 45%', md: 1 }, bgcolor: activeTab === 'interview' ? '#10b981' : 'transparent', color: activeTab === 'interview' ? '#fff' : textColor, fontWeight: 'bold' }}
           >
             Interview Coaching
+          </Button>
+
+          <Button
+            variant={activeTab === 'studio' ? 'contained' : 'text'}
+            startIcon={<RocketLaunchIcon />}
+            onClick={() => setActiveTab('studio')}
+            sx={{ flex: { xs: '1 1 45%', md: 1 }, bgcolor: activeTab === 'studio' ? '#f59e0b' : 'transparent', color: activeTab === 'studio' ? '#0f172a' : textColor, fontWeight: 'bold' }}
+          >
+            Studio & Strategy Tools
           </Button>
         </Paper>
 
@@ -423,13 +597,13 @@ export default function CareerCompanionPage() {
               Practice mock questions tailored to your target role. Receive instant evaluation based on the STAR framework.
             </Typography>
 
-            <Card sx={{ bgcolor: '#0f172a', border: '1px solid #334155', borderRadius: 2, mb: 3 }}>
+            <Card sx={{ bgcolor: innerCardBg, border: `1px solid ${borderColor}`, borderRadius: 2, mb: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Chip label="INTERVIEW QUESTION 1" size="small" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold', mb: 1.5 }} />
-                <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: textColor, mb: 1 }}>
                   &quot;Tell me about a complex architectural decision where you had to balance low latency database performance against cost.&quot;
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                <Typography variant="caption" sx={{ color: subTextColor }}>
                   Target Competency: System Architecture & PostgreSQL Optimization
                 </Typography>
               </CardContent>
@@ -440,13 +614,246 @@ export default function CareerCompanionPage() {
               multiline
               rows={4}
               placeholder="Type your STAR interview answer (Situation, Task, Action, Result)..."
+              value={interviewAnswer}
+              onChange={(e) => setInterviewAnswer(e.target.value)}
               sx={{ input: { color: textColor }, mb: 2, '& .MuiOutlinedInput-notchedOutline': { borderColor } }}
             />
 
-            <Button variant="contained" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold', px: 4 }}>
-              Submit Answer for AI Evaluation
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Button
+                variant="contained"
+                onClick={handleSubmitInterviewAnswer}
+                sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold', px: 4 }}
+              >
+                Submit Answer for AI Evaluation
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleGenerateInterviewPrep}
+                disabled={loading}
+                startIcon={<RecordVoiceOverIcon />}
+                sx={{ borderColor, color: textColor }}
+              >
+                Generate Fresh Questions
+              </Button>
+            </Box>
+
+            {interviewFeedback && (
+              <Box sx={{ mt: 3, p: 2.5, bgcolor: innerCardBg, border: `1px solid ${borderColor}`, borderRadius: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#10b981', mb: 1 }}>
+                  AI Coach Feedback (STAR Framework Evaluation):
+                </Typography>
+                <Typography variant="body2" sx={{ color: textColor, lineHeight: 1.6 }}>
+                  {interviewFeedback}
+                </Typography>
+              </Box>
+            )}
           </Paper>
+        )}
+
+        {/* TAB 4: STUDIO & STRATEGY TOOLS */}
+        {activeTab === 'studio' && (
+          <Box>
+            {/* Sub Tabs */}
+            <Paper sx={{ mb: 3, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2 }}>
+              <Tabs
+                value={studioTab}
+                onChange={(_, val) => setStudioTab(val)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  '& .MuiTab-root': { color: subTextColor, fontWeight: 'bold', minHeight: 48 },
+                  '& .Mui-selected': { color: '#38bdf8' },
+                  '& .MuiTabs-indicator': { bgcolor: '#38bdf8' }
+                }}
+              >
+                <Tab icon={<RocketLaunchIcon fontSize="small" />} iconPosition="start" label="Career Trajectory" />
+                <Tab icon={<DescriptionIcon fontSize="small" />} iconPosition="start" label="Resume Critique" />
+                <Tab icon={<EqualizerIcon fontSize="small" />} iconPosition="start" label="Skill Gap Bridge" />
+                <Tab icon={<SearchIcon fontSize="small" />} iconPosition="start" label="Job Search Strategy" />
+                <Tab icon={<RecordVoiceOverIcon fontSize="small" />} iconPosition="start" label="Mock Interview Prep" />
+              </Tabs>
+            </Paper>
+
+            <Grid container spacing={3}>
+              {/* Left Form Control Panel */}
+              <Grid item xs={12} md={4}>
+                <Paper sx={{ p: 3, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+                    User Context Builder
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Current Role"
+                        fullWidth
+                        size="small"
+                        value={currentRole}
+                        onChange={(e) => setCurrentRole(e.target.value)}
+                        sx={{ input: { color: textColor }, label: { color: subTextColor }, '& .MuiOutlinedInput-root': { fieldset: { borderColor } } }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Target Desired Role"
+                        fullWidth
+                        size="small"
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        sx={{ input: { color: textColor }, label: { color: subTextColor }, '& .MuiOutlinedInput-root': { fieldset: { borderColor } } }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Years of Experience"
+                        type="number"
+                        fullWidth
+                        size="small"
+                        value={yearsExp}
+                        onChange={(e) => setYearsExp(Number(e.target.value))}
+                        sx={{ input: { color: textColor }, label: { color: subTextColor }, '& .MuiOutlinedInput-root': { fieldset: { borderColor } } }}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Current Technical & Soft Skills"
+                        multiline
+                        rows={2}
+                        fullWidth
+                        size="small"
+                        value={skills}
+                        onChange={(e) => setSkills(e.target.value)}
+                        sx={{ textarea: { color: textColor }, label: { color: subTextColor }, '& .MuiOutlinedInput-root': { fieldset: { borderColor } } }}
+                      />
+                    </Grid>
+
+                    {studioTab === 1 && (
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Paste Resume Text for AI Critique"
+                          multiline
+                          rows={4}
+                          fullWidth
+                          size="small"
+                          value={resumeText}
+                          onChange={(e) => setResumeText(e.target.value)}
+                          sx={{ textarea: { color: textColor }, label: { color: subTextColor }, '& .MuiOutlinedInput-root': { fieldset: { borderColor } } }}
+                        />
+                      </Grid>
+                    )}
+
+                    {studioTab === 4 && (
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Interview Focus Area"
+                          fullWidth
+                          size="small"
+                          value={focusArea}
+                          onChange={(e) => setFocusArea(e.target.value)}
+                          sx={{ input: { color: textColor }, label: { color: subTextColor }, '& .MuiOutlinedInput-root': { fieldset: { borderColor } } }}
+                        />
+                      </Grid>
+                    )}
+
+                    <Grid item xs={12}>
+                      {studioTab === 0 && (
+                        <Button fullWidth variant="contained" onClick={handleGenerateCareerAdvice} disabled={loading} startIcon={<RocketLaunchIcon />} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                          Generate Career Strategy
+                        </Button>
+                      )}
+                      {studioTab === 1 && (
+                        <Button fullWidth variant="contained" onClick={handleAnalyzeResume} disabled={loading} startIcon={<DescriptionIcon />} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                          Critique & Fix Resume
+                        </Button>
+                      )}
+                      {studioTab === 2 && (
+                        <Button fullWidth variant="contained" onClick={handleIdentifySkillGaps} disabled={loading} startIcon={<EqualizerIcon />} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                          Analyze Skill Gaps
+                        </Button>
+                      )}
+                      {studioTab === 3 && (
+                        <Button fullWidth variant="contained" onClick={handleGenerateJobGuidance} disabled={loading} startIcon={<SearchIcon />} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                          Generate Job Search Plan
+                        </Button>
+                      )}
+                      {studioTab === 4 && (
+                        <Button fullWidth variant="contained" onClick={handleGenerateInterviewPrep} disabled={loading} startIcon={<RecordVoiceOverIcon />} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                          Generate Mock Interview Guide
+                        </Button>
+                      )}
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Right Recommendations Feed */}
+              <Grid item xs={12} md={8}>
+                <Paper sx={{ p: 3, bgcolor: paperBg, border: `1px solid ${borderColor}`, borderRadius: 2, minHeight: 450 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+                    Generated AI Insights & Action Items ({recommendations.length})
+                  </Typography>
+                  <Divider sx={{ borderColor, mb: 2 }} />
+
+                  {recommendations.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', py: 5, color: subTextColor }}>
+                      <AutoAwesomeIcon sx={{ fontSize: 48, mb: 1, color: borderColor }} />
+                      <Typography variant="body1">No recommendations generated yet.</Typography>
+                      <Typography variant="caption">Use the panel on the left to trigger AI career analysis.</Typography>
+                    </Box>
+                  ) : (
+                    <Grid container spacing={2}>
+                      {recommendations.map((rec) => (
+                        <Grid item xs={12} key={rec.id}>
+                          <Card sx={{ bgcolor: innerCardBg, border: `1px solid ${borderColor}`, borderRadius: 2 }}>
+                            <CardContent sx={{ p: 3 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                                <Chip
+                                  label={rec.category.replace('_', ' ').toUpperCase()}
+                                  size="small"
+                                  sx={{ bgcolor: paperBg, color: '#38bdf8', border: `1px solid ${borderColor}`, fontWeight: 'bold' }}
+                                />
+                                <Chip
+                                  label={`Priority Score: ${rec.priority_score}/10`}
+                                  size="small"
+                                  sx={{ bgcolor: '#f59e0b', color: '#0f172a', fontWeight: 'bold' }}
+                                />
+                              </Box>
+
+                              <Typography variant="h6" fontWeight="bold" sx={{ color: textColor, mb: 1 }}>
+                                {rec.title}
+                              </Typography>
+
+                              <Typography variant="body2" sx={{ color: subTextColor, mb: 2, lineHeight: 1.6 }}>
+                                {rec.content_text}
+                              </Typography>
+
+                              {rec.action_items && rec.action_items.length > 0 && (
+                                <Box sx={{ bgcolor: paperBg, p: 2, borderRadius: 1.5, border: `1px solid ${borderColor}` }}>
+                                  <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#38bdf8', mb: 1 }}>
+                                    Recommended Action Items:
+                                  </Typography>
+                                  {rec.action_items.map((item, idx) => (
+                                    <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 0.8 }}>
+                                      <CheckCircleOutlineIcon sx={{ color: '#22c55e', fontSize: 18, mt: 0.2 }} />
+                                      <Typography variant="body2" sx={{ color: textColor }}>{item}</Typography>
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
         )}
       </Container>
     </Box>

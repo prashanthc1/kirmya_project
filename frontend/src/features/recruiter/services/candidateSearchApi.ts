@@ -1,14 +1,4 @@
-// Shared authenticated client rather than a module-local axios instance on a
-// hardcoded localhost base, which a production build could never reach.
-import { authApiClient as client } from '../../../services/authService';
-
-const MOCK_USER_ID = '9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d';
-
-
-client.interceptors.request.use((config: any) => {
-  config.headers.Authorization = `Bearer ${MOCK_USER_ID}`;
-  return config;
-});
+import { authApiClient } from '../../../services/api';
 
 export const candidateSearchApi = {
   searchCandidates: async (criteria: {
@@ -27,42 +17,42 @@ export const candidateSearchApi = {
       jobTitle: string;
     };
   }) => {
-    const response = await client.post('/search/candidates', criteria);
+    const response = await authApiClient.post('/search/candidates', criteria);
     return response.data;
   },
 
   getHistory: async () => {
-    const response = await client.get('/search/history');
+    const response = await authApiClient.get('/search/history');
     return response.data;
   },
 
   saveCandidate: async (payload: { candidateId: string; listName: string }) => {
-    const response = await client.post('/search/saved', payload);
+    const response = await authApiClient.post('/search/saved', payload);
     return response.data;
   },
 
   getSavedCandidates: async () => {
-    const response = await client.get('/search/saved');
+    const response = await authApiClient.get('/search/saved');
     return response.data;
   },
 
   removeSavedCandidate: async (bookmarkId: string) => {
-    const response = await client.delete(`/search/saved/${bookmarkId}`);
+    const response = await authApiClient.delete(`/search/saved/${bookmarkId}`);
     return response.data;
   },
 
   addNote: async (payload: { candidateId: string; notes: string }) => {
-    const response = await client.post('/search/notes', payload);
+    const response = await authApiClient.post('/search/notes', payload);
     return response.data;
   },
 
   getNotes: async (candidateId: string) => {
-    const response = await client.get(`/search/notes/${candidateId}`);
+    const response = await authApiClient.get(`/search/notes/${candidateId}`);
     return response.data;
   },
 
   contactCandidate: async (payload: { candidateId: string; subject: string; body: string }) => {
-    const response = await client.post('/search/contact', payload);
+    const response = await authApiClient.post('/search/contact', payload);
     return response.data;
   },
 };

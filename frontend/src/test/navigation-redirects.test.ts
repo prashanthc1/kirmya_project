@@ -40,6 +40,38 @@ describe('route consolidation', () => {
     expect(all.find(r => r.source === '/networking')?.destination).toBe('/network');
   });
 
+  it('redirects duplicate auth routes to canonical signin and signup', async () => {
+    const all = await redirects();
+    const expected: Record<string, string> = {
+      '/login': '/signin',
+      '/auth/signin': '/signin',
+      '/register': '/signup',
+      '/auth/signup': '/signup',
+    };
+    for (const [source, destination] of Object.entries(expected)) {
+      const rule = all.find(r => r.source === source);
+      expect(rule, `no redirect for ${source}`).toBeDefined();
+      expect(rule!.destination).toBe(destination);
+      expect(rule!.permanent).toBe(true);
+    }
+  });
+
+  it('redirects the duplicate /company directory index to /companies', async () => {
+    const all = await redirects();
+    const rule = all.find(r => r.source === '/company');
+    expect(rule).toBeDefined();
+    expect(rule!.destination).toBe('/companies');
+    expect(rule!.permanent).toBe(true);
+  });
+
+  it('redirects the duplicate /career-assistant to /career-companion', async () => {
+    const all = await redirects();
+    const rule = all.find(r => r.source === '/career-assistant');
+    expect(rule).toBeDefined();
+    expect(rule!.destination).toBe('/career-companion');
+    expect(rule!.permanent).toBe(true);
+  });
+
   it('cannot loop: no destination is itself a redirect source', async () => {
     const all = await redirects();
     const sources = new Set(all.map(r => r.source));

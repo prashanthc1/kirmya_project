@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import RecruiterLayout from '../../../../components/recruiter/RecruiterLayout';
+import AuthenticatedLayout from '../../../../components/shell/AuthenticatedLayout';
 import CandidateProfile from '../../../../components/recruiter/CandidateProfile';
 
 export default function CandidateDetailPage() {
@@ -10,8 +10,8 @@ export default function CandidateDetailPage() {
   const candidateId = (params?.id as string) || 'c1111111-1111-1111-1111-111111111111';
 
   return (
-    <RecruiterLayout>
+    <AuthenticatedLayout sidebarVariant="recruiter">
       <CandidateProfile candidateId={candidateId} />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

@@ -75,4 +75,63 @@ describe('ApplyJobModal', () => {
       expect(handleSuccess).toHaveBeenCalledWith('app-999');
     });
   });
+
+  it('blocks progression on step 0 if email is empty', async () => {
+    (authApiClient.get as any).mockResolvedValueOnce({ data: [] });
+    render(
+      <ThemeProvider theme={theme}>
+        <ApplyJobModal
+          open
+          job={{
+            id: 'job-502',
+            title: 'Frontend Engineer',
+            company_name: 'Kirmya Global',
+          } as any}
+          onClose={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    const emailInput = screen.getByLabelText(/Email Address/i);
+    fireEvent.change(emailInput, { target: { value: '' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Please provide a valid email address/i)).toBeDefined();
+    });
+  });
+
+  it('handles API submission errors gracefully and displays error alert', async () => {
+    (authApiClient.get as any).mockResolvedValueOnce({ data: [] });
+    (authApiClient.post as any).mockRejectedValueOnce({
+      response: { data: { message: 'Candidate already applied to this job' } },
+    });
+
+    render(
+      <ThemeProvider theme={theme}>
+        <ApplyJobModal
+          open
+          job={{
+            id: 'job-503',
+            title: 'DevOps Engineer',
+            company_name: 'Kirmya Global',
+          } as any}
+          onClose={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    for (let i = 0; i < 4; i++) {
+      fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+    }
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Submit Application/i })).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Submit Application/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Candidate already applied to this job/i)).toBeDefined();
+    });
+  });
 });

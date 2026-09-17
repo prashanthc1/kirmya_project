@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import RecruiterLayout from '../../../../components/recruiter/RecruiterLayout';
+import AuthenticatedLayout from '../../../../components/shell/AuthenticatedLayout';
 import JobEditor from '../../../../components/recruiter/JobEditor';
 
 export default function CreateJobPage() {
   return (
-    <RecruiterLayout>
+    <AuthenticatedLayout sidebarVariant="recruiter">
       <JobEditor />
-    </RecruiterLayout>
+    </AuthenticatedLayout>
   );
 }

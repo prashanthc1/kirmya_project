@@ -163,18 +163,20 @@ export const PersonalizedFeedStream: React.FC<PersonalizedFeedStreamProps> = ({
         )}
 
         <Tooltip title="Refresh Feed">
-          <IconButton
-            size="small"
-            onClick={() => fetchFeed()}
-            disabled={loading}
-            sx={{
-              border: `1px solid ${
-                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.1)'
-              }`,
-            }}
-          >
-            <RefreshIcon fontSize="small" />
-          </IconButton>
+          <span>
+            <IconButton
+              size="small"
+              onClick={() => fetchFeed()}
+              disabled={loading}
+              sx={{
+                border: `1px solid ${
+                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.1)'
+                }`,
+              }}
+            >
+              <RefreshIcon fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
       </Stack>
 

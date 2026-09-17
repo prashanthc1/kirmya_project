@@ -44,6 +44,7 @@ import { activeWorkspace } from '../../shared/workspace/active';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import { tokens } from '../../theme/tokens';
 
+import { resolveAssetUrl } from '../../shared/utils/assets';
 export interface AppHeaderProps {
   onMobileNavOpen?: () => void;
 }
@@ -299,6 +300,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                 >
                   <Avatar
                     alt={user.firstName ? `${user.firstName} ${user.lastName}` : 'User Avatar'}
+                    src={resolveAssetUrl(user.avatarUrl)}
                     sx={{ width: 34, height: 34, bgcolor: theme.palette.primary.main, fontSize: '0.875rem' }}
                   >
                     {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}

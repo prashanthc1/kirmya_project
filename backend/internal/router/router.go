@@ -219,6 +219,7 @@ func New(deps RouterDependencies, cfg SwaggerConfig) *gin.Engine {
 	if deps.SystemHealthHandler == nil {
 		registerHealthCheck(engine)
 	}
+	engine.Static("/uploads", "./uploads")
 	SetupRouter(engine, deps)
 	return engine
 }

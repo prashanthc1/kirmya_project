@@ -52,6 +52,7 @@ const nextConfig = {
       // such a rule would swallow. The duplicate public company profile at
       // /company/[slug] is left in place for now and recorded as remaining work
       // rather than redirected into a 404.
+      { source: '/company', destination: '/companies', permanent: true },
 
       // Duplicate module prefixes. The backend retired the matching API
       // aliases in batch 5; these are the web halves of the same pair.
@@ -59,6 +60,15 @@ const nextConfig = {
       { source: '/messaging/:path*', destination: '/messages/:path*', permanent: true },
       { source: '/networking', destination: '/network', permanent: true },
       { source: '/networking/:path*', destination: '/network/:path*', permanent: true },
+
+      // Canonical auth routes: /signin and /signup
+      { source: '/login', destination: '/signin', permanent: true },
+      { source: '/auth/signin', destination: '/signin', permanent: true },
+      { source: '/register', destination: '/signup', permanent: true },
+      { source: '/auth/signup', destination: '/signup', permanent: true },
+
+      // Career tooling consolidation: /career-assistant merged into /career-companion
+      { source: '/career-assistant', destination: '/career-companion', permanent: true },
     ];
   },
   async headers() {

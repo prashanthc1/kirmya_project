@@ -17,6 +17,6 @@ export const api = {
     apiClient.delete<T>(url, config),
 };
 
-export { extractApiError, type ParsedApiError } from './authService';
+export { authApiClient, extractApiError, type ParsedApiError } from './authService';
 
 export default apiClient;
