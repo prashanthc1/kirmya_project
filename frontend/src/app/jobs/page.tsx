@@ -15,9 +15,6 @@ import {
   useTheme,
 } from '@mui/material';
 
-import { AppHeader } from '../../components/shell/AppHeader';
-import { MobileDrawer } from '../../components/shell/MobileDrawer';
-import { MobileBottomNav } from '../../components/shell/MobileBottomNav';
 import { Footer } from '../../components/landing/Footer';
 import { JobCard, JobSearchFilters, JobFilterValues } from '../../components/jobs';
 import { EmptyState, ErrorState } from '../../components/common';
@@ -57,7 +54,6 @@ function JobsBoard() {
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // Fetch search results
   const fetchJobs = useCallback(() => {
@@ -154,14 +150,8 @@ function JobsBoard() {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      {/* Global Header */}
-      <AppHeader onMobileNavOpen={() => setMobileDrawerOpen(true)} />
-      <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
-
-      {/* Main Content Area */}
-      <Box component="main" id="main-content" sx={{ flexGrow: 1, py: { xs: 3, md: 5 } }}>
-        <Container maxWidth="lg">
+    <Box sx={{ py: { xs: 3, md: 5 } }}>
+      <Container maxWidth="lg">
           {/* Page Heading & Value Summary */}
           <Box sx={{ mb: 3 }}>
             <Typography
@@ -245,15 +235,13 @@ function JobsBoard() {
             </>
           )}
         </Container>
+
+        {/* Footer */}
+        <Box sx={{ mt: 6 }}>
+          <Footer />
+        </Box>
       </Box>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
-
-      {/* Footer */}
-      <Footer />
-    </Box>
-  );
+    );
 }
 
 export default function JobsPage() {

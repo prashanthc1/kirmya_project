@@ -4,9 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Container } from '@mui/material';
 
-import { AppHeader } from '../../../components/shell/AppHeader';
-import { MobileDrawer } from '../../../components/shell/MobileDrawer';
-import { MobileBottomNav } from '../../../components/shell/MobileBottomNav';
 import { Footer } from '../../../components/landing/Footer';
 import { JobDetailView } from '../../../components/jobs';
 import { ErrorState } from '../../../components/common';
@@ -27,7 +24,6 @@ export default function JobDetailShell({ jobId, job: serverJob }: { jobId: strin
 
   const [job, setJob] = useState<JobDetail | null>(serverJob);
   const [isSaved, setIsSaved] = useState(false);
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   // Only the saved state is fetched in the browser. The posting is already
   // here, so there is no loading skeleton over content the server rendered —
@@ -51,31 +47,28 @@ export default function JobDetailShell({ jobId, job: serverJob }: { jobId: strin
   }, [jobId]);
 
   return (
-    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <AppHeader onMobileNavOpen={() => setMobileDrawerOpen(true)} />
-      <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
+    <Box sx={{ py: { xs: 3, md: 5 } }}>
+      <Container maxWidth="lg">
+        {job ? (
+          <JobDetailView
+            job={job}
+            isSaved={isSaved}
+            onSaveToggle={(saved) => setIsSaved(saved)}
+          />
+        ) : (
+          <ErrorState
+            title="Job Posting Not Found"
+            message="This job posting may have expired or is no longer accepting applications."
+            actionLabel="Explore Other Jobs"
+            onRetry={() => router.push(ROUTES.JOBS)}
+          />
+        )}
+      </Container>
 
-      <Box component="main" id="main-content" sx={{ flexGrow: 1, py: { xs: 3, md: 5 } }}>
-        <Container maxWidth="lg">
-          {job ? (
-            <JobDetailView
-              job={job}
-              isSaved={isSaved}
-              onSaveToggle={(saved) => setIsSaved(saved)}
-            />
-          ) : (
-            <ErrorState
-              title="Job Posting Not Found"
-              message="This job posting may have expired or is no longer accepting applications."
-              actionLabel="Explore Other Jobs"
-              onRetry={() => router.push(ROUTES.JOBS)}
-            />
-          )}
-        </Container>
+      {/* Footer */}
+      <Box sx={{ mt: 6 }}>
+        <Footer />
       </Box>
-
-      <MobileBottomNav />
-      <Footer />
     </Box>
   );
 }
