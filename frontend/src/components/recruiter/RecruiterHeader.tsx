@@ -13,17 +13,13 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Link from 'next/link';
-import { useColorMode } from '../../app/providers';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../shared/routes';
 import WorkspaceSwitcher from '../shell/WorkspaceSwitcher';
 
 export const RecruiterHeader: React.FC = () => {
   const theme = useTheme();
-  const { mode, toggleColorMode } = useColorMode();
   const { user, notificationsCount } = useAuth();
   const isDark = theme.palette.mode === 'dark';
 
@@ -77,10 +73,6 @@ export const RecruiterHeader: React.FC = () => {
           says the same kind of thing and is true.
         */}
         <WorkspaceSwitcher />
-
-        <IconButton onClick={toggleColorMode} color="inherit" aria-label="Toggle colour mode">
-          {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
 
         {/*
           The badge was the literal 4 for every recruiter on every page. A count

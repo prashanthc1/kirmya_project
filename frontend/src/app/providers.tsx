@@ -12,17 +12,19 @@ import { ErrorBoundary } from '../shared/monitoring/error_boundary';
 type ColorModeContextType = {
   mode: 'light' | 'dark';
   toggleColorMode: () => void;
+  setColorMode: (mode: 'light' | 'dark') => void;
 };
 
 const ColorModeContext = createContext<ColorModeContextType>({
   mode: 'light',
   toggleColorMode: () => {},
+  setColorMode: () => {},
 });
 
 export const useColorMode = () => useContext(ColorModeContext);
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<'light' | 'dark'>('dark');
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -34,15 +36,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedMode = localStorage.getItem('kirmya-theme-mode') as 'light' | 'dark';
-    if (savedMode) {
+    if (savedMode === 'light' || savedMode === 'dark') {
       setMode(savedMode);
     }
   }, []);
 
-  const toggleColorMode = () => {
-    const nextMode = mode === 'light' ? 'dark' : 'light';
+  const setColorMode = (nextMode: 'light' | 'dark') => {
     setMode(nextMode);
     localStorage.setItem('kirmya-theme-mode', nextMode);
+  };
+
+  const toggleColorMode = () => {
+    const nextMode = mode === 'light' ? 'dark' : 'light';
+    setColorMode(nextMode);
   };
 
   // createTheme is expensive and its result is an identity that MUI and Emotion
@@ -53,7 +59,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ErrorBoundary>
-      <ColorModeContext.Provider value={{ mode, toggleColorMode }}>
+      <ColorModeContext.Provider value={{ mode, toggleColorMode, setColorMode }}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider theme={theme}>
             <CssBaseline />

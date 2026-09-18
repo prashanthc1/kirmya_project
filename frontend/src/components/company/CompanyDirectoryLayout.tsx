@@ -10,12 +10,9 @@ import {
   Button,
   useTheme,
 } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BusinessIcon from '@mui/icons-material/Business';
 import { useRouter } from 'next/navigation';
-import { useColorMode } from '../../app/providers';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,7 +20,6 @@ interface LayoutProps {
 
 export const CompanyDirectoryLayout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
-  const { mode, toggleColorMode } = useColorMode();
   const router = useRouter();
   const isDark = theme.palette.mode === 'dark';
 
@@ -58,10 +54,6 @@ export const CompanyDirectoryLayout: React.FC<LayoutProps> = ({ children }) => {
             >
               Back to Kirmya
             </Button>
-
-            <IconButton onClick={toggleColorMode} color="inherit">
-              {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
           </Stack>
 
           <Stack spacing={1.5} alignItems="center" textAlign="center" sx={{ maxWidth: 800, mx: 'auto' }}>

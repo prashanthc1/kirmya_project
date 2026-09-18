@@ -27,9 +27,14 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import BusinessIcon from '@mui/icons-material/Business';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import AuthenticatedLayout from '../../components/shell/AuthenticatedLayout';
 import { useAuthContext } from '../../context/AuthContext';
+import { useColorMode } from '../providers';
 import { tokens } from '../../theme/tokens';
 
 export const dynamic = 'force-dynamic';
@@ -43,6 +48,13 @@ interface SettingSection {
 }
 
 const SETTING_SECTIONS: SettingSection[] = [
+  {
+    title: 'Appearance & Display Preferences',
+    description: 'Customize light and dark theme mode, visual contrast, and interface accessibility.',
+    icon: <PaletteOutlinedIcon fontSize="medium" color="primary" />,
+    href: '/settings/appearance',
+    badge: 'Light Theme Default',
+  },
   {
     title: 'Profile & Personal Information',
     description: 'Manage your public profile headline, bio, skills, experience, and contact info.',
@@ -96,6 +108,7 @@ const SETTING_SECTIONS: SettingSection[] = [
 
 export default function SettingsHubPage() {
   const { user } = useAuthContext();
+  const { mode, setColorMode } = useColorMode();
 
   const displayName =
     (user as any)?.name ||
@@ -172,6 +185,164 @@ export default function SettingsHubPage() {
               Edit Profile
             </Button>
           </Stack>
+        </Paper>
+
+        {/* Interactive Theme & Appearance Section */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2.5, md: 3.5 },
+            borderRadius: `${tokens.radius.lg}px`,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            mb: 4,
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            spacing={2}
+            sx={{ mb: 2.5 }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Box
+                sx={{
+                  p: 1.25,
+                  borderRadius: `${tokens.radius.md}px`,
+                  bgcolor: 'action.hover',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <PaletteOutlinedIcon color="primary" />
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.01em' }}>
+                  Theme & Display Appearance
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Choose your interface theme. The application defaults to light theme.
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Chip
+              label={mode === 'light' ? 'Light Theme Active (Default)' : 'Dark Theme Active'}
+              color={mode === 'light' ? 'primary' : 'default'}
+              variant="outlined"
+              size="small"
+              icon={mode === 'light' ? <LightModeIcon sx={{ fontSize: 16 }} /> : <DarkModeIcon sx={{ fontSize: 16 }} />}
+              sx={{ fontWeight: 700 }}
+            />
+          </Stack>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Card
+                elevation={0}
+                onClick={() => setColorMode('light')}
+                role="button"
+                aria-label="Select Light Theme"
+                sx={{
+                  cursor: 'pointer',
+                  borderRadius: `${tokens.radius.md}px`,
+                  border: '2px solid',
+                  borderColor: mode === 'light' ? 'primary.main' : 'divider',
+                  bgcolor: mode === 'light' ? 'action.selected' : 'background.paper',
+                  p: 2.5,
+                  transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                  },
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: `${tokens.radius.sm}px`,
+                        bgcolor: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#f59e0b',
+                      }}
+                    >
+                      <LightModeIcon />
+                    </Box>
+                    <Box>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                          Light Theme
+                        </Typography>
+                        <Chip label="Default" size="small" color="primary" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 800 }} />
+                      </Stack>
+                      <Typography variant="body2" color="text.secondary">
+                        Crisp, clean high-contrast appearance for professional clarity.
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  {mode === 'light' && <CheckCircleIcon color="primary" />}
+                </Stack>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Card
+                elevation={0}
+                onClick={() => setColorMode('dark')}
+                role="button"
+                aria-label="Select Dark Theme"
+                sx={{
+                  cursor: 'pointer',
+                  borderRadius: `${tokens.radius.md}px`,
+                  border: '2px solid',
+                  borderColor: mode === 'dark' ? 'primary.main' : 'divider',
+                  bgcolor: mode === 'dark' ? 'action.selected' : 'background.paper',
+                  p: 2.5,
+                  transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                  },
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: `${tokens.radius.sm}px`,
+                        bgcolor: '#0f172a',
+                        border: '1px solid #334155',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#38bdf8',
+                      }}
+                    >
+                      <DarkModeIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                        Dark Theme
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Deep contrast theme designed for low-glare environments.
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  {mode === 'dark' && <CheckCircleIcon color="primary" />}
+                </Stack>
+              </Card>
+            </Grid>
+          </Grid>
         </Paper>
 
         {/* Section Grid */}

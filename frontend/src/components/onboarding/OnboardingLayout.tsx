@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Box, Container, Stack, Typography, Button, IconButton, useTheme } from '@mui/material';
 import BrandLockup from '../brand/BrandLockup';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
-import ThemeToggle from '../landing/ThemeToggle';
 
 interface OnboardingLayoutProps {
   children: React.ReactNode;
@@ -73,8 +72,6 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, on
                   Save & Resume Later
                 </Button>
               )}
-
-              <ThemeToggle />
             </Stack>
           </Stack>
         </Container>

@@ -8,6 +8,7 @@ import SettingsHubPage from '../app/settings/page';
 import SettingsSecurityPage from '../app/settings/security/page';
 import SettingsPrivacyPage from '../app/settings/privacy/page';
 import NotificationSettingsPage from '../app/settings/notifications/page';
+import SettingsAppearancePage from '../app/settings/appearance/page';
 import { authApiClient } from '../services/authService';
 
 const mockPush = vi.fn();
@@ -148,6 +149,33 @@ describe('Settings, Privacy, Security & Account Management Experience (Prompt 28
       expect(screen.getByText('Safety & Blocked Users')).toBeDefined();
       expect(screen.getByText('Billing & Subscriptions')).toBeDefined();
       expect(screen.getByText('Employer & Organization Settings')).toBeDefined();
+      expect(screen.getByText('Appearance & Display Preferences')).toBeDefined();
+      expect(screen.getByText('Theme & Display Appearance')).toBeDefined();
+      expect(screen.getByRole('button', { name: /Select Light Theme/i })).toBeDefined();
+      expect(screen.getByRole('button', { name: /Select Dark Theme/i })).toBeDefined();
+    });
+  });
+
+  describe('SettingsAppearancePage Component', () => {
+    it('renders appearance settings, theme options, and live preview', () => {
+      renderWithTheme(<SettingsAppearancePage />);
+
+      expect(screen.getByText(/Appearance & Display Preferences/i)).toBeDefined();
+      expect(screen.getByText(/Theme Mode/i)).toBeDefined();
+      expect(screen.getByText(/Live Theme Preview/i)).toBeDefined();
+      expect(screen.getByText(/Accessibility & Contrast Standards/i)).toBeDefined();
+      expect(screen.getByRole('button', { name: /Set Light Theme Mode/i })).toBeDefined();
+      expect(screen.getByRole('button', { name: /Set Dark Theme Mode/i })).toBeDefined();
+    });
+
+    it('allows switching between light and dark theme mode', () => {
+      renderWithTheme(<SettingsAppearancePage />);
+
+      const darkButton = screen.getByRole('button', { name: /Set Dark Theme Mode/i });
+      fireEvent.click(darkButton);
+
+      const lightButton = screen.getByRole('button', { name: /Set Light Theme Mode/i });
+      fireEvent.click(lightButton);
     });
   });
 

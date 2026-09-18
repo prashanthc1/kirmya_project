@@ -24,7 +24,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import LanguageIcon from '@mui/icons-material/Language';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import ThemeToggle from './ThemeToggle';
 
 const navLinks = [
   { label: 'Home', href: '#' },
@@ -193,9 +192,6 @@ export const Navbar: React.FC = () => {
                 </MenuItem>
               ))}
             </Menu>
-
-            {/* Dark/Light Mode Toggle */}
-            <ThemeToggle />
 
             {/* Auth Buttons */}
             <Button

@@ -34,7 +34,6 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 
 import BrandLockup from '../brand/BrandLockup';
-import ThemeToggle from '../landing/ThemeToggle';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../shared/routes';
 import { PRIMARY_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '../../shared/navigation';
@@ -249,10 +248,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
           })}
         </Stack>
 
-        {/* Right Actions: Theme Toggle & User Menu */}
+        {/* Right Actions: User Menu & Notifications */}
         <Stack direction="row" alignItems="center" spacing={1}>
-          <ThemeToggle />
-
           {authenticated && user ? (
             <>
               {/*

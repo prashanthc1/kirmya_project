@@ -122,6 +122,7 @@ export const ROUTES = {
   // User Settings & Privacy
   SETTINGS: {
     ROOT: '/settings',
+    APPEARANCE: '/settings/appearance',
     ACCOUNT: '/settings/account',
     PRIVACY: '/settings/privacy',
     SECURITY: '/settings/security',

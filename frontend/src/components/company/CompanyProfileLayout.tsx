@@ -9,11 +9,8 @@ import {
   Button,
   useTheme,
 } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation';
-import { useColorMode } from '../../app/providers';
 
 interface CompanyProfileLayoutProps {
   company: any;
@@ -27,7 +24,6 @@ export const CompanyProfileLayout: React.FC<CompanyProfileLayoutProps> = ({
   children,
 }) => {
   const theme = useTheme();
-  const { mode, toggleColorMode } = useColorMode();
   const router = useRouter();
 
   // Schema.org JSON-LD Organization Structured Data
@@ -82,10 +78,6 @@ export const CompanyProfileLayout: React.FC<CompanyProfileLayoutProps> = ({
             >
               Back to Companies Directory
             </Button>
-
-            <IconButton onClick={toggleColorMode} color="inherit">
-              {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
           </Stack>
         </Container>
       </Box>
