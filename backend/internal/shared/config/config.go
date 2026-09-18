@@ -22,6 +22,9 @@ type Config struct {
 	DBName      string
 	JWTSecret   string
 
+	// StorageEndpoint configures S3/R2/MinIO object storage. Required in production.
+	StorageEndpoint string
+
 	// Optional Service Flags
 	RedisEnabled  bool
 	NATSEnabled   bool
@@ -155,6 +158,8 @@ func LoadConfig() (*Config, error) {
 		DBName:      getEnv("DB_NAME", "kirmya"),
 		JWTSecret:   jwtSecret,
 
+		StorageEndpoint: getEnv("STORAGE_ENDPOINT", ""),
+
 		RedisEnabled:  getEnvAsBool("REDIS_ENABLED", true) && (getEnv("REDIS_HOST", "") != "" || getEnv("REDIS_URL", "") != ""),
 		NATSEnabled:   getEnvAsBool("NATS_ENABLED", false) && getEnv("NATS_URL", "") != "",
 		OpenSearchEn:  getEnvAsBool("OPENSEARCH_ENABLED", false) && getEnv("OPENSEARCH_URL", "") != "",
@@ -197,7 +202,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Fast Fail Validation for Production
-	if cfg.AppEnv == "production" {
+	if cfg.AppEnv == "production" || cfg.AppEnv == "prod" {
 		if cfg.JWTSecret == "" || cfg.JWTSecret == "your-super-secret-jwt-key-min-32-chars-long" {
 			return nil, fmt.Errorf("FATAL: JWT_SECRET must be set to a secure key in production environment")
 		}
@@ -211,6 +216,9 @@ func LoadConfig() (*Config, error) {
 		// posture, so it is refused here rather than merely warned about.
 		if cfg.AllowNoDB {
 			return nil, fmt.Errorf("FATAL: ALLOW_NO_DB must not be enabled in production; it silently discards every write")
+		}
+		if strings.TrimSpace(cfg.StorageEndpoint) == "" {
+			return nil, fmt.Errorf("FATAL: STORAGE_ENDPOINT must be configured in production; local disk storage is allowed only in development/test")
 		}
 	}
 

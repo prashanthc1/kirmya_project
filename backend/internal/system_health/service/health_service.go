@@ -5,9 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
+	"kirmya/internal/shared/mailer"
 	"kirmya/internal/system_health/models"
 	"kirmya/internal/system_health/repository"
 
@@ -22,6 +25,62 @@ var startTime = time.Now()
 // on the status page and the admin health dashboard, so they must describe what
 // the probe actually observed.
 type ComponentProbe func(ctx context.Context) (message string, details map[string]interface{}, err error)
+
+// StorageChecker abstracts storage engine capabilities for health probes.
+type StorageChecker interface {
+	DriverName() string
+	Exists(ctx context.Context, key string) (bool, error)
+}
+
+// NewStorageProbe builds a ComponentProbe that validates storage liveness via a real Exists call.
+// When storage is local disk or STORAGE_ENDPOINT is unset, it reports provider=local.
+// When storage is S3, it reports healthy only if a real Exists call succeeds against the endpoint.
+func NewStorageProbe(storage StorageChecker) ComponentProbe {
+	return func(ctx context.Context) (string, map[string]interface{}, error) {
+		if storage == nil {
+			return "storage provider is not configured", nil, errors.New("storage provider is not configured")
+		}
+
+		ctxT, cancel := context.WithTimeout(ctx, 3*time.Second)
+		defer cancel()
+
+		endpoint := strings.TrimSpace(os.Getenv("STORAGE_ENDPOINT"))
+		driver := storage.DriverName()
+
+		// A real Exists probe against the storage backend
+		_, err := storage.Exists(ctxT, "health-probe/.keep-absent")
+		if err != nil {
+			if endpoint == "" || driver == "local" {
+				return fmt.Sprintf("local storage did not answer: %v; provider=local", err), map[string]interface{}{
+					"provider": "local",
+					"driver":   "local",
+				}, err
+			}
+			return fmt.Sprintf("%s storage did not answer Exists probe: %v", driver, err), map[string]interface{}{
+				"provider": driver,
+				"driver":   driver,
+				"endpoint": endpoint,
+			}, err
+		}
+
+		// When STORAGE_ENDPOINT is unset or storage is local disk:
+		if endpoint == "" || driver == "local" {
+			return "local disk storage operating normally; provider=local", map[string]interface{}{
+				"provider":    "local",
+				"driver":      "local",
+				"exists_call": "verified",
+			}, nil
+		}
+
+		// When STORAGE_ENDPOINT is set and driver is S3 / cloudflare-r2 / minio:
+		return fmt.Sprintf("%s storage answered real Exists call", driver), map[string]interface{}{
+			"provider":    driver,
+			"driver":      driver,
+			"endpoint":    endpoint,
+			"exists_call": "verified",
+		}, nil
+	}
+}
 
 // Probes carries the real dependency checks the composition root can supply.
 //
@@ -53,6 +112,9 @@ type Probes struct {
 
 	// Version is the running application version, for the same reason.
 	Version string
+
+	// AppEnv identifies the deployment environment (e.g. "production", "development", "test").
+	AppEnv string
 }
 
 type SystemHealthService struct {
@@ -215,6 +277,52 @@ func (s *SystemHealthService) probeComponent(ctx context.Context, name string, w
 	}
 }
 
+func isProductionEnv(appEnv string) bool {
+	if appEnv == "" {
+		appEnv = os.Getenv("APP_ENV")
+	}
+	env := strings.ToLower(strings.TrimSpace(appEnv))
+	return env == "production" || env == "prod"
+}
+
+func (s *SystemHealthService) resolveEmailHealth(ctx context.Context) models.ComponentHealth {
+	isProd := isProductionEnv(s.probes.AppEnv)
+	weight := models.WeightImportant
+	if isProd {
+		weight = models.WeightCritical
+	}
+
+	if s.probes.Email != nil {
+		return s.probeComponent(ctx, "email", weight, func() (int64, string, map[string]interface{}, error) {
+			msg, details, err := s.probes.Email(ctx)
+			return 0, msg, details, err
+		})
+	}
+
+	// No custom probe supplied: derive from real configuration (SMTP or Resend)
+	m := mailer.FromEnv()
+	status, msg, details := m.HealthStatus(s.probes.AppEnv)
+
+	var healthStatus models.HealthStatus
+	switch status {
+	case "healthy":
+		healthStatus = models.StatusHealthy
+	case "critical":
+		healthStatus = models.StatusCritical
+	default:
+		healthStatus = models.StatusDisabled
+	}
+
+	return models.ComponentHealth{
+		Name:           "email",
+		Status:         healthStatus,
+		Weight:         weight,
+		LastChecked:    time.Now(),
+		Message:        msg,
+		MetricsDetails: details,
+	}
+}
+
 func (s *SystemHealthService) GetDetailedHealth(ctx context.Context) (*models.OverallHealthSummary, error) {
 	mMode, _ := s.repo.GetActiveMaintenanceMode(ctx)
 
@@ -247,25 +355,102 @@ func (s *SystemHealthService) GetDetailedHealth(ctx context.Context) (*models.Ov
 
 	// 2. Redis, the cache and — since the shared rate limiter landed — the thing
 	// that keeps sign-in limits from being multiplied by the replica count.
-	components["redis"] = s.runProbe(ctx, "redis", models.WeightImportant, s.probes.Redis,
-		"Redis is not configured; caching and rate limiting are per-process")
+	if s.probes.Redis != nil {
+		components["redis"] = s.probeComponent(ctx, "redis", models.WeightImportant, func() (int64, string, map[string]interface{}, error) {
+			msg, details, err := s.probes.Redis(ctx)
+			return 0, msg, details, err
+		})
+	} else {
+		components["redis"] = models.ComponentHealth{
+			Name:        "redis",
+			Status:      models.StatusDegraded,
+			Weight:      models.WeightImportant,
+			LastChecked: time.Now(),
+			Message:     "degraded (single replica): Redis is not configured; caching and rate limiting are per-process",
+		}
+	}
 
 	// 3. The realtime transport. Named "nats" here for years while the platform
 	// carried no NATS at all.
-	components["realtime"] = s.runProbe(ctx, "realtime", models.WeightImportant, s.probes.Realtime,
-		"No shared realtime broker; delivery reaches one replica's subscribers only")
+	if s.probes.Realtime != nil && s.probes.Redis != nil {
+		components["realtime"] = s.probeComponent(ctx, "realtime", models.WeightImportant, func() (int64, string, map[string]interface{}, error) {
+			msg, details, err := s.probes.Realtime(ctx)
+			return 0, msg, details, err
+		})
+	} else {
+		components["realtime"] = models.ComponentHealth{
+			Name:        "realtime",
+			Status:      models.StatusDegraded,
+			Weight:      models.WeightImportant,
+			LastChecked: time.Now(),
+			Message:     "degraded (single replica): No shared realtime broker; delivery reaches one replica's subscribers only",
+		}
+	}
 
 	// 4. Search.
 	components["search"] = s.runProbe(ctx, "search", models.WeightImportant, s.probes.Search,
 		"No search cluster configured; queries run against PostgreSQL")
 
 	// 5. Object storage.
-	components["storage"] = s.runProbe(ctx, "storage", models.WeightImportant, s.probes.Storage,
-		"No storage probe configured")
+	var storageComp models.ComponentHealth
+	if s.probes.Storage != nil {
+		storageComp = s.probeComponent(ctx, "storage", models.WeightImportant, func() (int64, string, map[string]interface{}, error) {
+			msg, details, err := s.probes.Storage(ctx)
+			return 0, msg, details, err
+		})
+	} else {
+		storageComp = unconfigured("storage", models.WeightImportant, "No storage probe configured")
+	}
 
-	// 6. Outbound email.
-	components["email"] = s.runProbe(ctx, "email", models.WeightImportant, s.probes.Email,
-		"SMTP is not configured; no transactional mail can be delivered")
+	storageEndpoint := strings.TrimSpace(os.Getenv("STORAGE_ENDPOINT"))
+	if storageEndpoint == "" {
+		// When STORAGE_ENDPOINT is unset, the JSON CANNOT claim S3 under any circumstances.
+		if storageComp.Status == models.StatusHealthy {
+			storageComp.Provider = "local"
+			if storageComp.MetricsDetails == nil {
+				storageComp.MetricsDetails = make(map[string]interface{})
+			}
+			storageComp.MetricsDetails["provider"] = "local"
+			if driver, ok := storageComp.MetricsDetails["driver"].(string); ok && driver != "local" {
+				storageComp.MetricsDetails["driver"] = "local"
+			}
+			if !strings.Contains(storageComp.Message, "provider=local") {
+				storageComp.Message = storageComp.Message + "; provider=local"
+			}
+		} else {
+			if storageComp.MetricsDetails != nil {
+				delete(storageComp.MetricsDetails, "s3")
+				if storageComp.MetricsDetails["driver"] == "s3" {
+					storageComp.MetricsDetails["driver"] = "local"
+				}
+			}
+		}
+	} else {
+		if storageComp.Status == models.StatusHealthy {
+			if storageComp.Provider == "" {
+				if driver, ok := storageComp.MetricsDetails["driver"].(string); ok && driver != "" {
+					storageComp.Provider = driver
+				} else {
+					storageComp.Provider = "s3"
+				}
+			}
+			if storageComp.MetricsDetails == nil {
+				storageComp.MetricsDetails = make(map[string]interface{})
+			}
+			if _, ok := storageComp.MetricsDetails["provider"]; !ok {
+				storageComp.MetricsDetails["provider"] = storageComp.Provider
+			}
+		}
+	}
+	components["storage"] = storageComp
+
+	// 6. Outbound email and mailer.
+	emailHealth := s.resolveEmailHealth(ctx)
+	components["email"] = emailHealth
+
+	mailerHealth := emailHealth
+	mailerHealth.Name = "mailer"
+	components["mailer"] = mailerHealth
 
 	// 7. Background workers, measured from the queue they drain rather than
 	// from a constant that claimed eight active heartbeats.
@@ -376,6 +561,29 @@ func (s *SystemHealthService) GenerateDiagnosticReport(ctx context.Context, admi
 	reportID := uuid.New().String()
 	now := time.Now()
 
+	env := s.probes.AppEnv
+	if env == "" {
+		env = os.Getenv("APP_ENV")
+	}
+	if env == "" {
+		env = "development"
+	}
+
+	storageDriver := "local"
+	if strings.TrimSpace(os.Getenv("STORAGE_ENDPOINT")) != "" {
+		storageDriver = "s3"
+	}
+
+	cacheDriver := "in_memory (single replica)"
+	if s.probes.Redis != nil {
+		cacheDriver = "redis"
+	}
+
+	eventBus := "in_process (single replica)"
+	if s.probes.Realtime != nil && s.probes.Redis != nil {
+		eventBus = "redis_pubsub"
+	}
+
 	return &models.DiagnosticReport{
 		ReportID:           reportID,
 		GeneratedAt:        now,
@@ -386,12 +594,12 @@ func (s *SystemHealthService) GenerateDiagnosticReport(ctx context.Context, admi
 		ActiveIncidents:    incidents,
 		RecentRecoveryLogs: recoveries,
 		ConfigurationSummary: map[string]string{
-			"environment":          "production",
+			"environment":          env,
 			"database_driver":      "postgres",
-			"event_bus":            "nats_jetstream",
+			"event_bus":            eventBus,
 			"search_engine":        "opensearch_with_db_fallback",
-			"cache_driver":         "redis_sentinel",
-			"storage_driver":       "object_vault_s3",
+			"cache_driver":         cacheDriver,
+			"storage_driver":       storageDriver,
 			"security_mode":        "strict_tls_cors_mfa",
 			"circuit_breaker_mode": "enabled",
 		},

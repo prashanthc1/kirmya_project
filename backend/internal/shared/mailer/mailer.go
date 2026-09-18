@@ -137,6 +137,37 @@ func (m *Mailer) From() string {
 	return m.fromEmail
 }
 
+// HealthStatus reports the mailer status ("disabled", "healthy", or "critical"),
+// human-readable message, and operational metadata based on real config (SMTP or RESEND).
+// In production (APP_ENV=production or prod), an unconfigured mailer is critical, not a silent skip.
+func (m *Mailer) HealthStatus(appEnv ...string) (status string, message string, details map[string]interface{}) {
+	env := ""
+	if len(appEnv) > 0 {
+		env = appEnv[0]
+	}
+	if env == "" {
+		env = os.Getenv("APP_ENV")
+	}
+	isProd := strings.EqualFold(env, "production") || strings.EqualFold(env, "prod")
+
+	if m == nil || !m.Enabled() {
+		if isProd {
+			return "critical", "no mail transport configured; SMTP or RESEND is required in production", map[string]interface{}{
+				"transport": "none",
+			}
+		}
+		return "disabled", "no mail transport configured; transactional mail is disabled", map[string]interface{}{
+			"transport": "none",
+		}
+	}
+
+	transport := m.Transport()
+	return "healthy", fmt.Sprintf("mail configured over %s; configuration verified", transport), map[string]interface{}{
+		"transport": transport,
+		"from":      m.From(),
+	}
+}
+
 // Send delivers a single HTML message. It returns an error when the Mailer is
 // disabled so callers decide what an unconfigured mail server means for them.
 func (m *Mailer) Send(to, subject, htmlBody string) error {

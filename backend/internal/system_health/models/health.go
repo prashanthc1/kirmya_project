@@ -29,6 +29,7 @@ type ComponentHealth struct {
 	LatencyMS      int64                  `json:"latencyMs"`
 	LastChecked    time.Time              `json:"lastChecked"`
 	Message        string                 `json:"message"`
+	Provider       string                 `json:"provider,omitempty"`
 	MetricsDetails map[string]interface{} `json:"metricsDetails,omitempty"`
 	CircuitBreaker string                 `json:"circuitBreakerStatus,omitempty"` // closed, open, half_open
 	RecentFailures int                    `json:"recentFailures"`

@@ -4,16 +4,24 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
+	"strings"
 	"time"
 )
 
 var (
-	ErrFileNotFound     = errors.New("file not found in storage")
-	ErrStorageAccess    = errors.New("storage access failure")
-	ErrInvalidPath      = errors.New("invalid or unsafe storage path")
-	ErrStorageLimit     = errors.New("storage limit exceeded")
-	ErrInvalidOperation = errors.New("invalid storage operation")
+	ErrFileNotFound                       = errors.New("file not found in storage")
+	ErrStorageAccess                      = errors.New("storage access failure")
+	ErrInvalidPath                        = errors.New("invalid or unsafe storage path")
+	ErrStorageLimit                       = errors.New("storage limit exceeded")
+	ErrInvalidOperation                   = errors.New("invalid storage operation")
+	ErrLocalStorageDisallowedInProduction = errors.New("local disk storage is disallowed in production")
 )
+
+func isProductionEnv() bool {
+	env := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+	return env == "production" || env == "prod"
+}
 
 // StorageProvider is the canonical interface decoupling application file workflows from storage backends.
 type StorageProvider interface {

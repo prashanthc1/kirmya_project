@@ -783,13 +783,31 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	if uploadDir == "" {
 		uploadDir = "./uploads"
 	}
-	localStorageProvider, err := storagePkg.NewLocalStorageProvider(uploadDir, cfg.AppBaseURL, cfg.JWTSecret)
-	if err != nil {
-		slog.Error("Failed to initialize local storage provider", "error", err)
+
+	s3Endpoint := cfg.StorageEndpoint
+	if s3Endpoint == "" {
+		s3Endpoint = os.Getenv("STORAGE_ENDPOINT")
+	}
+
+	// Local disk is allowed only in development/test. In production,
+	// object storage (STORAGE_ENDPOINT) is required and the process must not boot without it.
+	if s3Endpoint == "" && (cfg.AppEnv == "production" || cfg.AppEnv == "prod") {
+		slog.Error("Refusing to start in production without object storage: STORAGE_ENDPOINT must be configured. Local disk is allowed only in development/test.",
+			slog.String("upload_directory", uploadDir),
+		)
+		os.Exit(1)
+	}
+
+	var localStorageProvider storagePkg.StorageProvider
+	if cfg.AppEnv != "production" && cfg.AppEnv != "prod" {
+		var err error
+		localStorageProvider, err = storagePkg.NewLocalStorageProvider(uploadDir, cfg.AppBaseURL, cfg.JWTSecret)
+		if err != nil {
+			slog.Error("Failed to initialize local storage provider", "error", err)
+		}
 	}
 
 	var storageProvider storagePkg.StorageProvider = localStorageProvider
-	s3Endpoint := os.Getenv("STORAGE_ENDPOINT")
 	if s3Endpoint != "" {
 		bucket := os.Getenv("STORAGE_BUCKET")
 		if bucket == "" {
@@ -799,6 +817,10 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		if region == "" {
 			region = "auto"
 		}
+		var fallback storagePkg.StorageProvider
+		if cfg.AppEnv != "production" && cfg.AppEnv != "prod" {
+			fallback = localStorageProvider
+		}
 		storageProvider = storagePkg.NewS3StorageProvider(storagePkg.S3Config{
 			Endpoint:        s3Endpoint,
 			Bucket:          bucket,
@@ -806,28 +828,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 			AccessKeyID:     os.Getenv("STORAGE_ACCESS_KEY_ID"),
 			SecretAccessKey: os.Getenv("STORAGE_SECRET_ACCESS_KEY"),
 			PublicBaseURL:   os.Getenv("STORAGE_PUBLIC_BASE_URL"),
-		}, localStorageProvider)
-	}
-
-	// Local disk is not storage on a platform that rebuilds the container.
-	//
-	// With STORAGE_ENDPOINT unset every upload — avatars, cover images, resumes,
-	// documents — is written under UPLOAD_DIRECTORY inside the container's
-	// writable layer. On Railway that layer is discarded on every redeploy and
-	// every restart unless a volume is mounted over it, so the files disappear
-	// while the rows that name them remain: the profile keeps an avatar_url and
-	// the URL answers 404, which is indistinguishable to a user from the upload
-	// having silently failed.
-	//
-	// Reported rather than refused. Refusing would take a running deployment
-	// down over data that is already lost, and the fix is a volume or an object
-	// store rather than anything this process can do. It is an error so it is
-	// visible in the platform's log filter, which is where somebody diagnosing a
-	// vanished avatar will look.
-	if s3Endpoint == "" && (cfg.AppEnv == "production" || cfg.AppEnv == "prod") {
-		slog.Error("Uploads are being written to container-local disk in production: set STORAGE_ENDPOINT for object storage, or mount a persistent volume at UPLOAD_DIRECTORY. Without one, every uploaded file is lost on the next redeploy or restart.",
-			slog.String("upload_directory", uploadDir),
-		)
+		}, fallback)
 	}
 
 	// Built here, after the storage provider, because the health report probes
@@ -1016,15 +1017,10 @@ func buildHealthProbes(
 	// HEAD, which proves the endpoint, bucket and credentials; for the local
 	// provider it proves the upload directory is readable.
 	if storageProvider != nil {
+		probes.Storage = sysHealthSvc.NewStorageProbe(storageProvider)
+	} else {
 		probes.Storage = func(ctx context.Context) (string, map[string]interface{}, error) {
-			ctxT, cancel := context.WithTimeout(ctx, 3*time.Second)
-			defer cancel()
-			driver := storageProvider.DriverName()
-			if _, err := storageProvider.Exists(ctxT, "health-probe/.keep-absent"); err != nil {
-				return fmt.Sprintf("%s storage did not answer", driver), nil, err
-			}
-			return fmt.Sprintf("%s storage answered", driver),
-				map[string]interface{}{"driver": driver}, nil
+			return "object storage is unconfigured or unavailable", nil, errors.New("storage provider is not configured")
 		}
 	}
 

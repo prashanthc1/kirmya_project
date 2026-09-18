@@ -145,3 +145,65 @@ func TestS3StorageProvider_Fallback(t *testing.T) {
 		t.Errorf("Expected file to exist in fallback storage")
 	}
 }
+
+func TestProductionWithoutS3_RefusesResumeWrite(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("STORAGE_ENDPOINT", "")
+
+	ctx := context.Background()
+	key := "resumes/user-999/cv.pdf"
+	content := []byte("sample-pdf-data")
+
+	// 1. Local storage provider constructor fails closed in production.
+	tempDir := t.TempDir()
+	_, err := NewLocalStorageProvider(tempDir, "http://localhost:8080", "secret")
+	if err == nil {
+		t.Fatalf("Expected NewLocalStorageProvider to fail in production, got nil")
+	}
+
+	// 2. Direct upload to LocalStorageProvider refuses writes in production.
+	localProv := &LocalStorageProvider{baseDir: tempDir}
+	_, err = localProv.Upload(ctx, key, bytes.NewReader(content), int64(len(content)), "application/pdf")
+	if err == nil {
+		t.Fatalf("Expected LocalStorageProvider.Upload to refuse résumé write in production, got nil")
+	}
+
+	// 3. S3 provider without endpoint must not write and must not fallback to local disk in production.
+	s3Prov := NewS3StorageProvider(S3Config{
+		Endpoint:        "",
+		Bucket:          "test-bucket",
+		AccessKeyID:     "",
+		SecretAccessKey: "",
+	}, localProv)
+
+	_, err = s3Prov.Upload(ctx, key, bytes.NewReader(content), int64(len(content)), "application/pdf")
+	if err == nil {
+		t.Fatalf("Expected S3StorageProvider.Upload to fail in production when S3 is missing, got nil")
+	}
+
+	// Ensure the résumé was never written to local disk.
+	exists, _ := localProv.Exists(ctx, key)
+	if exists {
+		t.Errorf("Résumé file must not exist on local disk in production")
+	}
+}
+
+func TestLocalStorageProvider_AllowedInDevelopment(t *testing.T) {
+	t.Setenv("APP_ENV", "development")
+	tempDir := t.TempDir()
+	prov, err := NewLocalStorageProvider(tempDir, "http://localhost:8080", "secret")
+	if err != nil {
+		t.Fatalf("Expected NewLocalStorageProvider to succeed in development, got: %v", err)
+	}
+
+	ctx := context.Background()
+	key := "resumes/user-123/cv.pdf"
+	content := []byte("dev-resume-data")
+	savedKey, err := prov.Upload(ctx, key, bytes.NewReader(content), int64(len(content)), "application/pdf")
+	if err != nil {
+		t.Fatalf("Expected upload to succeed in development, got: %v", err)
+	}
+	if savedKey != key {
+		t.Errorf("Expected key %s, got %s", key, savedKey)
+	}
+}

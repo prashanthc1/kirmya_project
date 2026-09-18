@@ -248,3 +248,57 @@ func TestAnUnreachableSMTPHostFailsFastRatherThanHanging(t *testing.T) {
 		t.Errorf("an unreachable host blocked for %s; the timeout did not apply", elapsed)
 	}
 }
+
+func TestMailerHealthStatus_DisabledVsHealthyVsCritical(t *testing.T) {
+	// 1. Unconfigured in development -> disabled
+	t.Setenv("APP_ENV", "development")
+	t.Setenv("SMTP_HOST", "")
+	t.Setenv("SMTP_FROM_EMAIL", "")
+	t.Setenv("SMTP_SENDER_EMAIL", "")
+	t.Setenv("EMAIL_FROM", "")
+	t.Setenv("SMTP_USERNAME", "")
+	t.Setenv("SMTP_USER", "")
+	t.Setenv("RESEND_API_KEY", "")
+	t.Setenv("RESEND_FROM_EMAIL", "")
+
+	m := FromEnv()
+	status, msg, _ := m.HealthStatus("development")
+	if status != "disabled" {
+		t.Errorf("expected disabled in development, got %s (%s)", status, msg)
+	}
+
+	// 2. Unconfigured in production -> critical (not a silent skip)
+	t.Setenv("APP_ENV", "production")
+	status, msg, _ = m.HealthStatus("production")
+	if status != "critical" {
+		t.Errorf("expected critical in production for unconfigured mailer, got %s (%s)", status, msg)
+	}
+
+	// 3. Configured with SMTP -> healthy
+	t.Setenv("SMTP_HOST", "smtp.example.com")
+	t.Setenv("SMTP_FROM_EMAIL", "noreply@example.com")
+	t.Setenv("RESEND_API_KEY", "")
+
+	mSMTP := FromEnv()
+	status, msg, details := mSMTP.HealthStatus("production")
+	if status != "healthy" {
+		t.Errorf("expected healthy with SMTP, got %s (%s)", status, msg)
+	}
+	if details["transport"] != "smtp" {
+		t.Errorf("expected transport smtp, got %v", details["transport"])
+	}
+
+	// 4. Configured with Resend -> healthy
+	t.Setenv("SMTP_HOST", "")
+	t.Setenv("RESEND_API_KEY", "re_test_key_123")
+	t.Setenv("RESEND_FROM_EMAIL", "noreply@kirmya.com")
+
+	mResend := FromEnv()
+	status, msg, details = mResend.HealthStatus("production")
+	if status != "healthy" {
+		t.Errorf("expected healthy with Resend, got %s (%s)", status, msg)
+	}
+	if details["transport"] != "resend" {
+		t.Errorf("expected transport resend, got %v", details["transport"])
+	}
+}

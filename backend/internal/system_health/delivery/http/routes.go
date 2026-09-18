@@ -15,6 +15,7 @@ func RegisterPublicHealthRoutes(engine *gin.Engine, handler *SystemHealthHandler
 		health.GET("/live", handler.GetPublicLiveness)
 		health.GET("/ready", handler.GetPublicReadiness)
 		health.GET("/startup", handler.GetPublicStartup)
+		health.GET("/dependencies", handler.GetPublicStatus)
 	}
 
 	engine.GET("/status", handler.GetPublicStatus)

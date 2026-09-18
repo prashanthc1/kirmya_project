@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -76,5 +77,29 @@ func TestLoadConfigRateLimitDefaults(t *testing.T) {
 	}
 	if cfg.RateLimitBurst != 120 {
 		t.Errorf("expected a burst of 120 by default, got %v", cfg.RateLimitBurst)
+	}
+}
+
+func TestLoadConfig_ProductionRequiresStorageEndpoint(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("JWT_SECRET", "super-secret-production-jwt-key-32b!")
+	t.Setenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/kirmya")
+	t.Setenv("STORAGE_ENDPOINT", "")
+
+	cfg, err := LoadConfig()
+	if err == nil {
+		t.Fatalf("expected LoadConfig to fail in production when STORAGE_ENDPOINT is empty, got cfg: %+v", cfg)
+	}
+	if !strings.Contains(err.Error(), "STORAGE_ENDPOINT") {
+		t.Errorf("expected error to mention STORAGE_ENDPOINT, got: %v", err)
+	}
+
+	t.Setenv("STORAGE_ENDPOINT", "https://s3.amazonaws.com")
+	cfg, err = LoadConfig()
+	if err != nil {
+		t.Fatalf("expected LoadConfig to succeed with STORAGE_ENDPOINT set, got: %v", err)
+	}
+	if cfg.StorageEndpoint != "https://s3.amazonaws.com" {
+		t.Errorf("expected StorageEndpoint %q, got %q", "https://s3.amazonaws.com", cfg.StorageEndpoint)
 	}
 }

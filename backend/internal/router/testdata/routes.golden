@@ -548,6 +548,7 @@ GET /api/v1/unified-search/suggestions
 GET /api/v1/verifications/requests
 GET /api/v1/verifications/status
 GET /health
+GET /health/dependencies
 GET /health/live
 GET /health/ready
 GET /health/startup

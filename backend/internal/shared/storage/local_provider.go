@@ -25,6 +25,9 @@ type LocalStorageProvider struct {
 
 // NewLocalStorageProvider creates a new local filesystem storage adapter.
 func NewLocalStorageProvider(baseDir, baseURL, signingSecret string) (*LocalStorageProvider, error) {
+	if isProductionEnv() {
+		return nil, ErrLocalStorageDisallowedInProduction
+	}
 	if strings.TrimSpace(baseDir) == "" {
 		baseDir = "./uploads"
 	}
@@ -78,6 +81,9 @@ func (p *LocalStorageProvider) resolveSafePath(key string) (string, error) {
 }
 
 func (p *LocalStorageProvider) Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) (string, error) {
+	if isProductionEnv() {
+		return "", ErrLocalStorageDisallowedInProduction
+	}
 	targetPath, err := p.resolveSafePath(key)
 	if err != nil {
 		return "", err

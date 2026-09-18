@@ -65,9 +65,19 @@ func (p *S3StorageProvider) isConfigured() bool {
 		strings.TrimSpace(p.config.SecretAccessKey) != ""
 }
 
+func (p *S3StorageProvider) canUseFallback() bool {
+	if p.fallback == nil {
+		return false
+	}
+	if isProductionEnv() && p.fallback.DriverName() == "local" {
+		return false
+	}
+	return true
+}
+
 func (p *S3StorageProvider) Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) (string, error) {
 	if !p.isConfigured() {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Upload(ctx, key, reader, size, contentType)
 		}
 		return "", ErrStorageAccess
@@ -97,7 +107,7 @@ func (p *S3StorageProvider) Upload(ctx context.Context, key string, reader io.Re
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Upload(ctx, key, bytes.NewReader(data), size, contentType)
 		}
 		return "", fmt.Errorf("S3 cluster upload failed: %w", err)
@@ -105,7 +115,7 @@ func (p *S3StorageProvider) Upload(ctx context.Context, key string, reader io.Re
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Upload(ctx, key, bytes.NewReader(data), size, contentType)
 		}
 		return "", fmt.Errorf("S3 cluster returned HTTP %d on PUT", resp.StatusCode)
@@ -116,7 +126,7 @@ func (p *S3StorageProvider) Upload(ctx context.Context, key string, reader io.Re
 
 func (p *S3StorageProvider) Download(ctx context.Context, key string) (io.ReadCloser, string, int64, error) {
 	if !p.isConfigured() {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Download(ctx, key)
 		}
 		return nil, "", 0, ErrStorageAccess
@@ -133,7 +143,7 @@ func (p *S3StorageProvider) Download(ctx context.Context, key string) (io.ReadCl
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Download(ctx, key)
 		}
 		return nil, "", 0, err
@@ -141,7 +151,7 @@ func (p *S3StorageProvider) Download(ctx context.Context, key string) (io.ReadCl
 
 	if resp.StatusCode == http.StatusNotFound {
 		resp.Body.Close()
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Download(ctx, key)
 		}
 		return nil, "", 0, ErrFileNotFound
@@ -149,7 +159,7 @@ func (p *S3StorageProvider) Download(ctx context.Context, key string) (io.ReadCl
 
 	if resp.StatusCode >= 400 {
 		resp.Body.Close()
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Download(ctx, key)
 		}
 		return nil, "", 0, fmt.Errorf("S3 cluster returned HTTP %d on GET", resp.StatusCode)
@@ -165,7 +175,7 @@ func (p *S3StorageProvider) Download(ctx context.Context, key string) (io.ReadCl
 
 func (p *S3StorageProvider) Delete(ctx context.Context, key string) error {
 	if !p.isConfigured() {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Delete(ctx, key)
 		}
 		return nil
@@ -182,7 +192,7 @@ func (p *S3StorageProvider) Delete(ctx context.Context, key string) error {
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Delete(ctx, key)
 		}
 		return err
@@ -194,7 +204,7 @@ func (p *S3StorageProvider) Delete(ctx context.Context, key string) error {
 
 func (p *S3StorageProvider) Exists(ctx context.Context, key string) (bool, error) {
 	if !p.isConfigured() {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Exists(ctx, key)
 		}
 		return false, nil
@@ -211,7 +221,7 @@ func (p *S3StorageProvider) Exists(ctx context.Context, key string) (bool, error
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.Exists(ctx, key)
 		}
 		return false, err
@@ -234,7 +244,7 @@ func (p *S3StorageProvider) GetPublicURL(ctx context.Context, key string) string
 	if p.isConfigured() {
 		return fmt.Sprintf("%s/%s/%s", strings.TrimRight(p.config.Endpoint, "/"), p.config.Bucket, strings.TrimPrefix(key, "/"))
 	}
-	if p.fallback != nil {
+	if p.canUseFallback() {
 		return p.fallback.GetPublicURL(ctx, key)
 	}
 	return ""
@@ -242,7 +252,7 @@ func (p *S3StorageProvider) GetPublicURL(ctx context.Context, key string) string
 
 func (p *S3StorageProvider) GenerateSignedURL(ctx context.Context, key string, expiry time.Duration) (string, error) {
 	if !p.isConfigured() {
-		if p.fallback != nil {
+		if p.canUseFallback() {
 			return p.fallback.GenerateSignedURL(ctx, key, expiry)
 		}
 		return "", ErrStorageAccess
