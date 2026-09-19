@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -164,6 +165,50 @@ type RouterDependencies struct {
 }
 
 type Handlers = RouterDependencies
+
+var requiredRoutes = []struct{ method, path string }{
+	{http.MethodPost, "/api/v1/auth/login"},
+	{http.MethodPost, "/api/v1/auth/refresh"},
+	{http.MethodPost, "/api/v1/auth/logout"},
+	{http.MethodGet, "/api/v1/auth/me"},
+	{http.MethodGet, "/api/v1/jobs"},
+	{http.MethodGet, "/api/v1/jobs/:id"},
+	{http.MethodPost, "/api/v1/jobs/:id/apply"},
+	{http.MethodGet, "/api/v1/applications"},
+	{http.MethodGet, "/api/v1/recruiter/pipeline"},
+	{http.MethodGet, "/health"},
+}
+
+// ValidateCompleteness rejects a router missing any core method/path pair.
+func ValidateCompleteness(engine *gin.Engine) error {
+	registered := make(map[string]bool)
+	if engine != nil {
+		for _, route := range engine.Routes() {
+			registered[route.Method+" "+route.Path] = true
+		}
+	}
+	var missing []string
+	for _, route := range requiredRoutes {
+		key := route.method + " " + route.path
+		if !registered[key] {
+			missing = append(missing, key)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("router completeness: missing required routes: %s", strings.Join(missing, ", "))
+	}
+	return nil
+}
+
+// NewComplete builds the production router and fails before it can serve traffic
+// if a core route was omitted. New remains available for partial test routers.
+func NewComplete(deps RouterDependencies, cfg SwaggerConfig) (*gin.Engine, error) {
+	engine := New(deps, cfg)
+	if err := ValidateCompleteness(engine); err != nil {
+		return nil, err
+	}
+	return engine, nil
+}
 
 type RateLimitConfig struct {
 	RequestsPerMinute float64

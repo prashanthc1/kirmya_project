@@ -36,7 +36,61 @@ func fullyPopulatedRouter(t *testing.T) *gin.Engine {
 		}
 	}
 
-	return New(deps, SwaggerConfig{})
+	engine, err := NewComplete(deps, SwaggerConfig{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return engine
+}
+
+func TestCompletenessFullyPopulatedRouter(t *testing.T) {
+	engine := fullyPopulatedRouter(t)
+	if err := ValidateCompleteness(engine); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCompletenessRequiredPaths(t *testing.T) {
+	paths := []struct{ method, path string }{
+		{http.MethodPost, "/api/v1/auth/login"},
+		{http.MethodPost, "/api/v1/auth/refresh"},
+		{http.MethodPost, "/api/v1/auth/logout"},
+		{http.MethodGet, "/api/v1/auth/me"},
+		{http.MethodGet, "/api/v1/jobs"},
+		{http.MethodGet, "/api/v1/jobs/:id"},
+		{http.MethodPost, "/api/v1/jobs/:id/apply"},
+		{http.MethodGet, "/api/v1/applications"},
+		{http.MethodGet, "/api/v1/recruiter/pipeline"},
+		{http.MethodGet, "/health"},
+	}
+	for _, missing := range paths {
+		t.Run(missing.method+" "+missing.path, func(t *testing.T) {
+			for _, wrongMethod := range []bool{false, true} {
+				engine := gin.New()
+				for _, route := range paths {
+					if route == missing {
+						if wrongMethod {
+							engine.Handle(http.MethodPut, route.path, func(*gin.Context) {})
+						}
+						continue
+					}
+					engine.Handle(route.method, route.path, func(*gin.Context) {})
+				}
+				want := "router completeness: missing required routes: " + missing.method + " " + missing.path
+				if err := ValidateCompleteness(engine); err == nil || err.Error() != want {
+					t.Fatalf("wrongMethod=%v: got %v, want %q", wrongMethod, err, want)
+				}
+			}
+		})
+	}
+}
+
+func TestCompletenessRejectsEmptyRouter(t *testing.T) {
+	for _, engine := range []*gin.Engine{nil, gin.New()} {
+		if err := ValidateCompleteness(engine); err == nil {
+			t.Fatal("expected an error for a router with no required routes")
+		}
+	}
 }
 
 func adminPathsOf(engine *gin.Engine) map[string]bool {

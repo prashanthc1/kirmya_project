@@ -143,7 +143,7 @@ describe('WorkspaceSwitcher', () => {
     expect(screen.getByRole('button', { name: /current workspace: recruiting/i })).toBeInTheDocument();
   });
 
-  it('lists every entitled workspace as a link to its own route', async () => {
+  it('lists released entitled workspaces and omits deferred freelancing', async () => {
     signedInWith([professional, freelancer, recruiting, acme, community, platform]);
     render(<WorkspaceSwitcher />);
 
@@ -152,7 +152,6 @@ describe('WorkspaceSwitcher', () => {
 
     const expected: Array<[string, string]> = [
       ['Professional', '/feed'],
-      ['Freelancing', '/freelance'],
       ['Recruiting', '/recruiter'],
       ['Acme LLC', '/companies/acme/admin'],
       ['Go Developers UAE', '/communities/x1/admin'],
@@ -161,6 +160,7 @@ describe('WorkspaceSwitcher', () => {
     for (const [label, href] of expected) {
       expect(within(menu).getByRole('menuitem', { name: new RegExp(label, 'i') })).toHaveAttribute('href', href);
     }
+    expect(within(menu).queryByRole('menuitem', { name: /freelancing/i })).not.toBeInTheDocument();
   });
 
   it('marks the current workspace for assistive technology, not by label alone', async () => {

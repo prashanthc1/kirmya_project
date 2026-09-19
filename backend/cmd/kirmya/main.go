@@ -374,13 +374,17 @@ func main() {
 		Password: cfg.MetricsPassword,
 	}
 
-	r := router.New(deps, router.SwaggerConfig{
+	r, routerErr := router.NewComplete(deps, router.SwaggerConfig{
 		Enabled:  cfg.SwaggerEnabled,
 		Host:     cfg.SwaggerHost,
 		BasePath: cfg.SwaggerBasePath,
 		Username: cfg.SwaggerUsername,
 		Password: cfg.SwaggerPassword,
 	})
+	if routerErr != nil {
+		slog.Error("Refusing to start with incomplete routes", slog.String("error", routerErr.Error()))
+		os.Exit(1)
+	}
 
 	if cfg.SwaggerEnabled {
 		slog.Info("Swagger UI available", slog.String("url", "http://"+cfg.SwaggerHost+"/swagger/index.html"))

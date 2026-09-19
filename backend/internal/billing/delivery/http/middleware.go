@@ -2,11 +2,23 @@ package http
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"kirmya/internal/billing/service"
 )
+
+// Reject billing writes before authentication or request processing when disabled.
+func requireBillingWritesEnabled() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Method != http.MethodGet && c.Request.Method != http.MethodHead && c.Request.Method != http.MethodOptions && os.Getenv("BILLING_ENABLED") != "true" {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+		c.Next()
+	}
+}
 
 // RequireEntitlement middleware ensures user holds required entitlement.
 // When billing is disabled, it automatically permits access.

@@ -52,6 +52,7 @@ func do(engine *gin.Engine, method, path string, body []byte, headers map[string
 // are per-account, so an unauthenticated caller must get 401 and never reach a
 // handler.
 func TestBillingUserRoutesRejectAnonymousCallers(t *testing.T) {
+	t.Setenv("BILLING_ENABLED", "true")
 	engine := billingEngine(t)
 
 	for _, rt := range []struct {

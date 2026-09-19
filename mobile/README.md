@@ -15,7 +15,7 @@ Recorded here so that nobody reads a screen file as a shipped client.
 | No lockfile | `mobile/package-lock.json` does not exist, so no install is reproducible. |
 | No bundler configuration | No `metro.config.js`, `babel.config.js` or `tsconfig.json`. |
 | An import that resolves nowhere | `src/api/client.ts` imports `Platform` from `react_native_shim` — a package that is not a dependency, not in this repository, and not on any registry. It is also unused. |
-| A test script with no test runner | `package.json` declares `"test": "jest"` and depends on no jest. |
+| Start and test are disabled | Both scripts print "not part of this release" and exit 1. No test runner is installed. |
 
 ## Why it must not be shipped as-is
 
@@ -23,8 +23,8 @@ Recorded here so that nobody reads a screen file as a shipped client.
   before anyone has entered a credential.
 - `AuthScreen.handleAuth` calls `onLoginSuccess()` and nothing else. No request
   is made, no password is checked and no session is created.
-- `src/api/client.ts` sends `Authorization: Bearer 9a8b7c6d-…`, a constant that
-  is not a token, alongside a hardcoded device ID and tenant ID.
+- `src/api/client.ts` has no authentication; its hardcoded bearer was removed.
+  It still sends a hardcoded device ID and tenant ID.
 - Its base URL is `http://localhost:8080`, which is nothing on a handset.
 
 This is the same defect class the web client's feature clients carried before

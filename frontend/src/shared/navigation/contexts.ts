@@ -65,12 +65,12 @@ export const STATIC_CONTEXTS = {
   freelance: {
     id: 'freelance',
     title: 'Freelance',
-    items: [{ id: 'discover', label: 'Discover', href: routes.freelance.home(), exact: true }],
+    items: [],
   },
   events: {
     id: 'events',
     title: 'Events',
-    items: [{ id: 'discover', label: 'Discover', href: routes.events.home(), exact: true }],
+    items: [],
   },
   profile: {
     id: 'profile',
@@ -112,7 +112,6 @@ export const STATIC_CONTEXTS = {
       { id: 'pipeline', label: 'Kanban Pipeline', href: '/recruiter/pipeline', exact: true },
       { id: 'applications', label: 'All Applications', href: '/recruiter/applications' },
       { id: 'interviews', label: 'Interviews & Schedules', href: '/recruiter/interviews' },
-      { id: 'offers', label: 'Job Offers & Contracts', href: '/recruiter/offers' },
       { id: 'analytics', label: 'Recruitment Analytics', href: '/recruiter/analytics' },
     ],
   },
@@ -146,7 +145,6 @@ export const communityContext = (slug: string): NavContext => ({
     { id: 'home', label: 'Home', href: routes.community.view(slug), exact: true },
     { id: 'discussions', label: 'Discussions', href: routes.community.discussions(slug) },
     { id: 'members', label: 'Members', href: routes.community.members(slug) },
-    { id: 'events', label: 'Events', href: routes.community.events(slug) },
     { id: 'about', label: 'About', href: routes.community.about(slug) },
   ],
 });

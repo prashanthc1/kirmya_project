@@ -76,14 +76,14 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
   const grouped = useMemo(() => {
     return GROUP_ORDER.map(group => ({
       group,
-      items: workspaces.filter(workspace => groupOf(workspace.type) === group),
+      items: workspaces.filter(workspace => workspace.type !== 'freelancer' && groupOf(workspace.type) === group),
     })).filter(section => section.items.length > 0);
   }, [workspaces]);
 
   // One workspace is not a choice. Rendering a switcher that cannot switch
   // gives the account a control that does nothing, and every account that has
   // not onboarded anywhere is in exactly that position.
-  if (workspaces.length < 2 || !active) {
+  if (grouped.reduce((count, section) => count + section.items.length, 0) < 2 || !active) {
     return null;
   }
 

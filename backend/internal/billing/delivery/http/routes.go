@@ -13,6 +13,7 @@ func RegisterBillingRoutes(router *gin.RouterGroup, handler *BillingHandler, aut
 		return
 	}
 	billing := router.Group("/billing")
+	billing.Use(requireBillingWritesEnabled())
 
 	// Public / Webhook routes
 	billing.POST("/webhooks/:provider", handler.ProcessWebhook)
@@ -37,6 +38,7 @@ func RegisterAdminBillingRoutes(router *gin.RouterGroup, handler *AdminBillingHa
 		return
 	}
 	adminBilling := router.Group("/admin/billing")
+	adminBilling.Use(requireBillingWritesEnabled())
 	adminBilling.Use(sharedMiddleware.RequireAdmin())
 	{
 		adminBilling.GET("/status", guard.Require(adminDomain.PermBillingRead), handler.GetAdminStatus)

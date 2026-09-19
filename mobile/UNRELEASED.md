@@ -1,0 +1,1 @@
+The standalone mobile prototype is not part of this release. See [README.md](README.md) for the source of truth on its limitations and the work needed before it can ship. The `start` and `test` scripts deliberately print "not part of this release" and exit 1, and the API client no longer sends a hardcoded bearer. This does not implement React Native or authentication.

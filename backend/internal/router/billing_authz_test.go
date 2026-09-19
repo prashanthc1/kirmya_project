@@ -58,6 +58,7 @@ func TestAdminBillingRoutesRequireAdmin(t *testing.T) {
 // as the production router wires them: subscription state and checkout are not
 // readable without a verified token.
 func TestUserBillingRoutesRequireAuthentication(t *testing.T) {
+	t.Setenv("BILLING_ENABLED", "true")
 	engine := adminSurfaceRouter()
 
 	for _, rt := range []gin.RouteInfo{
@@ -74,6 +75,25 @@ func TestUserBillingRoutesRequireAuthentication(t *testing.T) {
 			t.Errorf("%s %s returned 403 to an ordinary user; a self-service billing route "+
 				"was caught by an admin guard", rt.Method, rt.Path)
 		}
+	}
+}
+
+func TestBillingWritesNotOfferedWhenDisabled(t *testing.T) {
+	for _, value := range []string{"", "false", "TRUE", "1"} {
+		t.Run("BILLING_ENABLED="+value, func(t *testing.T) {
+			t.Setenv("BILLING_ENABLED", value)
+			engine := adminSurfaceRouter()
+			for _, rt := range []gin.RouteInfo{
+				{Method: http.MethodPost, Path: "/api/v1/billing/checkout"},
+				{Method: http.MethodPost, Path: "/api/v1/billing/webhooks/stripe"},
+			} {
+				for _, token := range []string{"", tokenWithRole(t, middleware.RoleUser), tokenWithRole(t, middleware.RoleAdmin)} {
+					if code := requestAs(engine, rt, token); code != http.StatusNotFound {
+						t.Errorf("%s %s returned %d, want 404", rt.Method, rt.Path, code)
+					}
+				}
+			}
+		})
 	}
 }
 
