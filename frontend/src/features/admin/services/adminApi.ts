@@ -16,8 +16,6 @@ import {
 
 const apiClient = authApiClient;
 
-// Default Mock Data for Offline Testing
-
 export const adminApi = {
   getDashboardStats: async (): Promise<AdminDashboardStatsDTO> => {
     const res = await apiClient.get<AdminDashboardStatsDTO>('/admin/dashboard');
@@ -144,121 +142,59 @@ export const adminApi = {
 
   // Background Jobs API
   listBackgroundJobs: async (): Promise<BackgroundJobDTO[]> => {
-    try {
-      const res = await apiClient.get<BackgroundJobDTO[]>('/admin/background-jobs');
-      return res.data;
-    } catch (error) {
-      // A failed read is not data. This used to answer with the sample
-      // records that lived in this file, so a broken console looked healthy.
-      throw error;
-    }
+    const res = await apiClient.get<BackgroundJobDTO[]>('/admin/background-jobs');
+    return res.data;
   },
 
   retryBackgroundJob: async (jobId: string): Promise<{ success: boolean; message: string }> => {
     const res = await apiClient.post(`/admin/background-jobs/${jobId}/retry`);
     return res.data;
-    
   },
 
   triggerBackgroundJob: async (jobName: string): Promise<{ success: boolean; jobId: string }> => {
     const res = await apiClient.post('/admin/background-jobs/trigger', { jobName });
     return res.data;
-    
   },
 
   // Incidents API
   listIncidents: async (): Promise<IncidentDTO[]> => {
-    try {
-      const res = await apiClient.get<IncidentDTO[]>('/admin/incidents');
-      return res.data;
-    } catch (error) {
-      // A failed read is not data. This used to answer with the sample
-      // records that lived in this file, so a broken console looked healthy.
-      throw error;
-    }
+    const res = await apiClient.get<IncidentDTO[]>('/admin/incidents');
+    return res.data;
   },
 
   createIncident: async (payload: Partial<IncidentDTO>): Promise<IncidentDTO> => {
-    try {
-      const res = await apiClient.post<IncidentDTO>('/admin/incidents', payload);
-      return res.data;
-    } catch {
-      const newInc: IncidentDTO = {
-        id: `inc-${Date.now()}`,
-        title: payload.title || 'New Platform Incident',
-        description: payload.description || '',
-        status: payload.status || 'Open',
-        severity: payload.severity || 'Minor',
-        affectedServices: payload.affectedServices || ['General API'],
-        updates: [
-          {
-            id: `u-${Date.now()}`,
-            status: payload.status || 'Open',
-            message: payload.description || 'Incident created by admin.',
-            createdAt: new Date().toISOString(),
-            author: 'Admin User',
-          },
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      return newInc;
-    }
+    const res = await apiClient.post<IncidentDTO>('/admin/incidents', payload);
+    return res.data;
   },
 
   updateIncidentStatus: async (
     id: string,
     payload: { status: 'Open' | 'Investigating' | 'Mitigated' | 'Resolved'; message: string }
   ): Promise<IncidentDTO> => {
-    try {
-      const res = await apiClient.put<IncidentDTO>(`/admin/incidents/${id}/status`, payload);
-      return res.data;
-    } catch (error) {
-      // A write that never reached the server did not happen. This used to
-      // return the sample record with the change applied to it.
-      throw error;
-    }
+    const res = await apiClient.put<IncidentDTO>(`/admin/incidents/${id}/status`, payload);
+    return res.data;
   },
 
   // Maintenance Mode API
   getMaintenanceModeConfig: async (): Promise<MaintenanceModeConfigDTO> => {
-    try {
-      const res = await apiClient.get<MaintenanceModeConfigDTO>('/admin/maintenance-mode');
-      return res.data;
-    } catch (error) {
-      // A failed read is not data. This used to answer with the sample
-      // records that lived in this file, so a broken console looked healthy.
-      throw error;
-    }
+    const res = await apiClient.get<MaintenanceModeConfigDTO>('/admin/maintenance-mode');
+    return res.data;
   },
 
   updateMaintenanceModeConfig: async (payload: Partial<MaintenanceModeConfigDTO>): Promise<MaintenanceModeConfigDTO> => {
-    try {
-      const res = await apiClient.put<MaintenanceModeConfigDTO>('/admin/maintenance-mode', payload);
-      return res.data;
-    } catch (error) {
-      // A write that never reached the server did not happen. This used to
-      // return the sample record with the change applied to it.
-      throw error;
-    }
+    const res = await apiClient.put<MaintenanceModeConfigDTO>('/admin/maintenance-mode', payload);
+    return res.data;
   },
 
   // Support / Impersonation API
   requestSupportImpersonation: async (payload: SupportImpersonationRequestDTO): Promise<UserImpersonationSessionDTO> => {
     const res = await apiClient.post<UserImpersonationSessionDTO>('/admin/impersonate', payload);
     return res.data;
-    
   },
 
   listImpersonationSessions: async (): Promise<UserImpersonationSessionDTO[]> => {
-    try {
-      const res = await apiClient.get<UserImpersonationSessionDTO[]>('/admin/impersonate/sessions');
-      return res.data;
-    } catch (error) {
-      // A failed read is not data. This used to answer with the sample
-      // records that lived in this file, so a broken console looked healthy.
-      throw error;
-    }
+    const res = await apiClient.get<UserImpersonationSessionDTO[]>('/admin/impersonate/sessions');
+    return res.data;
   },
 
   terminateImpersonationSession: async (sessionId: string): Promise<{ success: boolean }> => {

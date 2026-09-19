@@ -158,14 +158,22 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
                 </Typography>
               </Stack>
 
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block', mb: 1 }}>
-                Extracted Skills ({parsed.skills.length}):
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-                {parsed.skills.map((sk) => (
-                  <Chip key={sk} label={sk} size="small" color="primary" variant="outlined" />
-                ))}
-              </Stack>
+              {parsed.skills.length > 0 ? (
+                <>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block', mb: 1 }}>
+                    Extracted Skills ({parsed.skills.length}):
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+                    {parsed.skills.map((sk) => (
+                      <Chip key={sk} label={sk} size="small" color="primary" variant="outlined" />
+                    ))}
+                  </Stack>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  No extracted skills found in this file. You can enter your skills in the next step.
+                </Typography>
+              )}
             </Paper>
           )}
         </Stack>

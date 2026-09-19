@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { adminApi } from '../features/admin/services/adminApi';
+import { authApiClient } from '../services/authService';
 
 /**
  * No API client answers a failure with fabricated data.
@@ -63,5 +65,25 @@ describe('API clients', () => {
       .map(file => path.relative(root, file).split(path.sep).join('/'))
       .sort();
     expect(offenders).toEqual([]);
+  });
+
+  it('adminApi surfaces API errors and does not invent data on failure', async () => {
+    const error = new Error('500 Internal Server Error');
+    const getSpy = vi.spyOn(authApiClient, 'get').mockRejectedValue(error);
+    const postSpy = vi.spyOn(authApiClient, 'post').mockRejectedValue(error);
+    const putSpy = vi.spyOn(authApiClient, 'put').mockRejectedValue(error);
+
+    try {
+      await expect(adminApi.createIncident({ title: 'Test Incident' })).rejects.toThrow('500 Internal Server Error');
+      await expect(adminApi.listIncidents()).rejects.toThrow('500 Internal Server Error');
+      await expect(adminApi.listBackgroundJobs()).rejects.toThrow('500 Internal Server Error');
+      await expect(adminApi.getMaintenanceModeConfig()).rejects.toThrow('500 Internal Server Error');
+      await expect(adminApi.listImpersonationSessions()).rejects.toThrow('500 Internal Server Error');
+      await expect(adminApi.getDashboardStats()).rejects.toThrow('500 Internal Server Error');
+    } finally {
+      getSpy.mockRestore();
+      postSpy.mockRestore();
+      putSpy.mockRestore();
+    }
   });
 });
