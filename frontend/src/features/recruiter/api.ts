@@ -129,6 +129,16 @@ export const recruiterApi = {
     return res.data;
   },
 
+  getOffers: async (params?: { jobId?: string; applicationId?: string }): Promise<any[]> => {
+    const res = await apiClient.get('/recruiter/offers', { params });
+    return res.data;
+  },
+
+  getJobOffers: async (params?: { jobId?: string; applicationId?: string }): Promise<any[]> => {
+    const res = await apiClient.get('/recruiter/offers', { params });
+    return res.data;
+  },
+
   createJobOffer: async (payload: any): Promise<any> => {
     const res = await apiClient.post('/recruiter/offers', payload);
     return res.data;

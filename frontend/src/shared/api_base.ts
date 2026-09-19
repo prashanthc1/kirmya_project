@@ -15,8 +15,19 @@
  * and web-vitals report. Anything that needs the base must come through here
  * rather than re-deriving it, so that the two conventions cannot drift again.
  */
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const resolveApiBase = (): string => {
+  let configured = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1').trim();
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === '127.0.0.1' && configured.includes('localhost')) {
+      configured = configured.replace('localhost', '127.0.0.1');
+    } else if (window.location.hostname === 'localhost' && configured.includes('127.0.0.1')) {
+      configured = configured.replace('127.0.0.1', 'localhost');
+    }
+  }
+  return configured;
+};
+
+export const API_BASE_URL = resolveApiBase();
 
 /** Joins a resource path onto the API base, tolerating a missing leading slash. */
 export function apiUrl(path: string): string {

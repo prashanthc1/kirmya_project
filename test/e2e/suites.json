@@ -100,7 +100,7 @@
       "pr": true,
       "projects": ["chromium"],
       "owns": "The job board and its filters, and the recruiter journey against real postings, applicants and applications.",
-      "specs": ["jobs.spec.ts", "recruiter-journey.spec.ts"],
+      "specs": ["jobs.spec.ts", "recruiter-journey.spec.ts", "recruiter-pipeline.spec.ts"],
       "pathPatterns": [
         "^frontend/src/app/(jobs|saved-jobs|applications|recruiter|employer|job-alerts|companies|company|resume|resume-analysis|interviews|assessments)/",
         "^frontend/src/components/(jobs|applications|recruiter|ats|job-alerts|company|resume)/",

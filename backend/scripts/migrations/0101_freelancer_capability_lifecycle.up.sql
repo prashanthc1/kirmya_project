@@ -55,12 +55,14 @@ ALTER TABLE freelancer_profiles
 -- their skills blank completes onboarding once, which is a small annoyance;
 -- the alternative grants unrevoked freelancing authority to every row the old
 -- no-required-fields endpoint ever created.
-UPDATE freelancer_profiles
-SET capability_status = 'active'
-WHERE hourly_rate > 0
-  AND coalesce(trim(tagline), '') <> ''
-  AND jsonb_typeof(skills) = 'array'
-  AND jsonb_array_length(skills) > 0;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='freelancer_profiles' AND column_name='hourly_rate') THEN
+        EXECUTE 'UPDATE freelancer_profiles SET capability_status = ''active'' WHERE hourly_rate > 0 AND coalesce(trim(tagline), '''') <> '''' AND jsonb_typeof(skills) = ''array'' AND jsonb_array_length(skills) > 0';
+    ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='freelancer_profiles' AND column_name='hourly_rate_minor_units') THEN
+        EXECUTE 'UPDATE freelancer_profiles SET capability_status = ''active'' WHERE hourly_rate_minor_units > 0 AND coalesce(trim(tagline), '''') <> '''' AND jsonb_typeof(skills) = ''array'' AND jsonb_array_length(skills) > 0';
+    END IF;
+END $$;
 
 -- The eligibility lookup runs on every /auth/me. user_id is already UNIQUE, so
 -- this is a covering index for it rather than a new access path.

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
@@ -36,6 +37,7 @@ interface Props {
 }
 
 export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => {
+  const router = useRouter();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
@@ -216,7 +218,7 @@ export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => 
                       candidate={cand}
                       stages={APPLICATION_STAGES}
                       onMoveStage={handleMoveStage}
-                      onViewDetails={(c) => onSelectCandidate && onSelectCandidate(c)}
+                      onViewDetails={(c) => onSelectCandidate ? onSelectCandidate(c) : router.push(`/recruiter/candidates/${c.candidateId}`)}
                     />
                   ))}
                 </Stack>
@@ -229,12 +231,14 @@ export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => 
           {filtered.map((cand) => (
             <Card
               key={cand.id}
+              onClick={() => onSelectCandidate ? onSelectCandidate(cand) : router.push(`/recruiter/candidates/${cand.candidateId}`)}
               sx={{
                 p: 2,
                 borderRadius: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                cursor: 'pointer',
               }}
             >
               <Stack direction="row" spacing={2} alignItems="center">

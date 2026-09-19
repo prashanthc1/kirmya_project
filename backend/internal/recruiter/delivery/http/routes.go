@@ -86,6 +86,8 @@ func RegisterRoutes(api *gin.RouterGroup, handler *RecruiterHandler, searchHandl
 		recruiterGroup.POST("/interviews/:id/feedback", handler.SubmitInterviewFeedback)
 
 		// Offers & AI Evaluation
+		recruiterGroup.GET("/offers", handler.GetJobOffers)
+		recruiterGroup.GET("/offers/:id", handler.GetJobOfferByID)
 		recruiterGroup.POST("/offers", handler.CreateJobOffer)
 		recruiterGroup.PUT("/offers/:id", handler.UpdateJobOfferStatus)
 		recruiterGroup.GET("/applications/:id/ai-eval", handler.GetAIEvaluation)

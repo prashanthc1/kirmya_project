@@ -176,6 +176,149 @@ func TestF26SavingACandidateIsRefusedRatherThanFaked(t *testing.T) {
 	}
 }
 
+// Offers must be scoped to the recruiter who posted the job (jobs.recruiter_id).
+// A recruiter with no offers starts with an empty list, never fabricated entries.
+// Foreign job or application queries and foreign offer ids must answer 404.
+func TestF26RecruiterOffersScopedToOwnJobs(t *testing.T) {
+	base := required(t, "TEST_API_URL")
+
+	recruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
+	foreignRecruiter := becomeRecruiter(t, base, registerAndLogin(t, base))
+	applicant := registerAndLogin(t, base)
+
+	// 1. A recruiter who has issued no offers gets an empty list, not null, not Sarah Chen.
+	emptyResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers", recruiter.token, nil)
+	emptyBody, _ := readBody(emptyResp)
+	if emptyResp.StatusCode != http.StatusOK {
+		t.Fatalf("reading empty offers: got %d want 200: %s", emptyResp.StatusCode, emptyBody)
+	}
+	if strings.TrimSpace(emptyBody) != "[]" {
+		t.Fatalf("expected empty list [], got: %s", emptyBody)
+	}
+	if strings.Contains(emptyBody, "Sarah Chen") || strings.Contains(emptyBody, "Tariq Al-Mansoor") {
+		t.Errorf("empty offers endpoint answered with fabricated persons: %s", emptyBody)
+	}
+
+	// 2. Querying with a non-existent / foreign job ID must 404.
+	foreignJobResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers?jobId=00000000-0000-0000-0000-000000000000", recruiter.token, nil)
+	foreignJobBody, _ := readBody(foreignJobResp)
+	if foreignJobResp.StatusCode != http.StatusNotFound {
+		t.Errorf("querying offers for non-existent job ID: got %d want 404: %s", foreignJobResp.StatusCode, foreignJobBody)
+	}
+
+	// 3. Querying with a non-existent / foreign offer ID must 404.
+	foreignOfferResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers/00000000-0000-0000-0000-000000000000", recruiter.token, nil)
+	foreignOfferBody, _ := readBody(foreignOfferResp)
+	if foreignOfferResp.StatusCode != http.StatusNotFound {
+		t.Errorf("querying offers for non-existent offer ID: got %d want 404: %s", foreignOfferResp.StatusCode, foreignOfferBody)
+	}
+
+	// 4. Seed a job and application for recruiter.
+	jobID := publishJobAs(t, base, recruiter.token, "F26 Offers Platform Engineer")
+	applyTo(t, base, applicant.token, jobID)
+
+	// Retrieve the real application ID.
+	appsResp := do(t, http.MethodGet, base+"/api/v1/recruiter/applications?jobId="+jobID, recruiter.token, nil)
+	appsBody, _ := readBody(appsResp)
+	if appsResp.StatusCode != http.StatusOK {
+		t.Fatalf("getting applications: got %d: %s", appsResp.StatusCode, appsBody)
+	}
+	var apps []struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal([]byte(appsBody), &apps); err != nil || len(apps) == 0 {
+		t.Fatalf("could not parse applications from %s: %v", appsBody, err)
+	}
+	appID := apps[0].ID
+
+	// Querying with foreign recruiter's token on this job must 404.
+	intruderJobResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers?jobId="+jobID, foreignRecruiter.token, nil)
+	intruderJobBody, _ := readBody(intruderJobResp)
+	if intruderJobResp.StatusCode != http.StatusNotFound {
+		t.Errorf("foreign recruiter querying job offers: got %d want 404: %s", intruderJobResp.StatusCode, intruderJobBody)
+	}
+
+	// 5. Create an offer.
+	offerPayload := map[string]any{
+		"application_id": appID,
+		"job_id":         jobID,
+		"candidate_id":   applicant.id,
+		"position_title": "F26 Offers Platform Engineer",
+		"salary":         "130,000 USD",
+		"currency":       "USD",
+		"benefits":       "Full medical, remote stipend",
+		"joining_date":   "2026-10-01",
+		"contract_type":  "Full-time",
+	}
+	createResp := do(t, http.MethodPost, base+"/api/v1/recruiter/offers", recruiter.token, offerPayload)
+	createBody, _ := readBody(createResp)
+	if createResp.StatusCode != http.StatusCreated {
+		t.Fatalf("creating job offer: got %d want 201: %s", createResp.StatusCode, createBody)
+	}
+	var createdOffer struct {
+		ID            string `json:"id"`
+		CandidateName string `json:"candidateName"`
+		Status        string `json:"status"`
+	}
+	if err := json.Unmarshal([]byte(createBody), &createdOffer); err != nil {
+		t.Fatalf("decoding created offer %s: %v", createBody, err)
+	}
+	if createdOffer.CandidateName == "Sarah Chen" {
+		t.Errorf("created offer returned fabricated candidate name 'Sarah Chen'")
+	}
+	if createdOffer.Status != "Sent" {
+		t.Errorf("created offer status = %q, want 'Sent'", createdOffer.Status)
+	}
+
+	// 6. Recruiter reads back offers list: exactly 1 offer.
+	listResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers", recruiter.token, nil)
+	listBody, _ := readBody(listResp)
+	if listResp.StatusCode != http.StatusOK {
+		t.Fatalf("reading recruiter offers: got %d want 200: %s", listResp.StatusCode, listBody)
+	}
+	var offersList []struct {
+		ID            string `json:"id"`
+		CandidateName string `json:"candidateName"`
+		PositionTitle string `json:"positionTitle"`
+	}
+	if err := json.Unmarshal([]byte(listBody), &offersList); err != nil || len(offersList) != 1 {
+		t.Fatalf("expected 1 offer, got %d: %s", len(offersList), listBody)
+	}
+	if offersList[0].ID != createdOffer.ID {
+		t.Errorf("offer list id %s != created %s", offersList[0].ID, createdOffer.ID)
+	}
+
+	// 7. Foreign recruiter must see empty list and must not see recruiter's offer.
+	foreignListResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers", foreignRecruiter.token, nil)
+	foreignListBody, _ := readBody(foreignListResp)
+	if foreignListResp.StatusCode != http.StatusOK || strings.TrimSpace(foreignListBody) != "[]" {
+		t.Errorf("foreign recruiter saw offers: %d %s", foreignListResp.StatusCode, foreignListBody)
+	}
+
+	// Foreign recruiter trying to read recruiter's offer directly -> 404.
+	foreignGetResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers/"+createdOffer.ID, foreignRecruiter.token, nil)
+	if foreignGetResp.StatusCode != http.StatusNotFound {
+		t.Errorf("foreign recruiter reading offer directly: got %d want 404", foreignGetResp.StatusCode)
+	}
+
+	// Foreign recruiter trying to update recruiter's offer status -> 404.
+	foreignPutResp := do(t, http.MethodPut, base+"/api/v1/recruiter/offers/"+createdOffer.ID, foreignRecruiter.token, map[string]any{"status": "Accepted"})
+	if foreignPutResp.StatusCode != http.StatusNotFound {
+		t.Errorf("foreign recruiter updating offer: got %d want 404", foreignPutResp.StatusCode)
+	}
+
+	// 8. Recruiter can read single offer and update status.
+	getResp := do(t, http.MethodGet, base+"/api/v1/recruiter/offers/"+createdOffer.ID, recruiter.token, nil)
+	if getResp.StatusCode != http.StatusOK {
+		t.Errorf("recruiter reading own offer: got %d want 200", getResp.StatusCode)
+	}
+
+	putResp := do(t, http.MethodPut, base+"/api/v1/recruiter/offers/"+createdOffer.ID, recruiter.token, map[string]any{"status": "Accepted"})
+	if putResp.StatusCode != http.StatusOK {
+		t.Errorf("recruiter updating own offer: got %d want 200", putResp.StatusCode)
+	}
+}
+
 // --- helpers -------------------------------------------------------------
 
 type recruiterCandidate struct {

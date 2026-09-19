@@ -48,6 +48,16 @@ export const atsApi = {
     return res.data;
   },
 
+  getJobOffers: async (params?: { jobId?: string; applicationId?: string }): Promise<JobOfferDTO[]> => {
+    const res = await apiClient.get<JobOfferDTO[]>('/recruiter/offers', { params });
+    return res.data;
+  },
+
+  getJobOffer: async (id: string): Promise<JobOfferDTO> => {
+    const res = await apiClient.get<JobOfferDTO>(`/recruiter/offers/${id}`);
+    return res.data;
+  },
+
   createJobOffer: async (payload: { application_id: string; job_id: string; candidate_id: string; position_title: string; salary: string; currency?: string; benefits?: string; joining_date?: string; contract_type?: string }): Promise<JobOfferDTO> => {
     const res = await apiClient.post<JobOfferDTO>('/recruiter/offers', payload);
     return res.data;

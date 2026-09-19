@@ -497,8 +497,55 @@ func (h *RecruiterHandler) SubmitInterviewFeedback(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto)
 }
 
+func (h *RecruiterHandler) GetJobOffers(c *gin.Context) {
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
+	jobIdStr := c.Query("jobId")
+	if jobIdStr == "" {
+		jobIdStr = c.Query("job_id")
+	}
+	appIdStr := c.Query("applicationId")
+	if appIdStr == "" {
+		appIdStr = c.Query("application_id")
+	}
+
+	offers, err := h.service.GetJobOffers(c.Request.Context(), userID, jobIdStr, appIdStr)
+	if err != nil {
+		respondRecruiterError(c, err)
+		return
+	}
+	httpx.JSONList(c, http.StatusOK, offers)
+}
+
+func (h *RecruiterHandler) GetJobOfferByID(c *gin.Context) {
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
+	offerID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+
+	offer, err := h.service.GetJobOffer(c.Request.Context(), userID, offerID)
+	if err != nil {
+		respondRecruiterError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, offer)
+}
+
 func (h *RecruiterHandler) CreateJobOffer(c *gin.Context) {
-	userID, _ := h.getUserID(c)
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
 	var payload models.JobOfferPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -507,16 +554,24 @@ func (h *RecruiterHandler) CreateJobOffer(c *gin.Context) {
 
 	dto, err := h.service.CreateJobOffer(c.Request.Context(), userID, &payload)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
 	c.JSON(http.StatusCreated, dto)
 }
 
 func (h *RecruiterHandler) UpdateJobOfferStatus(c *gin.Context) {
-	userID, _ := h.getUserID(c)
+	userID, authErr := h.getUserID(c)
+	if authErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": authErr.Error()})
+		return
+	}
 	offerIDStr := c.Param("id")
-	offerID, _ := uuid.Parse(offerIDStr)
+	offerID, err := uuid.Parse(offerIDStr)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
 
 	var payload struct {
 		Status string `json:"status" binding:"required"`
@@ -526,9 +581,9 @@ func (h *RecruiterHandler) UpdateJobOfferStatus(c *gin.Context) {
 		return
 	}
 
-	err := h.service.UpdateJobOfferStatus(c.Request.Context(), userID, offerID, payload.Status)
+	err = h.service.UpdateJobOfferStatus(c.Request.Context(), userID, offerID, payload.Status)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		respondRecruiterError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Job offer status updated successfully"})

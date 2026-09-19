@@ -11,7 +11,14 @@ import type { Workspace } from '../shared/workspace/types';
  * reload". Normalising here means either spelling reaches the same endpoints.
  */
 const resolveApiBaseUrl = (): string => {
-  const configured = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').trim();
+  let configured = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').trim();
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === '127.0.0.1' && configured.includes('localhost')) {
+      configured = configured.replace('localhost', '127.0.0.1');
+    } else if (window.location.hostname === 'localhost' && configured.includes('127.0.0.1')) {
+      configured = configured.replace('127.0.0.1', 'localhost');
+    }
+  }
   const withoutTrailingSlash = configured.replace(/\/+$/, '');
   if (/\/api\/v\d+$/.test(withoutTrailingSlash)) {
     return withoutTrailingSlash;

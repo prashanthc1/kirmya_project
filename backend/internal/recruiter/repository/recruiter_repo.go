@@ -877,39 +877,21 @@ func (r *RecruiterRepository) GetJobs(ctx context.Context, recruiterID uuid.UUID
 // GetPipeline retrieves candidate tracking items.
 func (r *RecruiterRepository) GetPipeline(ctx context.Context, jobID uuid.UUID) ([]models.CandidatePipeline, error) {
 	if r.db == nil {
-		return []models.CandidatePipeline{
-			{
-				ID:             uuid.MustParse("p1111111-1111-1111-1111-111111111111"),
-				JobID:          jobID,
-				CandidateID:    uuid.MustParse("c1111111-1111-1111-1111-111111111111"),
-				CandidateName:  "Alex Rivera",
-				CandidateEmail: "alex.rivera@kirmya.com",
-				Stage:          "Shortlisted",
-				Notes:          "High match score on Go microservices.",
-				UpdatedAt:      time.Now(),
-			},
-			{
-				ID:             uuid.MustParse("p2222222-2222-2222-2222-222222222222"),
-				JobID:          jobID,
-				CandidateID:    uuid.MustParse("c2222222-2222-2222-2222-222222222222"),
-				CandidateName:  "Elena Rostova",
-				CandidateEmail: "elena.rostova@kirmya.com",
-				Stage:          "Interview",
-				Notes:          "Technical interview scheduled.",
-				UpdatedAt:      time.Now().Add(-2 * time.Hour),
-			},
-		}, nil
+		return []models.CandidatePipeline{}, nil
 	}
 
-	// user_profiles has no full_name column, so this query answered 500 for
-	// every recruiter who opened a pipeline. Names and addresses come from
-	// users, which is where the rest of this repository reads them.
-	query := `SELECT cp.id, cp.job_id, cp.candidate_id, cp.stage, cp.notes, cp.interview_scheduled_at, cp.updated_at,
-	                 COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), 'Candidate'), COALESCE(u.email, '')
-	          FROM candidate_pipeline cp
-	          LEFT JOIN users u ON cp.candidate_id = u.id
-	          WHERE cp.job_id = $1
-	          ORDER BY cp.updated_at DESC`
+	query := `SELECT a.id, a.job_id, a.candidate_id, a.current_stage,
+	                 COALESCE((SELECT note FROM recruiter_internal_notes WHERE candidate_id = a.candidate_id ORDER BY created_at DESC LIMIT 1),
+	                          (SELECT notes FROM application_stage_history WHERE application_id = a.id ORDER BY moved_at DESC LIMIT 1),
+	                          ''),
+	                 i.scheduled_at, a.updated_at,
+	                 COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), 'Candidate'),
+	                 COALESCE(u.email, '')
+	          FROM job_applications a
+	          JOIN users u ON a.candidate_id = u.id
+	          LEFT JOIN LATERAL (SELECT scheduled_at FROM interviews WHERE application_id = a.id ORDER BY scheduled_at DESC LIMIT 1) i ON true
+	          WHERE a.job_id = $1
+	          ORDER BY a.updated_at DESC`
 
 	rows, err := r.db.Query(ctx, query, jobID)
 	if err != nil {
@@ -1096,30 +1078,7 @@ func (r *RecruiterRepository) CreateCandidateNote(ctx context.Context, note *mod
 // GetCandidateNotes retrieves notes for a candidate scoped to an organization.
 func (r *RecruiterRepository) GetCandidateNotes(ctx context.Context, candidateID, orgID uuid.UUID) ([]models.CandidateNoteItem, error) {
 	if r.db == nil {
-		return []models.CandidateNoteItem{
-			{
-				ID:             uuid.New(),
-				CandidateID:    candidateID,
-				RecruiterID:    uuid.MustParse("00000000-0000-0000-0000-000000000001"),
-				RecruiterName:  "Rashid Al-Maktoum",
-				Note:           "Exceptional Go microservices experience. Strong systems design skills demonstrated in portfolio.",
-				Score:          9,
-				Recommendation: "Strong Hire",
-				IsPinned:       true,
-				CreatedAt:      time.Now().Add(-4 * time.Hour),
-			},
-			{
-				ID:             uuid.New(),
-				CandidateID:    candidateID,
-				RecruiterID:    uuid.MustParse("00000000-0000-0000-0000-000000000002"),
-				RecruiterName:  "Amira Al-Farsi",
-				Note:           "Good communication skills. Aligned with team culture and values.",
-				Score:          8,
-				Recommendation: "Hire",
-				IsPinned:       false,
-				CreatedAt:      time.Now().Add(-2 * time.Hour),
-			},
-		}, nil
+		return []models.CandidateNoteItem{}, nil
 	}
 
 	query := `SELECT id, candidate_id, recruiter_id, COALESCE(recruiter_name, 'Recruiter'), note, score, COALESCE(recommendation, 'Consider'), is_pinned, created_at
@@ -1230,3 +1189,149 @@ func (r *RecruiterRepository) VerifyRecruiterOrgAccess(ctx context.Context, recr
 	}
 	return count > 0, nil
 }
+
+// CandidateNameFor returns the candidate's real name from their application or user profile.
+func (r *RecruiterRepository) CandidateNameFor(ctx context.Context, appID, candID uuid.UUID) (string, error) {
+	if r.db == nil {
+		return "", errors.New("candidate lookup requires PostgreSQL")
+	}
+	var name string
+	err := r.db.QueryRow(ctx, `
+		SELECT COALESCE(NULLIF(TRIM(a.contact_name), ''), NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), ''), 'Candidate')
+		FROM users u
+		LEFT JOIN job_applications a ON a.id = $1
+		WHERE u.id = $2`, appID, candID).Scan(&name)
+	if err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
+// CreateJobOffer persists a job offer to PostgreSQL.
+func (r *RecruiterRepository) CreateJobOffer(ctx context.Context, offer *models.JobOfferDTO) error {
+	if r.db == nil {
+		return errors.New("recruiter job offers require PostgreSQL")
+	}
+	var joiningDate *time.Time
+	if offer.JoiningDate != "" {
+		if t, err := time.Parse("2006-01-02", offer.JoiningDate); err == nil {
+			joiningDate = &t
+		}
+	}
+	if offer.ExpiresAt.IsZero() {
+		offer.ExpiresAt = time.Now().Add(14 * 24 * time.Hour)
+	}
+	if offer.CreatedAt.IsZero() {
+		offer.CreatedAt = time.Now()
+	}
+	_, err := r.db.Exec(ctx, `
+		INSERT INTO job_offers (
+			id, application_id, job_id, candidate_id, recruiter_id,
+			position_title, salary, currency, benefits, joining_date,
+			contract_type, status, created_at, expires_at
+		) VALUES (
+			$1, $2, $3, $4, $5,
+			$6, $7, $8, $9, $10,
+			$11, $12, $13, $14
+		)`,
+		offer.ID, offer.ApplicationID, offer.JobID, offer.CandidateID, offer.RecruiterID,
+		offer.PositionTitle, offer.Salary, offer.Currency, offer.Benefits, joiningDate,
+		offer.ContractType, offer.Status, offer.CreatedAt, offer.ExpiresAt,
+	)
+	return err
+}
+
+// GetJobOffers returns offers scoped to jobs posted by recruiterID.
+func (r *RecruiterRepository) GetJobOffers(ctx context.Context, recruiterID uuid.UUID, jobIDStr, appIDStr string) ([]models.JobOfferDTO, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter job offers require PostgreSQL")
+	}
+	rows, err := r.db.Query(ctx, `
+		SELECT o.id, o.application_id, o.job_id, o.candidate_id,
+		       COALESCE(NULLIF(TRIM(a.contact_name), ''), NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), ''), 'Candidate'),
+		       o.recruiter_id, o.position_title, o.salary, COALESCE(o.currency, 'USD'),
+		       COALESCE(o.benefits, ''), COALESCE(to_char(o.joining_date, 'YYYY-MM-DD'), ''),
+		       COALESCE(o.contract_type, 'Full-time'), o.status, o.created_at,
+		       COALESCE(o.expires_at, o.created_at + interval '14 days')
+		FROM job_offers o
+		JOIN jobs j ON j.id = o.job_id
+		JOIN users u ON u.id = o.candidate_id
+		LEFT JOIN job_applications a ON a.id = o.application_id
+		WHERE j.recruiter_id = $1
+		  AND ($2 = '' OR o.job_id::text = $2)
+		  AND ($3 = '' OR o.application_id::text = $3)
+		ORDER BY o.created_at DESC`, recruiterID, jobIDStr, appIDStr)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := make([]models.JobOfferDTO, 0)
+	for rows.Next() {
+		var v models.JobOfferDTO
+		if err := rows.Scan(
+			&v.ID, &v.ApplicationID, &v.JobID, &v.CandidateID,
+			&v.CandidateName,
+			&v.RecruiterID, &v.PositionTitle, &v.Salary, &v.Currency,
+			&v.Benefits, &v.JoiningDate,
+			&v.ContractType, &v.Status, &v.CreatedAt,
+			&v.ExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, v)
+	}
+	return items, rows.Err()
+}
+
+// GetJobOfferByID returns a single offer if it belongs to a job posted by recruiterID.
+func (r *RecruiterRepository) GetJobOfferByID(ctx context.Context, recruiterID, offerID uuid.UUID) (*models.JobOfferDTO, error) {
+	if r.db == nil {
+		return nil, errors.New("recruiter job offers require PostgreSQL")
+	}
+	var v models.JobOfferDTO
+	err := r.db.QueryRow(ctx, `
+		SELECT o.id, o.application_id, o.job_id, o.candidate_id,
+		       COALESCE(NULLIF(TRIM(a.contact_name), ''), NULLIF(TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')), ''), 'Candidate'),
+		       o.recruiter_id, o.position_title, o.salary, COALESCE(o.currency, 'USD'),
+		       COALESCE(o.benefits, ''), COALESCE(to_char(o.joining_date, 'YYYY-MM-DD'), ''),
+		       COALESCE(o.contract_type, 'Full-time'), o.status, o.created_at,
+		       COALESCE(o.expires_at, o.created_at + interval '14 days')
+		FROM job_offers o
+		JOIN jobs j ON j.id = o.job_id
+		JOIN users u ON u.id = o.candidate_id
+		LEFT JOIN job_applications a ON a.id = o.application_id
+		WHERE j.recruiter_id = $1 AND o.id = $2`, recruiterID, offerID).Scan(
+		&v.ID, &v.ApplicationID, &v.JobID, &v.CandidateID,
+		&v.CandidateName,
+		&v.RecruiterID, &v.PositionTitle, &v.Salary, &v.Currency,
+		&v.Benefits, &v.JoiningDate,
+		&v.ContractType, &v.Status, &v.CreatedAt,
+		&v.ExpiresAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+// UpdateJobOfferStatus updates status of an offer belonging to a job posted by recruiterID.
+func (r *RecruiterRepository) UpdateJobOfferStatus(ctx context.Context, recruiterID, offerID uuid.UUID, status string) error {
+	if r.db == nil {
+		return errors.New("recruiter job offers require PostgreSQL")
+	}
+	tag, err := r.db.Exec(ctx, `
+		UPDATE job_offers o
+		SET status = $3
+		FROM jobs j
+		WHERE o.job_id = j.id AND o.id = $1 AND j.recruiter_id = $2`,
+		offerID, recruiterID, status,
+	)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+

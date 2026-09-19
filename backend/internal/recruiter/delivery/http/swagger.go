@@ -515,6 +515,39 @@ func swaggerScheduleInterview() {}
 // @Router       /api/v1/recruiter/interviews/{id}/feedback [post]
 func swaggerSubmitInterviewFeedback() {}
 
+// swaggerGetJobOffers documents GET /api/v1/recruiter/offers.
+//
+// @Summary      Get job offers
+// @Description  Returns job offers via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability.
+// @Tags         Applications
+// @Produce      json
+// @Param        jobId          query  string  false  "Job ID"
+// @Param        applicationId  query  string  false  "Application ID"
+// @Success      200  {array}   models.JobOfferDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/offers [get]
+func swaggerGetJobOffers() {}
+
+// swaggerGetJobOfferByID documents GET /api/v1/recruiter/offers/{id}.
+//
+// @Summary      Get job offer by ID
+// @Description  Returns a single job offer via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability.
+// @Tags         Applications
+// @Produce      json
+// @Param        id   path      string  true  "Offer ID"
+// @Success      200  {object}  models.JobOfferDTO
+// @Failure      401  {object}  swagger.ErrorResponse
+// @Failure      403  {object}  swagger.ErrorResponse
+// @Failure      404  {object}  swagger.ErrorResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/recruiter/offers/{id} [get]
+func swaggerGetJobOfferByID() {}
+
 // swaggerCreateJobOffer documents POST /api/v1/recruiter/offers.
 //
 // @Summary      Create job offer

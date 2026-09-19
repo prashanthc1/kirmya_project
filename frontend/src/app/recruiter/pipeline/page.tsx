@@ -1,13 +1,27 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Box, Typography } from '@mui/material';
 import RecruiterLayout from '../../../components/recruiter/RecruiterLayout';
 import PipelineBoard from '../../../components/recruiter/PipelineBoard';
+import { recruiterApi } from '../../../features/recruiter/api';
 
-export default function PipelinePage() {
+function PipelineContent() {
+  const searchParams = useSearchParams();
+  const queryJobId = searchParams?.get('jobId') || undefined;
+
+  const { data: jobs = [] } = useQuery({
+    queryKey: ['recruiter', 'jobs'],
+    queryFn: () => recruiterApi.getJobs(),
+    enabled: !queryJobId,
+  });
+
+  const activeJobId = queryJobId || (jobs.length > 0 ? jobs[0].id : undefined);
+
   return (
-    <RecruiterLayout>
+    <Box>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5 }}>
           Customizable Hiring Pipeline
@@ -17,7 +31,17 @@ export default function PipelinePage() {
         </Typography>
       </Box>
 
-      <PipelineBoard />
+      <PipelineBoard jobId={activeJobId} />
+    </Box>
+  );
+}
+
+export default function PipelinePage() {
+  return (
+    <RecruiterLayout>
+      <Suspense fallback={null}>
+        <PipelineContent />
+      </Suspense>
     </RecruiterLayout>
   );
 }

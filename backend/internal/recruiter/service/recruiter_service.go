@@ -585,10 +585,59 @@ func (s *RecruiterService) SubmitInterviewFeedback(ctx context.Context, userID u
 	}, nil
 }
 
+func (s *RecruiterService) GetJobOffers(ctx context.Context, userID uuid.UUID, jobIDStr, appIDStr string) ([]models.JobOfferDTO, error) {
+	if jobIDStr != "" {
+		jobID, err := uuid.Parse(jobIDStr)
+		if err != nil {
+			return nil, ErrNotFound
+		}
+		if err := s.requireOwnedJob(ctx, userID, jobID); err != nil {
+			return nil, err
+		}
+	}
+	if appIDStr != "" {
+		appID, err := uuid.Parse(appIDStr)
+		if err != nil {
+			return nil, ErrNotFound
+		}
+		if err := s.requireOwnedApplication(ctx, userID, appID); err != nil {
+			return nil, err
+		}
+	}
+	return s.repo.GetJobOffers(ctx, userID, jobIDStr, appIDStr)
+}
+
+func (s *RecruiterService) GetJobOffer(ctx context.Context, userID, offerID uuid.UUID) (*models.JobOfferDTO, error) {
+	offer, err := s.repo.GetJobOfferByID(ctx, userID, offerID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return offer, nil
+}
+
 func (s *RecruiterService) CreateJobOffer(ctx context.Context, userID uuid.UUID, payload *models.JobOfferPayload) (*models.JobOfferDTO, error) {
-	appID, _ := uuid.Parse(payload.ApplicationID)
-	jobID, _ := uuid.Parse(payload.JobID)
-	candID, _ := uuid.Parse(payload.CandidateID)
+	appID, err := uuid.Parse(payload.ApplicationID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	jobID, err := uuid.Parse(payload.JobID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	candID, err := uuid.Parse(payload.CandidateID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+
+	if err := s.requireOwnedJob(ctx, userID, jobID); err != nil {
+		return nil, err
+	}
+	if err := s.requireOwnedApplication(ctx, userID, appID); err != nil {
+		return nil, err
+	}
 
 	currency := payload.Currency
 	if currency == "" {
@@ -603,14 +652,18 @@ func (s *RecruiterService) CreateJobOffer(ctx context.Context, userID uuid.UUID,
 	if err != nil {
 		return nil, err
 	}
-	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candID, p.CompanyName, "Offer Created")
 
-	return &models.JobOfferDTO{
+	candName, _ := s.repo.CandidateNameFor(ctx, appID, candID)
+	if candName == "" {
+		candName = "Candidate"
+	}
+
+	dto := &models.JobOfferDTO{
 		ID:            uuid.New(),
 		ApplicationID: appID,
 		JobID:         jobID,
 		CandidateID:   candID,
-		CandidateName: "Sarah Chen",
+		CandidateName: candName,
 		RecruiterID:   userID,
 		PositionTitle: payload.PositionTitle,
 		Salary:        payload.Salary,
@@ -621,12 +674,26 @@ func (s *RecruiterService) CreateJobOffer(ctx context.Context, userID uuid.UUID,
 		Status:        "Sent",
 		CreatedAt:     time.Now(),
 		ExpiresAt:     time.Now().Add(14 * 24 * time.Hour),
-	}, nil
+	}
+
+	if err := s.repo.CreateJobOffer(ctx, dto); err != nil {
+		return nil, err
+	}
+
+	_ = s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, candID, p.CompanyName, "Offer Created")
+
+	return dto, nil
 }
 
 func (s *RecruiterService) UpdateJobOfferStatus(ctx context.Context, userID, offerID uuid.UUID, status string) error {
 	p, err := s.profileFor(ctx, userID)
 	if err != nil {
+		return err
+	}
+	if err := s.repo.UpdateJobOfferStatus(ctx, userID, offerID, status); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
 		return err
 	}
 	return s.repo.LogCandidateAccess(ctx, p.OrgID, p.ID, offerID, p.CompanyName, fmt.Sprintf("Offer Status Updated to %s", status))

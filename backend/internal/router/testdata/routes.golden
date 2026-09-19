@@ -499,6 +499,8 @@ GET /api/v1/recruiter/interviews
 GET /api/v1/recruiter/jobs
 GET /api/v1/recruiter/jobs/:id
 GET /api/v1/recruiter/jobs/:id/matches
+GET /api/v1/recruiter/offers
+GET /api/v1/recruiter/offers/:id
 GET /api/v1/recruiter/pipeline
 GET /api/v1/recruiter/pipeline/:jobId
 GET /api/v1/recruiter/pipeline/analytics
