@@ -2534,6 +2534,41 @@ definitions:
     - item_id
     - item_type
     type: object
+  kirmya_internal_recruiter_models.JobOfferDTO:
+    properties:
+      applicationId:
+        type: string
+      benefits:
+        type: string
+      candidateId:
+        type: string
+      candidateName:
+        type: string
+      contractType:
+        type: string
+      createdAt:
+        type: string
+      currency:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      jobId:
+        type: string
+      joiningDate:
+        type: string
+      positionTitle:
+        type: string
+      recruiterId:
+        type: string
+      salary:
+        type: string
+      status:
+        description: '''Draft'', ''Prepared'', ''Sent'', ''Viewed'', ''Accepted'',
+          ''Declined'', ''Expired'', ''Withdrawn'''
+        type: string
+    type: object
   kirmya_internal_resume_models.TailorJobResponse:
     properties:
       matchScore:
@@ -4802,6 +4837,8 @@ definitions:
         additionalProperties: true
         type: object
       name:
+        type: string
+      provider:
         type: string
       recentFailures:
         type: integer
@@ -34765,6 +34802,48 @@ paths:
       tags:
       - Applications
   /api/v1/recruiter/offers:
+    get:
+      description: Returns job offers via the Kirmya recruiter ATS module. Requires
+        a valid Bearer access token AND an active standalone Recruiting capability.
+      parameters:
+      - description: Job ID
+        in: query
+        name: jobId
+        type: string
+      - description: Application ID
+        in: query
+        name: applicationId
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/kirmya_internal_recruiter_models.JobOfferDTO'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get job offers
+      tags:
+      - Applications
     post:
       consumes:
       - application/json
@@ -34809,6 +34888,43 @@ paths:
       tags:
       - Applications
   /api/v1/recruiter/offers/{id}:
+    get:
+      description: Returns a single job offer via the Kirmya recruiter ATS module.
+        Requires a valid Bearer access token AND an active standalone Recruiting capability.
+      parameters:
+      - description: Offer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/kirmya_internal_recruiter_models.JobOfferDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get job offer by ID
+      tags:
+      - Applications
     put:
       consumes:
       - application/json
@@ -38705,6 +38821,23 @@ paths:
       summary: Liveness probe
       tags:
       - Admin
+  /health/dependencies:
+    get:
+      description: Public health check for system dependencies status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Dependencies health probe
+      tags:
+      - System Health
   /health/live:
     get:
       description: Kubernetes/container liveness probe returning 200 OK if the process

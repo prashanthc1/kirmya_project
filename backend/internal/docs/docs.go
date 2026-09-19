@@ -39430,6 +39430,70 @@ const docTemplate = `{
             }
         },
         "/api/v1/recruiter/offers": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns job offers via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Get job offers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Application ID",
+                        "name": "applicationId",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/kirmya_internal_recruiter_models.JobOfferDTO"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -39493,6 +39557,62 @@ const docTemplate = `{
             }
         },
         "/api/v1/recruiter/offers/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a single job offer via the Kirmya recruiter ATS module. Requires a valid Bearer access token AND an active standalone Recruiting capability.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Get job offer by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Offer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/kirmya_internal_recruiter_models.JobOfferDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -45382,6 +45502,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/health/dependencies": {
+            "get": {
+                "description": "Public health check for system dependencies status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System Health"
+                ],
+                "summary": "Dependencies health probe",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/health/live": {
             "get": {
                 "description": "Kubernetes/container liveness probe returning 200 OK if the process is responsive",
@@ -49121,6 +49267,57 @@ const docTemplate = `{
                 }
             }
         },
+        "kirmya_internal_recruiter_models.JobOfferDTO": {
+            "type": "object",
+            "properties": {
+                "applicationId": {
+                    "type": "string"
+                },
+                "benefits": {
+                    "type": "string"
+                },
+                "candidateId": {
+                    "type": "string"
+                },
+                "candidateName": {
+                    "type": "string"
+                },
+                "contractType": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "expiresAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "jobId": {
+                    "type": "string"
+                },
+                "joiningDate": {
+                    "type": "string"
+                },
+                "positionTitle": {
+                    "type": "string"
+                },
+                "recruiterId": {
+                    "type": "string"
+                },
+                "salary": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "'Draft', 'Prepared', 'Sent', 'Viewed', 'Accepted', 'Declined', 'Expired', 'Withdrawn'",
+                    "type": "string"
+                }
+            }
+        },
         "kirmya_internal_resume_models.TailorJobResponse": {
             "type": "object",
             "properties": {
@@ -52461,6 +52658,9 @@ const docTemplate = `{
                     "additionalProperties": true
                 },
                 "name": {
+                    "type": "string"
+                },
+                "provider": {
                     "type": "string"
                 },
                 "recentFailures": {

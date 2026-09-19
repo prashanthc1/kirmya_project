@@ -133,6 +133,17 @@ func swaggerPublicHealthReady() {}
 // @Router       /health/startup [get]
 func swaggerPublicHealthStartup() {}
 
+// swaggerPublicHealthDependencies documents GET /health/dependencies
+//
+// @Summary      Dependencies health probe
+// @Description  Public health check for system dependencies status
+// @Tags         System Health
+// @Produce      json
+// @Success      200  {object}  swagger.SuccessResponse
+// @Failure      500  {object}  swagger.ErrorResponse
+// @Router       /health/dependencies [get]
+func swaggerPublicHealthDependencies() {}
+
 var (
 	_ models.OverallHealthSummary
 	_ swagger.ErrorResponse
