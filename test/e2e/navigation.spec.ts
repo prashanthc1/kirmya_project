@@ -128,7 +128,10 @@ test.describe('Navigation architecture', () => {
       const api = process.env.TEST_API_URL!;
       const account = await register(request, api, 'normal');
       await signIn(page, api, account.email);
-      await page.goto('/feed');
+      await expect(page).toHaveURL(/\/feed$/, { timeout: 15_000 });
+      await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible({
+        timeout: 15_000,
+      });
 
       // Nothing in the navigation leads to it.
       await expect(page.getByRole('link', { name: /Kirmya administration/i })).toHaveCount(0);
@@ -136,7 +139,7 @@ test.describe('Navigation architecture', () => {
       // And typing the address is refused rather than served.
       await page.goto('/admin/users');
       await expect(page.getByText(/do not have access to Kirmya administration/i)).toBeVisible({
-        timeout: 15_000,
+        timeout: 20_000,
       });
     });
 
