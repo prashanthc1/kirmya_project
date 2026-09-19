@@ -1334,4 +1334,3 @@ func (r *RecruiterRepository) UpdateJobOfferStatus(ctx context.Context, recruite
 	}
 	return nil
 }
-

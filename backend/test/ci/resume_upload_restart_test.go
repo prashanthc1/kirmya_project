@@ -93,7 +93,7 @@ func newTestStorageProvider(t *testing.T, endpoint string, localDir string) stor
 func TestResumeUploadSurvivesRestart(t *testing.T) {
 	endpoint := strings.TrimSpace(os.Getenv("STORAGE_ENDPOINT"))
 	if endpoint == "" {
-		t.Skip("STORAGE_ENDPOINT is unset; skipping integration test as documented in test header")
+		endpoint = "local"
 	}
 
 	var localDir string

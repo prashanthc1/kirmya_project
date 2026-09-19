@@ -66,6 +66,7 @@ jobs:
       AUTH_RATE_LIMIT_BURST: '12000'
       AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
       AUTH_SESSION_RATE_LIMIT_BURST: '600'
+      STORAGE_ENDPOINT: local
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
