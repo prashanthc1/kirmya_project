@@ -84,6 +84,7 @@ func TestLoadConfig_ProductionRequiresStorageEndpoint(t *testing.T) {
 	t.Setenv("APP_ENV", "production")
 	t.Setenv("JWT_SECRET", "super-secret-production-jwt-key-32b!")
 	t.Setenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/kirmya")
+	t.Setenv("ALLOW_NO_DB", "false")
 	t.Setenv("STORAGE_ENDPOINT", "")
 
 	cfg, err := LoadConfig()
@@ -101,5 +102,21 @@ func TestLoadConfig_ProductionRequiresStorageEndpoint(t *testing.T) {
 	}
 	if cfg.StorageEndpoint != "https://s3.amazonaws.com" {
 		t.Errorf("expected StorageEndpoint %q, got %q", "https://s3.amazonaws.com", cfg.StorageEndpoint)
+	}
+}
+
+func TestLoadConfig_ProductionRejectsAllowNoDB(t *testing.T) {
+	t.Setenv("APP_ENV", "production")
+	t.Setenv("JWT_SECRET", "super-secret-production-jwt-key-32b!")
+	t.Setenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/kirmya")
+	t.Setenv("STORAGE_ENDPOINT", "https://s3.amazonaws.com")
+	t.Setenv("ALLOW_NO_DB", "true")
+
+	cfg, err := LoadConfig()
+	if err == nil {
+		t.Fatalf("expected LoadConfig to fail in production when ALLOW_NO_DB is true, got cfg: %+v", cfg)
+	}
+	if !strings.Contains(err.Error(), "ALLOW_NO_DB") {
+		t.Errorf("expected error to mention ALLOW_NO_DB, got: %v", err)
 	}
 }
