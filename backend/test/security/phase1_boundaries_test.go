@@ -152,6 +152,7 @@ func TestPhase1_AdminSurfaceIsClosedToNonAdmins(t *testing.T) {
 
 // TestPhase1_BillingBoundaries covers the money endpoints as assembled.
 func TestPhase1_BillingBoundaries(t *testing.T) {
+	t.Setenv("BILLING_ENABLED", "true")
 	engine := phase1Router(t)
 
 	// Per-account endpoints: no token, no answer.
@@ -183,13 +184,12 @@ func TestPhase1_BillingBoundaries(t *testing.T) {
 		}
 	}
 
-	// The webhook is necessarily unauthenticated — a payment provider has no
-	// user token — so it must not be behind a guard, and its own signature
-	// check is what refuses an unsigned caller. (With BILLING_ENABLED unset the
-	// service no-ops, so this asserts reachability, not the signature logic,
-	// which internal/billing covers.)
-	if code := request(t, engine, http.MethodPost, "/api/v1/billing/webhooks/stripe", "", []byte(`{}`)).Code; code == http.StatusUnauthorized || code == http.StatusForbidden {
-		t.Errorf("the provider webhook returned %d without a token; it cannot require one", code)
+	// Disabled billing writes are unavailable before authentication or parsing.
+	t.Setenv("BILLING_ENABLED", "false")
+	for _, path := range []string{"/api/v1/billing/checkout", "/api/v1/billing/webhooks/stripe"} {
+		if code := request(t, engine, http.MethodPost, path, "", []byte(`{}`)).Code; code != http.StatusNotFound {
+			t.Errorf("disabled billing write %s returned %d, want 404", path, code)
+		}
 	}
 }
 
