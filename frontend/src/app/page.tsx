@@ -7,12 +7,6 @@ import HeroSection from '../components/landing/HeroSection';
 import StatisticsSection from '../components/landing/StatisticsSection';
 import WhyKirmyaSection from '../components/landing/WhyKirmyaSection';
 import FeaturesSection from '../components/landing/FeaturesSection';
-import AIAssistantSection from '../components/landing/AIAssistantSection';
-import JourneySection from '../components/landing/JourneySection';
-import NetworkingSection from '../components/landing/NetworkingSection';
-import CommunitiesSection from '../components/landing/CommunitiesSection';
-import RecruiterSection from '../components/landing/RecruiterSection';
-import CompanySection from '../components/landing/CompanySection';
 import TestimonialsSection from '../components/landing/TestimonialsSection';
 import FAQSection from '../components/landing/FAQSection';
 import CTASection from '../components/landing/CTASection';
@@ -25,6 +19,25 @@ import FeedPage from './feed/page';
 import { landingApi } from '../features/landing/api';
 import { LandingContentResponse } from '../features/landing/types';
 
+/**
+ * Public marketing homepage — focused on the primary audience: job seekers.
+ *
+ * Previously rendered 14+ major sections (AI Assistant, Journey, Networking,
+ * Communities, Recruiter, Company, etc.) on a single page. That mixed audiences,
+ * diluted the value proposition, and created heavy scroll fatigue.
+ *
+ * Current structure (in order):
+ *  1. Hero + primary CTAs
+ *  2. Real platform statistics (only when API returns counts)
+ *  3. Why Kirmya
+ *  4. Core features
+ *  5. Real testimonials (only when present)
+ *  6. FAQ
+ *  7. Final CTA
+ *
+ * Recruiter / company / networking content belongs on dedicated landing pages
+ * (e.g. /for-recruiters) rather than competing on the public homepage.
+ */
 export default function HomePage() {
   const { authenticated, loading } = useAuth();
   const [content, setContent] = useState<LandingContentResponse | null>(null);
@@ -34,14 +47,13 @@ export default function HomePage() {
     landingApi.getLandingContent().then((res) => setContent(res)).catch(() => {});
   }, []);
 
-  // If user is authenticated, serve the authenticated Feed directly
+  // Authenticated users skip the marketing page and land on the Feed.
   if (!loading && authenticated) {
     return <FeedPage />;
   }
 
   return (
     <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100dvh' }}>
-      {/* Schema.org Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -61,56 +73,19 @@ export default function HomePage() {
         }}
       />
 
-      {/* 1. Global Application Header */}
       <AppHeader onMobileNavOpen={() => setMobileDrawerOpen(true)} />
-
-      {/* Mobile Drawer */}
       <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
 
-      {/* 2. Page Content */}
       <div>
-        {/* 3. Hero Section */}
         <HeroSection />
-
-        {/* 4. Trusted Statistics */}
         <StatisticsSection statistics={content?.platform_statistics} />
-
-        {/* 5. Why Kirmya Value Propositions */}
         <WhyKirmyaSection />
-
-        {/* 6. Core Features */}
         <FeaturesSection />
-
-        {/* 7. AI Career Assistant */}
-        <AIAssistantSection />
-
-        {/* 8. Career Recovery Journey */}
-        <JourneySection />
-
-        {/* 9. Networking & Referrals */}
-        <NetworkingSection />
-
-        {/* 10. Communities */}
-        <CommunitiesSection />
-
-        {/* 11. Recruiter Solutions */}
-        <RecruiterSection />
-
-        {/* 12. Verified Companies */}
-        <CompanySection hiringCompanies={content?.platform_statistics?.hiring_companies} />
-
-        {/* 13. Testimonials */}
         <TestimonialsSection testimonials={content?.testimonials} />
-
-
-        {/* 15. FAQ Accordion */}
         <FAQSection />
-
-        {/* 16. Final Call To Action */}
         <CTASection />
       </div>
 
-      {/* 17. Standardized Footer */}
       <Footer />
     </Box>
   );
