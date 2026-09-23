@@ -147,6 +147,9 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       coverLetter,
       screeningAnswers,
       idempotencyKey,
+      contactName: fullName,
+      contactEmail: email,
+      contactPhone: phone,
     });
   };
 

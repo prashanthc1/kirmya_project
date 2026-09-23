@@ -9,6 +9,9 @@ export interface SubmitApplicationData {
   coverLetter?: string;
   screeningAnswers: Record<string, string>;
   idempotencyKey: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 export interface UseApplyJobSubmitParams {
@@ -45,6 +48,9 @@ export function useApplyJobSubmit({
     coverLetter,
     screeningAnswers,
     idempotencyKey,
+    contactName,
+    contactEmail,
+    contactPhone,
   }: SubmitApplicationData) => {
     setIsSubmitting(true);
     setSubmitError(null);
@@ -62,6 +68,9 @@ export function useApplyJobSubmit({
         cover_letter: coverLetter?.trim() || undefined,
         answers: questionsList.length > 0 ? questionsList : undefined,
         idempotency_key: idempotencyKey,
+        contact_name: contactName?.trim() || undefined,
+        contact_email: contactEmail?.trim() || undefined,
+        contact_phone: contactPhone?.trim() || undefined,
       });
 
       const newAppId = response?.summary?.id || '';

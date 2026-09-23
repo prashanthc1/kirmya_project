@@ -30,6 +30,9 @@ export const applicationsApi = {
     answers?: Array<{ question_id: string; question_text: string; answer: string }>;
     screening_answers?: Record<string, any>;
     idempotency_key?: string;
+    contact_name?: string;
+    contact_email?: string;
+    contact_phone?: string;
   }): Promise<ApplicationDetail> => {
     const res = await apiClient.post<ApplicationDetail>('/applications', payload);
     return res.data;
