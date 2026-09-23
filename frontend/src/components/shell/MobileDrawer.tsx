@@ -66,6 +66,7 @@ const DrawerTransition = forwardRef<HTMLDivElement, TransitionProps & { children
     const opacity = useMotionValue(0);
     const reducedMotion = useReducedMotion();
     const initialized = useRef(false);
+    const callbacks = useRef({ onEnter, onExited });
 
     useLayoutEffect(() => {
       callbacks.current = { onEnter, onExited };
