@@ -10,6 +10,8 @@ export const ROUTES = {
   ABOUT: '/about',
   CONTACT: '/contact',
   CAREERS: '/careers',
+  FOR_RECRUITERS: '/for-recruiters',
+  FOR_EMPLOYERS: '/for-recruiters',
   PRIVACY: '/privacy',
   TERMS: '/terms',
   HELP: '/help',
