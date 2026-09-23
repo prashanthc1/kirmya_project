@@ -118,7 +118,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
               key={currentIndex}
               initial={reducedMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={reducedMotion ? { duration: 0 } : springs.entrance}
+              transition={springs.entrance}
             >
               <GlassCard sx={{ p: 3 }}>
                 <Stack spacing={2}>

@@ -85,6 +85,7 @@ async function signIn(page: Page, api: string, email: string) {
   await page.getByRole('button', { name: 'Sign In' }).click();
   expect((await signedIn).status()).toBe(200);
   await expect(page).not.toHaveURL(/signin/, { timeout: 15_000 });
+  await page.waitForLoadState('domcontentloaded');
 }
 
 test.describe('A brand-new account can open the pages it lands on', () => {

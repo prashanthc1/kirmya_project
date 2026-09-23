@@ -155,6 +155,7 @@ test('signing in returns to the workspace the account last chose', async ({ page
   await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
 
   // A fresh sign-in, with no returnUrl, opens where they were working.
+  await page.goto('about:blank');
   await page.context().clearCookies();
   await submitSignIn(page, account.email);
 
