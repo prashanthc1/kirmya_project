@@ -107,13 +107,27 @@ export const applicationsApi = {
     return res.data;
   },
 
+  /**
+   * Upload a PDF document (resume, cover letter, etc.).
+   * Backend expects multipart/form-data with field "file" plus optional metadata.
+   * The previous JSON + file_url shape was rejected by the current handler.
+   */
   uploadDocument: async (payload: {
-    title: string;
-    document_type: string;
-    file_url: string;
-    is_default: boolean;
+    file: File;
+    title?: string;
+    document_type?: string;
+    is_default?: boolean;
   }): Promise<CandidateDocument> => {
-    const res = await apiClient.post<CandidateDocument>('/documents/upload', payload);
+    const form = new FormData();
+    form.append('file', payload.file);
+    if (payload.title) form.append('title', payload.title);
+    if (payload.document_type) form.append('document_type', payload.document_type);
+    if (payload.is_default !== undefined) {
+      form.append('is_default', payload.is_default ? 'true' : 'false');
+    }
+    const res = await apiClient.post<CandidateDocument>('/documents/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return res.data;
   },
 
