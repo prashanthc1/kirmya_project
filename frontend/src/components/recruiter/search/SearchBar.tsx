@@ -95,7 +95,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onSaveSearchClic
             </Button>
 
             <Tooltip title="Save this search query & set alert notifications">
-              <IconButton onClick={onSaveSearchClick} color="primary" sx={{ p: 1.5, border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+              <IconButton onClick={onSaveSearchClick} color="primary" sx={{ p: 1.5, border: (theme) => `1px solid ${theme.palette.divider}` }}>
                 <BookmarkAddIcon />
               </IconButton>
             </Tooltip>

@@ -33,10 +33,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onUpdatePr
       elevation={0}
       sx={{
         borderRadius: 3.5,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
         border: question.is_practiced ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        color: "text.primary",
         transition: surfaceTransition(0.2),
       }}
     >
@@ -44,18 +44,18 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onUpdatePr
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
           <Box flex={1}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <Chip label={question.category} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA', fontWeight: 600 }} />
+              <Chip label={question.category} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: "primary.main", fontWeight: 600 }} />
               <Chip label={question.difficulty} size="small" sx={{ bgcolor: diffStyle.bg, color: diffStyle.color, fontWeight: 600 }} />
               {question.is_practiced && (
                 <Chip icon={<CheckCircle sx={{ color: '#34D399 !important', fontSize: '0.9rem' }} />} label="Practiced" size="small" sx={{ bgcolor: 'rgba(16, 185, 129, 0.15)', color: '#34D399', fontWeight: 600 }} />
               )}
             </Stack>
-            <Typography variant="h6" fontWeight={600} sx={{ color: '#F8FAFC', mb: 1 }}>
+            <Typography variant="h6" fontWeight={600} sx={{ color: "text.primary", mb: 1 }}>
               {question.question}
             </Typography>
           </Box>
 
-          <IconButton onClick={() => setExpanded(!expanded)} sx={{ color: '#94A3B8' }}>
+          <IconButton onClick={() => setExpanded(!expanded)} sx={{ color: "text.secondary" }}>
             {expanded ? <ExpandLess /> : <ExpandMore />}
           </IconButton>
         </Stack>
@@ -80,35 +80,35 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onUpdatePr
             ) : (
               <Stack spacing={2}>
                 {question.sample_answer && (
-                  <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                    <Typography variant="caption" fontWeight={700} sx={{ color: '#60A5FA', display: 'block', mb: 0.5 }}>
+                  <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+                    <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main", display: 'block', mb: 0.5 }}>
                       SAMPLE AI ANSWER / STAR GUIDE
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#CBD5E1', whiteSpace: 'pre-line' }}>
+                    <Typography variant="body2" sx={{ color: "text.secondary", whiteSpace: 'pre-line' }}>
                       {question.sample_answer}
                     </Typography>
                   </Box>
                 )}
 
                 {question.user_answer ? (
-                  <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                  <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: "background.paper", border: '1px solid rgba(59, 130, 246, 0.2)' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                       <Typography variant="caption" fontWeight={700} sx={{ color: '#34D399' }}>
                         YOUR PRACTICED RESPONSE
                       </Typography>
-                      <Button size="small" startIcon={<Edit />} onClick={() => setIsEditing(true)} sx={{ color: '#94A3B8', textTransform: 'none' }}>
+                      <Button size="small" startIcon={<Edit />} onClick={() => setIsEditing(true)} sx={{ color: "text.secondary", textTransform: 'none' }}>
                         Edit Response
                       </Button>
                     </Stack>
-                    <Typography variant="body2" sx={{ color: '#F8FAFC' }}>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
                       {question.user_answer}
                     </Typography>
 
                     {(question.star_situation || question.star_result) && (
                       <Stack direction="row" spacing={1} flexWrap="wrap" gap={1} mt={1.5}>
-                        {question.star_situation && <Chip label={`S: ${question.star_situation}`} size="small" variant="outlined" sx={{ color: '#94A3B8', borderColor: 'rgba(255,255,255,0.1)' }} />}
-                        {question.star_task && <Chip label={`T: ${question.star_task}`} size="small" variant="outlined" sx={{ color: '#94A3B8', borderColor: 'rgba(255,255,255,0.1)' }} />}
-                        {question.star_action && <Chip label={`A: ${question.star_action}`} size="small" variant="outlined" sx={{ color: '#94A3B8', borderColor: 'rgba(255,255,255,0.1)' }} />}
+                        {question.star_situation && <Chip label={`S: ${question.star_situation}`} size="small" variant="outlined" sx={{ color: "text.secondary", borderColor: "divider" }} />}
+                        {question.star_task && <Chip label={`T: ${question.star_task}`} size="small" variant="outlined" sx={{ color: "text.secondary", borderColor: "divider" }} />}
+                        {question.star_action && <Chip label={`A: ${question.star_action}`} size="small" variant="outlined" sx={{ color: "text.secondary", borderColor: "divider" }} />}
                         {question.star_result && <Chip label={`R: ${question.star_result}`} size="small" variant="outlined" sx={{ color: '#34D399', borderColor: 'rgba(52, 211, 153, 0.3)' }} />}
                       </Stack>
                     )}
@@ -119,7 +119,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onUpdatePr
                     onClick={() => setIsEditing(true)}
                     sx={{
                       borderColor: 'rgba(96, 165, 250, 0.4)',
-                      color: '#60A5FA',
+                      color: "primary.main",
                       borderRadius: 2.5,
                       textTransform: 'none',
                       fontWeight: 600,

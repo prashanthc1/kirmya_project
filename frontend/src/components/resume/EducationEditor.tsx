@@ -56,8 +56,8 @@ export const EducationEditor: React.FC<EducationEditorProps> = ({ education, onC
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
               position: 'relative',
             }}
           >

@@ -40,8 +40,8 @@ export const ResumePreviewToolbar: React.FC<ResumePreviewToolbarProps> = ({
       sx={{
         p: 1.5,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        bgcolor: "action.hover",
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         backdropFilter: 'blur(20px)',
         display: 'flex',
         alignItems: 'center',
@@ -71,7 +71,7 @@ export const ResumePreviewToolbar: React.FC<ResumePreviewToolbarProps> = ({
       </Stack>
 
       {/* Device Toggle */}
-      <Stack direction="row" spacing={0.5} sx={{ bgcolor: 'rgba(255, 255, 255, 0.04)', p: 0.5, borderRadius: 2 }}>
+      <Stack direction="row" spacing={0.5} sx={{ bgcolor: "action.hover", p: 0.5, borderRadius: 2 }}>
         <Tooltip title="Desktop View">
           <IconButton
             size="small"

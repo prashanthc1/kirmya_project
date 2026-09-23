@@ -142,8 +142,8 @@ export const CommunityMemberDirectory: React.FC<CommunityMemberDirectoryProps> =
           p: 3,
           mb: 4,
           borderRadius: '20px',
-          background: (theme) =>
-            theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
+          bgcolor: (theme) =>
+            theme.palette.mode === 'light' ? "action.hover" : "background.paper",
           backdropFilter: 'blur(16px)',
           border: (theme) =>
             theme.palette.mode === 'light'
@@ -198,15 +198,15 @@ export const CommunityMemberDirectory: React.FC<CommunityMemberDirectoryProps> =
                 height: '100%',
                 borderRadius: '20px',
                 p: 1,
-                background: (theme) =>
-                  theme.palette.mode === 'light' ? '#ffffff' : 'rgba(30, 41, 59, 0.75)',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'light' ? '#ffffff' : "background.paper",
                 backdropFilter: 'blur(12px)',
                 transition: 'transform 0.2s ease, boxShadow 0.2s ease',
                 '&:hover': {
                   transform: 'translateY(-3px)',
                   boxShadow: (theme) =>
                     theme.palette.mode === 'light'
-                      ? '0 12px 28px rgba(99, 102, 241, 0.15)'
+                      ? "none"
                       : '0 12px 28px rgba(0, 0, 0, 0.4)',
                 },
               }}
@@ -270,7 +270,7 @@ export const CommunityMemberDirectory: React.FC<CommunityMemberDirectoryProps> =
                       borderRadius: '10px',
                       fontWeight: 700,
                       bgcolor: (theme) =>
-                        theme.palette.mode === 'light' ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.08)',
+                        theme.palette.mode === 'light' ? 'rgba(99, 102, 241, 0.08)' : "action.hover",
                     }}
                   >
                     Connect

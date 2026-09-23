@@ -20,8 +20,8 @@ interface BenefitsSectionProps {
 const benefitIconMap: { [key: string]: React.ReactNode } = {
   'Full Health Coverage': <LocalHospitalIcon sx={{ color: '#10b981' }} />,
   'Full Health Insurance': <LocalHospitalIcon sx={{ color: '#10b981' }} />,
-  'Remote Work Options': <HomeWorkIcon sx={{ color: '#6366f1' }} />,
-  'Remote & Hybrid Work': <HomeWorkIcon sx={{ color: '#6366f1' }} />,
+  'Remote Work Options': <HomeWorkIcon sx={{ color: "primary.main" }} />,
+  'Remote & Hybrid Work': <HomeWorkIcon sx={{ color: "primary.main" }} />,
   'Flexible Hours': <AccessTimeIcon sx={{ color: '#06b6d4' }} />,
   'Annual Flight Allowance': <FlightTakeoffIcon sx={{ color: '#f59e0b' }} />,
   'Learning Budget': <SchoolIcon sx={{ color: '#ec4899' }} />,
@@ -49,8 +49,8 @@ export const BenefitsSection: React.FC<BenefitsSectionProps> = ({ benefits }) =>
               sx={{
                 p: 2.5,
                 borderRadius: '16px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
@@ -61,13 +61,13 @@ export const BenefitsSection: React.FC<BenefitsSectionProps> = ({ benefits }) =>
                 sx={{
                   p: 1.2,
                   borderRadius: '12px',
-                  bgcolor: 'rgba(255, 255, 255, 0.05)',
+                  bgcolor: "action.hover",
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                {benefitIconMap[b] || <CardGiftcardIcon sx={{ color: '#6366f1' }} />}
+                {benefitIconMap[b] || <CardGiftcardIcon sx={{ color: "primary.main" }} />}
               </Paper>
               <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                 {b}

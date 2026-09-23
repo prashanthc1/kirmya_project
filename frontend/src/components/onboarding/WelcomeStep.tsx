@@ -27,16 +27,16 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
             width: 72,
             height: 72,
             borderRadius: '24px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+            bgcolor: "primary.main",
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             mx: 'auto',
             mb: 3,
-            boxShadow: '0 10px 30px rgba(99, 102, 241, 0.35)',
+            boxShadow: "none",
           }}
         >
-          <AutoAwesomeIcon sx={{ color: '#ffffff', fontSize: 36 }} />
+          <AutoAwesomeIcon sx={{ color: "text.primary", fontSize: 36 }} />
         </Box>
 
         <Typography variant="h3" sx={{ fontWeight: 900, mb: 1.5, color: 'text.primary', letterSpacing: '-0.02em' }}>
@@ -50,7 +50,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
         {/* Feature Badges Grid */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mb: 5 }}>
           {[
-            { icon: <WorkIcon sx={{ color: '#6366f1' }} />, text: 'Targeted Job Matching' },
+            { icon: <WorkIcon sx={{ color: "primary.main" }} />, text: 'Targeted Job Matching' },
             { icon: <PeopleIcon sx={{ color: '#ec4899' }} />, text: 'Employee Referral Network' },
             { icon: <VerifiedUserIcon sx={{ color: '#10b981' }} />, text: '24/7 AI Resume Coach' },
           ].map((item, idx) => (
@@ -60,8 +60,8 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
               sx={{
                 p: 2,
                 borderRadius: '14px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1.5,
@@ -87,8 +87,8 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
             fontSize: '1.05rem',
             fontWeight: 800,
             textTransform: 'none',
-            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+            bgcolor: "primary.main",
+            boxShadow: "none",
           }}
         >
           Let&apos;s Get Started

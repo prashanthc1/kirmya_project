@@ -22,7 +22,7 @@ export const RecommendationSection: React.FC<RecommendationSectionProps> = ({ re
           sx={{
             fontWeight: 800,
             bgcolor: 'rgba(168, 85, 247, 0.15)',
-            color: '#a855f7',
+            color: "primary.main",
             border: '1px solid rgba(168, 85, 247, 0.3)',
           }}
         />

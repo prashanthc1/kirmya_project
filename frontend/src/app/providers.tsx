@@ -1,10 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { MotionConfig } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getTheme } from '../theme/theme';
+import { getTheme, springs } from '../theme/theme';
 import { AuthProvider } from '../features/auth/context/authContext';
 
 import { ErrorBoundary } from '../shared/monitoring/error_boundary';
@@ -23,8 +23,8 @@ const ColorModeContext = createContext<ColorModeContextType>({
 
 export const useColorMode = () => useContext(ColorModeContext);
 
-export default function Providers({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<'light' | 'dark'>('light');
+export default function Providers({ children, initialMode }: { children: React.ReactNode; initialMode: 'light' | 'dark' }) {
+  const [mode, setMode] = useState(initialMode);
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -34,16 +34,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     },
   }));
 
-  useEffect(() => {
-    const savedMode = localStorage.getItem('kirmya-theme-mode') as 'light' | 'dark';
-    if (savedMode === 'light' || savedMode === 'dark') {
-      setMode(savedMode);
-    }
-  }, []);
 
   const setColorMode = (nextMode: 'light' | 'dark') => {
     setMode(nextMode);
-    localStorage.setItem('kirmya-theme-mode', nextMode);
+    // The server needs the same preference before streaming themed content.
+    document.cookie = `kirmya-theme-mode=${nextMode}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
   };
 
   const toggleColorMode = () => {
@@ -70,7 +65,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               layout animation when the OS asks, while keeping opacity — the
               cross-fade the guidance calls for, rather than no feedback at all.
             */}
-            <MotionConfig reducedMotion="user">
+            <MotionConfig reducedMotion="user" transition={springs.entrance}>
               <AuthProvider>
                 {children}
               </AuthProvider>

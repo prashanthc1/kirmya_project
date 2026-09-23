@@ -11,6 +11,45 @@ import { settled } from './helpers';
 // clicked or filled.
 
 test.describe('Authentication & User Identity Flow', () => {
+  test('Saved dark appearance hydrates readable authentication content', async ({ page, context, baseURL }) => {
+    await context.addCookies([{
+      name: 'kirmya-theme-mode',
+      value: 'dark',
+      url: baseURL!,
+      sameSite: 'Lax',
+    }]);
+    const hydrationErrors: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'error' && /hydrat/i.test(message.text())) {
+        hydrationErrors.push(message.text());
+      }
+    });
+    await page.goto('/signin');
+    const heading = page.getByRole('heading', { name: 'Sign In to Kirmya' });
+    await settled(heading);
+    await page.getByRole('textbox', { name: 'Email Address' }).fill('candidate@example.invalid');
+
+    const contrast = await heading.evaluate((element) => {
+      const luminance = (color: string) => {
+        const rgb = color.match(/[0-9.]+/g)!.slice(0, 3).map(Number);
+        const linear = rgb.map((v) => {
+          const c = v / 255;
+          return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+      };
+      let surface: Element | null = element;
+      while (surface && getComputedStyle(surface).backgroundColor === 'rgba(0, 0, 0, 0)') {
+        surface = surface.parentElement;
+      }
+      const foreground = luminance(getComputedStyle(element).color);
+      const background = luminance(getComputedStyle(surface!).backgroundColor);
+      return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
+    expect(hydrationErrors).toEqual([]);
+  });
+
   test('Sign in page renders and rejects a malformed email', async ({ page }) => {
     await page.goto('/signin');
 

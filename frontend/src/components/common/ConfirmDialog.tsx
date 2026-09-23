@@ -43,7 +43,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       maxWidth="xs"
       fullWidth
     >
-      <DialogTitle id="confirm-dialog-title" fontWeight={600}>
+      <DialogTitle id="confirm-dialog-title" fontWeight={600} sx={{ letterSpacing: '-0.015em', overflowWrap: 'anywhere' }}>
         {title}
       </DialogTitle>
       <DialogContent>
@@ -51,7 +51,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           {description}
         </DialogContentText>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
+      <DialogActions sx={{ px: 3, pb: 3, gap: 1, flexWrap: 'wrap', '& .MuiButton-root': { minHeight: 44 } }}>
         <Button onClick={onClose} disabled={isLoading} color="inherit">
           {cancelLabel}
         </Button>

@@ -125,8 +125,8 @@ export const JobApplicationQuestions: React.FC<Props> = ({ questions, onChange }
               sx={{
                 borderRadius: '16px',
                 p: 2.5,
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.9)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(248, 250, 252, 0.9)',
+                border: 1, borderColor: 'divider',
               }}
             >
               <Grid container spacing={2} alignItems="center">

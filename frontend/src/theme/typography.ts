@@ -1,16 +1,10 @@
 import { TypographyOptions } from '@mui/material/styles/createTypography';
 
-/**
- * Optical Typography Hierarchy (Prompt 13/50)
- * 
- * Scaled typography with size-dependent tracking, optical leading,
- * and semantic font weights.
- */
-
+/** System typography with size-specific optical tracking and leading. */
 export const typography: TypographyOptions = {
-  fontFamily: 'var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-  h1: { fontWeight: 800, fontSize: '2.5rem', lineHeight: 1.05, letterSpacing: '-0.035em' },
-  h2: { fontWeight: 800, fontSize: '2rem', lineHeight: 1.1, letterSpacing: '-0.03em' },
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+  h1: { fontWeight: 700, fontSize: 'clamp(2rem, 4vw, 2.75rem)', lineHeight: 1.08, letterSpacing: '-0.035em' },
+  h2: { fontWeight: 700, fontSize: 'clamp(1.75rem, 3vw, 2.125rem)', lineHeight: 1.12, letterSpacing: '-0.03em' },
   h3: { fontWeight: 700, fontSize: '1.625rem', lineHeight: 1.15, letterSpacing: '-0.025em' },
   h4: { fontWeight: 700, fontSize: '1.375rem', lineHeight: 1.2, letterSpacing: '-0.02em' },
   h5: { fontWeight: 600, fontSize: '1.125rem', lineHeight: 1.3, letterSpacing: '-0.015em' },

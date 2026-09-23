@@ -40,7 +40,7 @@ export const ToneSelector: React.FC<ToneSelectorProps> = ({ value, onChange }) =
                 py: 0.5,
                 fontWeight: isSelected ? 700 : 400,
                 cursor: 'pointer',
-                borderColor: isSelected ? '#6366f1' : 'rgba(255,255,255,0.15)',
+                borderColor: isSelected ? "primary.main" : "divider",
               }}
             />
           );

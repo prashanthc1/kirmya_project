@@ -104,20 +104,20 @@ export const SkillAssessmentModal: React.FC<SkillAssessmentModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ bgcolor: '#1e293b', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle sx={{ bgcolor: "background.paper", color: "text.primary", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PsychologyIcon sx={{ color: '#38bdf8' }} />
+          <PsychologyIcon sx={{ color: "primary.main" }} />
           <Typography variant="h6" fontWeight="bold">Job-Readiness Skill Assessment</Typography>
         </Box>
-        <IconButton onClick={onClose} sx={{ color: '#94a3b8' }}>
+        <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ bgcolor: '#0f172a', color: '#f8fafc', p: 3 }}>
+      <DialogContent dividers sx={{ bgcolor: "background.default", color: "text.primary", p: 3 }}>
         {!result ? (
           <Box>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "primary.main", mb: 2 }}>
               Select Skill Assessment Domain
             </Typography>
 
@@ -129,22 +129,22 @@ export const SkillAssessmentModal: React.FC<SkillAssessmentModalProps> = ({
                   clickable
                   onClick={() => setDomain(cat)}
                   sx={{
-                    bgcolor: domain === cat ? '#38bdf8' : '#1e293b',
-                    color: domain === cat ? '#0f172a' : '#94a3b8',
+                    bgcolor: domain === cat ? "primary.main" : "background.paper",
+                    color: domain === cat ? "primary.contrastText" : "text.secondary",
                     fontWeight: 'bold',
-                    border: '1px solid #334155',
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
                   }}
                 />
               ))}
             </Box>
 
-            <Typography variant="subtitle2" sx={{ color: '#94a3b8', mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ color: "text.secondary", mb: 2 }}>
               Evaluate your current proficiency level (1 = Novice, 5 = Expert) to generate your job-readiness score and tailored learning path.
             </Typography>
 
             {questions[domain].map((q, idx) => (
-              <Paper key={q.id} sx={{ p: 2, mb: 2, bgcolor: '#1e293b', border: '1px solid #334155' }}>
-                <Typography variant="body1" fontWeight="bold" sx={{ color: '#e2e8f0', mb: 1 }}>
+              <Paper key={q.id} sx={{ p: 2, mb: 2, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+                <Typography variant="body1" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
                   {idx + 1}. {q.question}
                 </Typography>
                 <Rating
@@ -158,26 +158,26 @@ export const SkillAssessmentModal: React.FC<SkillAssessmentModalProps> = ({
         ) : (
           <Box sx={{ textAlign: 'center', py: 2 }}>
             <EmojiEventsIcon sx={{ fontSize: 60, color: '#f59e0b', mb: 1 }} />
-            <Typography variant="h5" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+            <Typography variant="h5" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
               Skill Evaluation Complete!
             </Typography>
 
-            <Paper sx={{ p: 3, my: 2, bgcolor: '#1e293b', border: '1px solid #334155', display: 'inline-block', width: '100%' }}>
-              <Typography variant="subtitle2" sx={{ color: '#94a3b8' }}>Domain Assessed: {result.domain}</Typography>
+            <Paper sx={{ p: 3, my: 2, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, display: 'inline-block', width: '100%' }}>
+              <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>Domain Assessed: {result.domain}</Typography>
 
-              <Typography variant="h2" fontWeight="bold" sx={{ color: '#38bdf8', my: 1 }}>
+              <Typography variant="h2" fontWeight="bold" sx={{ color: "primary.main", my: 1 }}>
                 {result.score}%
               </Typography>
               <LinearProgress
                 variant="determinate"
                 value={result.score}
-                sx={{ height: 10, borderRadius: 5, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' }, mb: 2 }}
+                sx={{ height: 10, borderRadius: 5, bgcolor: "background.default", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" }, mb: 2 }}
               />
 
               <Chip
                 icon={<CheckCircleOutlineIcon sx={{ color: '#fff !important' }} />}
                 label={`Career Status: ${result.readiness_level}`}
-                sx={{ bgcolor: '#22c55e', color: '#fff', fontWeight: 'bold', fontSize: '0.9rem', py: 2, px: 1 }}
+                sx={{ bgcolor: '#22c55e', color: "success.contrastText", fontWeight: 'bold', fontSize: '0.9rem', py: 2, px: 1 }}
               />
             </Paper>
 
@@ -188,26 +188,26 @@ export const SkillAssessmentModal: React.FC<SkillAssessmentModalProps> = ({
         )}
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, bgcolor: '#1e293b' }}>
+      <DialogActions sx={{ p: 2, bgcolor: "background.paper" }}>
         {!result ? (
           <>
-            <Button onClick={onClose} sx={{ color: '#94a3b8' }}>Cancel</Button>
+            <Button onClick={onClose} sx={{ color: "text.secondary" }}>Cancel</Button>
             <Button
               onClick={handleSubmit}
               variant="contained"
               disabled={submitting}
-              sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', '&:hover': { bgcolor: '#0284c7' } }}
+              sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', '&:hover': { bgcolor: "primary.main" } }}
             >
               {submitting ? 'Evaluating...' : 'Evaluate Job Readiness'}
             </Button>
           </>
         ) : (
           <>
-            <Button onClick={handleReset} sx={{ color: '#94a3b8' }}>Retake Test</Button>
+            <Button onClick={handleReset} sx={{ color: "text.secondary" }}>Retake Test</Button>
             <Button
               onClick={onClose}
               variant="contained"
-              sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', '&:hover': { bgcolor: '#0284c7' } }}
+              sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', '&:hover': { bgcolor: "primary.main" } }}
             >
               Explore Recommended Learning Path
             </Button>

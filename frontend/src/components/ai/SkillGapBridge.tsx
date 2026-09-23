@@ -45,10 +45,10 @@ export const SkillGapBridge: React.FC<SkillGapBridgeProps> = ({
       sx={{
         borderRadius: 3,
         border: '1px solid',
-        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-        background: isDark
-          ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)'
-          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%)',
+        borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+        bgcolor: isDark
+          ? "background.paper"
+          : "background.paper",
         backdropFilter: 'blur(12px)',
       }}
     >
@@ -66,7 +66,7 @@ export const SkillGapBridge: React.FC<SkillGapBridgeProps> = ({
           </Box>
         </Box>
 
-        <Divider sx={{ mb: 2.5, borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)' }} />
+        <Divider sx={{ mb: 2.5, borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.06)' }} />
 
         {/* Skills Columns */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -185,7 +185,7 @@ export const SkillGapBridge: React.FC<SkillGapBridgeProps> = ({
                   sx={{
                     p: 1.5,
                     borderRadius: 2,
-                    bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                    bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1.5,

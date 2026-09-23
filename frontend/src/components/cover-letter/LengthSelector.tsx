@@ -35,7 +35,7 @@ export const LengthSelector: React.FC<LengthSelectorProps> = ({ value, currentWo
                 flex: 1,
                 p: 2,
                 cursor: 'pointer',
-                background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                bgcolor: isSelected ? 'rgba(99, 102, 241, 0.15)' : "action.hover",
                 border: isSelected ? '2px solid #6366f1' : '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: 3,
                 transition: surfaceTransition(0.2),

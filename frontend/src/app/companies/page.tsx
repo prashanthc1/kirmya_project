@@ -104,7 +104,7 @@ export default function CompaniesDirectoryPage() {
       <DirectorySearchBar onSearch={handleSearch} />
 
       {/* Tabs Navigation */}
-      <Box sx={{ borderBottom: 1, borderColor: 'rgba(255, 255, 255, 0.1)', mb: 4 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
         <Tabs
           value={activeTab}
           onChange={(_, val) => setActiveTab(val)}

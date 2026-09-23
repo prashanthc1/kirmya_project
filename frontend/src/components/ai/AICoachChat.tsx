@@ -68,8 +68,8 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
         p: 3,
         borderRadius: 3,
         border: '1px solid',
-        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-        background: isDark ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(12px)',
         display: 'flex',
         flexDirection: 'column',
@@ -77,7 +77,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2, mb: 2, borderBottom: '1px solid', borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2, mb: 2, borderBottom: '1px solid', borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar sx={{ bgcolor: 'primary.main', width: 36, height: 36 }}>
             <AutoAwesomeIcon fontSize="small" sx={{ color: 'primary.contrastText' }} />
@@ -115,12 +115,12 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
               size="small"
               onClick={() => setInput(p)}
               sx={{
-                bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+                bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.04)',
                 color: 'text.secondary',
                 cursor: 'pointer',
                 '&:hover': {
                   bgcolor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(14, 165, 233, 0.15)',
-                  color: isDark ? '#38bdf8' : '#0284c7',
+                  color: isDark ? "primary.main" : "primary.main",
                 },
               }}
             />
@@ -173,7 +173,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
                     bgcolor: isUser
                       ? 'primary.main'
                       : isDark
-                      ? 'rgba(30, 41, 59, 0.8)'
+                      ? "background.paper"
                       : 'rgba(241, 245, 249, 0.9)',
                     color: isUser
                       ? 'primary.contrastText'
@@ -182,7 +182,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
                     borderColor: isUser
                       ? 'primary.main'
                       : isDark
-                      ? 'rgba(255, 255, 255, 0.08)'
+                      ? "divider"
                       : 'rgba(0, 0, 0, 0.08)',
                   }}
                 >
@@ -215,7 +215,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
-              bgcolor: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.8)',
+              bgcolor: isDark ? 'rgba(0, 0, 0, 0.2)' : "action.hover",
             },
           }}
         />

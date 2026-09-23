@@ -124,7 +124,7 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
           label={`Risk ${score}`}
           color="error"
           size="small"
-          sx={{ fontWeight: 900, background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
+          sx={{ fontWeight: 900, background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: 'error.main' }}
         />
       );
     }
@@ -134,7 +134,7 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
           label={`Risk ${score}`}
           color="warning"
           size="small"
-          sx={{ fontWeight: 900, background: 'rgba(245, 158, 11, 0.2)', border: '1px solid rgba(245, 158, 11, 0.4)', color: '#f59e0b' }}
+          sx={{ fontWeight: 900, background: 'rgba(245, 158, 11, 0.2)', border: '1px solid rgba(245, 158, 11, 0.4)', color: 'warning.main' }}
         />
       );
     }
@@ -143,7 +143,7 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
         label={`Risk ${score}`}
         color="success"
         size="small"
-        sx={{ fontWeight: 900, background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#10b981' }}
+        sx={{ fontWeight: 900, background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', color: 'success.main' }}
       />
     );
   };
@@ -182,10 +182,9 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
       sx={{
         borderRadius: '24px',
         p: 3,
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+        bgcolor: 'background.paper',
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       {/* Header */}
@@ -220,8 +219,8 @@ export const ModerationQueueTable: React.FC<ModerationQueueTableProps> = ({ onSe
           p: 2,
           mb: 3,
           borderRadius: '16px',
-          background: 'rgba(0, 0, 0, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          bgcolor: 'background.paper',
+          border: 1, borderColor: 'divider',
         }}
       >
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">

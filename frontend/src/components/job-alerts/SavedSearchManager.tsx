@@ -77,9 +77,9 @@ export const SavedSearchManager: React.FC<SavedSearchManagerProps> = ({
               sx={{
                 p: 3,
                 borderRadius: 3,
-                background: 'rgba(255, 255, 255, 0.03)',
+                bgcolor: "action.hover",
                 backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -142,7 +142,7 @@ export const SavedSearchManager: React.FC<SavedSearchManagerProps> = ({
 
         {searches.length === 0 && (
           <Grid item xs={12}>
-            <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, background: 'rgba(255,255,255,0.02)' }}>
+            <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, bgcolor: "action.hover" }}>
               <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                 No saved searches
               </Typography>

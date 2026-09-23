@@ -82,19 +82,19 @@ export default function DataOperationsStudio() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#a855f7', p: 1.5, borderRadius: 2, color: '#0f172a', display: 'flex' }}>
+            <Box sx={{ bgcolor: 'primary.main', p: 1.5, borderRadius: 2, color: 'primary.contrastText', display: 'flex' }}>
               <DynamicFeedIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #a855f7 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{    }}>
                 Kirmya Data Operations, Import & Bulk Studio
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 CSV Import Engine • Formula Injection Protection • Pre-commit Dry Run • PII Protected Exports
               </Typography>
             </Box>
@@ -105,7 +105,7 @@ export default function DataOperationsStudio() {
               variant="outlined"
               startIcon={<CloudDownloadIcon />}
               onClick={() => handleTriggerExport('admin_jobs')}
-              sx={{ color: '#38bdf8', borderColor: '#38bdf8', fontWeight: 'bold' }}
+              sx={{ color: 'primary.main', borderColor: 'primary.main', fontWeight: 'bold' }}
             >
               Export Jobs CSV
             </Button>
@@ -113,14 +113,14 @@ export default function DataOperationsStudio() {
               variant="contained"
               startIcon={<CloudUploadIcon />}
               onClick={() => setImportWizardOpen(true)}
-              sx={{ bgcolor: '#a855f7', color: '#ffffff', fontWeight: 'bold', '&:hover': { bgcolor: '#9333ea' } }}
+              sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', '&:hover': { bgcolor: "primary.main" } }}
             >
               Launch CSV Import Wizard
             </Button>
           </Box>
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#a855f7' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />}
 
         {loadError && !loading && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -132,72 +132,72 @@ export default function DataOperationsStudio() {
         {/* Top Summary Metric Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <CardContent sx={{ p: 2.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 'bold' }}>TOTAL IMPORTS</Typography>
-                  <CloudUploadIcon sx={{ color: '#a855f7' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>TOTAL IMPORTS</Typography>
+                  <CloudUploadIcon sx={{ color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#a855f7', mb: 0.5 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main', mb: 0.5 }}>
                   {imports.length}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Formula Injection Protected</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Formula Injection Protected</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <CardContent sx={{ p: 2.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 'bold' }}>ACTIVE EXPORTS</Typography>
-                  <CloudDownloadIcon sx={{ color: '#38bdf8' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>ACTIVE EXPORTS</Typography>
+                  <CloudDownloadIcon sx={{ color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#38bdf8', mb: 0.5 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main', mb: 0.5 }}>
                   {exports.length}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Signed URLs • 24h Expiration</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Signed URLs • 24h Expiration</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <CardContent sx={{ p: 2.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 'bold' }}>BULK OPERATIONS</Typography>
-                  <DynamicFeedIcon sx={{ color: '#10b981' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>BULK OPERATIONS</Typography>
+                  <DynamicFeedIcon sx={{ color: 'success.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#10b981', mb: 0.5 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'success.main', mb: 0.5 }}>
                   {bulkOps.length}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Dry-run Previews Enabled</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Dry-run Previews Enabled</Typography>
               </CardContent>
             </Card>
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <CardContent sx={{ p: 2.5 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 'bold' }}>MIGRATIONS RUN</Typography>
-                  <TransformIcon sx={{ color: '#f59e0b' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>MIGRATIONS RUN</Typography>
+                  <TransformIcon sx={{ color: 'warning.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#f59e0b', mb: 0.5 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'warning.main', mb: 0.5 }}>
                   {migrations.length}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Reconciliation Verified</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Reconciliation Verified</Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
         {/* Tabbed Operations Table */}
-        <Paper sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, mb: 4 }}>
+        <Paper sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, mb: 4 }}>
           <Tabs
             value={tab}
             onChange={(_, val) => setTab(val)}
-            sx={{ borderBottom: '1px solid #334155', '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold' }, '& .Mui-selected': { color: '#a855f7' } }}
+            sx={{ borderBottom: '1px solid #334155', '& .MuiTab-root': { color: 'text.secondary', fontWeight: 'bold' }, '& .Mui-selected': { color: 'primary.main' } }}
           >
             <Tab label="Import Jobs" />
             <Tab label="Export Records" />
@@ -211,7 +211,7 @@ export default function DataOperationsStudio() {
               <TableContainer>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ '& th': { color: '#94a3b8', fontWeight: 'bold', borderColor: '#334155' } }}>
+                    <TableRow sx={{ '& th': { color: 'text.secondary', fontWeight: 'bold', borderColor: 'divider' } }}>
                       <TableCell>Import ID / Type</TableCell>
                       <TableCell>Filename</TableCell>
                       <TableCell>Strategy</TableCell>
@@ -222,13 +222,13 @@ export default function DataOperationsStudio() {
                   </TableHead>
                   <TableBody>
                     {imports.map((imp) => (
-                      <TableRow key={imp.id} sx={{ '& td': { color: '#f8fafc', borderColor: '#334155' } }}>
+                      <TableRow key={imp.id} sx={{ '& td': { color: 'text.primary', borderColor: 'divider' } }}>
                         <TableCell>
                           <Typography variant="body2" fontWeight="bold">{imp.id.substring(0, 8)}...</Typography>
-                          <Chip label={imp.importType} size="small" sx={{ bgcolor: '#0f172a', color: '#a855f7', fontSize: '0.7rem' }} />
+                          <Chip label={imp.importType} size="small" sx={{ bgcolor: 'background.default', color: 'primary.main', fontSize: '0.7rem' }} />
                         </TableCell>
                         <TableCell>{imp.originalFilename}</TableCell>
-                        <TableCell><Chip label={imp.strategy} size="small" variant="outlined" sx={{ color: '#cbd5e1', borderColor: '#475569' }} /></TableCell>
+                        <TableCell><Chip label={imp.strategy} size="small" variant="outlined" sx={{ color: 'text.primary', borderColor: 'divider' }} /></TableCell>
                         <TableCell>{imp.totalRows} / {imp.successfulRows} / {imp.failedRows}</TableCell>
                         <TableCell><Chip label={imp.status} color={imp.status === 'completed' ? 'success' : 'warning'} size="small" /></TableCell>
                         <TableCell align="right">{new Date(imp.createdAt).toLocaleString()}</TableCell>
@@ -244,7 +244,7 @@ export default function DataOperationsStudio() {
               <TableContainer>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ '& th': { color: '#94a3b8', fontWeight: 'bold', borderColor: '#334155' } }}>
+                    <TableRow sx={{ '& th': { color: 'text.secondary', fontWeight: 'bold', borderColor: 'divider' } }}>
                       <TableCell>Export ID / Type</TableCell>
                       <TableCell>Format</TableCell>
                       <TableCell>PII Protection</TableCell>
@@ -255,17 +255,17 @@ export default function DataOperationsStudio() {
                   </TableHead>
                   <TableBody>
                     {exports.map((exp) => (
-                      <TableRow key={exp.id} sx={{ '& td': { color: '#f8fafc', borderColor: '#334155' } }}>
+                      <TableRow key={exp.id} sx={{ '& td': { color: 'text.primary', borderColor: 'divider' } }}>
                         <TableCell>
                           <Typography variant="body2" fontWeight="bold">{exp.id.substring(0, 8)}...</Typography>
-                          <Chip label={exp.exportType} size="small" sx={{ bgcolor: '#0f172a', color: '#38bdf8', fontSize: '0.7rem' }} />
+                          <Chip label={exp.exportType} size="small" sx={{ bgcolor: 'background.default', color: 'primary.main', fontSize: '0.7rem' }} />
                         </TableCell>
-                        <TableCell><Chip label={exp.format.toUpperCase()} size="small" sx={{ bgcolor: '#1e293b' }} /></TableCell>
+                        <TableCell><Chip label={exp.format.toUpperCase()} size="small" sx={{ bgcolor: 'background.paper' }} /></TableCell>
                         <TableCell>{exp.includePii ? <Chip label="Includes PII" color="warning" size="small" /> : <Chip label="PII Omitted" color="success" size="small" />}</TableCell>
                         <TableCell>{(exp.fileSizeBytes / (1024 * 1024)).toFixed(1)} MB</TableCell>
                         <TableCell><Chip label={exp.status} color="success" size="small" /></TableCell>
                         <TableCell align="right">
-                          <Button size="small" variant="text" sx={{ color: '#38bdf8' }} href={exp.downloadUrl || '#'}>
+                          <Button size="small" variant="text" sx={{ color: 'primary.main' }} href={exp.downloadUrl || '#'}>
                             Download Package
                           </Button>
                         </TableCell>
@@ -281,7 +281,7 @@ export default function DataOperationsStudio() {
               <TableContainer>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ '& th': { color: '#94a3b8', fontWeight: 'bold', borderColor: '#334155' } }}>
+                    <TableRow sx={{ '& th': { color: 'text.secondary', fontWeight: 'bold', borderColor: 'divider' } }}>
                       <TableCell>Operation ID / Type</TableCell>
                       <TableCell>Target Scope</TableCell>
                       <TableCell>Target Records</TableCell>
@@ -291,10 +291,10 @@ export default function DataOperationsStudio() {
                   </TableHead>
                   <TableBody>
                     {bulkOps.map((b) => (
-                      <TableRow key={b.id} sx={{ '& td': { color: '#f8fafc', borderColor: '#334155' } }}>
+                      <TableRow key={b.id} sx={{ '& td': { color: 'text.primary', borderColor: 'divider' } }}>
                         <TableCell>
                           <Typography variant="body2" fontWeight="bold">{b.id.substring(0, 8)}...</Typography>
-                          <Chip label={b.operationType} size="small" sx={{ bgcolor: '#0f172a', color: '#10b981', fontSize: '0.7rem' }} />
+                          <Chip label={b.operationType} size="small" sx={{ bgcolor: 'background.default', color: 'success.main', fontSize: '0.7rem' }} />
                         </TableCell>
                         <TableCell>{b.targetScope}</TableCell>
                         <TableCell>{b.totalTargetCount} items</TableCell>
@@ -312,7 +312,7 @@ export default function DataOperationsStudio() {
               <TableContainer>
                 <Table>
                   <TableHead>
-                    <TableRow sx={{ '& th': { color: '#94a3b8', fontWeight: 'bold', borderColor: '#334155' } }}>
+                    <TableRow sx={{ '& th': { color: 'text.secondary', fontWeight: 'bold', borderColor: 'divider' } }}>
                       <TableCell>Migration Code</TableCell>
                       <TableCell>Title</TableCell>
                       <TableCell>Source &rarr; Target</TableCell>
@@ -323,7 +323,7 @@ export default function DataOperationsStudio() {
                   </TableHead>
                   <TableBody>
                     {migrations.map((m) => (
-                      <TableRow key={m.id} sx={{ '& td': { color: '#f8fafc', borderColor: '#334155' } }}>
+                      <TableRow key={m.id} sx={{ '& td': { color: 'text.primary', borderColor: 'divider' } }}>
                         <TableCell><Typography variant="body2" fontWeight="bold" sx={{ fontFamily: 'monospace' }}>{m.migrationCode}</Typography></TableCell>
                         <TableCell>{m.title}</TableCell>
                         <TableCell>{m.sourceTable} → {m.targetTable}</TableCell>

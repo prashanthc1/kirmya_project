@@ -89,29 +89,29 @@ export default function ResumeAnalysisPage() {
   const currentImprovements = activeAnalysis?.improvements;
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Top Title Banner */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{    }}>
               AI-Powered Resume Analysis Foundation
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Deep structural critique, ATS compatibility grading, missing skill detection, and keyword density optimization.
             </Typography>
           </Box>
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />}
 
         <Grid container spacing={3}>
           {/* Left Panel: Input & Settings */}
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default', border: 1, borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <DescriptionIcon sx={{ color: '#38bdf8' }} />
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+                <DescriptionIcon sx={{ color: 'primary.main' }} />
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main' }}>
                   Resume & Job Target Input
                 </Typography>
               </Box>
@@ -124,7 +124,7 @@ export default function ResumeAnalysisPage() {
                     size="small"
                     value={targetJobTitle}
                     onChange={(e) => setTargetJobTitle(e.target.value)}
-                    sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                 </Grid>
 
@@ -137,7 +137,7 @@ export default function ResumeAnalysisPage() {
                     size="small"
                     value={targetJobDesc}
                     onChange={(e) => setTargetJobDesc(e.target.value)}
-                    sx={{ textarea: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ textarea: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                 </Grid>
 
@@ -150,7 +150,7 @@ export default function ResumeAnalysisPage() {
                     size="small"
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
-                    sx={{ textarea: { color: '#fff', fontFamily: 'monospace', fontSize: '0.85rem' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ textarea: { color: 'text.primary', fontFamily: 'monospace', fontSize: '0.85rem' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                 </Grid>
 
@@ -161,7 +161,7 @@ export default function ResumeAnalysisPage() {
                     onClick={handleRunAnalysis}
                     disabled={loading}
                     startIcon={<AutoAwesomeIcon />}
-                    sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1.2, '&:hover': { bgcolor: '#0284c7' } }}
+                    sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', py: 1.2, '&:hover': { bgcolor: 'primary.main' } }}
                   >
                     Analyze Resume & ATS Fit
                   </Button>
@@ -186,11 +186,11 @@ export default function ResumeAnalysisPage() {
               the honest answer, and it tells them how to get a real one.
             */}
             {!currentScores || !currentImprovements ? (
-              <Paper sx={{ p: 5, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, textAlign: 'center' }}>
-                <Typography variant="h6" sx={{ color: '#e2e8f0', mb: 1 }}>
+              <Paper sx={{ p: 5, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ color: 'text.primary', mb: 1 }}>
                   No analysis yet
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                   Paste your resume and a target job description on the left, then run the analysis.
                   Your scores and suggested improvements will appear here.
                 </Typography>
@@ -201,35 +201,35 @@ export default function ResumeAnalysisPage() {
             <Grid container spacing={2} sx={{ mb: 3 }}>
               {/* Overall Resume Score Gauge */}
               <Grid item xs={12} sm={6}>
-                <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, textAlign: 'center', position: 'relative' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', mb: 1 }}>Overall Resume Quality Score</Typography>
+                <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, textAlign: 'center', position: 'relative' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Overall Resume Quality Score</Typography>
                   <Box sx={{ position: 'relative', display: 'inline-flex', my: 1 }}>
-                    <CircularProgress variant="determinate" value={100} size={100} thickness={4} sx={{ color: '#334155' }} />
-                    <CircularProgress variant="determinate" value={currentScores.overall_score} size={100} thickness={4} sx={{ color: '#38bdf8', position: 'absolute', left: 0 }} />
+                    <CircularProgress variant="determinate" value={100} size={100} thickness={4} sx={{ color: 'text.primary' }} />
+                    <CircularProgress variant="determinate" value={currentScores.overall_score} size={100} thickness={4} sx={{ color: 'primary.main', position: 'absolute', left: 0 }} />
                     <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="h4" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+                      <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main' }}>
                         {currentScores.overall_score}
                       </Typography>
                     </Box>
                   </Box>
-                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>Scale: 0 to 100 benchmark</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Scale: 0 to 100 benchmark</Typography>
                 </Paper>
               </Grid>
 
               {/* ATS Compatibility Score Gauge */}
               <Grid item xs={12} sm={6}>
-                <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, textAlign: 'center', position: 'relative' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', mb: 1 }}>ATS Compatibility Score</Typography>
+                <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, textAlign: 'center', position: 'relative' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>ATS Compatibility Score</Typography>
                   <Box sx={{ position: 'relative', display: 'inline-flex', my: 1 }}>
-                    <CircularProgress variant="determinate" value={100} size={100} thickness={4} sx={{ color: '#334155' }} />
-                    <CircularProgress variant="determinate" value={currentScores.ats_compatibility_score} size={100} thickness={4} sx={{ color: '#10b981', position: 'absolute', left: 0 }} />
+                    <CircularProgress variant="determinate" value={100} size={100} thickness={4} sx={{ color: 'text.primary' }} />
+                    <CircularProgress variant="determinate" value={currentScores.ats_compatibility_score} size={100} thickness={4} sx={{ color: 'success.main', position: 'absolute', left: 0 }} />
                     <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="h4" fontWeight="bold" sx={{ color: '#10b981' }}>
+                      <Typography variant="h4" fontWeight="bold" sx={{ color: 'success.main' }}>
                         {currentScores.ats_compatibility_score}%
                       </Typography>
                     </Box>
                   </Box>
-                  <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>Applicant Tracking System Pass Rate</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>Applicant Tracking System Pass Rate</Typography>
                 </Paper>
               </Grid>
             </Grid>
@@ -237,70 +237,70 @@ export default function ResumeAnalysisPage() {
             {/* 4-Dimension Breakdown Cards */}
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={6} sm={3}>
-                <Paper sx={{ p: 2, bgcolor: '#0f172a', border: '1px solid #334155', textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Structure</Typography>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#38bdf8', mt: 0.5 }}>{currentScores.structure_score}%</Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider', textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Structure</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main', mt: 0.5 }}>{currentScores.structure_score}%</Typography>
                 </Paper>
               </Grid>
 
               <Grid item xs={6} sm={3}>
-                <Paper sx={{ p: 2, bgcolor: '#0f172a', border: '1px solid #334155', textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Skills Match</Typography>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#10b981', mt: 0.5 }}>{currentScores.skills_score}%</Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider', textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Skills Match</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'success.main', mt: 0.5 }}>{currentScores.skills_score}%</Typography>
                 </Paper>
               </Grid>
 
               <Grid item xs={6} sm={3}>
-                <Paper sx={{ p: 2, bgcolor: '#0f172a', border: '1px solid #334155', textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Experience</Typography>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#a855f7', mt: 0.5 }}>{currentScores.experience_score}%</Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider', textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Experience</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main', mt: 0.5 }}>{currentScores.experience_score}%</Typography>
                 </Paper>
               </Grid>
 
               <Grid item xs={6} sm={3}>
-                <Paper sx={{ p: 2, bgcolor: '#0f172a', border: '1px solid #334155', textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>Job Match</Typography>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f59e0b', mt: 0.5 }}>{currentScores.job_match_score}%</Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider', textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Job Match</Typography>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'warning.main', mt: 0.5 }}>{currentScores.job_match_score}%</Typography>
                 </Paper>
               </Grid>
             </Grid>
 
             {/* Missing Skills & Keyword Optimization */}
-            <Paper sx={{ p: 3, mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <KeyIcon sx={{ color: '#f59e0b' }} />
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                <KeyIcon sx={{ color: 'warning.main' }} />
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'text.primary' }}>
                   Missing Skills & Keyword Optimization
                 </Typography>
               </Box>
 
               <Box sx={{ mb: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Keyword Density Score</Typography>
-                  <Typography variant="body2" fontWeight="bold" sx={{ color: '#38bdf8' }}>{currentImprovements.keyword_density_score}%</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Keyword Density Score</Typography>
+                  <Typography variant="body2" fontWeight="bold" sx={{ color: 'primary.main' }}>{currentImprovements.keyword_density_score}%</Typography>
                 </Box>
-                <LinearProgress variant="determinate" value={currentImprovements.keyword_density_score} sx={{ height: 8, borderRadius: 4, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />
+                <LinearProgress variant="determinate" value={currentImprovements.keyword_density_score} sx={{ height: 8, borderRadius: 4, bgcolor: 'background.default', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />
               </Box>
 
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" sx={{ color: '#22c55e', fontWeight: 'bold', display: 'block', mb: 1 }}>
+                  <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 'bold', display: 'block', mb: 1 }}>
                     PRESENT KEYWORDS ({currentImprovements.present_keywords.length})
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
                     {currentImprovements.present_keywords.map((kw, idx) => (
-                      <Chip key={idx} label={kw} size="small" sx={{ bgcolor: '#0f172a', color: '#22c55e', border: '1px solid #166534', fontWeight: 'bold' }} />
+                      <Chip key={idx} label={kw} size="small" sx={{ bgcolor: 'background.default', color: 'success.main', border: 1, borderColor: 'divider', fontWeight: 'bold' }} />
                     ))}
                   </Box>
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" sx={{ color: '#ef4444', fontWeight: 'bold', display: 'block', mb: 1 }}>
+                  <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 'bold', display: 'block', mb: 1 }}>
                     MISSING SKILLS ({currentImprovements.missing_skills.length})
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
                     {currentImprovements.missing_skills.map((kw, idx) => (
-                      <Chip key={idx} label={kw} size="small" sx={{ bgcolor: '#0f172a', color: '#ef4444', border: '1px solid #991b1b', fontWeight: 'bold' }} />
+                      <Chip key={idx} label={kw} size="small" sx={{ bgcolor: 'background.default', color: 'error.main', border: 1, borderColor: 'divider', fontWeight: 'bold' }} />
                     ))}
                   </Box>
                 </Grid>
@@ -308,25 +308,25 @@ export default function ResumeAnalysisPage() {
             </Paper>
 
             {/* Actionable Bullet Point Improvements */}
-            <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <AnalyticsIcon sx={{ color: '#a855f7' }} />
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                <AnalyticsIcon sx={{ color: 'primary.main' }} />
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'text.primary' }}>
                   Actionable Bullet Point Improvements & Structure Suggestions
                 </Typography>
               </Box>
 
               {currentImprovements.experience_bullet_fixes.map((fix, idx) => (
-                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5, bgcolor: '#0f172a', p: 2, borderRadius: 1.5, border: '1px solid #334155' }}>
-                  <WarningAmberIcon sx={{ color: '#f59e0b', fontSize: 20, mt: 0.2 }} />
-                  <Typography variant="body2" sx={{ color: '#e2e8f0', lineHeight: 1.5 }}>{fix}</Typography>
+                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5, bgcolor: 'background.default', p: 2, borderRadius: 1.5, border: 1, borderColor: 'divider' }}>
+                  <WarningAmberIcon sx={{ color: 'warning.main', fontSize: 20, mt: 0.2 }} />
+                  <Typography variant="body2" sx={{ color: 'text.primary', lineHeight: 1.5 }}>{fix}</Typography>
                 </Box>
               ))}
 
               {currentImprovements.general_suggestions.map((sug, idx) => (
-                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1, bgcolor: '#0f172a', p: 1.5, borderRadius: 1.5 }}>
-                  <CheckCircleOutlineIcon sx={{ color: '#38bdf8', fontSize: 18, mt: 0.2 }} />
-                  <Typography variant="body2" sx={{ color: '#cbd5e1' }}>{sug}</Typography>
+                <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1, bgcolor: 'background.default', p: 1.5, borderRadius: 1.5 }}>
+                  <CheckCircleOutlineIcon sx={{ color: 'primary.main', fontSize: 18, mt: 0.2 }} />
+                  <Typography variant="body2" sx={{ color: 'text.primary' }}>{sug}</Typography>
                 </Box>
               ))}
             </Paper>

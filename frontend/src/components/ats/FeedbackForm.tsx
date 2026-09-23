@@ -55,7 +55,7 @@ export const FeedbackForm: React.FC<FeedbackFormProps> = ({ interviewId, applica
   };
 
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: '16px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
         <QuizIcon color="primary" />
         <Typography variant="h6" sx={{ fontWeight: 900 }}>

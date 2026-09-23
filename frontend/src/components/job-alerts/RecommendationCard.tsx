@@ -70,9 +70,9 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
       sx={{
         p: 3,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         transition: surfaceTransition(0.25),
         '&:hover': {
           borderColor: 'rgba(153, 51, 255, 0.4)',

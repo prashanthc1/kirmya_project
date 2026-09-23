@@ -1,56 +1,26 @@
 'use client';
 
 import React from 'react';
-import { Card, CardProps, useTheme } from '@mui/material';
-import { motion } from 'framer-motion';
-import { springs, surfaceTransitionNoTransform } from '../../theme/motion';
+import { Card, CardProps } from '@mui/material';
 
-interface GlassCardProps extends CardProps {
-  children: React.ReactNode;
-  glowColor?: string;
-  hoverScale?: number;
-}
-
-export const GlassCard: React.FC<GlassCardProps> = ({
-  children,
-  glowColor = 'rgba(99, 102, 241, 0.25)',
-  hoverScale = 1.02,
-  sx,
-  ...props
-}) => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-
-  return (
-    <motion.div whileHover={{ y: -4, scale: hoverScale }} transition={springs.hover}>
-      <Card
-        elevation={0}
-        sx={{
-          p: { xs: 2.5, sm: 3.5 },
-          borderRadius: '20px',
-          bgcolor: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(99, 102, 241, 0.12)',
-          boxShadow: isDark
-            ? '0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
-            : '0 10px 30px rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
-          // No `transform` here on purpose: the motion.div above animates it,
-          // and running a 300ms CSS transition against Framer's 200ms spring on
-          // the same property meant two systems fought over every hover.
-          transition: surfaceTransitionNoTransform(0.3),
-          '&:hover': {
-            borderColor: isDark ? 'rgba(99, 102, 241, 0.4)' : 'rgba(99, 102, 241, 0.3)',
-            boxShadow: `0 16px 40px ${glowColor}`,
-          },
-          ...sx,
-        }}
-        {...props}
-      >
-        {children}
-      </Card>
-    </motion.div>
-  );
-};
+export const GlassCard: React.FC<CardProps> = ({ children, sx, ...props }) => (
+  <Card
+    elevation={0}
+    sx={[
+      {
+        p: { xs: 2.5, sm: 3.5 },
+        borderRadius: '20px',
+        bgcolor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: 'none',
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+    {...props}
+  >
+    {children}
+  </Card>
+);
 
 export default GlassCard;

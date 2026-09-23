@@ -28,15 +28,15 @@ interface AnalyticsTableProps {
 export default function AnalyticsTable({ title, columns, rows }: AnalyticsTableProps) {
   return (
     <Box>
-      <Typography variant="h6" fontWeight="bold" sx={{ color: '#fff', mb: 1.5 }}>
+      <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 1.5 }}>
         {title}
       </Typography>
-      <TableContainer component={Paper} sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+      <TableContainer component={Paper} sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
         <Table size="small">
-          <TableHead sx={{ bgcolor: '#0f172a' }}>
+          <TableHead sx={{ bgcolor: "background.default" }}>
             <TableRow>
               {columns.map((col) => (
-                <TableCell key={col.id} align={col.align || 'left'} sx={{ color: '#94a3b8', fontWeight: 'bold' }}>
+                <TableCell key={col.id} align={col.align || 'left'} sx={{ color: "text.secondary", fontWeight: 'bold' }}>
                   {col.label}
                 </TableCell>
               ))}
@@ -44,9 +44,9 @@ export default function AnalyticsTable({ title, columns, rows }: AnalyticsTableP
           </TableHead>
           <TableBody>
             {rows.map((row, idx) => (
-              <TableRow key={idx} sx={{ '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' } }}>
+              <TableRow key={idx} sx={{ '&:hover': { bgcolor: "action.hover" } }}>
                 {columns.map((col) => (
-                  <TableCell key={col.id} align={col.align || 'left'} sx={{ color: '#f8fafc' }}>
+                  <TableCell key={col.id} align={col.align || 'left'} sx={{ color: "text.primary" }}>
                     {row[col.id]}
                   </TableCell>
                 ))}

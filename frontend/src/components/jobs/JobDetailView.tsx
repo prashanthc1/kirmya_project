@@ -99,7 +99,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 width: 64,
                 height: 64,
                 bgcolor: theme.palette.primary.main,
-                color: '#ffffff',
+                color: "primary.contrastText",
                 fontWeight: 700,
                 fontSize: '1.5rem',
                 borderRadius: `${tokens.radius.md}px`,

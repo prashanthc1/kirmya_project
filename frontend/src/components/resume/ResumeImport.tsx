@@ -39,9 +39,8 @@ export const ResumeImport: React.FC<ResumeImportProps> = ({ onImportSuccess }) =
       sx={{
         p: 5,
         borderRadius: 4,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: 'background.paper',
         border: '2px dashed rgba(255, 255, 255, 0.15)',
-        backdropFilter: 'blur(20px)',
         textAlign: 'center',
       }}
     >

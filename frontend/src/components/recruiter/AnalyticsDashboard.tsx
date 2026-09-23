@@ -24,10 +24,10 @@ export const AnalyticsDashboard: React.FC = () => {
   const isDark = theme.palette.mode === 'dark';
 
   const metrics = [
-    { label: 'Total Jobs Created', value: '14 Active / Draft', icon: <WorkIcon sx={{ color: '#6366f1' }} /> },
-    { label: 'Applications Received', value: '142 Applicants', icon: <GroupIcon sx={{ color: '#10b981' }} /> },
-    { label: 'Candidate Conversion Rate', value: '24.5%', icon: <TrendingUpIcon sx={{ color: '#f59e0b' }} /> },
-    { label: 'Average Time To Hire', value: '18 Days', icon: <AccessTimeIcon sx={{ color: '#ec4899' }} /> },
+    { label: 'Total Jobs Created', value: '14 Active / Draft', icon: <WorkIcon sx={{ color: 'primary.main' }} /> },
+    { label: 'Applications Received', value: '142 Applicants', icon: <GroupIcon sx={{ color: 'success.main' }} /> },
+    { label: 'Candidate Conversion Rate', value: '24.5%', icon: <TrendingUpIcon sx={{ color: 'warning.main' }} /> },
+    { label: 'Average Time To Hire', value: '18 Days', icon: <AccessTimeIcon sx={{ color: 'primary.main' }} /> },
   ];
 
   const conversionFunnel = [
@@ -67,15 +67,14 @@ export const AnalyticsDashboard: React.FC = () => {
               sx={{
                 p: 3,
                 borderRadius: '20px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : "action.hover",
+                border: 1, borderColor: 'divider',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 2,
               }}
             >
-              <Paper elevation={0} sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'rgba(99, 102, 241, 0.1)' }}>
+              <Paper elevation={0} sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'background.paper' }}>
                 {m.icon}
               </Paper>
               <Box>
@@ -98,9 +97,8 @@ export const AnalyticsDashboard: React.FC = () => {
             sx={{
               borderRadius: '24px',
               p: 3,
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
@@ -131,9 +129,8 @@ export const AnalyticsDashboard: React.FC = () => {
               borderRadius: '24px',
               p: 3,
               mb: 3,
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
@@ -142,7 +139,7 @@ export const AnalyticsDashboard: React.FC = () => {
             <Grid container spacing={2}>
               {timeMetrics.map((tm, i) => (
                 <Grid item xs={6} key={i}>
-                  <Box sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                  <Box sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>{tm.label}</Typography>
                     <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main', mt: 0.5 }}>{tm.value}</Typography>
                   </Box>
@@ -155,9 +152,8 @@ export const AnalyticsDashboard: React.FC = () => {
             sx={{
               borderRadius: '24px',
               p: 3,
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>

@@ -80,9 +80,9 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
           textColor="inherit"
           indicatorColor="primary"
           sx={{
-            '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-            '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-            '& .Mui-selected': { color: '#38bdf8' },
+            '& .MuiTabs-indicator': { bgcolor: "primary.main" },
+            '& .MuiTab-root': { color: "text.secondary", fontWeight: 'bold', textTransform: 'none' },
+            '& .Mui-selected': { color: "primary.main" },
           }}
         >
           {categories.map((cat) => (
@@ -101,7 +101,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
 
           return (
             <Grid item xs={12} sm={6} md={4} key={course.id}>
-              <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-3px)' } }}>
+              <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-3px)' } }}>
                 <Box sx={{ position: 'relative' }}>
                   <CardMedia
                     component="img"
@@ -132,7 +132,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                         top: 12,
                         left: 12,
                         bgcolor: '#22c55e',
-                        color: '#fff',
+                        color: "success.contrastText",
                         fontWeight: 'bold',
                         fontSize: '0.7rem',
                       }}
@@ -142,7 +142,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
 
                 <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="caption" sx={{ color: '#38bdf8', fontWeight: 'bold' }}>
+                    <Typography variant="caption" sx={{ color: "primary.main", fontWeight: 'bold' }}>
                       {course.category}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -151,15 +151,15 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                     </Box>
                   </Box>
 
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1, lineHeight: 1.3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "text.primary", mb: 1, lineHeight: 1.3 }}>
                     {course.title}
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2, flexGrow: 1, fontSize: '0.85rem' }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 2, flexGrow: 1, fontSize: '0.85rem' }}>
                     {course.description}
                   </Typography>
 
-                  <Box sx={{ display: 'flex', gap: 2, color: '#64748b', mb: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 2, color: "text.secondary", mb: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <AccessTimeIcon fontSize="small" />
                       <Typography variant="caption">{course.duration_hours} Hours</Typography>
@@ -177,7 +177,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                         key={idx}
                         label={skill}
                         size="small"
-                        sx={{ bgcolor: '#0f172a', color: '#94a3b8', fontSize: '0.65rem', border: '1px solid #334155' }}
+                        sx={{ bgcolor: "background.default", color: "text.secondary", fontSize: '0.65rem', border: (theme) => `1px solid ${theme.palette.divider}` }}
                       />
                     ))}
                   </Box>
@@ -186,17 +186,17 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                   {prog && (
                     <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
                           Progress ({prog.completed_lessons}/{prog.total_lessons} lessons)
                         </Typography>
-                        <Typography variant="caption" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+                        <Typography variant="caption" fontWeight="bold" sx={{ color: "primary.main" }}>
                           {prog.completion_percentage}%
                         </Typography>
                       </Box>
                       <LinearProgress
                         variant="determinate"
                         value={prog.completion_percentage}
-                        sx={{ height: 6, borderRadius: 3, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: prog.completion_percentage === 100 ? '#22c55e' : '#38bdf8' } }}
+                        sx={{ height: 6, borderRadius: 3, bgcolor: "background.default", '& .MuiLinearProgress-bar': { bgcolor: prog.completion_percentage === 100 ? '#22c55e' : "primary.main" } }}
                       />
                     </Box>
                   )}
@@ -210,7 +210,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                       target="_blank"
                       rel="noopener noreferrer"
                       endIcon={<OpenInNewIcon />}
-                      sx={{ color: '#38bdf8', borderColor: '#38bdf8', fontWeight: 'bold' }}
+                      sx={{ color: "primary.main", borderColor: "primary.main", fontWeight: 'bold' }}
                     >
                       View On {providerInfo.label}
                     </Button>
@@ -220,7 +220,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                       fullWidth
                       onClick={() => onEnrollCourse(course)}
                       startIcon={<PlayCircleOutlineIcon />}
-                      sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', '&:hover': { bgcolor: '#0284c7' } }}
+                      sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', '&:hover': { bgcolor: "primary.main" } }}
                     >
                       Enroll Free
                     </Button>
@@ -229,7 +229,7 @@ export const CourseGrid: React.FC<CourseGridProps> = ({
                       variant="contained"
                       fullWidth
                       onClick={() => onUpdateLessonProgress(course.id, Math.min(course.total_lessons, (prog?.completed_lessons || 0) + 1))}
-                      sx={{ bgcolor: isCompleted ? '#22c55e' : '#38bdf8', color: isCompleted ? '#fff' : '#0f172a', fontWeight: 'bold' }}
+                      sx={{ bgcolor: isCompleted ? '#22c55e' : "primary.main", color: isCompleted ? "primary.contrastText" : "primary.contrastText", fontWeight: 'bold' }}
                     >
                       {isCompleted ? 'Course Completed ✓' : 'Continue Next Lesson'}
                     </Button>

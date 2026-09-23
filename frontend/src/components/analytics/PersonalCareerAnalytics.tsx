@@ -95,14 +95,14 @@ export const PersonalCareerAnalytics: React.FC = () => {
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Card sx={{ p: 3, borderRadius: '20px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-              <VisibilityIcon sx={{ color: '#6366f1' }} />
+              <VisibilityIcon sx={{ color: "primary.main" }} />
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                 PROFILE VIEWS
               </Typography>
             </Stack>
-            <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, color: '#6366f1' }}>
+            <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, color: "primary.main" }}>
               {analytics.profile_views_count}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -112,7 +112,7 @@ export const PersonalCareerAnalytics: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Card sx={{ p: 3, borderRadius: '20px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
               <WorkIcon sx={{ color: '#10b981' }} />
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
@@ -129,7 +129,7 @@ export const PersonalCareerAnalytics: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Card sx={{ p: 3, borderRadius: '20px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
               <EmojiEventsIcon sx={{ color: '#f59e0b' }} />
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
@@ -146,7 +146,7 @@ export const PersonalCareerAnalytics: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Card sx={{ p: 3, borderRadius: '20px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
               <LocalOfferIcon sx={{ color: '#ec4899' }} />
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>

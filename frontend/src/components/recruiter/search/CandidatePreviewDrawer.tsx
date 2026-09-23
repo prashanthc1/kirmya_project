@@ -93,7 +93,7 @@ export const CandidatePreviewDrawer: React.FC<CandidatePreviewDrawerProps> = ({ 
           <AutoAwesomeIcon /> AI Fit &amp; Match Analysis
         </Typography>
 
-        <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+        <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>
             Matching Required Skills:
           </Typography>
@@ -129,7 +129,7 @@ export const CandidatePreviewDrawer: React.FC<CandidatePreviewDrawerProps> = ({ 
           <WorkIcon fontSize="small" /> Current &amp; Previous Positions
         </Typography>
 
-        <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+        <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             {candidate.currentPosition}
           </Typography>
@@ -146,7 +146,7 @@ export const CandidatePreviewDrawer: React.FC<CandidatePreviewDrawerProps> = ({ 
           <SchoolIcon fontSize="small" /> Education &amp; Certifications
         </Typography>
 
-        <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+        <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             {candidate.educationDegree}
           </Typography>

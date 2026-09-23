@@ -18,7 +18,7 @@ export const CoverLetterAnalyticsComponent: React.FC<CoverLetterAnalyticsProps> 
   const STATS = [
     { title: 'Total Views', value: analytics.totalViews, icon: <ViewsIcon color="primary" />, color: '#818cf8' },
     { title: 'Recruiter Views', value: analytics.recruiterViews, icon: <ViewsIcon color="secondary" />, color: '#c084fc' },
-    { title: 'Total Downloads', value: analytics.totalDownloads, icon: <DownloadIcon sx={{ color: '#38bdf8' }} />, color: '#38bdf8' },
+    { title: 'Total Downloads', value: analytics.totalDownloads, icon: <DownloadIcon sx={{ color: "primary.main" }} />, color: '#38bdf8' },
     { title: 'Applications Used', value: analytics.applicationsUsedCount, icon: <AppsIcon sx={{ color: '#34d399' }} />, color: '#34d399' },
     { title: 'Avg Match Score', value: `${analytics.avgMatchScore}%`, icon: <MatchIcon sx={{ color: '#fbbf24' }} />, color: '#fbbf24' },
   ];
@@ -29,9 +29,9 @@ export const CoverLetterAnalyticsComponent: React.FC<CoverLetterAnalyticsProps> 
         <Grid item xs={6} sm={4} md={2.4} key={idx}>
           <Card
             sx={{
-              background: 'rgba(255, 255, 255, 0.03)',
+              bgcolor: "action.hover",
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               borderRadius: 3,
             }}
           >

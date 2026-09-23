@@ -28,9 +28,9 @@ export const InterviewPrepFilterBar: React.FC<InterviewPrepFilterBarProps> = ({
         p: 2,
         mb: 3,
         borderRadius: 3.5,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
@@ -42,15 +42,15 @@ export const InterviewPrepFilterBar: React.FC<InterviewPrepFilterBarProps> = ({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search sx={{ color: '#94A3B8' }} />
+                <Search sx={{ color: "text.secondary" }} />
               </InputAdornment>
             ),
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              color: '#fff',
+              color: "text.primary",
               borderRadius: 2.5,
-              bgcolor: 'rgba(15, 23, 42, 0.5)',
+              bgcolor: "background.paper",
             },
           }}
         />
@@ -62,9 +62,9 @@ export const InterviewPrepFilterBar: React.FC<InterviewPrepFilterBarProps> = ({
           sx={{
             minWidth: 160,
             '& .MuiOutlinedInput-root': {
-              color: '#fff',
+              color: "text.primary",
               borderRadius: 2.5,
-              bgcolor: 'rgba(15, 23, 42, 0.5)',
+              bgcolor: "background.paper",
             },
           }}
         >
@@ -83,9 +83,9 @@ export const InterviewPrepFilterBar: React.FC<InterviewPrepFilterBarProps> = ({
           sx={{
             minWidth: 150,
             '& .MuiOutlinedInput-root': {
-              color: '#fff',
+              color: "text.primary",
               borderRadius: 2.5,
-              bgcolor: 'rgba(15, 23, 42, 0.5)',
+              bgcolor: "background.paper",
             },
           }}
         >

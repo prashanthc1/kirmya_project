@@ -90,7 +90,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
 
       <AIWritingAssistant onAction={handleAiAction} />
 
-      <Paper sx={{ p: 3, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)' }}>
+      <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
         <Typography variant="h6" fontWeight={700} mb={2}>
           Recipient & Target Role Information
         </Typography>
@@ -146,7 +146,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         </Grid>
       </Paper>
 
-      <Paper sx={{ p: 3, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)' }}>
+      <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
         <Typography variant="h6" fontWeight={700} mb={2}>
           Cover Letter Content Editor
         </Typography>
@@ -197,10 +197,10 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         </Stack>
       </Paper>
 
-      <Paper sx={{ p: 3, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)' }}>
+      <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
         <Stack spacing={3}>
           <ToneSelector value={letter.tone} onChange={(t) => handleChange('tone', t)} />
-          <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+          <Divider sx={{ borderColor: "divider" }} />
           <LengthSelector
             value={letter.targetLength}
             currentWordCount={letter.wordCount}

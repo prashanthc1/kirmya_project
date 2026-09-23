@@ -52,10 +52,10 @@ export const AIJobMatchCard: React.FC<AIJobMatchCardProps> = ({
       sx={{
         borderRadius: 3,
         border: '1px solid',
-        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-        background: isDark
-          ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)'
-          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.9) 100%)',
+        borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+        bgcolor: isDark
+          ? "background.paper"
+          : "background.paper",
         backdropFilter: 'blur(12px)',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         '&:hover': {
@@ -94,7 +94,7 @@ export const AIJobMatchCard: React.FC<AIJobMatchCardProps> = ({
               sx={{
                 fontWeight: 600,
                 bgcolor: isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(14, 165, 233, 0.15)',
-                color: isDark ? '#38bdf8' : '#0284c7',
+                color: isDark ? "primary.main" : "primary.main",
                 border: '1px solid',
                 borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(14, 165, 233, 0.3)',
               }}
@@ -111,7 +111,7 @@ export const AIJobMatchCard: React.FC<AIJobMatchCardProps> = ({
             sx={{
               height: 6,
               borderRadius: 3,
-              bgcolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+              bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.06)',
               '& .MuiLinearProgress-bar': {
                 bgcolor: scoreColor,
                 borderRadius: 3,
@@ -135,7 +135,7 @@ export const AIJobMatchCard: React.FC<AIJobMatchCardProps> = ({
           </Typography>
         </Box>
 
-        <Divider sx={{ my: 2, borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)' }} />
+        <Divider sx={{ my: 2, borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.06)' }} />
 
         {/* Skills Alignment Grid */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -200,7 +200,7 @@ export const AIJobMatchCard: React.FC<AIJobMatchCardProps> = ({
                   sx={{
                     p: 1.25,
                     borderRadius: 1.5,
-                    bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                    bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.02)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',

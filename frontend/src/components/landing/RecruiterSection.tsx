@@ -27,17 +27,17 @@ export const RecruiterSection: React.FC = () => {
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={7}>
               <Chip
-                icon={<BusinessCenterIcon sx={{ color: '#6366f1 !important' }} />}
+                icon={<BusinessCenterIcon color="primary" />}
                 label="FOR RECRUITERS & HIRING MANAGERS"
                 sx={{
-                  fontWeight: 800,
+                  fontWeight: 700,
                   px: 1,
                   mb: 2,
-                  bgcolor: 'rgba(99, 102, 241, 0.15)',
+                  bgcolor: 'action.hover',
                   color: 'primary.main',
                 }}
               />
-              <Typography variant="h3" sx={{ fontWeight: 900, mb: 2, color: 'text.primary' }}>
+              <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
                 Hire Top Talent 3x Faster with AI Vector Ranking
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7, fontSize: '1.05rem' }}>
@@ -65,10 +65,8 @@ export const RecruiterSection: React.FC = () => {
                   py: 1.5,
                   px: 4,
                   borderRadius: '12px',
-                  fontWeight: 800,
+                  fontWeight: 700,
                   textTransform: 'none',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                  boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
                 }}
               >
                 Post a Job Now
@@ -80,15 +78,16 @@ export const RecruiterSection: React.FC = () => {
                 sx={{
                   p: 3,
                   borderRadius: '18px',
-                  bgcolor: 'rgba(99, 102, 241, 0.08)',
-                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  bgcolor: 'action.hover',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   textAlign: 'center',
                 }}
               >
-                <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main', mb: 1 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
                   4.8x
                 </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
                   Higher Candidate Response Rate
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

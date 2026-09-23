@@ -51,10 +51,10 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
       sx={{
         p: 3,
         borderRadius: 4,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
       }}
     >
       <Typography variant="h6" fontWeight={700} sx={{ mb: 2.5 }}>
@@ -70,7 +70,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
               value={interviewers}
               onChange={(e) => setInterviewers(e.target.value)}
               placeholder="e.g. Alex Rivera (Lead Architect), Sarah Jenkins (Engineering Director)"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -80,7 +80,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
               fullWidth
               value={feeling}
               onChange={(e) => setFeeling(e.target.value as any)}
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             >
               <MenuItem value="Excellent">Excellent 🔥</MenuItem>
               <MenuItem value="Good">Good 👍</MenuItem>
@@ -98,7 +98,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
           value={topics}
           onChange={(e) => setTopics(e.target.value)}
           placeholder="e.g. System scalability, team growth, microservices migration..."
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
 
         <TextField
@@ -109,7 +109,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
           value={questions}
           onChange={(e) => setQuestions(e.target.value)}
           placeholder="e.g. How do you handle cache invalidation at scale?"
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
 
         <Grid container spacing={2}>
@@ -122,7 +122,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
               value={strengths}
               onChange={(e) => setStrengths(e.target.value)}
               placeholder="e.g. Clear STAR articulation, strong system design depth..."
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -134,7 +134,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
               value={weaknesses}
               onChange={(e) => setWeaknesses(e.target.value)}
               placeholder="e.g. Be more concise in the Situation setup..."
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
           </Grid>
         </Grid>
@@ -145,7 +145,7 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
             onClick={() => handleSubmit(false)}
             disabled={saving}
             startIcon={<Save />}
-            sx={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 2.5 }}
+            sx={{ borderColor: "divider", color: '#fff', borderRadius: 2.5 }}
           >
             Save Debrief Notes
           </Button>
@@ -156,8 +156,8 @@ export const PostInterviewForm: React.FC<PostInterviewFormProps> = ({ preparatio
             disabled={saving}
             startIcon={<AutoAwesome />}
             sx={{
-              background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-              color: '#fff',
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               fontWeight: 600,
               borderRadius: 2.5,
               px: 3,

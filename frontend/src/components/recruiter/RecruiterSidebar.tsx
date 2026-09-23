@@ -51,7 +51,7 @@ export const RecruiterSidebar: React.FC = () => {
         // phone it should take the height of its own list, not the screen.
         minHeight: { xs: 'auto', md: '100dvh' },
         flexShrink: 0,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         borderRight: { xs: 'none', md: '1px solid rgba(255, 255, 255, 0.08)' },
         borderBottom: { xs: '1px solid rgba(255, 255, 255, 0.08)', md: 'none' },
         p: 2.5,
@@ -74,7 +74,7 @@ export const RecruiterSidebar: React.FC = () => {
         }
       />
 
-      <Divider sx={{ mb: 2, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+      <Divider sx={{ mb: 2, borderColor: "divider" }} />
 
       {/* Menu Navigation */}
       <List disablePadding>
@@ -89,7 +89,7 @@ export const RecruiterSidebar: React.FC = () => {
                 mb: 0.8,
                 bgcolor: isActive ? (isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.1)') : 'transparent',
                 color: isActive ? 'primary.main' : 'text.primary',
-                '&:hover': { bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)' },
+                '&:hover': { bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.04)' },
               }}
             >
               <ListItemIcon sx={{ color: isActive ? 'primary.main' : 'text.secondary', minWidth: 38 }}>
@@ -110,13 +110,13 @@ export const RecruiterSidebar: React.FC = () => {
           mt: 'auto',
           p: 2,
           borderRadius: '16px',
-          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%)',
+          bgcolor: "background.paper",
           border: '1px solid rgba(168, 85, 247, 0.3)',
           textAlign: 'center',
         }}
       >
-        <AutoAwesomeIcon sx={{ color: '#a855f7', mb: 0.5 }} />
-        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#a855f7' }}>
+        <AutoAwesomeIcon sx={{ color: "primary.main", mb: 0.5 }} />
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "primary.main" }}>
           AI Hiring Companion Active
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, lineHeight: 1.3 }}>

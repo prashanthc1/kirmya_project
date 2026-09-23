@@ -69,8 +69,8 @@ export const PersonCard: React.FC<{ person: CompanyPerson }> = ({ person }) => {
         borderRadius: '16px',
         height: '100%',
         border: '1px solid',
-        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(99, 102, 241, 0.12)',
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.7)',
+        borderColor: isDark ? "divider" : 'rgba(99, 102, 241, 0.12)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(12px)',
       }}
     >

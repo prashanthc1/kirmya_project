@@ -25,7 +25,7 @@ export const ProjectEditor: React.FC<{ items: any[]; onChange: (items: any[]) =>
 
       <Stack spacing={2.5}>
         {items.map((proj, idx) => (
-          <Paper key={idx} elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', position: 'relative' }}>
+          <Paper key={idx} elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', position: 'relative' }}>
             <Box sx={{ position: 'absolute', top: 12, right: 12 }}>
               <IconButton size="small" color="error" onClick={() => handleRemove(idx)}><DeleteOutlineIcon /></IconButton>
             </Box>

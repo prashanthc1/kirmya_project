@@ -5,7 +5,7 @@ import { Box, Container, Grid, Typography, Avatar, Rating, Stack, IconButton, us
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { springs } from '../../theme/motion';
 import GlassCard from './GlassCard';
 
@@ -36,7 +36,7 @@ interface TestimonialsSectionProps {
  * the page is shorter and honest.
  */
 export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testimonials }) => {
-  const theme = useTheme();
+  const reducedMotion = useReducedMotion();
   const list = testimonials ?? [];
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -59,7 +59,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
           <Typography
             variant="caption"
             sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: 2,
               color: 'primary.main',
               textTransform: 'uppercase',
@@ -69,7 +69,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
           >
             REAL RECOVERY STORIES
           </Typography>
-          <Typography variant="h3" sx={{ fontWeight: 900, mb: 2, color: 'text.primary' }}>
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
             What Our Members Say
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 650, mx: 'auto', fontSize: '1.05rem' }}>
@@ -84,20 +84,20 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
               <GlassCard sx={{ height: '100%', p: 3.5, display: 'flex', flexDirection: 'column' }}>
                 <Stack spacing={2} sx={{ flexGrow: 1 }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Rating value={t.rating || 5} readOnly size="small" sx={{ color: '#f59e0b' }} />
-                    <FormatQuoteIcon sx={{ fontSize: 32, color: 'rgba(99, 102, 241, 0.3)' }} />
+                    <Rating value={t.rating || 5} readOnly size="small" sx={{ color: 'primary.main' }} />
+                    <FormatQuoteIcon sx={{ fontSize: 32, color: 'text.secondary' }} />
                   </Stack>
 
                   <Typography variant="body1" sx={{ fontStyle: 'italic', lineHeight: 1.65, color: 'text.primary', flexGrow: 1 }}>
                     &quot;{t.quote}&quot;
                   </Typography>
 
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                    <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 800 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 700 }}>
                       {t.author_name[0]}
                     </Avatar>
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                         {t.author_name}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
@@ -113,26 +113,25 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
 
         {/* Mobile Interactive Carousel */}
         <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-          <AnimatePresence mode="wait">
+          <Box aria-live="polite">
             <motion.div
               key={currentIndex}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={springs.entrance}
+              initial={reducedMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={reducedMotion ? { duration: 0 } : springs.entrance}
             >
               <GlassCard sx={{ p: 3 }}>
                 <Stack spacing={2}>
-                  <Rating value={list[currentIndex].rating || 5} readOnly size="small" sx={{ color: '#f59e0b' }} />
+                  <Rating value={list[currentIndex].rating || 5} readOnly size="small" sx={{ color: 'primary.main' }} />
                   <Typography variant="body1" sx={{ fontStyle: 'italic', lineHeight: 1.65 }}>
                     &quot;{list[currentIndex].quote}&quot;
                   </Typography>
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 800 }}>
+                    <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 700 }}>
                       {list[currentIndex].author_name[0]}
                     </Avatar>
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                         {list[currentIndex].author_name}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
@@ -143,13 +142,13 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
                 </Stack>
               </GlassCard>
             </motion.div>
-          </AnimatePresence>
+          </Box>
 
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
-            <IconButton onClick={handlePrev} size="small" sx={{ border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+            <IconButton aria-label="Previous testimonial" onClick={handlePrev} sx={{ border: '1px solid', borderColor: 'divider' }}>
               <ArrowBackIcon />
             </IconButton>
-            <IconButton onClick={handleNext} size="small" sx={{ border: '1px solid rgba(255, 255, 255, 0.2)' }}>
+            <IconButton aria-label="Next testimonial" onClick={handleNext} sx={{ border: '1px solid', borderColor: 'divider' }}>
               <ArrowForwardIcon />
             </IconButton>
           </Stack>

@@ -43,7 +43,7 @@ export const RecommendationDashboard: React.FC<RecommendationDashboardProps> = (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <AutoAwesomeIcon sx={{ color: '#9933FF', fontSize: 36 }} /> AI Job Recommendation Workspace
+          <AutoAwesomeIcon sx={{ color: "primary.main", fontSize: 36 }} /> AI Job Recommendation Workspace
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
           Personalized opportunities continuously optimized using your profile skills, career preferences, and activity vector.

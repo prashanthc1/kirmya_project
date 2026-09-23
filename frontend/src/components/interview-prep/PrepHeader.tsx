@@ -23,16 +23,16 @@ export const PrepHeader: React.FC<PrepHeaderProps> = ({
         p: 3,
         mb: 4,
         borderRadius: 4,
-        background: 'linear-gradient(135deg, rgba(24, 32, 54, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
       }}
     >
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} justifyContent="space-between" alignItems={{ md: 'center' }}>
         <Box>
           <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="h4" fontWeight={700} sx={{ background: 'linear-gradient(90deg, #60A5FA 0%, #A78BFA 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight={700} sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
               AI Interview Preparation & Coach
             </Typography>
             <Chip
@@ -60,8 +60,8 @@ export const PrepHeader: React.FC<PrepHeaderProps> = ({
               onClick={onOpenWarmup}
               sx={{
                 borderColor: 'rgba(96, 165, 250, 0.4)',
-                color: '#93C5FD',
-                '&:hover': { borderColor: '#60A5FA', bgcolor: 'rgba(96, 165, 250, 0.1)' },
+                color: "primary.main",
+                '&:hover': { borderColor: "primary.main", bgcolor: 'rgba(96, 165, 250, 0.1)' },
                 borderRadius: 2.5,
                 textTransform: 'none',
                 fontWeight: 600,
@@ -77,13 +77,13 @@ export const PrepHeader: React.FC<PrepHeaderProps> = ({
             variant="contained"
             startIcon={<PlayArrow />}
             sx={{
-              background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-              color: '#fff',
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               fontWeight: 600,
               borderRadius: 2.5,
               textTransform: 'none',
               px: 2.5,
-              '&:hover': { background: 'linear-gradient(90deg, #2563EB 0%, #7C3AED 100%)' },
+              '&:hover': { bgcolor: "primary.main" },
             }}
           >
             Start AI Mock Interview
@@ -94,9 +94,9 @@ export const PrepHeader: React.FC<PrepHeaderProps> = ({
               variant="outlined"
               onClick={onOpenCreate}
               sx={{
-                borderColor: 'rgba(255, 255, 255, 0.2)',
+                borderColor: "divider",
                 color: '#fff',
-                '&:hover': { borderColor: 'rgba(255, 255, 255, 0.4)', bgcolor: 'rgba(255, 255, 255, 0.05)' },
+                '&:hover': { borderColor: "divider", bgcolor: "action.hover" },
                 borderRadius: 2.5,
                 textTransform: 'none',
                 fontWeight: 600,

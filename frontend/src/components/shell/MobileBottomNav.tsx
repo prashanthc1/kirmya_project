@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { BottomNavigation, BottomNavigationAction, Paper, Badge, useTheme } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
@@ -24,22 +25,9 @@ const ICONS: Record<string, React.ReactElement> = {
 };
 
 /**
- * Primary navigation on compact screens.
- *
- * Three things this had wrong.
- *
- * It was hidden from `sm` upwards while the desktop navigation row only appears
- * from `md`, so on a tablet — 600px to 900px — neither existed and every
- * primary destination was behind the hamburger. Both breakpoints are now `md`.
- *
- * Its destinations were a switch statement calling `router.push`, so each was a
- * button: no middle-click, no open-in-new-tab, and announced as a button rather
- * than a link. They are links now, from the same config the rest of the
- * navigation reads.
- *
- * Its active tab was decided by `startsWith`, which lit Jobs on `/jobs` and
- * also on any path merely beginning with those characters. Matching is shared
- * and segment-aware.
+ * Primary workspace destinations on compact screens, paired with the
+ * desktop navigation at the `lg` breakpoint. Links and active-route matching
+ * come from the shared navigation registry.
  */
 export interface MobileBottomNavProps {
   /**
@@ -74,10 +62,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ items = MOBILE
         left: 0,
         right: 0,
         zIndex: tokens.zIndex.fixed,
-        display: { xs: 'block', md: 'none' },
-        borderTop: `1px solid ${theme.palette.divider}`,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(16px)',
+        display: { xs: 'block', lg: 'none' },
+        borderRadius: 0,
+        bgcolor: alpha(theme.palette.background.paper, isDark ? 0.92 : 0.88),
+        backdropFilter: 'blur(24px) saturate(150%)',
+        boxShadow: `0 -1px 16px ${alpha(theme.palette.common.black, 0.05)}`,
+        '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)': {
+          bgcolor: 'background.paper',
+          backdropFilter: 'none',
+        },
+        '@media (prefers-contrast: more)': { borderTop: `1px solid ${theme.palette.text.primary}` },
         // Keeps the bar clear of the home indicator on a modern handset.
         pb: 'env(safe-area-inset-bottom)',
       }}
@@ -87,14 +81,22 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ items = MOBILE
         showLabels
         sx={{
           bgcolor: 'transparent',
-          height: 60,
+          minHeight: 64,
+          height: 'auto',
           '& .MuiBottomNavigationAction-root': {
             minWidth: 'auto',
             // 48px is the smallest comfortable touch target.
             minHeight: 48,
-            padding: '6px 0',
+            padding: '8px 2px',
             color: 'text.secondary',
-            '&.Mui-selected': { color: theme.palette.primary.main },
+            '&.Mui-selected': { color: theme.palette.primary.main, bgcolor: 'action.selected' },
+            '&:active': { bgcolor: 'action.selected', transition: 'none' },
+            '& .MuiBottomNavigationAction-label, & .MuiBottomNavigationAction-label.Mui-selected': {
+              fontSize: '0.6875rem',
+              fontWeight: 600,
+              lineHeight: 1.3,
+              mt: 0.5,
+            },
             '&:focus-visible': {
               outline: `2px solid ${theme.palette.primary.main}`,
               outlineOffset: -2,

@@ -28,9 +28,9 @@ export const ApplicationAnalytics: React.FC<ApplicationAnalyticsProps> = ({ anal
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.03)',
+              bgcolor: "action.hover",
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
@@ -58,9 +58,9 @@ export const ApplicationAnalytics: React.FC<ApplicationAnalyticsProps> = ({ anal
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.03)',
+              bgcolor: "action.hover",
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>

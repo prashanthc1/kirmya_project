@@ -63,10 +63,9 @@ export const ModeratorWorkloadCard: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: 3,
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+        bgcolor: 'background.paper',
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       {/* Header */}
@@ -91,7 +90,7 @@ export const ModeratorWorkloadCard: React.FC = () => {
       {/* Top Aggregates Summary */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={6} sm={4}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: 'rgba(0, 0, 0, 0.03)' }}>
+          <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: 'background.paper' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
               ACTIVE CASES ASSIGNED
             </Typography>
@@ -101,7 +100,7 @@ export const ModeratorWorkloadCard: React.FC = () => {
           </Paper>
         </Grid>
         <Grid item xs={6} sm={4}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: 'rgba(0, 0, 0, 0.03)' }}>
+          <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: 'background.paper' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
               RESOLVED TODAY
             </Typography>
@@ -111,7 +110,7 @@ export const ModeratorWorkloadCard: React.FC = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', background: 'rgba(0, 0, 0, 0.03)' }}>
+          <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: 'background.paper' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
               AVG HANDLE TIME
             </Typography>
@@ -138,9 +137,8 @@ export const ModeratorWorkloadCard: React.FC = () => {
                 sx={{
                   p: 2.5,
                   borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: 'background.paper',
+                  border: 1, borderColor: 'divider',
                 }}
               >
                 <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>

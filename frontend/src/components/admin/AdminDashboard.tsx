@@ -41,14 +41,14 @@ export const AdminDashboard: React.FC = () => {
   const [maintenanceOpen, setMaintenanceOpen] = useState(false);
 
   const metrics = [
-    { label: 'Total Users', value: '12,450', change: '+12% this month', icon: <PeopleIcon sx={{ color: '#3b82f6' }} />, path: '/admin/users' },
-    { label: 'Active Users', value: '11,200', change: '90% retention', icon: <PeopleIcon sx={{ color: '#10b981' }} />, path: '/admin/users' },
-    { label: 'Suspended Users', value: '42', change: '0.3% of total', icon: <PeopleIcon sx={{ color: '#ef4444' }} />, path: '/admin/users' },
-    { label: 'Verified Companies', value: '940 / 1,280', change: '73.4% verified', icon: <BusinessIcon sx={{ color: '#6366f1' }} />, path: '/admin/companies' },
-    { label: 'Active Jobs', value: '4,850', change: '+18% growth', icon: <WorkIcon sx={{ color: '#f59e0b' }} />, path: '/admin/jobs' },
-    { label: 'Pending Moderation', value: '14 Cases', change: 'Critical priority: 2', icon: <GavelIcon sx={{ color: '#ec4899' }} />, path: '/admin/moderation' },
-    { label: 'Pending Verifications', value: '28 Reviews', change: 'Avg SLA: 2.4 hrs', icon: <VerifiedUserIcon sx={{ color: '#8b5cf6' }} />, path: '/admin/verifications' },
-    { label: 'Security Alerts', value: '5 Alerts', change: '0 account breaches', icon: <SecurityIcon sx={{ color: '#dc2626' }} />, path: '/admin/trust-safety' },
+    { label: 'Total Users', value: '12,450', change: '+12% this month', icon: <PeopleIcon sx={{ color: 'primary.main' }} />, path: '/admin/users' },
+    { label: 'Active Users', value: '11,200', change: '90% retention', icon: <PeopleIcon sx={{ color: 'success.main' }} />, path: '/admin/users' },
+    { label: 'Suspended Users', value: '42', change: '0.3% of total', icon: <PeopleIcon sx={{ color: 'error.main' }} />, path: '/admin/users' },
+    { label: 'Verified Companies', value: '940 / 1,280', change: '73.4% verified', icon: <BusinessIcon sx={{ color: 'primary.main' }} />, path: '/admin/companies' },
+    { label: 'Active Jobs', value: '4,850', change: '+18% growth', icon: <WorkIcon sx={{ color: 'warning.main' }} />, path: '/admin/jobs' },
+    { label: 'Pending Moderation', value: '14 Cases', change: 'Critical priority: 2', icon: <GavelIcon sx={{ color: 'primary.main' }} />, path: '/admin/moderation' },
+    { label: 'Pending Verifications', value: '28 Reviews', change: 'Avg SLA: 2.4 hrs', icon: <VerifiedUserIcon sx={{ color: 'primary.main' }} />, path: '/admin/verifications' },
+    { label: 'Security Alerts', value: '5 Alerts', change: '0 account breaches', icon: <SecurityIcon sx={{ color: 'error.main' }} />, path: '/admin/trust-safety' },
   ];
 
   return (
@@ -112,15 +112,13 @@ export const AdminDashboard: React.FC = () => {
                 p: 3,
                 borderRadius: '20px',
                 cursor: 'pointer',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 24px rgba(0,0,0,0.15)' },
+                bgcolor: isDark ? "background.paper" : "action.hover",
+                border: 1, borderColor: 'divider',
+                '&:hover': {  boxShadow: 0 },
               }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
-                <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'rgba(255,255,255,0.05)' }}>
+                <Box sx={{ p: 1, borderRadius: '12px', bgcolor: 'action.hover' }}>
                   {m.icon}
                 </Box>
                 <Chip label={m.change} size="small" sx={{ fontWeight: 700, fontSize: '0.65rem' }} />
@@ -153,9 +151,8 @@ export const AdminDashboard: React.FC = () => {
               sx={{
                 p: 3,
                 borderRadius: '24px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                bgcolor: isDark ? "background.paper" : "action.hover",
+                border: 1, borderColor: 'divider',
               }}
             >
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
@@ -165,9 +162,9 @@ export const AdminDashboard: React.FC = () => {
               <Grid container spacing={2}>
                 {['API Gateway', 'PostgreSQL DB', 'Redis Cache', 'Worker Queues', 'Notification Push', 'AI Moderation'].map((service) => (
                   <Grid item xs={6} key={service}>
-                    <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                    <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <CheckCircleIcon sx={{ color: '#10b981', fontSize: 20 }} />
+                        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 20 }} />
                         <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                           {service}
                         </Typography>
@@ -187,9 +184,8 @@ export const AdminDashboard: React.FC = () => {
               sx={{
                 p: 3,
                 borderRadius: '24px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                bgcolor: isDark ? "background.paper" : "action.hover",
+                border: 1, borderColor: 'divider',
               }}
             >
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
@@ -202,8 +198,8 @@ export const AdminDashboard: React.FC = () => {
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>Monthly User Signups</Typography>
                     <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>+12.4%</Typography>
                   </Stack>
-                  <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(99, 102, 241, 0.2)' }}>
-                    <Box sx={{ width: '78%', height: '100%', borderRadius: 4, bgcolor: '#6366f1' }} />
+                  <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'background.paper' }}>
+                    <Box sx={{ width: '78%', height: '100%', borderRadius: 4, bgcolor: 'primary.main' }} />
                   </Box>
                 </Box>
 
@@ -213,7 +209,7 @@ export const AdminDashboard: React.FC = () => {
                     <Typography variant="body2" color="success.main" sx={{ fontWeight: 800 }}>+18.2%</Typography>
                   </Stack>
                   <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(16, 185, 129, 0.2)' }}>
-                    <Box sx={{ width: '85%', height: '100%', borderRadius: 4, bgcolor: '#10b981' }} />
+                    <Box sx={{ width: '85%', height: '100%', borderRadius: 4, bgcolor: 'success.main' }} />
                   </Box>
                 </Box>
 
@@ -223,7 +219,7 @@ export const AdminDashboard: React.FC = () => {
                     <Typography variant="body2" color="error.main" sx={{ fontWeight: 800 }}>98.6% Target Passed</Typography>
                   </Stack>
                   <Box sx={{ height: 8, borderRadius: 4, bgcolor: 'rgba(239, 68, 68, 0.2)' }}>
-                    <Box sx={{ width: '98%', height: '100%', borderRadius: 4, bgcolor: '#ef4444' }} />
+                    <Box sx={{ width: '98%', height: '100%', borderRadius: 4, bgcolor: 'error.main' }} />
                   </Box>
                 </Box>
               </Stack>

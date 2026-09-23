@@ -26,14 +26,13 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
     <Paper
       elevation={0}
       sx={{
-        p: compact ? 3 : 6,
+        p: compact ? 3 : { xs: 3, sm: 6 },
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: (theme) =>
-          theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.06)' : 'rgba(254, 242, 242, 0.8)',
+        backgroundColor: 'background.paper',
         border: (theme) => `1px solid ${theme.palette.error.light}`,
         borderRadius: 2,
       }}
@@ -54,7 +53,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         <ErrorOutlineOutlinedIcon />
       </Box>
 
-      <Typography variant={compact ? 'h6' : 'h5'} component="h3" fontWeight={600} gutterBottom>
+      <Typography variant={compact ? 'h6' : 'h5'} component="h3" fontWeight={600} sx={{ letterSpacing: '-0.015em', overflowWrap: 'anywhere' }} gutterBottom>
         {title}
       </Typography>
 
@@ -76,6 +75,8 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
             py: 0.5,
             borderRadius: 1,
             mb: onRetry ? 2 : 0,
+            overflowWrap: 'anywhere',
+            maxWidth: '100%',
           }}
         >
           Code: {errorCode}

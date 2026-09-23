@@ -122,7 +122,7 @@ export const ResumeDashboard: React.FC<ResumeDashboardProps> = ({
                 p: 2,
                 borderRadius: `${tokens.radius.md}px`,
                 bgcolor: (theme) =>
-                  theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                  theme.palette.mode === 'dark' ? "action.hover" : 'rgba(0,0,0,0.02)',
               }}
             >
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>

@@ -33,9 +33,8 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
       sx={{
         p: 3,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.04)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'blur(16px)',
+        bgcolor: 'background.paper',
+        border: 1, borderColor: 'divider',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -88,7 +87,7 @@ export const ATSScoreCard: React.FC<ATSScoreCardProps> = ({
                 sx={{
                   height: 6,
                   borderRadius: 3,
-                  bgcolor: 'rgba(255,255,255,0.1)',
+                  bgcolor: 'action.hover',
                   '& .MuiLinearProgress-bar': {
                     bgcolor: getScoreColor(item.val),
                     borderRadius: 3,

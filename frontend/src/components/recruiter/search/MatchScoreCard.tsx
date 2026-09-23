@@ -21,7 +21,7 @@ export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ match }) => {
       sx={{
         p: 3,
         borderRadius: '16px',
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
+        bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
         border: '1px solid rgba(16, 185, 129, 0.3)',
       }}
     >
@@ -41,7 +41,7 @@ export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ match }) => {
         sx={{
           height: 10,
           borderRadius: 5,
-          bgcolor: 'rgba(255, 255, 255, 0.1)',
+          bgcolor: "action.hover",
           mb: 3,
           '& .MuiLinearProgress-bar': { bgcolor: '#10b981', borderRadius: 5 },
         }}

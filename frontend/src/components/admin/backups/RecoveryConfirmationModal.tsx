@@ -55,11 +55,11 @@ export default function RecoveryConfirmationModal({ open, onClose, backupId }: R
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: '#0f172a', color: '#f8fafc', border: '1px solid #ef4444', borderRadius: 2.5 } }}>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#ef4444' }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'error.main' }}>
         <WarningAmberIcon fontSize="large" /> CRITICAL: Production Database Restore Safeguard
       </DialogTitle>
-      <DialogContent dividers sx={{ borderColor: '#334155' }}>
-        <Alert severity="error" sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', border: '1px solid #ef4444', mb: 3 }}>
+      <DialogContent dividers sx={{ borderColor: 'divider' }}>
+        <Alert severity="error" sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', color: 'error.main', border: 1, borderColor: 'divider', mb: 3 }}>
           <Typography variant="subtitle2" fontWeight="bold">DESTRUCTIVE OPERATION WARNING</Typography>
           Restoring a production snapshot will overwrite live database state. A pre-restore rollback snapshot will be automatically created before restoration starts.
         </Alert>
@@ -69,15 +69,15 @@ export default function RecoveryConfirmationModal({ open, onClose, backupId }: R
         )}
 
         {success && (
-          <Alert severity="success" sx={{ mb: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+          <Alert severity="success" sx={{ mb: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', color: 'success.main' }}>
             <Typography variant="subtitle2" fontWeight="bold">Restore Pipeline Initiated</Typography>
             <Typography variant="caption">{success.message}</Typography>
           </Alert>
         )}
 
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8' }}>SELECTED BACKUP ARTIFACT</Typography>
-          <Typography variant="body2" fontWeight="bold" sx={{ fontFamily: 'monospace', color: '#38bdf8' }}>{backupId}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>SELECTED BACKUP ARTIFACT</Typography>
+          <Typography variant="body2" fontWeight="bold" sx={{ fontFamily: 'monospace', color: 'primary.main' }}>{backupId}</Typography>
         </Box>
 
         <TextField
@@ -87,7 +87,7 @@ export default function RecoveryConfirmationModal({ open, onClose, backupId }: R
           onChange={(e) => setReason(e.target.value)}
           placeholder="e.g. Critical database corruption mitigation ticket INC-8492"
           margin="normal"
-          sx={{ '& .MuiOutlinedInput-root': { color: '#f8fafc', borderColor: '#334155' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: 'text.primary', borderColor: 'divider' }, '& .MuiInputLabel-root': { color: 'text.secondary' } }}
         />
 
         <TextField
@@ -97,17 +97,17 @@ export default function RecoveryConfirmationModal({ open, onClose, backupId }: R
           onChange={(e) => setCode(e.target.value)}
           placeholder="RESTORE-PRODUCTION-DATA"
           margin="normal"
-          sx={{ '& .MuiOutlinedInput-root': { color: '#f8fafc', borderColor: '#334155' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: 'text.primary', borderColor: 'divider' }, '& .MuiInputLabel-root': { color: 'text.secondary' } }}
         />
 
         <FormControlLabel
-          control={<Checkbox checked={ack} onChange={(e) => setAck(e.target.checked)} sx={{ color: '#ef4444', '&.Mui-checked': { color: '#ef4444' } }} />}
-          label={<Typography variant="caption" sx={{ color: '#cbd5e1' }}>I confirm I hold `backup.restore` authority and acknowledge live data replacement risks.</Typography>}
+          control={<Checkbox checked={ack} onChange={(e) => setAck(e.target.checked)} sx={{ color: 'error.main', '&.Mui-checked': { color: 'error.main' } }} />}
+          label={<Typography variant="caption" sx={{ color: 'text.primary' }}>I confirm I hold `backup.restore` authority and acknowledge live data replacement risks.</Typography>}
           sx={{ mt: 1 }}
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} sx={{ color: '#94a3b8' }}>Cancel</Button>
+        <Button onClick={onClose} sx={{ color: 'text.secondary' }}>Cancel</Button>
         <Button
           variant="contained"
           color="error"

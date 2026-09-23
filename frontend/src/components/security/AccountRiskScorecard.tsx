@@ -94,10 +94,9 @@ export const AccountRiskScorecard: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: 3,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} sx={{ mb: 3 }}>
@@ -153,8 +152,8 @@ export const AccountRiskScorecard: React.FC = () => {
                 p: 3,
                 borderRadius: '20px',
                 textAlign: 'center',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: 1, borderColor: 'divider',
               }}
             >
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
@@ -176,7 +175,7 @@ export const AccountRiskScorecard: React.FC = () => {
                   mt: 2,
                   fontWeight: 900,
                   bgcolor: getRiskColor(currentScore.risk_level),
-                  color: '#fff',
+                  color: 'text.primary',
                 }}
               />
 
@@ -222,8 +221,8 @@ export const AccountRiskScorecard: React.FC = () => {
               sx={{
                 p: 3,
                 borderRadius: '20px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: 1, borderColor: 'divider',
                 height: '100%',
               }}
             >

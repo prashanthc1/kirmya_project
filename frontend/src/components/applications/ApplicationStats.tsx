@@ -41,9 +41,9 @@ export const ApplicationStats: React.FC<ApplicationStatsProps> = ({ stats, isLoa
               sx={{
                 p: 2.5,
                 borderRadius: 3,
-                background: 'rgba(255, 255, 255, 0.04)',
+                bgcolor: "action.hover",
                 backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',

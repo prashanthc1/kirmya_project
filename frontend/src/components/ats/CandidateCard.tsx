@@ -50,8 +50,8 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
       sx={{
         p: 2,
         borderRadius: '14px',
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         transition: 'transform 0.15s ease, box-shadow 0.15s ease',
         '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)' },
       }}

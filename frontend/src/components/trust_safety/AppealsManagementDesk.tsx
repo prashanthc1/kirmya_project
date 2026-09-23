@@ -105,9 +105,8 @@ export const AppealsManagementDesk: React.FC = () => {
             sx={{
               p: 2.5,
               borderRadius: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
@@ -125,9 +124,8 @@ export const AppealsManagementDesk: React.FC = () => {
             sx={{
               p: 2.5,
               borderRadius: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
@@ -145,9 +143,8 @@ export const AppealsManagementDesk: React.FC = () => {
             sx={{
               p: 2.5,
               borderRadius: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
@@ -165,9 +162,8 @@ export const AppealsManagementDesk: React.FC = () => {
             sx={{
               p: 2.5,
               borderRadius: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
@@ -185,10 +181,9 @@ export const AppealsManagementDesk: React.FC = () => {
         sx={{
           borderRadius: '24px',
           p: 3,
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+          bgcolor: 'background.paper',
+          border: 1, borderColor: 'divider',
+          boxShadow: 0,
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -323,7 +318,7 @@ export const AppealsManagementDesk: React.FC = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ p: 2, borderRadius: '12px', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <Box sx={{ p: 2, borderRadius: '12px', bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.5 }}>
                   Dispute Reason & Explanation:
                 </Typography>

@@ -97,14 +97,13 @@ export const AIRecruiterAssistant: React.FC = () => {
         borderRadius: '24px',
         p: { xs: 3, md: 4 },
         mb: 4,
-        background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <AutoAwesomeIcon sx={{ color: '#a855f7', fontSize: 36 }} />
+        <AutoAwesomeIcon sx={{ color: 'primary.main', fontSize: 36 }} />
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 900 }}>
             AI Recruiting Assistant &amp; Co-Pilot
@@ -132,7 +131,7 @@ export const AIRecruiterAssistant: React.FC = () => {
               fontWeight: 800,
               textTransform: 'none',
               ...(activeTask === cap.id && {
-                background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+                bgcolor: 'primary.main',
               }),
             }}
           >
@@ -157,11 +156,11 @@ export const AIRecruiterAssistant: React.FC = () => {
           sx={{
             p: 3,
             borderRadius: '20px',
-            bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)',
-            border: '1px solid rgba(168, 85, 247, 0.3)',
+            bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+            border: 1, borderColor: 'divider',
           }}
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#a855f7', mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main', mb: 2 }}>
             {result.title}
           </Typography>
           <Stack spacing={1}>

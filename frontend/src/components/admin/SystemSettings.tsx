@@ -49,7 +49,7 @@ export const SystemSettings: React.FC = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-        <SettingsIcon sx={{ color: '#6366f1', fontSize: 36 }} />
+        <SettingsIcon sx={{ color: 'primary.main', fontSize: 36 }} />
         <Typography variant="h4" sx={{ fontWeight: 900 }}>
           Protected System Settings &amp; Feature Flags
         </Typography>
@@ -70,9 +70,8 @@ export const SystemSettings: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: '24px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
@@ -136,13 +135,12 @@ export const SystemSettings: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: '24px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
-              <ToggleOnIcon sx={{ color: '#10b981', fontSize: 28 }} />
+              <ToggleOnIcon sx={{ color: 'success.main', fontSize: 28 }} />
               <Typography variant="h6" sx={{ fontWeight: 800 }}>
                 Feature Rollout Flags
               </Typography>
@@ -150,7 +148,7 @@ export const SystemSettings: React.FC = () => {
 
             <Stack spacing={2}>
               {flags.map((flag) => (
-                <Paper key={flag.id} sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                <Paper key={flag.id} sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, fontFamily: 'monospace' }}>
                       {flag.name}

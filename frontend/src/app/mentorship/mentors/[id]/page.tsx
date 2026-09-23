@@ -104,10 +104,10 @@ export default function MentorDetailPage() {
             sx={{
               p: { xs: 3, md: 4 },
               borderRadius: '24px',
-              background: (theme) =>
+              bgcolor: (theme) =>
                 theme.palette.mode === 'light'
-                  ? 'rgba(255, 255, 255, 0.85)'
-                  : 'rgba(30, 41, 59, 0.85)',
+                  ? "action.hover"
+                  : "background.paper",
               backdropFilter: 'blur(16px)',
               border: (theme) =>
                 theme.palette.mode === 'light'
@@ -227,10 +227,10 @@ export default function MentorDetailPage() {
             sx={{
               p: 3.5,
               borderRadius: '24px',
-              background: (theme) =>
+              bgcolor: (theme) =>
                 theme.palette.mode === 'light'
-                  ? 'rgba(255, 255, 255, 0.9)'
-                  : 'rgba(30, 41, 59, 0.9)',
+                  ? "action.hover"
+                  : "background.paper",
               backdropFilter: 'blur(20px)',
               border: (theme) =>
                 theme.palette.mode === 'light'
@@ -291,8 +291,8 @@ export default function MentorDetailPage() {
                 borderRadius: '14px',
                 fontWeight: 700,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.35)',
+                bgcolor: "primary.main",
+                boxShadow: "none",
               }}
             >
               Request Mentorship

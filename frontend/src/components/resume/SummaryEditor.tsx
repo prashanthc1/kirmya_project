@@ -61,7 +61,7 @@ export const SummaryEditor: React.FC<SummaryEditorProps> = ({ summary, onChange 
           <Button
             size="small"
             variant="outlined"
-            startIcon={<AutoAwesomeIcon sx={{ color: '#9933FF' }} />}
+            startIcon={<AutoAwesomeIcon sx={{ color: 'primary.main' }} />}
             onClick={() => handleAIAction('improve')}
             sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
           >

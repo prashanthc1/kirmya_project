@@ -45,20 +45,20 @@ const defaultIndustries: IndustryCategory[] = [
 ];
 
 const iconMap: { [key: string]: React.ReactNode } = {
-  Code: <CodeIcon sx={{ color: '#6366f1' }} />,
+  Code: <CodeIcon sx={{ color: "primary.main" }} />,
   Business: <BusinessIcon sx={{ color: '#ec4899' }} />,
   LocalHospital: <LocalHospitalIcon sx={{ color: '#10b981' }} />,
   Apartment: <ApartmentIcon sx={{ color: '#f59e0b' }} />,
   AccountBalance: <AccountBalanceIcon sx={{ color: '#06b6d4' }} />,
-  LocalShipping: <LocalShippingIcon sx={{ color: '#8b5cf6' }} />,
-  Engineering: <EngineeringIcon sx={{ color: '#3b82f6' }} />,
+  LocalShipping: <LocalShippingIcon sx={{ color: "primary.main" }} />,
+  Engineering: <EngineeringIcon sx={{ color: "primary.main" }} />,
   PropaneTank: <PropaneTankIcon sx={{ color: '#eab308' }} />,
   ShoppingCart: <ShoppingCartIcon sx={{ color: '#ec4899' }} />,
   Hotel: <HotelIcon sx={{ color: '#10b981' }} />,
-  School: <SchoolIcon sx={{ color: '#6366f1' }} />,
+  School: <SchoolIcon sx={{ color: "primary.main" }} />,
   PrecisionManufacturing: <PrecisionManufacturingIcon sx={{ color: '#f59e0b' }} />,
   Security: <SecurityIcon sx={{ color: '#06b6d4' }} />,
-  CellTower: <CellTowerIcon sx={{ color: '#8b5cf6' }} />,
+  CellTower: <CellTowerIcon sx={{ color: "primary.main" }} />,
   Movie: <MovieIcon sx={{ color: '#ec4899' }} />,
 };
 
@@ -90,7 +90,7 @@ export const IndustryGrid: React.FC<IndustryGridProps> = ({ industries, onSelect
                     justifyContent: 'center',
                   }}
                 >
-                  {iconMap[ind.icon] || <BusinessIcon sx={{ color: '#6366f1' }} />}
+                  {iconMap[ind.icon] || <BusinessIcon sx={{ color: "primary.main" }} />}
                 </Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2, color: 'text.primary' }}>
                   {ind.name}

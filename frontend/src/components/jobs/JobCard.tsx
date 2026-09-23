@@ -86,7 +86,7 @@ export const JobCard: React.FC<JobCardProps> = ({
                   sx={{
                     width: compact ? 40 : 48,
                     height: compact ? 40 : 48,
-                    bgcolor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)',
+                    bgcolor: isDark ? "action.hover" : "background.paper",
                     color: 'text.primary',
                     fontWeight: 700,
                     borderRadius: `${tokens.radius.md}px`,
@@ -182,7 +182,7 @@ export const JobCard: React.FC<JobCardProps> = ({
                     sx={{
                       fontSize: '0.72rem',
                       height: 22,
-                      borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.1)',
+                      borderColor: isDark ? "divider" : 'rgba(15, 23, 42, 0.1)',
                     }}
                   />
                 ))}

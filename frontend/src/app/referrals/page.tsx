@@ -176,46 +176,46 @@ export default function ReferralsPage() {
   const steps = ['Offer Received', 'Match Confirmed', 'Submitted to Company ATS', 'Interviewing', 'Job Offer / Hired'];
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Title Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{    }}>
               Kirmya Internal Referral Network & Marketplace
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Connect unemployed professionals directly with employee insiders at top target companies for internal job referrals.
             </Typography>
           </Box>
 
           {/* Privacy Protection Badge */}
-          <Paper sx={{ p: 1.5, px: 2, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <SecurityIcon sx={{ color: '#38bdf8' }} />
+          <Paper sx={{ p: 1.5, px: 2, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <SecurityIcon sx={{ color: 'primary.main' }} />
             <Box>
-              <Typography variant="caption" fontWeight="bold" sx={{ color: '#38bdf8', display: 'block' }}>
+              <Typography variant="caption" fontWeight="bold" sx={{ color: 'primary.main', display: 'block' }}>
                 Privacy Shield Active
               </Typography>
-              <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 Contact emails & resume links masked until match is accepted
               </Typography>
             </Box>
           </Paper>
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />}
 
         {/* Tab Navigation */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 1.5 }}>
+        <Paper sx={{ mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
           <Tabs
             value={activeTab}
             onChange={(_, val) => setActiveTab(val)}
             textColor="inherit"
             indicatorColor="primary"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#38bdf8' },
+              '& .MuiTabs-indicator': { bgcolor: 'primary.main' },
+              '& .MuiTab-root': { color: 'text.secondary', fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: 'primary.main' },
             }}
           >
             <Tab icon={<StorefrontIcon fontSize="small" />} iconPosition="start" label="Referral Marketplace Feed" />
@@ -229,27 +229,27 @@ export default function ReferralsPage() {
           <Grid container spacing={3}>
             {openRequests.map((req) => (
               <Grid item xs={12} md={6} key={req.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                       <Chip
-                        icon={<BusinessIcon sx={{ color: '#38bdf8 !important' }} />}
+                        icon={<BusinessIcon sx={{ color: 'primary.main' }} />}
                         label={req.company_name}
                         size="small"
-                        sx={{ bgcolor: '#0f172a', color: '#38bdf8', border: '1px solid #334155', fontWeight: 'bold' }}
+                        sx={{ bgcolor: 'background.default', color: 'primary.main', border: 1, borderColor: 'divider', fontWeight: 'bold' }}
                       />
-                      <Chip label="OPEN REQUEST" size="small" sx={{ bgcolor: '#22c55e', color: '#fff', fontWeight: 'bold' }} />
+                      <Chip label="OPEN REQUEST" size="small" sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }} />
                     </Box>
 
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary', mb: 1 }}>
                       {req.job_title}
                     </Typography>
 
-                    <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2, flexGrow: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, flexGrow: 1 }}>
                       &quot;{req.message_to_referrer}&quot;
                     </Typography>
 
-                    <Typography variant="caption" sx={{ color: '#64748b', mb: 2, display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', mb: 2, display: 'block' }}>
                       Requested by {req.candidate_name} • Posted on {new Date(req.created_at).toLocaleDateString()}
                     </Typography>
 
@@ -258,7 +258,7 @@ export default function ReferralsPage() {
                       fullWidth
                       onClick={() => handleOpenOfferModal(req)}
                       startIcon={<HandshakeIcon />}
-                      sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: '#0284c7' } }}
+                      sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: 'primary.main' } }}
                     >
                       Offer Internal Referral
                     </Button>
@@ -271,11 +271,11 @@ export default function ReferralsPage() {
 
         {/* Tab 1: Request an Internal Referral Studio */}
         {activeTab === 1 && (
-          <Paper sx={{ p: 4, bgcolor: '#0f172a', border: '1px solid #334155', maxWidth: 800, mx: 'auto' }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+          <Paper sx={{ p: 4, bgcolor: 'background.default', border: 1, borderColor: 'divider', maxWidth: 800, mx: 'auto' }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
               Create Internal Referral Request
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
               Post your target job opening to the Kirmya marketplace. Verified employee insiders working at your target company will review your profile and submit your referral directly to their ATS.
             </Typography>
 
@@ -287,7 +287,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={reqCompany}
                   onChange={(e) => setReqCompany(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -298,7 +298,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={reqJobTitle}
                   onChange={(e) => setReqJobTitle(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -309,7 +309,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={reqJobUrl}
                   onChange={(e) => setReqJobUrl(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -320,7 +320,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={reqResume}
                   onChange={(e) => setReqResume(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -333,7 +333,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={reqMsg}
                   onChange={(e) => setReqMsg(e.target.value)}
-                  sx={{ textarea: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ textarea: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -343,7 +343,7 @@ export default function ReferralsPage() {
                   fullWidth
                   onClick={handleCreateRequest}
                   startIcon={<SendIcon />}
-                  sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1.2, '&:hover': { bgcolor: '#0284c7' } }}
+                  sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', py: 1.2, '&:hover': { bgcolor: 'primary.main' } }}
                 >
                   Post Request to Marketplace
                 </Button>
@@ -354,23 +354,23 @@ export default function ReferralsPage() {
 
         {/* Tab 2: Active Referrals & Lifecycle Stepper */}
         {activeTab === 2 && (
-          <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155' }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', border: 1, borderColor: 'divider' }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
               Active Referrals & Lifecycle Tracker ({myReferrals.length})
             </Typography>
-            <Divider sx={{ borderColor: '#334155', mb: 3 }} />
+            <Divider sx={{ borderColor: 'divider', mb: 3 }} />
 
             <Grid container spacing={3}>
               {myReferrals.map((ref) => (
                 <Grid item xs={12} key={ref.id}>
-                  <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+                  <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 3 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Box>
-                          <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                          <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                             Referral for {ref.referrer_company}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: '#38bdf8' }}>
+                          <Typography variant="body2" sx={{ color: 'primary.main' }}>
                             Referrer: {ref.referrer_name} ({ref.referrer_job_title}) • Contact: {ref.referrer_email}
                           </Typography>
                         </Box>
@@ -378,7 +378,7 @@ export default function ReferralsPage() {
                         <Chip
                           label={ref.status.replace('_', ' ').toUpperCase()}
                           size="small"
-                          sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }}
+                          sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }}
                         />
                       </Box>
 
@@ -387,7 +387,7 @@ export default function ReferralsPage() {
                         <Stepper activeStep={getStepIndex(ref.status)} alternativeLabel>
                           {steps.map((label) => (
                             <Step key={label}>
-                              <StepLabel sx={{ '& .MuiStepLabel-label': { color: '#94a3b8' }, '& .Mui-active': { color: '#38bdf8 !important' }, '& .Mui-completed': { color: '#10b981 !important' } }}>
+                              <StepLabel sx={{ '& .MuiStepLabel-label': { color: 'text.secondary' }, '& .Mui-active': { color: 'primary.main' }, '& .Mui-completed': { color: 'success.main' } }}>
                                 {label}
                               </StepLabel>
                             </Step>
@@ -397,17 +397,17 @@ export default function ReferralsPage() {
 
                       <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end', mt: 2 }}>
                         {ref.status === 'pending_accept' && (
-                          <Button size="small" variant="contained" onClick={() => handleUpdateStatus(ref.id, 'accepted')} startIcon={<CheckCircleIcon />} sx={{ bgcolor: '#22c55e', color: '#fff', fontWeight: 'bold' }}>
+                          <Button size="small" variant="contained" onClick={() => handleUpdateStatus(ref.id, 'accepted')} startIcon={<CheckCircleIcon />} sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }}>
                             Confirm & Accept Match
                           </Button>
                         )}
                         {ref.status === 'accepted' && (
-                          <Button size="small" variant="contained" onClick={() => handleUpdateStatus(ref.id, 'submitted_to_ats')} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                          <Button size="small" variant="contained" onClick={() => handleUpdateStatus(ref.id, 'submitted_to_ats')} sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}>
                             Mark Submitted to Company ATS
                           </Button>
                         )}
                         {ref.status === 'submitted_to_ats' && (
-                          <Button size="small" variant="contained" onClick={() => handleUpdateStatus(ref.id, 'hired')} sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold' }}>
+                          <Button size="small" variant="contained" onClick={() => handleUpdateStatus(ref.id, 'hired')} sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}>
                             Mark Hired / Offer Received
                           </Button>
                         )}
@@ -422,11 +422,11 @@ export default function ReferralsPage() {
 
         {/* Offer Referral Modal */}
         <Dialog open={offerModalOpen} onClose={() => setOfferModalOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ bgcolor: '#1e293b', color: '#fff', fontWeight: 'bold' }}>
+          <DialogTitle sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 'bold' }}>
             Offer Internal Referral at {selectedRequest?.company_name}
           </DialogTitle>
-          <DialogContent dividers sx={{ bgcolor: '#0f172a', color: '#f8fafc', p: 3 }}>
-            <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2 }}>
+          <DialogContent dividers sx={{ bgcolor: 'background.default', color: 'text.primary', p: 3 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
               You are offering an internal employee referral to {selectedRequest?.candidate_name} for {selectedRequest?.job_title}. Contact information is masked until both parties confirm match.
             </Typography>
 
@@ -438,7 +438,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={referrerCompany}
                   onChange={(e) => setReferrerCompany(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -449,7 +449,7 @@ export default function ReferralsPage() {
                   size="small"
                   value={referrerJobTitle}
                   onChange={(e) => setReferrerJobTitle(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
 
@@ -460,14 +460,14 @@ export default function ReferralsPage() {
                   size="small"
                   value={referrerEmail}
                   onChange={(e) => setReferrerEmail(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                 />
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ p: 2, bgcolor: '#1e293b' }}>
-            <Button onClick={() => setOfferModalOpen(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleSubmitOffer} variant="contained" sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+          <DialogActions sx={{ p: 2, bgcolor: 'background.paper' }}>
+            <Button onClick={() => setOfferModalOpen(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+            <Button onClick={handleSubmitOffer} variant="contained" sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}>
               Confirm & Offer Referral
             </Button>
           </DialogActions>

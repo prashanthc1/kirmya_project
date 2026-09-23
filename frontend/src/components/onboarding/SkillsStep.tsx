@@ -111,7 +111,7 @@ export const SkillsStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
 
         {/* AI Recommendations */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#a855f7', display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: "primary.main", display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
             <AutoAwesomeIcon fontSize="small" /> AI RECOMMENDED FOR YOUR ROLE:
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -123,7 +123,7 @@ export const SkillsStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
                 onClick={() => handleAddSkill(sk)}
                 sx={{
                   bgcolor: 'rgba(168, 85, 247, 0.15)',
-                  color: '#a855f7',
+                  color: "primary.main",
                   border: '1px solid rgba(168, 85, 247, 0.3)',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -165,8 +165,8 @@ export const SkillsStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
               sx={{
                 p: 2,
                 borderRadius: '12px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',

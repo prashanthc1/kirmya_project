@@ -77,7 +77,7 @@ export const ProfilePrivacySettings: React.FC<ProfilePrivacySettingsProps> = ({
         mb: 3,
         bgcolor: 'background.paper',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
       }}
     >

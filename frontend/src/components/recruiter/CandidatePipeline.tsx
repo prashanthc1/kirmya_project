@@ -72,8 +72,8 @@ export const CandidatePipeline: React.FC<CandidatePipelineProps> = ({ pipeline, 
                 minWidth: 240,
                 p: 2,
                 borderRadius: '16px',
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.6)',
+                border: 1, borderColor: 'divider',
                 display: 'flex',
                 flexDirection: 'column',
               }}
@@ -93,8 +93,8 @@ export const CandidatePipeline: React.FC<CandidatePipelineProps> = ({ pipeline, 
                     sx={{
                       p: 2,
                       borderRadius: '12px',
-                      bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      bgcolor: isDark ? "background.paper" : "action.hover",
+                      border: 1, borderColor: 'divider',
                     }}
                   >
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">

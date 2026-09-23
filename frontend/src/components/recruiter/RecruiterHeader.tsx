@@ -28,7 +28,7 @@ export const RecruiterHeader: React.FC = () => {
       sx={{
         py: 2,
         px: 4,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
@@ -92,7 +92,7 @@ export const RecruiterHeader: React.FC = () => {
           </Badge>
         </IconButton>
 
-        <Avatar sx={{ bgcolor: '#6366f1', fontWeight: 800, width: 38, height: 38 }}>
+        <Avatar sx={{ bgcolor: "primary.main", fontWeight: 800, width: 38, height: 38 }}>
           {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'R'}
         </Avatar>
       </Stack>

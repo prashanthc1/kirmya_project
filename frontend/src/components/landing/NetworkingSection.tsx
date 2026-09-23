@@ -12,15 +12,7 @@ import GlassCard from './GlassCard';
 export const NetworkingSection: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-
-  /*
-   * F15, the same defect as the AI section's eyebrow: #ec4899 on a 15% wash of
-   * itself reads 4.33:1 in dark mode at 13px bold. Per-mode label, decoration
-   * unchanged. #f472b6 on the dark composite = 5.77:1; #9d174d on the light
-   * one = 6.27:1.
-   */
-  const accent = isDark ? '#f472b6' : '#9d174d';
+  const accent = theme.palette.primary.main;
 
   /*
    * F08, again. This panel used to render three invented people — named, given
@@ -60,9 +52,10 @@ export const NetworkingSection: React.FC = () => {
                 fontWeight: 800,
                 px: 1,
                 mb: 2,
-                bgcolor: 'rgba(236, 72, 153, 0.15)',
-                color: accent,
-                border: '1px solid rgba(236, 72, 153, 0.3)',
+                bgcolor: 'action.hover',
+                color: 'primary.main',
+                border: '1px solid',
+                borderColor: 'divider',
               }}
             />
             <Typography variant="h3" sx={{ fontWeight: 900, mb: 3, color: 'text.primary' }}>
@@ -75,7 +68,7 @@ export const NetworkingSection: React.FC = () => {
             <Grid container spacing={2} sx={{ mb: 4 }}>
               <Grid item xs={6}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <CardGiftcardIcon sx={{ color: '#ec4899' }} />
+                  <CardGiftcardIcon sx={{ color: 'primary.main' }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     Internal Employee Referrals
                   </Typography>
@@ -83,7 +76,7 @@ export const NetworkingSection: React.FC = () => {
               </Grid>
               <Grid item xs={6}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <ChatIcon sx={{ color: '#6366f1' }} />
+                  <ChatIcon sx={{ color: 'primary.main' }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     Direct Encrypted Messaging
                   </Typography>
@@ -91,7 +84,7 @@ export const NetworkingSection: React.FC = () => {
               </Grid>
               <Grid item xs={6}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <SchoolIcon sx={{ color: '#10b981' }} />
+                  <SchoolIcon sx={{ color: 'primary.main' }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     1-on-1 Executive Mentorship
                   </Typography>
@@ -99,7 +92,7 @@ export const NetworkingSection: React.FC = () => {
               </Grid>
               <Grid item xs={6}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <PeopleIcon sx={{ color: '#f59e0b' }} />
+                  <PeopleIcon sx={{ color: 'primary.main' }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     AI People Recommendations
                   </Typography>
@@ -117,8 +110,6 @@ export const NetworkingSection: React.FC = () => {
                 borderRadius: '12px',
                 fontWeight: 800,
                 textTransform: 'none',
-                background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-                boxShadow: '0 8px 24px rgba(236, 72, 153, 0.35)',
               }}
             >
               Start Building Your Network
@@ -140,7 +131,7 @@ export const NetworkingSection: React.FC = () => {
                     sx={{
                       p: 2,
                       borderRadius: '14px',
-                      bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
+                      bgcolor: 'action.hover',
                       border: '1px solid',
                       borderColor: 'divider',
                       display: 'flex',

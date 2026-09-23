@@ -143,7 +143,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
                 p: 1.2,
                 borderRadius: '10px',
                 bgcolor: isDark ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
               }}
             >
               <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 0.8 }}>

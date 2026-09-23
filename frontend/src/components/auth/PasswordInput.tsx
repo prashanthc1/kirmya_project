@@ -80,8 +80,8 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
                 size="small"
                 sx={{
                   color: 'text.secondary',
-                  minWidth: 40,
-                  minHeight: 40,
+                  minWidth: 44,
+                  minHeight: 44,
                 }}
               >
                 {showPassword ? (

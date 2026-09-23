@@ -90,10 +90,9 @@ export const JobModeration: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: '20px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               border: '1px solid',
-              borderColor: job.riskLevel === 'Critical' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255, 255, 255, 0.12)',
+              borderColor: job.riskLevel === 'Critical' ? 'rgba(239, 68, 68, 0.4)' : "divider",
             }}
           >
             <Grid container spacing={2} alignItems="center">

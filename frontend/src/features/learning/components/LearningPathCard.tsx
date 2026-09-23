@@ -25,40 +25,40 @@ export const LearningPathCard: React.FC<LearningPathCardProps> = ({
   onEnrollPath,
 }) => {
   return (
-    <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-3px)' } }}>
+    <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-3px)' } }}>
       <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
           <Chip
             icon={<RouteIcon sx={{ color: '#38bdf8 !important' }} />}
             label={path.category}
             size="small"
-            sx={{ bgcolor: '#0f172a', color: '#38bdf8', border: '1px solid #334155', fontWeight: 'bold' }}
+            sx={{ bgcolor: "background.default", color: "primary.main", border: (theme) => `1px solid ${theme.palette.divider}`, fontWeight: 'bold' }}
           />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#94a3b8' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: "text.secondary" }}>
             <AccessTimeIcon fontSize="small" />
             <Typography variant="caption" fontWeight="bold">{path.estimated_weeks} Weeks Track</Typography>
           </Box>
         </Box>
 
-        <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
           {path.title}
         </Typography>
 
-        <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2, flexGrow: 1 }}>
+        <Typography variant="body2" sx={{ color: "text.secondary", mb: 2, flexGrow: 1 }}>
           {path.description}
         </Typography>
 
-        <Box sx={{ bgcolor: '#0f172a', p: 1.5, borderRadius: 1.5, mb: 2, border: '1px solid #334155' }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 0.5 }}>
+        <Box sx={{ bgcolor: "background.default", p: 1.5, borderRadius: 1.5, mb: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
+          <Typography variant="caption" sx={{ color: "text.secondary", display: 'block', mb: 0.5 }}>
             Target Career Outcome:
           </Typography>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: "primary.main" }}>
             {path.target_role}
           </Typography>
         </Box>
 
         {path.badge_name && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: '#a855f7' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: "primary.main" }}>
             <WorkspacePremiumIcon fontSize="small" />
             <Typography variant="caption" fontWeight="bold">
               Earn Badge: {path.badge_name}
@@ -66,14 +66,14 @@ export const LearningPathCard: React.FC<LearningPathCardProps> = ({
           </Box>
         )}
 
-        <Divider sx={{ borderColor: '#334155', mb: 2 }} />
+        <Divider sx={{ borderColor: "divider", mb: 2 }} />
 
         <Button
           variant="contained"
           fullWidth
           onClick={() => onEnrollPath(path)}
           endIcon={<ArrowForwardIcon />}
-          sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: '#0284c7' } }}
+          sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', py: 1, '&:hover': { bgcolor: "primary.main" } }}
         >
           Enroll In Career Path
         </Button>

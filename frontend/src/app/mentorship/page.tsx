@@ -153,11 +153,10 @@ export default function MentorshipDashboardPage() {
           p: { xs: 3, md: 5 },
           mb: 4,
           borderRadius: '24px',
-          background: (theme) =>
+          bgcolor: (theme) =>
             theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)'
-              : 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%)',
-          backdropFilter: 'blur(16px)',
+              ? "background.paper"
+              : "background.paper",
           border: (theme) =>
             theme.palette.mode === 'light'
               ? '1px solid rgba(99, 102, 241, 0.2)'
@@ -191,8 +190,8 @@ export default function MentorshipDashboardPage() {
                   fontWeight: 700,
                   px: 3,
                   py: 1.25,
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                  boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.35)',
+                  bgcolor: 'primary.main',
+                  boxShadow: 0,
                 }}
               >
                 Find a Mentor
@@ -216,10 +215,9 @@ export default function MentorshipDashboardPage() {
               sx={{
                 p: 3,
                 borderRadius: '20px',
-                background: (theme) =>
-                  theme.palette.mode === 'light' ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.3)',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'light' ? "action.hover" : "background.paper",
+                border: 1, borderColor: 'divider',
                 display: 'inline-block',
                 textAlign: 'left',
                 width: '100%',

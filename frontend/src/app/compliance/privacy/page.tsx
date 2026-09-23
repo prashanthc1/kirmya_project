@@ -115,19 +115,19 @@ export default function PrivacyCenterPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#38bdf8', p: 1.5, borderRadius: 2, color: '#0f172a', display: 'flex' }}>
+            <Box sx={{ bgcolor: 'primary.main', p: 1.5, borderRadius: 2, color: 'primary.contrastText', display: 'flex' }}>
               <LockIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{    }}>
                 Kirmya Privacy Center & Compliance Portal
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 GDPR & CCPA Subject Access Requests, Data Export, Consent Controls, & Right to be Forgotten
               </Typography>
             </Box>
@@ -137,42 +137,42 @@ export default function PrivacyCenterPage() {
         </Box>
 
         {successMsg && (
-          <Alert severity="success" onClose={() => setSuccessMsg(null)} sx={{ mb: 3, bgcolor: '#064e3b', color: '#6ee7b7' }}>
+          <Alert severity="success" onClose={() => setSuccessMsg(null)} sx={{ mb: 3, bgcolor: '#064e3b', color: 'success.main' }}>
             {successMsg}
           </Alert>
         )}
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />}
 
         <Grid container spacing={3}>
           {/* Left Column: Consent Management Controls */}
           <Grid item xs={12} md={7}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, mb: 3 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, mb: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                  <CookieIcon sx={{ color: '#38bdf8' }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                  <CookieIcon sx={{ color: 'primary.main' }} />
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                     Privacy Consent & Data Processing Permissions
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: '#94a3b8', mb: 3 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
                   Manage how your personal data is collected and processed across Kirmya enterprise services.
                 </Typography>
 
                 <List sx={{ width: '100%' }}>
-                  <ListItem sx={{ bgcolor: '#0f172a', borderRadius: 2, mb: 1.5, border: '1px solid #334155' }}>
-                    <ListItemIcon><CheckCircleIcon sx={{ color: '#10b981' }} /></ListItemIcon>
+                  <ListItem sx={{ bgcolor: 'background.default', borderRadius: 2, mb: 1.5, border: 1, borderColor: 'divider' }}>
+                    <ListItemIcon><CheckCircleIcon sx={{ color: 'success.main' }} /></ListItemIcon>
                     <ListItemText
-                      primary={<Typography fontWeight="bold" color="#fff">Strictly Necessary Cookies & Core Auth</Typography>}
-                      secondary={<Typography variant="body2" color="#94a3b8">Required for user authentication, security, and session management. Cannot be disabled.</Typography>}
+                      primary={<Typography fontWeight="bold" color="text.primary">Strictly Necessary Cookies & Core Auth</Typography>}
+                      secondary={<Typography variant="body2" color="text.secondary">Required for user authentication, security, and session management. Cannot be disabled.</Typography>}
                     />
-                    <Chip label="ALWAYS ACTIVE" size="small" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }} />
+                    <Chip label="ALWAYS ACTIVE" size="small" sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }} />
                   </ListItem>
 
-                  <ListItem sx={{ bgcolor: '#0f172a', borderRadius: 2, mb: 1.5, border: '1px solid #334155' }}>
+                  <ListItem sx={{ bgcolor: 'background.default', borderRadius: 2, mb: 1.5, border: 1, borderColor: 'divider' }}>
                     <ListItemText
-                      primary={<Typography fontWeight="bold" color="#fff">Performance & Platform Analytics</Typography>}
-                      secondary={<Typography variant="body2" color="#94a3b8">Allows us to analyze platform usage and optimize Go backend microservice latency.</Typography>}
+                      primary={<Typography fontWeight="bold" color="text.primary">Performance & Platform Analytics</Typography>}
+                      secondary={<Typography variant="body2" color="text.secondary">Allows us to analyze platform usage and optimize Go backend microservice latency.</Typography>}
                     />
                     <FormControlLabel
                       control={<Switch checked={analyticsGranted} onChange={() => handleConsentToggle('analytics', analyticsGranted)} color="primary" />}
@@ -180,10 +180,10 @@ export default function PrivacyCenterPage() {
                     />
                   </ListItem>
 
-                  <ListItem sx={{ bgcolor: '#0f172a', borderRadius: 2, mb: 1.5, border: '1px solid #334155' }}>
+                  <ListItem sx={{ bgcolor: 'background.default', borderRadius: 2, mb: 1.5, border: 1, borderColor: 'divider' }}>
                     <ListItemText
-                      primary={<Typography fontWeight="bold" color="#fff">Recruiter Job Recommendations & Email Alerts</Typography>}
-                      secondary={<Typography variant="body2" color="#94a3b8">Receive personalized AI job match recommendations and recruiter outreach emails.</Typography>}
+                      primary={<Typography fontWeight="bold" color="text.primary">Recruiter Job Recommendations & Email Alerts</Typography>}
+                      secondary={<Typography variant="body2" color="text.secondary">Receive personalized AI job match recommendations and recruiter outreach emails.</Typography>}
                     />
                     <FormControlLabel
                       control={<Switch checked={marketingGranted} onChange={() => handleConsentToggle('marketing', marketingGranted)} color="primary" />}
@@ -191,10 +191,10 @@ export default function PrivacyCenterPage() {
                     />
                   </ListItem>
 
-                  <ListItem sx={{ bgcolor: '#0f172a', borderRadius: 2, border: '1px solid #334155' }}>
+                  <ListItem sx={{ bgcolor: 'background.default', borderRadius: 2, border: 1, borderColor: 'divider' }}>
                     <ListItemText
-                      primary={<Typography fontWeight="bold" color="#fff">Third-Party Training Provider Sharing</Typography>}
-                      secondary={<Typography variant="body2" color="#94a3b8">Share anonymous skill gap analytics with verified enterprise training providers.</Typography>}
+                      primary={<Typography fontWeight="bold" color="text.primary">Third-Party Training Provider Sharing</Typography>}
+                      secondary={<Typography variant="body2" color="text.secondary">Share anonymous skill gap analytics with verified enterprise training providers.</Typography>}
                     />
                     <FormControlLabel
                       control={<Switch checked={thirdPartyGranted} onChange={() => handleConsentToggle('third_party_sharing', thirdPartyGranted)} color="primary" />}
@@ -206,25 +206,25 @@ export default function PrivacyCenterPage() {
             </Card>
 
             {/* Subject Access Requests (SAR) History */}
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 2 }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary', mb: 2 }}>
                   Data Access & Request History
                 </Typography>
 
                 {dataRequests.map((req) => (
-                  <Box key={req.id} sx={{ bgcolor: '#0f172a', p: 2, borderRadius: 2, mb: 1.5, border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box key={req.id} sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 1.5, border: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
-                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: 'primary.main' }}>
                         {req.request_type === 'data_export' ? 'GDPR Subject Access Data Export' : 'Right to be Forgotten Deletion'}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         Requested: {new Date(req.requested_at).toLocaleDateString()}
                       </Typography>
                     </Box>
 
                     {req.download_url ? (
-                      <Button variant="contained" size="small" startIcon={<DownloadIcon />} href={req.download_url} sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }}>
+                      <Button variant="contained" size="small" startIcon={<DownloadIcon />} href={req.download_url} sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }}>
                         Download JSON Package
                       </Button>
                     ) : (
@@ -239,15 +239,15 @@ export default function PrivacyCenterPage() {
           {/* Right Column: Data Portability & Account Deletion */}
           <Grid item xs={12} md={5}>
             {/* Download Data Package Card */}
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #38bdf8', borderRadius: 2.5, mb: 3 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, mb: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                  <DownloadIcon sx={{ color: '#38bdf8' }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                  <DownloadIcon sx={{ color: 'primary.main' }} />
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                     Download Your Data (Right to Access)
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: '#94a3b8', mb: 3, lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, lineHeight: 1.6 }}>
                   Download a complete structured JSON archive containing your profile details, submitted job applications, resume documents, messaging history, and privacy audit logs under GDPR Article 15.
                 </Typography>
 
@@ -256,7 +256,7 @@ export default function PrivacyCenterPage() {
                   fullWidth
                   startIcon={<DownloadIcon />}
                   onClick={handleRequestExport}
-                  sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1.2 }}
+                  sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', py: 1.2 }}
                 >
                   Generate Data Export Archive
                 </Button>
@@ -264,15 +264,15 @@ export default function PrivacyCenterPage() {
             </Card>
 
             {/* Right to be Forgotten (Account Deletion) Card */}
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #f43f5e', borderRadius: 2.5 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                  <DeleteForeverIcon sx={{ color: '#f43f5e' }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f43f5e' }}>
+                  <DeleteForeverIcon sx={{ color: 'error.main' }} />
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: 'error.main' }}>
                     Delete Account (Right to be Forgotten)
                   </Typography>
                 </Box>
-                <Typography variant="body2" sx={{ color: '#94a3b8', mb: 3, lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3, lineHeight: 1.6 }}>
                   Permanently erase your Kirmya account, candidate profile, application history, and uploaded resumes under GDPR Article 17. This action is permanent and irreversible.
                 </Typography>
 
@@ -293,16 +293,16 @@ export default function PrivacyCenterPage() {
 
         {/* Account Deletion Confirmation Modal */}
         <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: '#1e293b', color: '#fff', border: '1px solid #f43f5e' } }}>
-          <DialogTitle sx={{ fontWeight: 'bold', color: '#f43f5e' }}>
+          <DialogTitle sx={{ fontWeight: 'bold', color: 'error.main' }}>
             Confirm Right to be Forgotten Account Deletion
           </DialogTitle>
           <DialogContent>
-            <Typography variant="body2" sx={{ color: '#94a3b8', mt: 1, lineHeight: 1.6 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1, lineHeight: 1.6 }}>
               Are you sure you want to request permanent account deletion? Under GDPR SLA, your account and all associated personal data will be completely purged from database tables and CDN storage within 30 days.
             </Typography>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenDeleteModal(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
+            <Button onClick={() => setOpenDeleteModal(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
             <Button onClick={handleConfirmAccountDeletion} variant="contained" color="error" sx={{ fontWeight: 'bold' }}>
               Confirm Account Deletion
             </Button>

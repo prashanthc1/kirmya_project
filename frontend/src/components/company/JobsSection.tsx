@@ -55,8 +55,8 @@ export const JobsSection: React.FC<JobsSectionProps> = ({ jobs }) => {
                 sx={{
                   p: 3,
                   borderRadius: '16px',
-                  bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -114,7 +114,7 @@ export const JobsSection: React.FC<JobsSectionProps> = ({ jobs }) => {
                       fontWeight: 800,
                       textTransform: 'none',
                       flexGrow: 1,
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      bgcolor: "primary.main",
                     }}
                   >
                     Quick Apply

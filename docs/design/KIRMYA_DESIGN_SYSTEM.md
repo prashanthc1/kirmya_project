@@ -12,36 +12,36 @@
 Kirmya blends **Apple-inspired design discipline** with **LinkedIn-grade professional information architecture**:
 
 1. **Content Before Decoration**: Whitespace, crisp typography, and disciplined contrast guide user attention rather than noisy backgrounds, gratuitous borders, or saturated colors.
-2. **Restrained Color Palette**: One distinct, polished primary brand color (Indigo: `#6366f1` / `#818cf8`) complemented by calm neutral surfaces and semantic status colors.
-3. **Refined Typography**: Optical size-dependent tracking, tightened display line-heights, and structured weights (400, 500, 600, 700, 800) built on Plus Jakarta Sans with native system fallbacks.
-4. **Physical & Purposeful Motion**: Spring-driven transitions (`duration: 0.25s–0.4s`, `bounce: 0`), active press physical scale feedback (`0.97` on buttons, `0.92` on icon buttons), and full support for `prefers-reduced-motion`.
-5. **Subtle Elevation & Depth**: Soft ambient occlusion and 1px border contrast instead of harsh black drops or generic blur effects.
-6. **Ergonomic Accessibility**: Minimum $44 \times 44\text{px}$ touch targets on coarse pointers, universal focus rings, skip-to-content links, and full WCAG AA/AAA contrast compliance.
+2. **Restrained Color Palette**: One blue accent (`#0066cc` / `#80bfff`), neutral secondary controls, and distinct semantic status colors.
+3. **Refined Typography**: Native system fonts, size-dependent tracking, responsive headings, and structured weights (400–700). No font download on the critical rendering path.
+4. **Physical & Purposeful Motion**: Critically damped springs, immediate press feedback (`0.97` on buttons, `0.96` on icon buttons), and reduced-motion alternatives. Static cards do not move on hover.
+5. **Subtle Elevation & Depth**: Solid content surfaces; translucent navigation, menus and dialogs communicate hierarchy. Reduced-transparency and increased-contrast preferences restore solid surfaces.
+6. **Ergonomic Accessibility**: Coarse-pointer touch targets, universal focus rings, skip-to-content links, and tested palette label contrast.
 
 ---
 
 ## 2. Color System & Semantic Tokens
 
 ### Light Theme
-* **Page Ground**: `#f8fafc` (Slate 50)
-* **Surface / Card Ground**: `#ffffff` (Solid, high-contrast)
-* **Primary Text**: `#0f172a` (Slate 900 — $15.8:1$ contrast)
-* **Secondary Text**: `#475569` (Slate 600 — $5.6:1$ contrast)
+* **Page Ground**: `#f5f5f7`
+* **Surface / Card Ground**: `#ffffff`
+* **Primary Text**: `#1d1d1f`
+* **Secondary Text**: `#626267`
 * **Subtle Border / Divider**: `rgba(15, 23, 42, 0.08)`
-* **Primary Brand**: `#6366f1` (Indigo 500), Dark: `#4f46e5`, Light: `#a5b4fc`
+* **Primary Brand**: `#0066cc`, hover `#0055aa`, light `#e6f2ff`
 * **Semantic Status**:
-  * Success: `#10b981` (Emerald 500)
-  * Warning: `#f59e0b` (Amber 500)
-  * Error: `#ef4444` (Rose 500)
-  * Info: `#3b82f6` (Blue 500)
+  * Success: `#047857`
+  * Warning: `#b45309`
+  * Error: `#dc2626`
+  * Info: `#1d4ed8`
 
 ### Dark Theme
-* **Page Ground**: `#0f172a` (Slate 900)
-* **Surface / Card Ground**: `#1e293b` (Slate 800)
-* **Primary Text**: `#f8fafc` (Slate 50 — $14.2:1$ contrast)
-* **Secondary Text**: `#cbd5e1` (Slate 300 — $9.1:1$ contrast)
+* **Page Ground**: `#161617`
+* **Surface / Card Ground**: `#242426`
+* **Primary Text**: `#f5f5f7`
+* **Secondary Text**: `#b8b8be`
 * **Subtle Border / Divider**: `rgba(255, 255, 255, 0.08)`
-* **Primary Brand**: `#818cf8` (Indigo 400), Dark: `#6366f1`, Light: `#c7d2fe`
+* **Primary Brand**: `#80bfff`, hover `#a6d2ff`, light `#b3d9ff`. Filled primary controls use dark labels.
 * **Semantic Status**:
   * Success: `#34d399` (Emerald 400)
   * Warning: `#fbbf24` (Amber 400)
@@ -54,8 +54,8 @@ Kirmya blends **Apple-inspired design discipline** with **LinkedIn-grade profess
 
 | Variant | Font Size | Line Height | Letter Spacing | Weight | Typical Usage |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| **`h1`** | $2.5\text{rem}$ ($40\text{px}$) | $1.05$ | $-0.035\text{em}$ | 800 | Landing hero titles, primary page titles |
-| **`h2`** | $2.0\text{rem}$ ($32\text{px}$) | $1.10$ | $-0.030\text{em}$ | 800 | Major section headers, modal headers |
+| **`h1`** | `clamp(2rem, 4vw, 2.75rem)` | 1.08 | -0.035em | 700 | Primary page titles |
+| **`h2`** | `clamp(1.75rem, 3vw, 2.125rem)` | 1.12 | -0.030em | 700 | Major section headers |
 | **`h3`** | $1.625\text{rem}$ ($26\text{px}$) | $1.15$ | $-0.025\text{em}$ | 700 | Dashboard widget titles, profile names |
 | **`h4`** | $1.375\text{rem}$ ($22\text{px}$) | $1.20$ | $-0.020\text{em}$ | 700 | Card titles, group headings |
 | **`h5`** | $1.125\text{rem}$ ($18\text{px}$) | $1.30$ | $-0.015\text{em}$ | 600 | List group titles, subheadings |
@@ -109,17 +109,21 @@ Soft ambient shadows combined with 1px borders:
 
 ### Physical Press Interaction
 * **Buttons**: `active: scale(0.97)`
-* **Icon Buttons**: `active: scale(0.92)`
+* **Icon Buttons**: `active: scale(0.96)`
 * **Card Action Areas**: `active: scale(0.995)`
 * **Clickable Chips**: `active: scale(0.96)`
-* **Cards Hover**: `translateY(-2px)` with subtle shadow lift.
+* **Static Cards**: No hover translation. Interaction feedback belongs to actual controls.
 
 ---
 
 ## 6. Accessibility & Mobile Responsiveness
 
-1. **Universal Focus Ring**: `outline: 2px solid ${text.primary}`, `outlineOffset: 2px` on `:focus-visible`.
+1. **Universal Focus Ring**: `2px` primary-blue outline with `2px` offset on `:focus-visible`.
 2. **Touch Target Expansion**: Coarse pointer expansion to $\ge 44 \times 44\text{px}$ using centered pseudo-elements.
-3. **Mobile Bottom Sheet Adaptation**: Dialogs transform into thumb-friendly bottom-sheets on mobile viewports ($< 600\text{px}$) with `borderRadius: 16px 16px 0 0` and `maxHeight: 92dvh`.
+3. **Mobile Bottom Sheet Adaptation**: Dialogs use bottom-aligned surfaces below `600px`, with `1.5rem` upper corners and `maxHeight: 92dvh`. The navigation drawer uses an interruptible spring and retains MUI focus trapping and Escape dismissal.
 4. **Table Auto-Scroll**: `.MuiCardContent:has(> table)` and `.MuiPaper:has(> table)` auto-enable horizontal scroll to prevent column clipping.
 5. **OS Preferences**: Respects `prefers-reduced-motion`, `prefers-reduced-transparency`, and `prefers-contrast`.
+
+### Persisted appearance
+
+The root layout reads the `kirmya-theme-mode` preference cookie before rendering and passes the mode to the client provider. Appearance controls save the same cookie for one year, scoped to `/` with `SameSite=Lax` (and `Secure` on HTTPS). This replaces local-storage-only persistence, which could hydrate streamed authentication content with mismatched light/dark styles. Reading the preference makes root rendering request-dependent. Existing local-storage preferences are no longer read; users can select their preferred appearance again in Settings.

@@ -106,27 +106,27 @@ export const JobAlertsDashboard: React.FC<JobAlertsDashboardProps> = ({
       {/* Overview Stat Badges */}
       <Grid container spacing={2.5} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Active Job Alerts</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#0066FF' }}>{activeAlertsCount}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: "primary.main" }}>{activeAlertsCount}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Saved Search Queries</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#9933FF' }}>{searches.length}</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: "primary.main" }}>{searches.length}</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Application Success Rate</Typography>
             <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#00CC66' }}>24.5%</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>Total Alerts Delivered</Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: '#00CCFF' }}>148</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, color: "primary.main" }}>148</Typography>
           </Paper>
         </Grid>
       </Grid>

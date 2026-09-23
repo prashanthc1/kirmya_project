@@ -20,10 +20,10 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
       sx={{
         p: 3,
         borderRadius: 4,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -35,7 +35,7 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
             size="small"
             startIcon={<Add />}
             onClick={onOpenAddTask}
-            sx={{ color: '#60A5FA', textTransform: 'none', fontWeight: 600 }}
+            sx={{ color: "primary.main", textTransform: 'none', fontWeight: 600 }}
           >
             Add Task
           </Button>
@@ -52,8 +52,8 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
             sx={{
               p: 1.5,
               borderRadius: 2.5,
-              bgcolor: 'rgba(15, 23, 42, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              bgcolor: "background.paper",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               transition: surfaceTransition(0.2),
             }}
           >
@@ -61,12 +61,12 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
               <Checkbox
                 checked={task.is_completed}
                 onChange={(e) => onToggle(task.id, e.target.checked)}
-                sx={{ color: '#64748B', '&.Mui-checked': { color: '#10B981' } }}
+                sx={{ color: "text.secondary", '&.Mui-checked': { color: '#10B981' } }}
               />
               <Typography
                 variant="body2"
                 sx={{
-                  color: task.is_completed ? '#64748B' : '#F8FAFC',
+                  color: task.is_completed ? "text.secondary" : "text.primary",
                   textDecoration: task.is_completed ? 'line-through' : 'none',
                   fontWeight: 500,
                 }}
@@ -76,7 +76,7 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
             </Stack>
 
             {onDelete && (
-              <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: '#64748B', '&:hover': { color: '#EF4444' } }}>
+              <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: "text.secondary", '&:hover': { color: '#EF4444' } }}>
                 <Delete sx={{ fontSize: '1rem' }} />
               </IconButton>
             )}
@@ -84,7 +84,7 @@ export const PrepTaskList: React.FC<PrepTaskListProps> = ({ tasks, onToggle, onD
         ))}
 
         {tasks.length === 0 && (
-          <Typography variant="body2" sx={{ color: '#64748B', textAlign: 'center', py: 2 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", textAlign: 'center', py: 2 }}>
             No preparation tasks added yet.
           </Typography>
         )}

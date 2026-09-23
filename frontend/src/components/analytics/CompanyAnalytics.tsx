@@ -16,10 +16,10 @@ export default function CompanyAnalytics() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight="bold" sx={{ color: '#fff', mb: 1 }}>
+      <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
         Company Employer Brand Analytics
       </Typography>
-      <Typography variant="body1" sx={{ color: '#94a3b8', mb: 4 }}>
+      <Typography variant="body1" sx={{ color: "text.secondary", mb: 4 }}>
         Company profile views, job engagement metrics, and employer brand reach.
       </Typography>
 

@@ -87,10 +87,10 @@ export const MentorshipSessionsCard: React.FC<MentorshipSessionsCardProps> = ({
   return (
     <Card
       sx={{
-        background: (theme) =>
+        bgcolor: (theme) =>
           theme.palette.mode === 'light'
-            ? 'rgba(255, 255, 255, 0.8)'
-            : 'rgba(30, 41, 59, 0.8)',
+            ? "action.hover"
+            : "background.paper",
         backdropFilter: 'blur(16px)',
         border: (theme) =>
           theme.palette.mode === 'light'
@@ -125,7 +125,7 @@ export const MentorshipSessionsCard: React.FC<MentorshipSessionsCardProps> = ({
             sx={{
               borderRadius: '10px',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              bgcolor: "primary.main",
             }}
           >
             Schedule
@@ -167,8 +167,8 @@ export const MentorshipSessionsCard: React.FC<MentorshipSessionsCardProps> = ({
                     borderRadius: '14px',
                     bgcolor: (theme) =>
                       theme.palette.mode === 'light'
-                        ? 'rgba(255, 255, 255, 0.6)'
-                        : 'rgba(15, 23, 42, 0.4)',
+                        ? "action.hover"
+                        : "background.paper",
                     border: (theme) =>
                       theme.palette.mode === 'light'
                         ? '1px solid rgba(0, 0, 0, 0.08)'

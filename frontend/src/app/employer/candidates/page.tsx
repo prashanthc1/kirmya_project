@@ -155,7 +155,7 @@ export default function EmployerCandidatesPage() {
                       p: 2,
                       borderRadius: '16px',
                       bgcolor: 'background.paper',
-                      border: '1px solid rgba(99, 102, 241, 0.12)',
+                      border: (theme) => `1px solid ${theme.palette.divider}`,
                       minHeight: 450,
                       display: 'flex',
                       flexDirection: 'column',

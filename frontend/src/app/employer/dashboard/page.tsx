@@ -74,7 +74,7 @@ export default function EmployerDashboardPage() {
                 elevation={0}
                 sx={{
                   borderRadius: '16px',
-                  border: '1px solid rgba(99, 102, 241, 0.15)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   bgcolor: 'background.paper',
                 }}
               >
@@ -84,7 +84,7 @@ export default function EmployerDashboardPage() {
                       sx={{
                         p: 1,
                         borderRadius: '12px',
-                        bgcolor: 'primary.50',
+                        bgcolor: "action.hover",
                         color: 'primary.main',
                         display: 'flex',
                       }}
@@ -109,7 +109,7 @@ export default function EmployerDashboardPage() {
                 elevation={0}
                 sx={{
                   borderRadius: '16px',
-                  border: '1px solid rgba(99, 102, 241, 0.15)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   bgcolor: 'background.paper',
                 }}
               >
@@ -119,7 +119,7 @@ export default function EmployerDashboardPage() {
                       sx={{
                         p: 1,
                         borderRadius: '12px',
-                        bgcolor: 'info.50',
+                        bgcolor: "action.hover",
                         color: 'info.main',
                         display: 'flex',
                       }}
@@ -144,7 +144,7 @@ export default function EmployerDashboardPage() {
                 elevation={0}
                 sx={{
                   borderRadius: '16px',
-                  border: '1px solid rgba(99, 102, 241, 0.15)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   bgcolor: 'background.paper',
                 }}
               >
@@ -154,7 +154,7 @@ export default function EmployerDashboardPage() {
                       sx={{
                         p: 1,
                         borderRadius: '12px',
-                        bgcolor: 'secondary.50',
+                        bgcolor: "action.hover",
                         color: 'secondary.main',
                         display: 'flex',
                       }}
@@ -179,7 +179,7 @@ export default function EmployerDashboardPage() {
                 elevation={0}
                 sx={{
                   borderRadius: '16px',
-                  border: '1px solid rgba(99, 102, 241, 0.15)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   bgcolor: 'background.paper',
                 }}
               >
@@ -189,7 +189,7 @@ export default function EmployerDashboardPage() {
                       sx={{
                         p: 1,
                         borderRadius: '12px',
-                        bgcolor: 'warning.50',
+                        bgcolor: "action.hover",
                         color: 'warning.main',
                         display: 'flex',
                       }}
@@ -214,7 +214,7 @@ export default function EmployerDashboardPage() {
                 elevation={0}
                 sx={{
                   borderRadius: '16px',
-                  border: '1px solid rgba(99, 102, 241, 0.15)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   bgcolor: 'background.paper',
                 }}
               >
@@ -224,7 +224,7 @@ export default function EmployerDashboardPage() {
                       sx={{
                         p: 1,
                         borderRadius: '12px',
-                        bgcolor: 'success.50',
+                        bgcolor: "action.hover",
                         color: 'success.main',
                         display: 'flex',
                       }}

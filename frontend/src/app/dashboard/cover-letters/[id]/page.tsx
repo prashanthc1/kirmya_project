@@ -76,7 +76,7 @@ export default function CoverLetterDetailPage() {
       <Stack spacing={4}>
         {analytics && <CoverLetterAnalyticsComponent analytics={analytics} />}
 
-        <Paper sx={{ p: 4, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)' }}>
+        <Paper sx={{ p: 4, borderRadius: 3, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Cover Letter Summary
           </Typography>

@@ -156,7 +156,7 @@ export const AdminAnalyticsCenter: React.FC = () => {
             sx={{
               borderRadius: '12px',
               fontWeight: 800,
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              bgcolor: 'primary.main',
             }}
           >
             Export CSV
@@ -181,9 +181,8 @@ export const AdminAnalyticsCenter: React.FC = () => {
         sx={{
           mb: 4,
           borderRadius: '16px',
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
+          border: 1, borderColor: 'divider',
         }}
       >
         <Tabs value={currentTab} onChange={(_, val) => setCurrentTab(val)} variant="scrollable" scrollButtons="auto">
@@ -204,11 +203,11 @@ export const AdminAnalyticsCenter: React.FC = () => {
       {currentTab === 0 && overview && (
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+            <Card sx={{ p: 3, borderRadius: '20px', border: 1, borderColor: 'divider' }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                 TOTAL REGISTERED USERS
               </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: '#6366f1' }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: 'primary.main' }}>
                 {overview.total_users?.toLocaleString()}
               </Typography>
               <Chip label="+14.2% MoM" size="small" color="success" sx={{ fontWeight: 800 }} />
@@ -216,11 +215,11 @@ export const AdminAnalyticsCenter: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+            <Card sx={{ p: 3, borderRadius: '20px', border: 1, borderColor: 'divider' }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                 DAILY ACTIVE USERS (DAU)
               </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: '#10b981' }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: 'success.main' }}>
                 {overview.active_users_dau?.toLocaleString()}
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -230,11 +229,11 @@ export const AdminAnalyticsCenter: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+            <Card sx={{ p: 3, borderRadius: '20px', border: 1, borderColor: 'divider' }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                 TOTAL ACTIVE JOBS
               </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: '#f59e0b' }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: 'warning.main' }}>
                 {overview.total_jobs?.toLocaleString()}
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -244,11 +243,11 @@ export const AdminAnalyticsCenter: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ p: 3, borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+            <Card sx={{ p: 3, borderRadius: '20px', border: 1, borderColor: 'divider' }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                 TELEMETRY LATENCY
               </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: '#ec4899' }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, my: 1, color: 'primary.main' }}>
                 {overview.event_processing_latency_ms} ms
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -269,25 +268,25 @@ export const AdminAnalyticsCenter: React.FC = () => {
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : '#f8fafc', borderRadius: '16px' }}>
+                  <Paper sx={{ p: 2, bgcolor: isDark ? "background.paper" : '#f8fafc', borderRadius: '16px' }}>
                     <Typography variant="body2" color="text.secondary">Activated Users Pct</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#10b981' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: 'success.main' }}>
                       {((userGrowth.activated_users / (userGrowth.total_registrations || 1)) * 100).toFixed(1)}%
                     </Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : '#f8fafc', borderRadius: '16px' }}>
+                  <Paper sx={{ p: 2, bgcolor: isDark ? "background.paper" : '#f8fafc', borderRadius: '16px' }}>
                     <Typography variant="body2" color="text.secondary">Avg Profile Completion</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#6366f1' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main' }}>
                       {userGrowth.profile_completion_pct}%
                     </Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : '#f8fafc', borderRadius: '16px' }}>
+                  <Paper sx={{ p: 2, bgcolor: isDark ? "background.paper" : '#f8fafc', borderRadius: '16px' }}>
                     <Typography variant="body2" color="text.secondary">30-Day Retention Rate</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#ec4899' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main' }}>
                       {userGrowth.retention_rate_pct}%
                     </Typography>
                   </Paper>
@@ -345,7 +344,7 @@ export const AdminAnalyticsCenter: React.FC = () => {
                         <TableCell>{c.cohort_date}</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>{c.initial_users}</TableCell>
                         {c.retention_percentages?.map((pct: number, idx: number) => (
-                          <TableCell key={idx} sx={{ fontWeight: 800, color: pct > 70 ? '#10b981' : pct > 0 ? '#3b82f6' : 'text.disabled' }}>
+                          <TableCell key={idx} sx={{ fontWeight: 800, color: pct > 70 ? '#10b981' : pct > 0 ? "primary.main" : 'text.disabled' }}>
                             {pct > 0 ? `${pct}%` : '-'}
                           </TableCell>
                         ))}
@@ -504,7 +503,7 @@ export const AdminAnalyticsCenter: React.FC = () => {
               <TableBody>
                 {searchData.zero_result_searches?.map((zr: any) => (
                   <TableRow key={zr.query_term}>
-                    <TableCell sx={{ fontWeight: 700, color: '#ef4444' }}>{zr.query_term}</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: 'error.main' }}>{zr.query_term}</TableCell>
                     <TableCell>{zr.search_count}</TableCell>
                     <TableCell>
                       <Chip label="Notify Recruiters &amp; Recommend Skill" size="small" color="primary" sx={{ fontWeight: 800 }} />

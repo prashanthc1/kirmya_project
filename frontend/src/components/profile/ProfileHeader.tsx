@@ -163,7 +163,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               fontSize: '2.5rem',
               fontWeight: 800,
               bgcolor: theme.palette.primary.main,
-              color: '#ffffff',
+              color: "primary.contrastText",
               border: `3px solid ${theme.palette.background.paper}`,
               boxShadow: theme.shadows[2],
             }}

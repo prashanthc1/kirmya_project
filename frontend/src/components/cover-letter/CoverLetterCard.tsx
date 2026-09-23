@@ -50,9 +50,9 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
     <motion.div whileHover={{ y: -4 }} transition={springs.hover}>
       <Card
         sx={{
-          background: 'rgba(255, 255, 255, 0.03)',
+          bgcolor: "action.hover",
           backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           borderRadius: 3,
           p: 1,
           height: '100%',
@@ -62,7 +62,7 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
           transition: surfaceTransition(0.3),
           '&:hover': {
             borderColor: 'rgba(99, 102, 241, 0.4)',
-            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.15)',
+            boxShadow: "none",
           },
         }}
       >
@@ -80,10 +80,10 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
               {letter.isAiGenerated && (
                 <Tooltip title="AI Generated">
                   <Chip
-                    icon={<AIIcon sx={{ fontSize: '14px !important', color: '#818cf8' }} />}
+                    icon={<AIIcon sx={{ fontSize: '14px !important', color: "primary.main" }} />}
                     label="AI"
                     size="small"
-                    sx={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', fontWeight: 600 }}
+                    sx={{ background: 'rgba(99, 102, 241, 0.15)', color: "primary.main", fontWeight: 600 }}
                   />
                 </Tooltip>
               )}

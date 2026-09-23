@@ -16,7 +16,7 @@ export const SocialLoginButtons: React.FC = () => {
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
         <Tooltip title="Google Single Sign-On coming soon in enterprise release" arrow>
-          <span>
+          <Box component="span" sx={{ flex: 1 }}>
             <Button
               variant="outlined"
               fullWidth
@@ -25,7 +25,7 @@ export const SocialLoginButtons: React.FC = () => {
               sx={{
                 py: 1.2,
                 borderRadius: '10px',
-                borderColor: 'rgba(255, 255, 255, 0.15)',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -33,11 +33,11 @@ export const SocialLoginButtons: React.FC = () => {
             >
               Google
             </Button>
-          </span>
+          </Box>
         </Tooltip>
 
         <Tooltip title="LinkedIn OAuth 2.0 Integration coming soon in enterprise release" arrow>
-          <span>
+          <Box component="span" sx={{ flex: 1 }}>
             <Button
               variant="outlined"
               fullWidth
@@ -46,7 +46,7 @@ export const SocialLoginButtons: React.FC = () => {
               sx={{
                 py: 1.2,
                 borderRadius: '10px',
-                borderColor: 'rgba(255, 255, 255, 0.15)',
+                borderColor: 'divider',
                 color: 'text.secondary',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -54,7 +54,7 @@ export const SocialLoginButtons: React.FC = () => {
             >
               LinkedIn
             </Button>
-          </span>
+          </Box>
         </Tooltip>
       </Stack>
     </Box>

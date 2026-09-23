@@ -38,16 +38,16 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
             width: 80,
             height: 80,
             borderRadius: '28px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            bgcolor: "primary.main",
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             mx: 'auto',
             mb: 3,
-            boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)',
+            boxShadow: "none",
           }}
         >
-          <EmojiEventsIcon sx={{ color: '#ffffff', fontSize: 44 }} />
+          <EmojiEventsIcon sx={{ color: "text.primary", fontSize: 44 }} />
         </Box>
 
         <Typography variant="h3" sx={{ fontWeight: 900, mb: 1, color: 'text.primary', letterSpacing: '-0.02em' }}>
@@ -71,7 +71,7 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
 
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {[
-            { title: 'Browse Jobs', desc: 'Explore 90%+ AI matched job openings.', icon: <WorkIcon sx={{ color: '#6366f1' }} />, route: '/jobs' },
+            { title: 'Browse Jobs', desc: 'Explore 90%+ AI matched job openings.', icon: <WorkIcon sx={{ color: "primary.main" }} />, route: '/jobs' },
             { title: 'Find Connections', desc: 'Connect with corporate recruiters.', icon: <PeopleIcon sx={{ color: '#ec4899' }} />, route: '/networking' },
             { title: 'Join Communities', desc: 'Engage in active industry guilds.', icon: <GroupsIcon sx={{ color: '#10b981' }} />, route: '/communities' },
           ].map((act, idx) => (
@@ -82,8 +82,8 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
                 sx={{
                   p: 2.5,
                   borderRadius: '16px',
-                  bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'transform 0.2s ease',
@@ -114,8 +114,8 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
             fontSize: '1.05rem',
             fontWeight: 800,
             textTransform: 'none',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
+            bgcolor: "primary.main",
+            boxShadow: "none",
           }}
         >
           Open Main Dashboard

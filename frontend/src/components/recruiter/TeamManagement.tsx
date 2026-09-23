@@ -95,9 +95,9 @@ export const TeamManagement: React.FC = () => {
         sx={{
           borderRadius: '24px',
           p: { xs: 3, md: 4 },
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
         }}
       >
@@ -122,7 +122,7 @@ export const TeamManagement: React.FC = () => {
               borderRadius: '12px',
               fontWeight: 800,
               px: 3,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              bgcolor: "primary.main",
             }}
           >
             Invite Team Member
@@ -164,8 +164,8 @@ export const TeamManagement: React.FC = () => {
                 sx={{
                   p: 2.5,
                   borderRadius: '16px',
-                  bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',

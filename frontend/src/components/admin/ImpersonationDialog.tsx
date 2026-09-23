@@ -138,7 +138,7 @@ export const ImpersonationDialog: React.FC<ImpersonationDialogProps> = ({
           </Alert>
 
           {targetUser && (
-            <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+            <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
                 Target User Account
               </Typography>
@@ -155,7 +155,7 @@ export const ImpersonationDialog: React.FC<ImpersonationDialogProps> = ({
             /* Active Session View with Live Countdown Timer */
             <Paper elevation={0} sx={{ p: 3, borderRadius: '16px', textAlign: 'center', bgcolor: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
               <Chip label="ACTIVE SESSION" color="success" sx={{ fontWeight: 900, mb: 2 }} />
-              <Typography variant="h3" sx={{ fontWeight: 900, fontFamily: 'monospace', color: '#10b981', my: 1 }}>
+              <Typography variant="h3" sx={{ fontWeight: 900, fontFamily: 'monospace', color: 'success.main', my: 1 }}>
                 {formatCountdown(remainingSeconds)}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

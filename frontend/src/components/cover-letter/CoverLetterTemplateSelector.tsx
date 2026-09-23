@@ -24,7 +24,7 @@ export const CoverLetterTemplateSelector: React.FC<CoverLetterTemplateSelectorPr
           <Grid item xs={12} sm={6} md={4} key={t.id}>
             <Card
               sx={{
-                background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                bgcolor: isSelected ? 'rgba(99, 102, 241, 0.15)' : "action.hover",
                 backdropFilter: 'blur(16px)',
                 border: isSelected ? '2px solid #6366f1' : '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: 3,
@@ -34,8 +34,8 @@ export const CoverLetterTemplateSelector: React.FC<CoverLetterTemplateSelectorPr
                 justifyContent: 'space-between',
                 transition: surfaceTransition(0.3),
                 '&:hover': {
-                  borderColor: '#6366f1',
-                  boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',
+                  borderColor: "primary.main",
+                  boxShadow: "none",
                 },
               }}
             >
@@ -44,7 +44,7 @@ export const CoverLetterTemplateSelector: React.FC<CoverLetterTemplateSelectorPr
                   <Typography variant="h6" fontWeight={700}>
                     {t.name}
                   </Typography>
-                  <Chip label={t.category} size="small" sx={{ background: 'rgba(255,255,255,0.1)' }} />
+                  <Chip label={t.category} size="small" sx={{ bgcolor: "action.hover" }} />
                 </Box>
                 <Typography variant="body2" color="text.secondary" mb={2}>
                   {t.description}

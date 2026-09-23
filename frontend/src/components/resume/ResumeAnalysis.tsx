@@ -9,7 +9,7 @@ import { ATSAnalysis } from '@/features/resume/types';
 
 export const ResumeAnalysis: React.FC<{ analysis: ATSAnalysis }> = ({ analysis }) => {
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
         <SpeedIcon sx={{ color: 'primary.main', fontSize: 28 }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -20,7 +20,7 @@ export const ResumeAnalysis: React.FC<{ analysis: ATSAnalysis }> = ({ analysis }
       {analysis.parsingIssues.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <WarningAmberIcon sx={{ color: '#FF9900' }} /> Potential Parsing Issues ({analysis.parsingIssues.length})
+            <WarningAmberIcon sx={{ color: 'warning.main' }} /> Potential Parsing Issues ({analysis.parsingIssues.length})
           </Typography>
           <Stack spacing={1}>
             {analysis.parsingIssues.map((issue, idx) => (
@@ -34,7 +34,7 @@ export const ResumeAnalysis: React.FC<{ analysis: ATSAnalysis }> = ({ analysis }
 
       <Box>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CheckCircleOutlineIcon sx={{ color: '#00CC66' }} /> AI Recommendations ({analysis.recommendations.length})
+          <CheckCircleOutlineIcon sx={{ color: 'success.main' }} /> AI Recommendations ({analysis.recommendations.length})
         </Typography>
         <Stack spacing={1}>
           {analysis.recommendations.map((rec, idx) => (

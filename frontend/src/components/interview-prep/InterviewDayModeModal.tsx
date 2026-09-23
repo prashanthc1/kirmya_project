@@ -50,7 +50,7 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
             Interview Day Warm-Up Cheat Sheet ({companyName} - {jobTitle})
           </Typography>
         </Stack>
-        <IconButton onClick={onClose} sx={{ color: '#94A3B8' }}>
+        <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -62,7 +62,7 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
             <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#34D399', mb: 0.5 }}>
               ⚡ 30-Second Pre-Interview Checklist
             </Typography>
-            <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               1. Take 3 deep breaths before entering the call.
               <br />
               2. Pause 2-3 seconds after each prompt to structure your answer into STAR framework.
@@ -72,29 +72,29 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
           </Box>
 
           {/* Quick STAR Story Highlights */}
-          <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#60A5FA', mb: 1 }}>
+          <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ color: "primary.main", mb: 1 }}>
               🎯 Top 3 STAR Stories Ready to Tell
             </Typography>
             <Stack spacing={1}>
-              <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 • <strong>Story 1 (System Optimization):</strong> Monolith migration to microservices under tight 2-week deadline (Latency reduced by 45%).
               </Typography>
-              <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 • <strong>Story 2 (Conflict Resolution):</strong> Differing architecture proposal resolved via automated benchmark data.
               </Typography>
-              <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 • <strong>Story 3 (Leadership & Mentorship):</strong> Onboarded 3 junior engineers, reducing ramp-up time from 4 weeks to 10 days.
               </Typography>
             </Stack>
           </Box>
 
           {/* Key Questions to Ask */}
-          <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#A78BFA', mb: 1 }}>
+          <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ color: "primary.main", mb: 1 }}>
               ❓ Essential Questions to Ask Your Interviewer
             </Typography>
-            <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               1. &quot;What does success look like in the first 90 days for this {jobTitle} position?&quot;
               <br />
               2. &quot;What are the biggest technical or team growth priorities for {companyName} right now?&quot;
@@ -108,8 +108,8 @@ export const InterviewDayModeModal: React.FC<InterviewDayModeModalProps> = ({
           variant="contained"
           onClick={onClose}
           sx={{
-            background: 'linear-gradient(90deg, #10B981 0%, #3B82F6 100%)',
-            color: '#fff',
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
             fontWeight: 600,
             borderRadius: 2.5,
             px: 4,

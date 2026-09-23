@@ -63,8 +63,7 @@ export const AdminSidebar: React.FC = () => {
         height: '100dvh',
         position: 'sticky',
         top: 0,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-        backdropFilter: 'blur(20px)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         borderRight: '1px solid rgba(255, 255, 255, 0.12)',
         display: 'flex',
         flexDirection: 'column',
@@ -96,7 +95,7 @@ export const AdminSidebar: React.FC = () => {
                   color: active ? '#ef4444' : 'text.primary',
                   fontWeight: active ? 800 : 600,
                   '&:hover': {
-                    bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                    bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.03)',
                   },
                 }}
               >

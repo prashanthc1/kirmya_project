@@ -36,12 +36,13 @@ export const ContextNav: React.FC<ContextNavProps> = ({ context, actions }) => {
       aria-label={context.title ? `${context.title} sections` : 'Section navigation'}
       sx={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'stretch', sm: 'center' },
+        flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
-        gap: 2,
+        gap: { xs: 0, sm: 2 },
         borderBottom: `1px solid ${theme.palette.divider}`,
         bgcolor: 'background.default',
-        px: { xs: 1, sm: 2 },
+        px: { xs: 1, sm: 2, md: 4 },
       }}
     >
       <Tabs
@@ -52,6 +53,9 @@ export const ContextNav: React.FC<ContextNavProps> = ({ context, actions }) => {
         aria-label={context.title ? `${context.title} sections` : 'Section navigation'}
         sx={{
           minHeight: 48,
+          minWidth: 0,
+          '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' },
+          '@media (prefers-reduced-motion: reduce)': { '& .MuiTabs-indicator': { transition: 'none' } },
           '& .MuiTab-root': {
             minHeight: 48,
             textTransform: 'none',
@@ -59,6 +63,7 @@ export const ContextNav: React.FC<ContextNavProps> = ({ context, actions }) => {
             fontSize: '0.9rem',
             px: 2,
             borderRadius: `${tokens.radius.sm}px ${tokens.radius.sm}px 0 0`,
+            '&:active': { bgcolor: 'action.selected', transition: 'none' },
             '&:focus-visible': {
               outline: `2px solid ${theme.palette.primary.main}`,
               outlineOffset: -2,
@@ -80,7 +85,7 @@ export const ContextNav: React.FC<ContextNavProps> = ({ context, actions }) => {
           />
         ))}
       </Tabs>
-      {actions ? <Box sx={{ display: 'flex', gap: 1, py: 1 }}>{actions}</Box> : null}
+      {actions ? <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, py: 1, px: { xs: 1, sm: 0 }, flexShrink: 0 }}>{actions}</Box> : null}
     </Box>
   );
 };

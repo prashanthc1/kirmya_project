@@ -120,15 +120,15 @@ export default function AssessmentsPage() {
 
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Top Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ color: '#f8fafc', background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary',    }}>
               Professional Skill Assessment System
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Take standardized technical & practical scenario assessments, receive AI evaluation feedback, and earn verified skill badges.
             </Typography>
           </Box>
@@ -137,13 +137,13 @@ export default function AssessmentsPage() {
         {/* Top KPI Metrics Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Available Skill Tests</Typography>
-                  <QuizIcon sx={{ color: '#38bdf8' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Available Skill Tests</Typography>
+                  <QuizIcon sx={{ color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#f8fafc', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', mt: 1 }}>
                   {assessments.length}
                 </Typography>
               </CardContent>
@@ -151,13 +151,13 @@ export default function AssessmentsPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Tests Passed</Typography>
-                  <CheckCircleIcon sx={{ color: '#22c55e' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Tests Passed</Typography>
+                  <CheckCircleIcon sx={{ color: 'success.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#22c55e', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'success.main', mt: 1 }}>
                   {results.filter((r) => r.passed).length}
                 </Typography>
               </CardContent>
@@ -165,13 +165,13 @@ export default function AssessmentsPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Candidate Ranking</Typography>
-                  <EmojiEventsIcon sx={{ color: '#a855f7' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Candidate Ranking</Typography>
+                  <EmojiEventsIcon sx={{ color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#a855f7', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main', mt: 1 }}>
                   Top 6%
                 </Typography>
               </CardContent>
@@ -179,13 +179,13 @@ export default function AssessmentsPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Verified Skill Badges</Typography>
-                  <VerifiedIcon sx={{ color: '#f59e0b' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Verified Skill Badges</Typography>
+                  <VerifiedIcon sx={{ color: 'warning.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#f59e0b', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'warning.main', mt: 1 }}>
                   {badges.length}
                 </Typography>
               </CardContent>
@@ -194,16 +194,16 @@ export default function AssessmentsPage() {
         </Grid>
 
         {/* Tab Navigation */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 1.5 }}>
+        <Paper sx={{ mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
           <Tabs
             value={activeTab}
             onChange={(_, val) => setActiveTab(val)}
             textColor="inherit"
             indicatorColor="primary"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#38bdf8' },
+              '& .MuiTabs-indicator': { bgcolor: 'primary.main' },
+              '& .MuiTab-root': { color: 'text.secondary', fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: 'primary.main' },
             }}
           >
             <Tab icon={<QuizIcon fontSize="small" />} iconPosition="start" label="Skill Tests Catalog" />
@@ -217,22 +217,22 @@ export default function AssessmentsPage() {
           <Grid container spacing={3}>
             {assessments.map((item) => (
               <Grid item xs={12} md={6} key={item.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                      <Chip label={item.category} size="small" sx={{ bgcolor: '#0f172a', color: '#38bdf8', border: '1px solid #334155', fontWeight: 'bold' }} />
-                      <Chip label={`${item.badge_tier} Tier`} size="small" sx={{ bgcolor: '#f59e0b', color: '#0f172a', fontWeight: 'bold' }} />
+                      <Chip label={item.category} size="small" sx={{ bgcolor: 'background.default', color: 'primary.main', border: 1, borderColor: 'divider', fontWeight: 'bold' }} />
+                      <Chip label={`${item.badge_tier} Tier`} size="small" sx={{ bgcolor: 'warning.main', color: 'warning.contrastText', fontWeight: 'bold' }} />
                     </Box>
 
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary', mb: 1 }}>
                       {item.title}
                     </Typography>
 
-                    <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2, flexGrow: 1 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2, flexGrow: 1 }}>
                       {item.description}
                     </Typography>
 
-                    <Box sx={{ display: 'flex', gap: 2, color: '#64748b', mb: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2, color: 'text.secondary', mb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <AccessTimeIcon fontSize="small" />
                         <Typography variant="caption">{item.duration_minutes} Mins</Typography>
@@ -248,7 +248,7 @@ export default function AssessmentsPage() {
                       fullWidth
                       onClick={() => handleStartTest(item)}
                       startIcon={<PlayArrowIcon />}
-                      sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: '#0284c7' } }}
+                      sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: 'primary.main' } }}
                     >
                       Start Skill Test
                     </Button>
@@ -261,36 +261,36 @@ export default function AssessmentsPage() {
 
         {/* Tab 1: Results & Analytics */}
         {activeTab === 1 && (
-          <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155' }}>
+          <Paper sx={{ p: 3, bgcolor: 'background.default', border: 1, borderColor: 'divider' }}>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow sx={{ borderBottom: '2px solid #334155' }}>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>Assessment Title</TableCell>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>Score %</TableCell>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>MCQ Score</TableCell>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>AI Practical Score</TableCell>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>Percentile Rank</TableCell>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>Status</TableCell>
-                    <TableCell sx={{ color: '#94a3b8', fontWeight: 'bold' }}>Badge Awarded</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Assessment Title</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Score %</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>MCQ Score</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>AI Practical Score</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Percentile Rank</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Badge Awarded</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {results.map((r) => (
                     <TableRow key={r.id} sx={{ borderBottom: '1px solid #1e293b' }}>
-                      <TableCell sx={{ color: '#f8fafc', fontWeight: 'bold' }}>{r.assessment_title}</TableCell>
-                      <TableCell sx={{ color: '#38bdf8', fontWeight: 'bold' }}>{r.score_percentage}%</TableCell>
-                      <TableCell sx={{ color: '#cbd5e1' }}>{r.mcq_score}%</TableCell>
-                      <TableCell sx={{ color: '#10b981', fontWeight: 'bold' }}>{r.practical_ai_score}%</TableCell>
-                      <TableCell sx={{ color: '#a855f7', fontWeight: 'bold' }}>Top {100 - r.percentile_rank}%</TableCell>
+                      <TableCell sx={{ color: 'text.primary', fontWeight: 'bold' }}>{r.assessment_title}</TableCell>
+                      <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>{r.score_percentage}%</TableCell>
+                      <TableCell sx={{ color: 'text.primary' }}>{r.mcq_score}%</TableCell>
+                      <TableCell sx={{ color: 'success.main', fontWeight: 'bold' }}>{r.practical_ai_score}%</TableCell>
+                      <TableCell sx={{ color: 'primary.main', fontWeight: 'bold' }}>Top {100 - r.percentile_rank}%</TableCell>
                       <TableCell>
                         <Chip
                           label={r.passed ? 'PASSED' : 'FAILED'}
                           size="small"
-                          sx={{ bgcolor: r.passed ? '#22c55e' : '#ef4444', color: '#fff', fontWeight: 'bold' }}
+                          sx={{ bgcolor: r.passed ? '#22c55e' : '#ef4444', color: 'text.primary', fontWeight: 'bold' }}
                         />
                       </TableCell>
-                      <TableCell sx={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                      <TableCell sx={{ color: 'warning.main', fontWeight: 'bold' }}>
                         {r.earned_badge ? `${r.earned_badge.badge_title} (${r.earned_badge.tier})` : '—'}
                       </TableCell>
                     </TableRow>

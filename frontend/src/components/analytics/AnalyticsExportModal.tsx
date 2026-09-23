@@ -44,17 +44,17 @@ export default function AnalyticsExportModal({ open, onClose }: AnalyticsExportM
       <DialogTitle sx={{ fontWeight: 'bold' }}>Export Analytics Data</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Generate an asynchronous analytics export file. Large exports will process in the background.
           </Typography>
 
           <FormControl fullWidth size="small">
-            <InputLabel sx={{ color: '#94a3b8' }}>Export Format</InputLabel>
+            <InputLabel sx={{ color: "text.secondary" }}>Export Format</InputLabel>
             <Select
               value={format}
               label="Export Format"
               onChange={(e) => setFormat(e.target.value)}
-              sx={{ color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' } }}
+              sx={{ color: "text.primary", '& .MuiOutlinedInput-notchedOutline': { borderColor: "divider" } }}
             >
               <MenuItem value="csv">CSV (Comma Separated Values)</MenuItem>
               <MenuItem value="json">JSON (Structured Objects)</MenuItem>
@@ -62,11 +62,11 @@ export default function AnalyticsExportModal({ open, onClose }: AnalyticsExportM
           </FormControl>
 
           {exportUrl && (
-            <Box sx={{ p: 2, bgcolor: '#0f172a', borderRadius: 2, border: '1px solid #10b981' }}>
+            <Box sx={{ p: 2, bgcolor: "background.default", borderRadius: 2, border: '1px solid #10b981' }}>
               <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 'bold', mb: 1 }}>
                 ✓ Export Ready
               </Typography>
-              <Button href={exportUrl} download variant="contained" size="small" startIcon={<DownloadIcon />} sx={{ bgcolor: '#10b981', color: '#fff' }}>
+              <Button href={exportUrl} download variant="contained" size="small" startIcon={<DownloadIcon />} sx={{ bgcolor: '#10b981', color: "success.contrastText" }}>
                 Download File
               </Button>
             </Box>
@@ -74,8 +74,8 @@ export default function AnalyticsExportModal({ open, onClose }: AnalyticsExportM
         </Box>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} sx={{ color: '#94a3b8' }}>Cancel</Button>
-        <Button onClick={handleExport} variant="contained" disabled={downloading} sx={{ bgcolor: '#0284c7', color: '#fff' }}>
+        <Button onClick={onClose} sx={{ color: "text.secondary" }}>Cancel</Button>
+        <Button onClick={handleExport} variant="contained" disabled={downloading} sx={{ bgcolor: "primary.main", color: "primary.contrastText" }}>
           {downloading ? 'Queuing...' : 'Generate Export'}
         </Button>
       </DialogActions>

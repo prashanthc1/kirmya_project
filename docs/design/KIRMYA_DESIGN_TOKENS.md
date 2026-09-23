@@ -29,23 +29,23 @@ frontend/src/theme/
 ## 2. Palette Tokens
 
 ### Brand & Accents
-* `brand.primary.main`: `#6366f1` (Light) / `#818cf8` (Dark)
-* `brand.primary.light`: `#a5b4fc` (Light) / `#c7d2fe` (Dark)
-* `brand.primary.dark`: `#4f46e5` (Light) / `#6366f1` (Dark)
-* `brand.secondary.main`: `#ec4899` (Light) / `#f472b6` (Dark)
+* `primary.main`: `#0066cc` (Light) / `#80bfff` (Dark)
+* `primary.light`: `#e6f2ff` (Light) / `#b3d9ff` (Dark)
+* `primary.dark`: `#0055aa` (Light) / `#a6d2ff` (Dark)
+* `secondary.main`: `#515154` (Light) / `#c7c7cc` (Dark)
 
 ### Neutral Grounds & Text
-* `surface.background`: `#f8fafc` (Light) / `#0f172a` (Dark)
-* `surface.paper`: `#ffffff` (Light) / `#1e293b` (Dark)
-* `text.primary`: `#0f172a` (Light) / `#f8fafc` (Dark)
-* `text.secondary`: `#475569` (Light) / `#cbd5e1` (Dark)
+* `background.default`: `#f5f5f7` (Light) / `#161617` (Dark)
+* `background.paper`: `#ffffff` (Light) / `#242426` (Dark)
+* `text.primary`: `#1d1d1f` (Light) / `#f5f5f7` (Dark)
+* `text.secondary`: `#626267` (Light) / `#b8b8be` (Dark)
 * `border.divider`: `rgba(15, 23, 42, 0.08)` (Light) / `rgba(255, 255, 255, 0.08)` (Dark)
 
 ### Semantic Status
-* `status.success`: `#10b981` (Light) / `#34d399` (Dark)
-* `status.warning`: `#f59e0b` (Light) / `#fbbf24` (Dark)
-* `status.error`: `#ef4444` (Light) / `#f87171` (Dark)
-* `status.info`: `#3b82f6` (Light) / `#60a5fa` (Dark)
+* `success.main`: `#047857` (Light) / `#34d399` (Dark)
+* `warning.main`: `#b45309` (Light) / `#fbbf24` (Dark)
+* `error.main`: `#dc2626` (Light) / `#f87171` (Dark)
+* `info.main`: `#1d4ed8` (Light) / `#60a5fa` (Dark)
 
 ---
 
@@ -66,10 +66,12 @@ frontend/src/theme/
 * `tokens.radius.none`: `0px`
 * `tokens.radius.xs`: `4px`
 * `tokens.radius.sm`: `8px`
-* `tokens.radius.md`: `12px` (Default Button, Input, Menu)
-* `tokens.radius.lg`: `16px` (Card, Modal, Dialog)
-* `tokens.radius.xl`: `24px` (Pill containers)
+* `tokens.radius.md`: `12px`
+* `tokens.radius.lg`: `16px`
+* `tokens.radius.xl`: `24px`
 * `tokens.radius.pill`: `9999px` (Avatars, full rounded buttons)
+
+Shared MUI component radii: buttons `0.75rem`, cards `1.25rem`, dialogs `1.5rem`, inputs `10px`, menus `12px`. Page-specific document previews retain their document styling.
 
 ---
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Typography, TypographyProps } from '@mui/material';
+import { useReducedMotion } from 'framer-motion';
 
 interface AnimatedCounterProps extends TypographyProps {
   value: string;
@@ -14,6 +15,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   sx,
   ...props
 }) => {
+  const reducedMotion = useReducedMotion();
   const numericMatch = value.match(/\d+/g);
   const targetNumber = numericMatch ? parseInt(numericMatch.join(''), 10) : null;
   const prefix = value.match(/^[^\d]+/)?.[0] || '';
@@ -22,7 +24,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (targetNumber === null) return;
+    if (targetNumber === null || reducedMotion) return;
 
     let start = 0;
     const increment = Math.ceil(targetNumber / (duration / 30));
@@ -37,7 +39,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
     }, 30);
 
     return () => clearInterval(timer);
-  }, [targetNumber, duration]);
+  }, [targetNumber, duration, reducedMotion]);
 
   if (targetNumber === null) {
     return <Typography sx={sx} {...props}>{value}</Typography>;
@@ -46,7 +48,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   return (
     <Typography sx={sx} {...props}>
       {prefix}
-      {count.toLocaleString()}
+      {(reducedMotion ? targetNumber : count).toLocaleString()}
       {suffix}
     </Typography>
   );

@@ -107,8 +107,8 @@ export const LegalHoldDialog: React.FC = () => {
         borderRadius: '24px',
         p: 3,
         backdropFilter: 'blur(12px)',
-        background: 'rgba(255, 255, 255, 0.04)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        bgcolor: "action.hover",
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
       }}
     >

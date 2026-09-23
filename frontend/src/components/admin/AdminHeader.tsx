@@ -24,8 +24,7 @@ export const AdminHeader: React.FC = () => {
       sx={{
         py: 2,
         px: 3,
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
         display: 'flex',
         justifyContent: 'space-between',
@@ -33,8 +32,8 @@ export const AdminHeader: React.FC = () => {
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="center">
-        <ShieldIcon sx={{ color: '#ef4444', fontSize: 28 }} />
-        <Typography variant="h6" sx={{ fontWeight: 900, background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <ShieldIcon sx={{ color: 'error.main', fontSize: 28 }} />
+        <Typography variant="h6" sx={{ fontWeight: 900,    }}>
           Kirmya Admin Control Center
         </Typography>
         <Chip
@@ -47,9 +46,9 @@ export const AdminHeader: React.FC = () => {
 
       <Stack direction="row" spacing={2} alignItems="center">
         <Tooltip title="Least-Privilege RBAC Enforced">
-          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ px: 1.5, py: 0.5, borderRadius: '20px', bgcolor: 'rgba(99, 102, 241, 0.1)' }}>
-            <LockIcon sx={{ fontSize: 16, color: '#6366f1' }} />
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#6366f1' }}>
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ px: 1.5, py: 0.5, borderRadius: '20px', bgcolor: 'background.paper' }}>
+            <LockIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'primary.main' }}>
               RBAC ACTIVE
             </Typography>
           </Stack>
@@ -60,7 +59,7 @@ export const AdminHeader: React.FC = () => {
         </IconButton>
 
         <Stack direction="row" spacing={1} alignItems="center">
-          <Avatar sx={{ width: 34, height: 34, bgcolor: '#ef4444', fontWeight: 800, fontSize: '0.85rem' }}>
+          <Avatar sx={{ width: 34, height: 34, bgcolor: 'error.main', fontWeight: 800, fontSize: '0.85rem' }}>
             SA
           </Avatar>
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>

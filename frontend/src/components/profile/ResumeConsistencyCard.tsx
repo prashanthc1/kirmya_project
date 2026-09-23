@@ -50,7 +50,7 @@ export const ResumeConsistencyCard: React.FC<ResumeConsistencyCardProps> = ({
         mb: 3,
         bgcolor: 'background.paper',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
       }}
     >
@@ -78,10 +78,10 @@ export const ResumeConsistencyCard: React.FC<ResumeConsistencyCardProps> = ({
             bgcolor: 'action.hover',
             '& .MuiLinearProgress-bar': {
               borderRadius: 5,
-              background:
+              bgcolor:
                 score >= 85
-                  ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)'
-                  : 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)',
+                  ? "primary.main"
+                  : "primary.main",
             },
           }}
         />

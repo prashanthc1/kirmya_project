@@ -56,7 +56,7 @@ export function CandidateJobDashboard({
           <Typography variant="h4" gutterBottom>Candidate Job Dashboard</Typography>
           <Typography variant="body1" color="text.secondary">Welcome back! Here is your application overview.</Typography>
         </Box>
-        <Card sx={{ width: 300, background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)' }}>
+        <Card sx={{ width: 300, bgcolor: "action.hover", backdropFilter: 'blur(10px)' }}>
           <CardContent>
             <Typography variant="subtitle2" gutterBottom>Profile Completion: {profileCompletion}%</Typography>
             <LinearProgress variant="determinate" value={profileCompletion} sx={{ mb: 1 }} />
@@ -68,7 +68,7 @@ export function CandidateJobDashboard({
       {/* Metric Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(10px)' }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>Total Applications</Typography>
               <Typography variant="h3">{analytics?.stats?.total_applications || 0}</Typography>
@@ -76,7 +76,7 @@ export function CandidateJobDashboard({
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(10px)' }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>Active Pipelines</Typography>
               <Typography variant="h3">{analytics?.stats?.active_applications || 0}</Typography>
@@ -84,7 +84,7 @@ export function CandidateJobDashboard({
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(10px)' }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>Interviews Scheduled</Typography>
               <Typography variant="h3">{analytics?.stats?.interviews_scheduled || 0}</Typography>
@@ -92,7 +92,7 @@ export function CandidateJobDashboard({
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(10px)' }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom>Offers Received</Typography>
               <Typography variant="h3">{analytics?.stats?.offers_received || 0}</Typography>

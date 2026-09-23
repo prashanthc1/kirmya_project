@@ -18,40 +18,40 @@ export default function PublicStatusPage() {
   }, []);
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 6 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 6 }}>
       <Container maxWidth="md">
         <Box sx={{ textCenter: 'center', textAlign: 'center', mb: 4 }}>
-          <Typography variant="h3" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #10b981 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', mb: 1 }}>
+          <Typography variant="h3" fontWeight="bold" sx={{    mb: 1 }}>
             Kirmya Platform Service Status
           </Typography>
-          <Typography variant="body1" sx={{ color: '#94a3b8' }}>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
             Real-time status updates across Kirmya global infrastructure and services.
           </Typography>
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }} />}
 
-        <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 3, mb: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 3, mb: 4, textAlign: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 1 }}>
             <CheckCircleIcon sx={{ color: statusData?.overallStatus === 'healthy' ? '#10b981' : '#f59e0b', fontSize: 32 }} />
             <Typography variant="h5" fontWeight="bold" sx={{ textTransform: 'capitalize' }}>
               {statusData?.isMaintenance ? 'System Maintenance Active' : statusData?.overallStatus === 'healthy' ? 'All Systems Operational' : 'Partial Service Degradation'}
             </Typography>
           </Box>
-          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             Last checked: {statusData?.checkedAt ? new Date(statusData.checkedAt).toLocaleString() : 'Just now'}
           </Typography>
         </Paper>
 
-        <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 3 }}>
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#f8fafc' }}>
+        <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 3 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: 'text.primary' }}>
             Service Component Status
           </Typography>
 
           <Grid container spacing={2}>
             {statusData && Object.entries(statusData.publicComponents).map(([comp, st]) => (
               <Grid item xs={12} sm={6} key={comp}>
-                <Paper sx={{ p: 2, bgcolor: '#0f172a', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Paper sx={{ p: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="body1" fontWeight="bold" sx={{ textTransform: 'capitalize' }}>{comp}</Typography>
                   <Chip label={st.toUpperCase()} color={st === 'healthy' ? 'success' : 'warning'} size="small" />
                 </Paper>

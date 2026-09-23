@@ -91,10 +91,9 @@ export const JobEditor: React.FC<Props> = ({ jobId, initialData }) => {
     <Card
       sx={{
         borderRadius: '24px',
-        background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
         p: { xs: 2.5, md: 4 },
       }}
     >
@@ -125,7 +124,7 @@ export const JobEditor: React.FC<Props> = ({ jobId, initialData }) => {
               borderRadius: '12px',
               fontWeight: 800,
               px: 3,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              bgcolor: 'primary.main',
             }}
           >
             {saving ? 'Publishing...' : 'Publish Job'}
@@ -376,7 +375,7 @@ export const JobEditor: React.FC<Props> = ({ jobId, initialData }) => {
             borderRadius: '12px',
             fontWeight: 800,
             px: 4,
-            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+            bgcolor: 'primary.main',
           }}
         >
           Save &amp; Publish Job

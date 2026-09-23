@@ -92,8 +92,8 @@ export const RetentionManager: React.FC = () => {
         borderRadius: '24px',
         p: 3,
         backdropFilter: 'blur(12px)',
-        background: 'rgba(255, 255, 255, 0.04)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        bgcolor: "action.hover",
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
       }}
     >
@@ -189,7 +189,7 @@ export const RetentionManager: React.FC = () => {
                 Simulated execution complete. No live data was modified during this dry run.
               </Alert>
 
-              <Box sx={{ p: 2, background: 'rgba(255, 255, 255, 0.03)', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: '16px', border: (theme) => `1px solid ${theme.palette.divider}` }}>
                 <Typography variant="subtitle2" color="text.secondary">Estimated Affected Records</Typography>
                 <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main', my: 0.5 }}>
                   {dryRunRes.affectedRecordsCount.toLocaleString()} Records

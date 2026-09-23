@@ -18,6 +18,7 @@ import {
   useTheme,
   Tooltip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SearchIcon from '@mui/icons-material/Search';
@@ -134,26 +135,40 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
   return (
     <Box
       component="header"
+      data-material="toolbar"
       sx={{
         position: 'sticky',
         top: 0,
         zIndex: tokens.zIndex.fixed,
         width: '100%',
-        height: tokens.layout.headerHeight,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${theme.palette.divider}`,
+        minHeight: tokens.layout.headerHeight,
+        bgcolor: alpha(theme.palette.background.paper, isDark ? 0.9 : 0.84),
+        backdropFilter: 'blur(24px) saturate(150%)',
+        boxShadow: `0 1px 12px ${alpha(theme.palette.common.black, 0.04)}`,
+        '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)': {
+          bgcolor: 'background.paper',
+          backdropFilter: 'none',
+        },
+        '@media (prefers-contrast: more)': {
+          borderBottom: `1px solid ${theme.palette.text.primary}`,
+        },
+        '& .MuiButtonBase-root': {
+          minHeight: 44,
+          '&:active': { bgcolor: 'action.selected', transition: 'none' },
+          '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
+        },
         boxSizing: 'border-box',
         display: 'flex',
         alignItems: 'center',
-        px: { xs: 2, sm: 3, md: 4 },
+        px: { xs: 1.5, sm: 3, md: 4 },
+        py: 1,
       }}
     >
       <Stack
         direction="row"
         alignItems="center"
         justifyContent="space-between"
-        sx={{ width: '100%', maxWidth: tokens.layout.maxWidth, mx: 'auto' }}
+        sx={{ width: '100%', maxWidth: tokens.layout.maxWidth, mx: 'auto', gap: { xs: 1, md: 2 }, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}
       >
         {/* Brand and Mobile Menu Trigger */}
         <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -161,7 +176,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
             <IconButton
               onClick={onMobileNavOpen}
               aria-label="Open mobile navigation"
-              sx={{ display: { xs: 'inline-flex', md: 'none' } }}
+              sx={{ display: { xs: 'inline-flex', xl: 'none' }, minWidth: 44 }}
             >
               <MenuIcon />
             </IconButton>
@@ -176,18 +191,20 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
           component="form"
           onSubmit={handleSearchSubmit}
           sx={{
-            display: { xs: 'none', sm: 'flex' },
+            display: { xs: 'none', sm: 'flex', lg: 'none', xl: 'flex' },
             alignItems: 'center',
-            bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.04)',
-            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)'}`,
+            bgcolor: 'background.default',
+            border: `1px solid ${theme.palette.divider}`,
             borderRadius: `${tokens.radius.pill}px`,
             px: 1.5,
             py: 0.5,
-            width: { sm: 200, md: 280, lg: 320 },
-            transition: 'border-color 150ms ease, box-shadow 150ms ease',
+            minHeight: 44,
+            minWidth: 0,
+            flex: '1 1 12rem',
+            maxWidth: 280,
             '&:focus-within': {
               borderColor: theme.palette.primary.main,
-              boxShadow: `0 0 0 2px ${isDark ? 'rgba(129, 140, 248, 0.2)' : 'rgba(99, 102, 241, 0.2)'}`,
+              boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
             },
           }}
         >
@@ -212,7 +229,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
           // same name, and never at the same time: it is display:none above
           // this breakpoint, which removes it from the accessibility tree.
           aria-label="Primary"
-          sx={{ display: { xs: 'none', md: 'flex' } }}
+          sx={{ display: { xs: 'none', lg: 'flex' }, flexShrink: 0 }}
         >
           {navItems.map((item) => {
             // Segment-aware, so /network does not claim /networking and Feed
@@ -236,18 +253,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                   )
                 }
                 sx={{
-                  px: 1.75,
+                  px: 1.25,
                   py: 0.75,
                   borderRadius: `${tokens.radius.md}px`,
-                  fontWeight: isActive ? 700 : 500,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
                   color: isActive ? theme.palette.primary.main : 'text.primary',
-                  bgcolor: isActive
-                    ? isDark
-                      ? 'rgba(129, 140, 248, 0.12)'
-                      : 'rgba(99, 102, 241, 0.08)'
-                    : 'transparent',
+                  bgcolor: isActive ? 'action.selected' : 'transparent',
                   '&:hover': {
-                    bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)',
+                    bgcolor: isActive ? 'action.selected' : 'action.hover',
                   },
                 }}
               >
@@ -268,7 +282,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                 small screens it moves into the drawer's account block, which is
                 the account control at that breakpoint.
               */}
-              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
                 <WorkspaceSwitcher />
               </Box>
 
@@ -288,7 +302,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                       : 'Notifications'
                   }
                   aria-current={pathname && isWithin(pathname, ROUTES.NOTIFICATIONS) ? 'page' : undefined}
-                  sx={{ p: 1 }}
+                  sx={{ p: 1, minWidth: 44, color: pathname && isWithin(pathname, ROUTES.NOTIFICATIONS) ? 'primary.main' : 'text.primary' }}
                 >
                   <Badge badgeContent={notificationsCount} color="error" max={99}>
                     <NotificationsNoneIcon fontSize="small" />
@@ -300,9 +314,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                 <IconButton
                   onClick={handleUserMenuOpen}
                   aria-label="User account menu"
-                  aria-controls="user-account-menu"
-                  aria-haspopup="true"
-                  sx={{ p: 0.5 }}
+                  aria-controls={userMenuAnchor ? 'user-account-menu' : undefined}
+                  aria-haspopup="menu"
+                  aria-expanded={Boolean(userMenuAnchor)}
+                  sx={{ p: 0.5, minWidth: 44 }}
                 >
                   <Avatar
                     alt={user.firstName ? `${user.firstName} ${user.lastName}` : 'User Avatar'}
@@ -326,6 +341,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
                     minWidth: 220,
                     mt: 1,
                     p: 0.5,
+                    bgcolor: alpha(theme.palette.background.paper, 0.96),
+                    backdropFilter: 'blur(24px) saturate(150%)',
+                    '& .MuiMenuItem-root': { minHeight: 44, borderRadius: 1.5, '&:active': { bgcolor: 'action.selected', transition: 'none' } },
+                    '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)': {
+                      bgcolor: 'background.paper',
+                      backdropFilter: 'none',
+                    },
+                    '@media (prefers-contrast: more)': { border: `1px solid ${theme.palette.text.primary}` },
                   },
                 }}
               >

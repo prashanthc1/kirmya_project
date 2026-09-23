@@ -1,12 +1,7 @@
 import { Components, Theme } from '@mui/material/styles';
 import { touchHitArea, touchMinHeight } from './tokens';
 
-/**
- * MUI 6 Component Overrides & Global Defaults (Prompt 13/50)
- * 
- * Centralized component behavior ensuring accessibility, refined interactive states,
- * and responsive mobile ergonomics across all MUI primitives.
- */
+/** Shared controls and material hierarchy for every application route. */
 
 export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<Theme, 'components'>> => {
   const isLight = mode === 'light';
@@ -16,7 +11,7 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
       styleOverrides: {
         // Universal high-contrast focus indicator for keyboard navigation
         'body *:focus-visible': {
-          outline: `2px solid ${isLight ? '#0f172a' : '#f8fafc'}`,
+          outline: `2px solid ${isLight ? '#0066cc' : '#80bfff'}`,
           outlineOffset: '2px',
         },
         ':target': {
@@ -24,6 +19,15 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
         },
         body: {
           transition: 'background-color 220ms ease, color 220ms ease',
+          fontOpticalSizing: 'auto',
+          WebkitFontSmoothing: 'antialiased',
+          '--font-sans': '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+        },
+        'h1, h2, h3, h4, h5, h6': {
+          textWrap: 'balance',
+        },
+        'button, a, input, select, textarea, [role="button"]': {
+          touchAction: 'manipulation',
         },
         '.MuiPaper-root': {
           transition: 'background-color 220ms ease, color 220ms ease',
@@ -39,20 +43,31 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
             transitionDuration: '150ms !important',
             scrollBehavior: 'auto !important',
           },
+          '.MuiButton-root:active, .MuiIconButton-root:active, .MuiCardActionArea-root:active, .MuiChip-clickable:active': {
+            transform: 'none !important',
+          },
         },
         '@media (prefers-reduced-transparency: reduce)': {
-          '*': { backdropFilter: 'none !important' },
-          '.MuiPaper-root, .MuiCard-root, .MuiAppBar-root': {
-            backgroundColor: `${isLight ? '#ffffff' : '#1e293b'} !important`,
+          '*': { backdropFilter: 'none !important', WebkitBackdropFilter: 'none !important' },
+          '.MuiPaper-root, .MuiCard-root, .MuiAppBar-root, [data-material]': {
+            backgroundColor: `${isLight ? '#ffffff' : '#242426'} !important`,
           },
         },
         '@media (prefers-contrast: more)': {
-          '*': { backdropFilter: 'none !important' },
-          '.MuiPaper-root, .MuiCard-root, .MuiAppBar-root': {
-            backgroundColor: `${isLight ? '#ffffff' : '#0b1220'} !important`,
-            borderColor: `${isLight ? '#0f172a' : '#f8fafc'} !important`,
+          '*': { backdropFilter: 'none !important', WebkitBackdropFilter: 'none !important' },
+          '.MuiPaper-root, .MuiCard-root, .MuiAppBar-root, [data-material]': {
+            backgroundColor: `${isLight ? '#ffffff' : '#242426'} !important`,
+            border: `1px solid ${isLight ? '#1d1d1f' : '#f5f5f7'} !important`,
           },
           'body *:focus-visible': { outlineWidth: '3px' },
+        },
+      },
+    },
+
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          '&:not(.Mui-disabled):active': { backgroundImage: 'linear-gradient(rgba(127,127,127,.1), rgba(127,127,127,.1))' },
         },
       },
     },
@@ -60,23 +75,17 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '10px',
+          borderRadius: '0.75rem',
           textTransform: 'none',
           fontWeight: 600,
           padding: '8px 16px',
           transition: 'transform 100ms ease-out, background-color 150ms ease, border-color 150ms ease',
-          '&&:active': { transform: 'scale(0.97)' },
+          '&&:active': { transform: 'scale(0.97)', transitionDuration: '0ms' },
           ...touchMinHeight,
         },
         containedPrimary: {
-          boxShadow: isLight
-            ? '0 2px 8px 0 rgba(99, 102, 241, 0.25)'
-            : '0 2px 8px 0 rgba(0, 0, 0, 0.4)',
-          '&:hover': {
-            boxShadow: isLight
-              ? '0 4px 14px 0 rgba(99, 102, 241, 0.35)'
-              : '0 4px 14px 0 rgba(0, 0, 0, 0.6)',
-          },
+          boxShadow: 'none',
+          '&:hover': { boxShadow: 'none' },
         },
       },
     },
@@ -85,7 +94,7 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
       styleOverrides: {
         root: {
           transition: 'transform 100ms ease-out, background-color 150ms ease',
-          '&&:active': { transform: 'scale(0.92)' },
+          '&&:active': { transform: 'scale(0.96)', transitionDuration: '0ms' },
           ...touchHitArea,
         },
       },
@@ -94,19 +103,11 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: isLight ? '#ffffff' : '#1e293b',
-          border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: isLight 
-            ? '0 4px 20px 0 rgba(15, 23, 42, 0.04)' 
-            : '0 4px 20px 0 rgba(0, 0, 0, 0.25)',
-          borderRadius: '16px',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease, background-color 220ms ease, border-color 220ms ease',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: isLight 
-              ? '0 8px 30px 0 rgba(15, 23, 42, 0.08)' 
-              : '0 8px 30px 0 rgba(0, 0, 0, 0.4)',
-          },
+          backgroundColor: isLight ? '#ffffff' : '#242426',
+          border: isLight ? '1px solid rgba(29, 29, 31, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: isLight ? '0 2px 12px rgba(29,29,31,0.03)' : '0 2px 12px rgba(0,0,0,0.12)',
+          borderRadius: '1.25rem',
+          transition: 'background-color 220ms ease, border-color 220ms ease',
         },
       },
     },
@@ -131,6 +132,7 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
     MuiPaper: {
       styleOverrides: {
         root: {
+          backgroundImage: 'none',
           '&:has(> table)': { overflowX: 'auto' },
         },
       },
@@ -142,13 +144,16 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
           '@media (max-width:599.95px)': { alignItems: 'flex-end' },
         },
         paper: {
-          borderRadius: '16px',
+          borderRadius: '1.5rem',
+          backgroundColor: isLight ? 'rgba(255,255,255,0.96)' : 'rgba(36,36,38,0.97)',
+          backdropFilter: 'blur(24px) saturate(160%)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
           '@media (max-width:599.95px)': {
             margin: 0,
             width: '100%',
             maxWidth: '100%',
             maxHeight: '92dvh',
-            borderRadius: '16px 16px 0 0',
+            borderRadius: '1.5rem 1.5rem 0 0',
           },
         },
       },
@@ -158,6 +163,7 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
       styleOverrides: {
         root: {
           borderRadius: '10px',
+          backgroundColor: isLight ? 'rgba(245,245,247,0.6)' : 'rgba(255,255,255,0.03)',
           ...touchMinHeight,
         },
       },
@@ -187,6 +193,8 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
       styleOverrides: {
         paper: {
           borderRadius: '12px',
+          backgroundColor: isLight ? 'rgba(255,255,255,0.94)' : 'rgba(36,36,38,0.96)',
+          backdropFilter: 'blur(20px) saturate(160%)',
           border: isLight ? '1px solid rgba(15, 23, 42, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
           boxShadow: isLight
             ? '0 10px 25px -5px rgba(15, 23, 42, 0.1)'
@@ -236,6 +244,7 @@ export const getComponentOverrides = (mode: 'light' | 'dark'): Components<Omit<T
         root: {
           minHeight: 44,
         },
+        flexContainer: { gap: '0.25rem' },
         indicator: {
           height: 3,
           borderRadius: '3px 3px 0 0',

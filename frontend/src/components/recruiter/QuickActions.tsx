@@ -33,8 +33,8 @@ export const QuickActions: React.FC = () => {
             sx={{
               p: 2,
               borderRadius: '16px',
-              bgcolor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               textAlign: 'center',
               cursor: 'pointer',
               transition: 'transform 0.2s ease, background-color 0.2s ease',

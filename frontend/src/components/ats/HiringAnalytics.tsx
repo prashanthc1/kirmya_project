@@ -51,7 +51,7 @@ export const HiringAnalytics: React.FC = () => {
                     sx={{
                       height: 8,
                       borderRadius: 4,
-                      bgcolor: 'rgba(255, 255, 255, 0.08)',
+                      bgcolor: "action.hover",
                       '& .MuiLinearProgress-bar': { bgcolor: st.color, borderRadius: 4 },
                     }}
                   />
@@ -82,8 +82,8 @@ export const HiringAnalytics: React.FC = () => {
                   sx={{
                     p: 2,
                     borderRadius: '14px',
-                    bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
                   }}
                 >
                   <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>

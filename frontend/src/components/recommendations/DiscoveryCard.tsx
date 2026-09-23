@@ -68,9 +68,9 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
         border: `1px solid ${
           isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
         }`,
-        background: isDark
-          ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.6) 100%)'
-          : 'linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+        bgcolor: isDark
+          ? "background.paper"
+          : "background.paper",
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         transition: surfaceTransition(0.2),
@@ -254,7 +254,7 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
                       sx={{
                         fontSize: '0.72rem',
                         height: 22,
-                        bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)',
+                        bgcolor: isDark ? "action.hover" : "background.paper",
                       }}
                     />
                   ))}
@@ -394,7 +394,7 @@ export const DiscoveryCard: React.FC<DiscoveryCardProps> = ({
               sx={{
                 p: 1.5,
                 borderRadius: `${tokens.radius.md}px`,
-                bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(15, 23, 42, 0.02)',
+                bgcolor: isDark ? "action.hover" : "background.paper",
                 border: `1px solid ${
                   isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)'
                 }`,

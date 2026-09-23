@@ -20,13 +20,12 @@ export const AIResumeAssistant: React.FC<AIResumeAssistantProps> = ({ onOptimize
       sx={{
         p: 3,
         borderRadius: 3,
-        background: 'linear-gradient(135deg, rgba(153, 51, 255, 0.08) 0%, rgba(0, 102, 255, 0.08) 100%)',
-        border: '1px solid rgba(153, 51, 255, 0.3)',
-        backdropFilter: 'blur(20px)',
+        bgcolor: 'background.paper',
+        border: 1, borderColor: 'divider',
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-        <AutoAwesomeIcon sx={{ color: '#9933FF', fontSize: 30 }} />
+        <AutoAwesomeIcon sx={{ color: 'primary.main', fontSize: 30 }} />
         <Typography variant="h6" sx={{ fontWeight: 800 }}>
           AI Resume Copilot
         </Typography>
@@ -44,7 +43,7 @@ export const AIResumeAssistant: React.FC<AIResumeAssistantProps> = ({ onOptimize
             size="small"
             clickable
             onClick={() => setPrompt(chip)}
-            sx={{ bgcolor: 'rgba(255, 255, 255, 0.06)', fontWeight: 600, border: '1px solid rgba(255, 255, 255, 0.1)' }}
+            sx={{ bgcolor: 'action.hover', fontWeight: 600, border: 1, borderColor: 'divider' }}
           />
         ))}
       </Stack>
@@ -67,7 +66,7 @@ export const AIResumeAssistant: React.FC<AIResumeAssistantProps> = ({ onOptimize
             textTransform: 'none',
             fontWeight: 800,
             px: 3,
-            background: 'linear-gradient(90deg, #9933FF 0%, #0066FF 100%)',
+            bgcolor: 'primary.main',
           }}
         >
           {isLoading ? 'Enhancing...' : 'Optimize'}

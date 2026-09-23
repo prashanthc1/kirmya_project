@@ -51,19 +51,19 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
       sx={{
         p: 2.5,
         borderRadius: 3,
-        bgcolor: 'rgba(15, 23, 42, 0.9)',
+        bgcolor: "background.paper",
         border: '1px solid rgba(59, 130, 246, 0.2)',
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#60A5FA' }}>
+        <Typography variant="subtitle2" fontWeight={700} sx={{ color: "primary.main" }}>
           STAR Method Response Framework
         </Typography>
         <Button
           size="small"
           startIcon={<AutoAwesome />}
           onClick={handleAutoAssemble}
-          sx={{ color: '#A78BFA', textTransform: 'none', fontWeight: 600 }}
+          sx={{ color: "primary.main", textTransform: 'none', fontWeight: 600 }}
         >
           Auto-Assemble Response
         </Button>
@@ -77,7 +77,7 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
           value={s}
           onChange={(e) => setS(e.target.value)}
           placeholder="e.g. At my previous company, our team faced a tight 2-week deadline for launching a high-throughput payment API..."
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
 
         <TextField
@@ -87,7 +87,7 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
           value={t}
           onChange={(e) => setT(e.target.value)}
           placeholder="e.g. My goal was to redesign the database schema and eliminate latency bottlenecks without causing service downtime..."
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
 
         <TextField
@@ -97,7 +97,7 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
           value={a}
           onChange={(e) => setA(e.target.value)}
           placeholder="e.g. I implemented Redis caching, optimized indexing, and led pair programming reviews..."
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
 
         <TextField
@@ -107,7 +107,7 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
           value={r}
           onChange={(e) => setR(e.target.value)}
           placeholder="e.g. As a result, API response times dropped by 45% and the system handled 100k daily requests cleanly..."
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
 
         <TextField
@@ -117,12 +117,12 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
           value={fullAnswer}
           onChange={(e) => setFullAnswer(e.target.value)}
           placeholder="Complete narrative response..."
-          sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+          sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
         />
       </Stack>
 
       <Stack direction="row" spacing={2} justifyContent="flex-end">
-        <Button onClick={onCancel} sx={{ color: '#94A3B8' }}>
+        <Button onClick={onCancel} sx={{ color: "text.secondary" }}>
           Cancel
         </Button>
         <Button
@@ -131,8 +131,8 @@ export const STARAnswerBuilder: React.FC<STARAnswerBuilderProps> = ({
           disabled={saving}
           startIcon={<Check />}
           sx={{
-            background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 100%)',
-            color: '#fff',
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
             fontWeight: 600,
             borderRadius: 2.5,
             px: 3,

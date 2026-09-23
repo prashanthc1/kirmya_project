@@ -16,14 +16,14 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
       sx={{
         p: 3,
         borderRadius: 4,
-        background: 'rgba(15, 23, 42, 0.95)',
+        bgcolor: "background.paper",
         border: '1px solid rgba(59, 130, 246, 0.3)',
-        color: '#fff',
+        color: "text.primary",
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <AutoAwesome sx={{ color: '#60A5FA' }} />
+          <AutoAwesome sx={{ color: "primary.main" }} />
           <Typography variant="h6" fontWeight={700}>
             AI Multi-Metric Answer Evaluation
           </Typography>
@@ -32,7 +32,7 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
           label={`Overall Score: ${answer.overall_score}/100`}
           sx={{
             bgcolor: 'rgba(59, 130, 246, 0.2)',
-            color: '#60A5FA',
+            color: "primary.main",
             fontWeight: 800,
             fontSize: '0.95rem',
             py: 0.5,
@@ -52,8 +52,8 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
           { label: 'Confidence Rating', score: answer.confidence_score, color: '#38BDF8' },
         ].map((item, idx) => (
           <Grid item xs={6} sm={4} key={idx}>
-            <Box sx={{ p: 1.5, borderRadius: 2.5, bgcolor: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-              <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 600, display: 'block', mb: 0.5 }}>
+            <Box sx={{ p: 1.5, borderRadius: 2.5, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, display: 'block', mb: 0.5 }}>
                 {item.label}
               </Typography>
               <Typography variant="h6" fontWeight={800} sx={{ color: item.color }}>
@@ -65,8 +65,8 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
       </Grid>
 
       {/* STAR Detection Check */}
-      <Box sx={{ mb: 3, p: 2, borderRadius: 2.5, bgcolor: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <Typography variant="caption" fontWeight={700} sx={{ color: '#CBD5E1', display: 'block', mb: 1 }}>
+      <Box sx={{ mb: 3, p: 2, borderRadius: 2.5, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+        <Typography variant="caption" fontWeight={700} sx={{ color: "text.secondary", display: 'block', mb: 1 }}>
           STAR METHOD COMPONENT DETECTED
         </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
@@ -87,7 +87,7 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
                 What Went Well
               </Typography>
             </Stack>
-            <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {answer.what_went_well}
             </Typography>
           </Box>
@@ -101,7 +101,7 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
                 Areas for Improvement
               </Typography>
             </Stack>
-            <Typography variant="body2" sx={{ color: '#CBD5E1' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {answer.what_could_improve}
             </Typography>
           </Box>
@@ -110,12 +110,12 @@ export const MockFeedbackReport: React.FC<MockFeedbackReportProps> = ({ answer }
         {answer.suggested_answer && (
           <Box sx={{ p: 2, borderRadius: 2.5, bgcolor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-              <Lightbulb sx={{ color: '#60A5FA', fontSize: '1.1rem' }} />
-              <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#60A5FA' }}>
+              <Lightbulb sx={{ color: "primary.main", fontSize: '1.1rem' }} />
+              <Typography variant="subtitle2" fontWeight={700} sx={{ color: "primary.main" }}>
                 AI Suggested Benchmark Response
               </Typography>
             </Stack>
-            <Typography variant="body2" sx={{ color: '#E2E8F0', fontStyle: 'italic' }}>
+            <Typography variant="body2" sx={{ color: "text.primary", fontStyle: 'italic' }}>
               &quot;{answer.suggested_answer}&quot;
             </Typography>
           </Box>

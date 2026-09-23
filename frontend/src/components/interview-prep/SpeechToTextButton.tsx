@@ -80,7 +80,7 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({ onTransc
       startIcon={isListening ? <MicOff /> : <Mic />}
       sx={{
         background: isListening ? '#EF4444' : 'rgba(59, 130, 246, 0.2)',
-        color: isListening ? '#fff' : '#60A5FA',
+        color: isListening ? "error.contrastText" : "primary.main",
         border: isListening ? 'none' : '1px solid rgba(59, 130, 246, 0.4)',
         borderRadius: 2.5,
         fontWeight: 600,

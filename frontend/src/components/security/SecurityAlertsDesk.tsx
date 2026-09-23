@@ -136,7 +136,7 @@ export const SecurityAlertsDesk: React.FC = () => {
       case 'critical':
         return <Chip label="CRITICAL" color="error" size="small" sx={{ fontWeight: 800 }} />;
       case 'high':
-        return <Chip label="HIGH" sx={{ bgcolor: 'warning.main', color: '#000', fontWeight: 800 }} size="small" />;
+        return <Chip label="HIGH" sx={{ bgcolor: 'warning.main', color: 'text.primary', fontWeight: 800 }} size="small" />;
       case 'medium':
         return <Chip label="MEDIUM" color="info" size="small" sx={{ fontWeight: 800 }} />;
       default:
@@ -179,10 +179,9 @@ export const SecurityAlertsDesk: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: 3,
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2} sx={{ mb: 3 }}>
@@ -366,7 +365,7 @@ export const SecurityAlertsDesk: React.FC = () => {
               </Stack>
 
               {selectedAlert.is_false_positive && (
-                <Box sx={{ bgcolor: 'warning.light', opacity: 0.9, p: 2, borderRadius: '12px', color: '#000' }}>
+                <Box sx={{ bgcolor: 'warning.light', opacity: 0.9, p: 2, borderRadius: '12px', color: 'text.primary' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Marked as False Positive</Typography>
                   <Typography variant="caption">{selectedAlert.false_positive_reason || 'No reason provided'}</Typography>
                 </Box>

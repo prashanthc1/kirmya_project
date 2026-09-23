@@ -123,8 +123,8 @@ export const CommunityModerationDesk: React.FC<CommunityModerationDeskProps> = (
       sx={{
         p: 3,
         borderRadius: '20px',
-        background: (theme) =>
-          theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
+        bgcolor: (theme) =>
+          theme.palette.mode === 'light' ? "action.hover" : "background.paper",
         backdropFilter: 'blur(16px)',
         border: (theme) =>
           theme.palette.mode === 'light'

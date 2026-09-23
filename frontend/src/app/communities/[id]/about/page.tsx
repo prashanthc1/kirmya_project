@@ -124,7 +124,7 @@ export default function CommunityAboutPage({
                                 height: 20,
                                 borderRadius: '50%',
                                 bgcolor: 'primary.main',
-                                color: 'white',
+                                color: "primary.contrastText",
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',

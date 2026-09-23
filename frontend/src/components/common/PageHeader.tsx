@@ -24,7 +24,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   actions,
 }) => {
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: { xs: 3, sm: 4 }, minWidth: 0 }}>
       {breadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
@@ -35,7 +35,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             const isLast = index === breadcrumbs.length - 1;
             if (isLast || !item.href) {
               return (
-                <Typography key={index} variant="body2" color="text.primary" fontWeight={500}>
+                <Typography key={index} variant="body2" color="text.primary" fontWeight={600} aria-current={isLast ? 'page' : undefined}>
                   {item.label}
                 </Typography>
               );
@@ -48,6 +48,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 variant="body2"
                 color="text.secondary"
                 underline="hover"
+                sx={{ display: 'inline-flex', alignItems: 'center', minHeight: 44 }}
               >
                 {item.label}
               </MuiLink>
@@ -65,19 +66,19 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           gap: 2,
         }}
       >
-        <Box>
-          <Typography variant="h4" component="h1" fontWeight={700} letterSpacing="-0.02em">
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h4" component="h1" fontWeight={700} letterSpacing="-0.025em" sx={{ lineHeight: 1.15, overflowWrap: 'anywhere' }}>
             {title}
           </Typography>
           {subtitle && (
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: '65ch', lineHeight: 1.6 }}>
               {subtitle}
             </Typography>
           )}
         </Box>
 
         {actions && (
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0, maxWidth: '100%' }}>
             {actions}
           </Box>
         )}

@@ -234,7 +234,7 @@ export const FunnelBars: React.FC<{ stages: FunnelStage[] }> = ({ stages }) => {
                   height: 12,
                   borderRadius: '6px',
                   bgcolor: theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.08)'
+                    ? "action.hover"
                     : 'rgba(99, 102, 241, 0.1)',
                 }}
               >

@@ -69,8 +69,8 @@ const InsightCard: React.FC<{ insight: CompanyInsight }> = ({ insight }) => {
         border: `1px solid ${theme.palette.divider}`,
         backgroundColor:
           theme.palette.mode === 'dark'
-            ? 'rgba(255, 255, 255, 0.03)'
-            : 'rgba(255, 255, 255, 0.6)',
+            ? "action.hover"
+            : "action.hover",
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="flex-start">

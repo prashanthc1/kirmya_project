@@ -8,14 +8,13 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  useTheme,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import GlassCard from './GlassCard';
+import { useReducedMotion } from 'framer-motion';
 
 export const FAQSection: React.FC = () => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+  const reducedMotion = useReducedMotion();
 
   const [expanded, setExpanded] = useState<string | false>('panel0');
 
@@ -65,7 +64,7 @@ export const FAQSection: React.FC = () => {
           <Typography
             variant="caption"
             sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: 2,
               color: 'primary.main',
               textTransform: 'uppercase',
@@ -75,7 +74,7 @@ export const FAQSection: React.FC = () => {
           >
             FREQUENTLY ASKED QUESTIONS
           </Typography>
-          <Typography variant="h3" sx={{ fontWeight: 900, mb: 2, color: 'text.primary' }}>
+          <Typography variant="h3" sx={{ fontWeight: 700, mb: 2, color: 'text.primary' }}>
             Got Questions? We Have Answers.
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto', fontSize: '1.05rem' }}>
@@ -93,9 +92,11 @@ export const FAQSection: React.FC = () => {
                 expanded={isExp}
                 onChange={handleChange(panelId)}
                 elevation={0}
+                TransitionProps={{ timeout: reducedMotion ? 0 : undefined }}
                 sx={{
                   bgcolor: 'transparent',
-                  borderBottom: idx === faqs.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                  borderBottom: idx === faqs.length - 1 ? 'none' : '1px solid',
+                  borderColor: 'divider',
                   '&:before': { display: 'none' },
                   py: 1,
                 }}
@@ -108,7 +109,7 @@ export const FAQSection: React.FC = () => {
                   <Typography
                     variant="h6"
                     sx={{
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: { xs: '1rem', md: '1.15rem' },
                       color: isExp ? 'primary.main' : 'text.primary',
                     }}

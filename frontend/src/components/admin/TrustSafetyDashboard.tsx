@@ -28,7 +28,7 @@ export const TrustSafetyDashboard: React.FC = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-        <ShieldIcon sx={{ color: '#ef4444', fontSize: 36 }} />
+        <ShieldIcon sx={{ color: 'error.main', fontSize: 36 }} />
         <Typography variant="h4" sx={{ fontWeight: 900 }}>
           Trust &amp; Safety Control Dashboard
         </Typography>
@@ -47,9 +47,8 @@ export const TrustSafetyDashboard: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: '24px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
@@ -58,7 +57,7 @@ export const TrustSafetyDashboard: React.FC = () => {
 
             <Stack spacing={2}>
               {riskSignals.map((item) => (
-                <Paper key={item.entity} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                <Paper key={item.entity} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{item.entity}</Typography>
                     <Chip label={`${item.level} (${(item.score * 100).toFixed(0)}%)`} size="small" color="error" sx={{ fontWeight: 900 }} />
@@ -75,9 +74,8 @@ export const TrustSafetyDashboard: React.FC = () => {
             sx={{
               p: 3,
               borderRadius: '24px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>

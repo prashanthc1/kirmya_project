@@ -57,12 +57,12 @@ export const CompanyHeader: React.FC<CompanyHeaderProps> = ({
         sx={{
           height: { xs: 140, md: 240 },
           borderRadius: '24px',
-          background: company.coverUrl
+          bgcolor: company.coverUrl
             ? `url(${company.coverUrl}) center/cover no-repeat`
-            : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 45%, #ec4899 100%)',
+            : "primary.main",
           boxShadow: isDark
             ? '0 10px 30px rgba(0, 0, 0, 0.45)'
-            : '0 10px 30px rgba(99, 102, 241, 0.15)',
+            : "none",
         }}
       />
 

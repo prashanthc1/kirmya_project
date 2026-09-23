@@ -55,9 +55,9 @@ export const ApplicationPipeline: React.FC<ApplicationPipelineProps> = ({
               width: 320,
               p: 2,
               borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.02)',
+              bgcolor: "action.hover",
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               display: 'flex',
               flexDirection: 'column',
             }}
@@ -97,7 +97,7 @@ export const ApplicationPipeline: React.FC<ApplicationPipelineProps> = ({
                   sx={{
                     p: 4,
                     textAlign: 'center',
-                    border: '1px dashed rgba(255, 255, 255, 0.1)',
+                    border: (theme) => `1px dashed ${theme.palette.divider}`,
                     borderRadius: 2,
                   }}
                 >

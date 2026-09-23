@@ -92,10 +92,9 @@ export const CandidateProfile: React.FC<Props> = ({ candidateId }) => {
       <Card
         sx={{
           borderRadius: '24px',
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
+          border: 1, borderColor: 'divider',
+          boxShadow: 0,
           p: 3,
           mb: 3,
         }}
@@ -145,7 +144,7 @@ export const CandidateProfile: React.FC<Props> = ({ candidateId }) => {
                 borderRadius: '12px',
                 fontWeight: 800,
                 px: 3,
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                bgcolor: 'primary.main',
               }}
             >
               Message Candidate

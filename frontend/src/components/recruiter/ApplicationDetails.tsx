@@ -93,9 +93,8 @@ export const ApplicationDetails: React.FC<Props> = ({ applicationId }) => {
           borderRadius: '24px',
           p: 3,
           mb: 3,
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
+          border: 1, borderColor: 'divider',
         }}
       >
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2}>

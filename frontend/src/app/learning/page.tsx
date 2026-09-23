@@ -132,15 +132,15 @@ export default function LearningPage() {
 
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Header & Actions */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ color: '#f8fafc', background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary',    }}>
               Kirmya Learning Hub
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Empowering job-seekers to upskill, master career tracks, and earn verified industry credentials.
             </Typography>
           </Box>
@@ -149,7 +149,7 @@ export default function LearningPage() {
             variant="contained"
             onClick={() => setAssessmentModalOpen(true)}
             startIcon={<AutoAwesomeIcon />}
-            sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', px: 3, py: 1, '&:hover': { bgcolor: '#0284c7' } }}
+            sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', px: 3, py: 1, '&:hover': { bgcolor: 'primary.main' } }}
           >
             Take Skill Assessment
           </Button>
@@ -158,13 +158,13 @@ export default function LearningPage() {
         {/* Top Metric Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Courses Enrolled</Typography>
-                  <SchoolIcon sx={{ color: '#38bdf8' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Courses Enrolled</Typography>
+                  <SchoolIcon sx={{ color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#f8fafc', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', mt: 1 }}>
                   {userProgress.length || 1}
                 </Typography>
               </CardContent>
@@ -172,13 +172,13 @@ export default function LearningPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Learning Paths</Typography>
-                  <RouteIcon sx={{ color: '#a855f7' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Learning Paths</Typography>
+                  <RouteIcon sx={{ color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#a855f7', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'primary.main', mt: 1 }}>
                   {paths.length}
                 </Typography>
               </CardContent>
@@ -186,13 +186,13 @@ export default function LearningPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Skill Assessment Score</Typography>
-                  <PsychologyIcon sx={{ color: '#10b981' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Skill Assessment Score</Typography>
+                  <PsychologyIcon sx={{ color: 'success.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#10b981', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'success.main', mt: 1 }}>
                   85%
                 </Typography>
               </CardContent>
@@ -200,13 +200,13 @@ export default function LearningPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+            <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>Earned Credentials</Typography>
-                  <WorkspacePremiumIcon sx={{ color: '#f59e0b' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Earned Credentials</Typography>
+                  <WorkspacePremiumIcon sx={{ color: 'warning.main' }} />
                 </Box>
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#f59e0b', mt: 1 }}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: 'warning.main', mt: 1 }}>
                   {certificates.length}
                 </Typography>
               </CardContent>
@@ -215,16 +215,16 @@ export default function LearningPage() {
         </Grid>
 
         {/* Tab Navigation */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 1.5 }}>
+        <Paper sx={{ mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
           <Tabs
             value={activeTab}
             onChange={(_, val) => setActiveTab(val)}
             textColor="inherit"
             indicatorColor="primary"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#38bdf8' },
+              '& .MuiTabs-indicator': { bgcolor: 'primary.main' },
+              '& .MuiTab-root': { color: 'text.secondary', fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: 'primary.main' },
             }}
           >
             <Tab icon={<SchoolIcon fontSize="small" />} iconPosition="start" label="Recommended Courses" />

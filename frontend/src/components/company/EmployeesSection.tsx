@@ -33,7 +33,7 @@ export const EmployeesSection: React.FC<EmployeesSectionProps> = ({ employees })
   return (
     <GlassCard sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-        <PeopleIcon sx={{ color: '#6366f1', fontSize: 28 }} />
+        <PeopleIcon sx={{ color: "primary.main", fontSize: 28 }} />
         <Typography variant="h5" sx={{ fontWeight: 900 }}>
           Recruiters &amp; Team Members ({employees.length})
         </Typography>
@@ -49,8 +49,8 @@ export const EmployeesSection: React.FC<EmployeesSectionProps> = ({ employees })
                 sx={{
                   p: 2.5,
                   borderRadius: '16px',
-                  bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',

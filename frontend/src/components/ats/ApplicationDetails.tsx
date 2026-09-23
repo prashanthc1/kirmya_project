@@ -137,7 +137,7 @@ export const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({ applicat
             <Button variant="outlined" startIcon={<EventIcon />} onClick={() => setOpenScheduleModal(true)} sx={{ borderRadius: '10px', fontWeight: 700 }}>
               Schedule Interview
             </Button>
-            <Button variant="contained" startIcon={<LocalOfferIcon />} onClick={() => setOpenOfferModal(true)} sx={{ borderRadius: '10px', fontWeight: 800, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+            <Button variant="contained" startIcon={<LocalOfferIcon />} onClick={() => setOpenOfferModal(true)} sx={{ borderRadius: '10px', fontWeight: 800, bgcolor: "primary.main" }}>
               Issue Job Offer
             </Button>
           </Stack>
@@ -180,8 +180,8 @@ export const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({ applicat
             {aiEval && (
               <GlassCard sx={{ p: 3, mb: 3, border: '1px solid rgba(168, 85, 247, 0.4)' }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                  <AutoAwesomeIcon sx={{ color: '#a855f7' }} />
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#a855f7' }}>
+                  <AutoAwesomeIcon sx={{ color: "primary.main" }} />
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: "primary.main" }}>
                     AI Hiring Evaluation
                   </Typography>
                 </Stack>

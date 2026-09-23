@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { forwardRef, useLayoutEffect, useRef, useState } from 'react';
 import {
   Drawer,
   Box,
@@ -19,6 +19,10 @@ import {
   useTheme,
   Button,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import useForkRef from '@mui/utils/useForkRef';
+import type { TransitionProps } from '@mui/material/transitions';
+import { animate, motion, useMotionValue, useReducedMotion } from 'framer-motion';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
@@ -44,12 +48,69 @@ import { activeWorkspace } from '../../shared/workspace/active';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import { ROUTES } from '../../shared/routes';
 import { PRIMARY_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '../../shared/navigation';
+import { isItemActive } from '../../shared/navigation/matchRoute';
 import { tokens } from '../../theme/tokens';
 
 export interface MobileDrawerProps {
   open: boolean;
   onClose: () => void;
 }
+
+// Keep MUI's modal semantics while retargeting the live presentation value.
+// There is deliberately no swipe recognizer: this drawer is button-operated.
+const DrawerTransition = forwardRef<HTMLDivElement, TransitionProps & { children: React.ReactElement }>(
+  function DrawerTransition({ in: visible, children, onEnter, onExited, onFocus, tabIndex }, forwardedRef) {
+    const node = useRef<HTMLDivElement>(null);
+    const ref = useForkRef(node, forwardedRef);
+    const x = useMotionValue(0);
+    const opacity = useMotionValue(0);
+    const reducedMotion = useReducedMotion();
+    const initialized = useRef(false);
+
+    useLayoutEffect(() => {
+      callbacks.current = { onEnter, onExited };
+      const element = node.current;
+      if (!element) return;
+      const width = element.getBoundingClientRect().width;
+      if (!initialized.current) {
+        x.set(-width);
+        initialized.current = true;
+      }
+      if (visible) callbacks.current.onEnter?.(element, false);
+
+      const finish = () => {
+        if (!visible) callbacks.current.onExited?.(element);
+      };
+      if (reducedMotion) {
+        x.set(0);
+        const fade = animate(opacity, visible ? 1 : 0, { duration: 0.12, onComplete: finish });
+        return () => fade.stop();
+      }
+
+      opacity.set(1);
+      const spring = animate(x, visible ? 0 : -width, {
+        type: 'spring',
+        stiffness: 500,
+        damping: 2 * Math.sqrt(500),
+        mass: 1,
+        velocity: x.getVelocity(),
+        onComplete: finish,
+      });
+      return () => spring.stop();
+    }, [visible, reducedMotion, x, opacity, onEnter, onExited]);
+
+    return (
+      <motion.div
+        ref={ref}
+        style={{ x, opacity, position: 'fixed', inset: '0 auto 0 0', width: 'min(85vw, 20rem)', outline: 'none' }}
+        tabIndex={tabIndex ?? -1}
+        onFocus={onFocus}
+      >
+        {children}
+      </motion.div>
+    );
+  },
+);
 
 /**
  * Mobile Slide-Out Navigation Drawer (Prompt 14/50)
@@ -126,24 +187,42 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
       anchor="left"
       open={open}
       onClose={onClose}
-      ModalProps={{ keepMounted: true }}
+      slots={{ transition: DrawerTransition }}
+      ModalProps={{ keepMounted: true, closeAfterTransition: true }}
       PaperProps={{
+        role: 'dialog',
+        'aria-modal': true,
+        'aria-label': 'Navigation menu',
         sx: {
-          width: '85%',
-          maxWidth: 320,
+          position: 'absolute',
+          width: '100%',
           boxSizing: 'border-box',
-          bgcolor: isDark ? '#0f172a' : '#ffffff',
+          bgcolor: alpha(theme.palette.background.paper, isDark ? 0.94 : 0.92),
+          backdropFilter: 'blur(28px) saturate(150%)',
+          borderRight: `1px solid ${theme.palette.divider}`,
           p: 2,
+          pt: 'max(1rem, env(safe-area-inset-top))',
+          pb: 'max(1rem, env(safe-area-inset-bottom))',
+          '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)': {
+            bgcolor: 'background.paper',
+            backdropFilter: 'none',
+          },
+          '@media (prefers-contrast: more)': { borderColor: 'text.primary' },
+          '& .MuiButtonBase-root': {
+            minHeight: 44,
+            '&:active': { bgcolor: 'action.selected', transition: 'none' },
+            '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: -2 },
+          },
         },
       }}
     >
-      <Stack spacing={2} sx={{ height: '100%' }}>
+      <Stack spacing={2} sx={{ minHeight: '100%', flexShrink: 0 }}>
         {/* Header: Brand & Close */}
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Link href={authenticated ? ROUTES.FEED : ROUTES.HOME} onClick={onClose} style={{ textDecoration: 'none', color: 'inherit' }}>
             <BrandLockup size={32} variant="h6" />
           </Link>
-          <IconButton onClick={onClose} aria-label="Close navigation menu">
+          <IconButton onClick={onClose} aria-label="Close navigation menu" sx={{ minWidth: 44 }}>
             <CloseIcon />
           </IconButton>
         </Stack>
@@ -155,11 +234,13 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
           sx={{
             display: 'flex',
             alignItems: 'center',
-            bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.04)',
-            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)'}`,
+            bgcolor: 'background.default',
+            border: `1px solid ${theme.palette.divider}`,
             borderRadius: `${tokens.radius.pill}px`,
             px: 1.5,
             py: 0.5,
+            minHeight: 44,
+            '&:focus-within': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
           }}
         >
           <SearchIcon sx={{ color: 'text.secondary', fontSize: 20, mr: 1 }} />
@@ -209,22 +290,19 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
         )}
 
         {/* Navigation List */}
-        <List sx={{ flex: 1, py: 0 }}>
+        <List component="nav" aria-label="Primary navigation" sx={{ flex: 1, py: 0 }}>
           {navItems.map((item) => {
-            const isActive = Boolean(pathname && (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))));
+            const isActive = Boolean(pathname && isItemActive(pathname, item));
             return (
               <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton
                   component={Link}
                   href={item.href}
                   onClick={onClose}
+                  aria-current={isActive ? 'page' : undefined}
                   sx={{
                     borderRadius: `${tokens.radius.md}px`,
-                    bgcolor: isActive
-                      ? isDark
-                        ? 'rgba(129, 140, 248, 0.12)'
-                        : 'rgba(99, 102, 241, 0.08)'
-                      : 'transparent',
+                    bgcolor: isActive ? 'action.selected' : 'transparent',
                     color: isActive ? theme.palette.primary.main : 'text.primary',
                   }}
                 >

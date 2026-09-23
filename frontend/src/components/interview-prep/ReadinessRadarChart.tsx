@@ -23,10 +23,10 @@ export const ReadinessRadarChart: React.FC<ReadinessRadarChartProps> = ({ score 
       sx={{
         p: 3,
         borderRadius: 4,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
       }}
     >
       <Typography variant="h6" fontWeight={700} sx={{ mb: 2.5 }}>
@@ -37,7 +37,7 @@ export const ReadinessRadarChart: React.FC<ReadinessRadarChartProps> = ({ score 
         {metrics.map((m, idx) => (
           <Box key={idx}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.8 }}>
-              <Typography variant="body2" fontWeight={600} sx={{ color: '#F8FAFC' }}>
+              <Typography variant="body2" fontWeight={600} sx={{ color: "text.primary" }}>
                 {m.label}
               </Typography>
               <Typography variant="body2" fontWeight={700} sx={{ color: m.color }}>
@@ -50,7 +50,7 @@ export const ReadinessRadarChart: React.FC<ReadinessRadarChartProps> = ({ score 
               sx={{
                 height: 10,
                 borderRadius: 5,
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                bgcolor: "action.hover",
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 5,
                   bgcolor: m.color,

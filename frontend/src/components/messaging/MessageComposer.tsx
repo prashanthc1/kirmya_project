@@ -173,7 +173,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
             '& .MuiOutlinedInput-root': {
               borderRadius: `${tokens.radius.md}px`,
               bgcolor: (theme) =>
-                theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                theme.palette.mode === 'dark' ? "action.hover" : 'rgba(0,0,0,0.02)',
             },
           }}
         />
@@ -188,7 +188,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
               aria-label="Send message"
               sx={{
                 bgcolor: 'primary.main',
-                color: 'white',
+                color: "primary.contrastText",
                 mb: 0.5,
                 '&:hover': { bgcolor: 'primary.dark' },
                 '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },

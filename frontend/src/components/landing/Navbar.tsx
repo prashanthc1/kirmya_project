@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { surfaceTransition } from '../../theme/motion';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useReducedMotion } from 'framer-motion';
 import {
   Box,
   Container,
@@ -17,6 +18,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  alpha,
   useTheme,
 } from '@mui/material';
 import BrandLockup from '../brand/BrandLockup';
@@ -38,9 +40,8 @@ const navLinks = [
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
-  const pathname = usePathname();
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+  const reducedMotion = useReducedMotion();
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -66,7 +67,7 @@ export const Navbar: React.FC = () => {
     if (href.startsWith('#')) {
       const target = document.querySelector(href);
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
+        target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
       }
     } else {
       router.push(href);
@@ -82,15 +83,15 @@ export const Navbar: React.FC = () => {
         zIndex: 1200,
         width: '100%',
         backdropFilter: 'blur(16px)',
-        bgcolor: scrolled
-          ? isDark
-            ? 'rgba(9, 13, 22, 0.85)'
-            : 'rgba(255, 255, 255, 0.9)'
-          : 'transparent',
-        borderBottom: scrolled
-          ? `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(99, 102, 241, 0.12)'}`
-          : '1px solid transparent',
-        transition: surfaceTransition(0.3),
+        bgcolor: alpha(theme.palette.background.paper, 0.92),
+        borderBottom: '1px solid',
+        borderColor: scrolled ? 'divider' : 'transparent',
+        transition: reducedMotion ? 'none' : surfaceTransition(0.2),
+        '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)': {
+          bgcolor: 'background.paper',
+          backdropFilter: 'none',
+          borderColor: 'text.secondary',
+        },
         py: 1.5,
       }}
     >
@@ -116,13 +117,7 @@ export const Navbar: React.FC = () => {
                   key={link.label}
                   onClick={() => handleNavClick(link.label, link.href)}
                   sx={{
-                    color: isActive
-                      ? isDark
-                        ? '#818cf8'
-                        : '#4f46e5'
-                      : isDark
-                      ? '#94a3b8'
-                      : '#475569',
+                    color: isActive ? 'primary.main' : 'text.secondary',
                     fontWeight: isActive ? 700 : 500,
                     textTransform: 'none',
                     fontSize: '0.95rem',
@@ -131,8 +126,8 @@ export const Navbar: React.FC = () => {
                     borderRadius: '10px',
                     position: 'relative',
                     '&:hover': {
-                      color: isDark ? '#ffffff' : '#0f172a',
-                      bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(99, 102, 241, 0.06)',
+                      color: 'text.primary',
+                      bgcolor: 'action.hover',
                     },
                   }}
                 >
@@ -200,7 +195,7 @@ export const Navbar: React.FC = () => {
               sx={{
                 display: { xs: 'none', sm: 'inline-flex' },
                 fontWeight: 700,
-                color: isDark ? '#f8fafc' : '#1e293b',
+                color: 'text.primary',
                 textTransform: 'none',
               }}
             >
@@ -216,11 +211,6 @@ export const Navbar: React.FC = () => {
                 px: 2.5,
                 py: 1,
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-                },
               }}
             >
               Sign Up
@@ -246,16 +236,16 @@ export const Navbar: React.FC = () => {
         PaperProps={{
           sx: {
             width: 280,
-            bgcolor: isDark ? '#090d16' : '#ffffff',
+            bgcolor: 'background.paper',
             p: 3,
           },
         }}
       >
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 900 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Navigation
           </Typography>
-          <IconButton onClick={() => setMobileOpen(false)}>
+          <IconButton aria-label="Close navigation" onClick={() => setMobileOpen(false)}>
             <CloseIcon />
           </IconButton>
         </Stack>

@@ -191,10 +191,9 @@ export const UserSafetyCenter: React.FC = () => {
           p: 4,
           mb: 4,
           borderRadius: '28px',
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+          bgcolor: 'background.paper',
+          border: 1, borderColor: 'divider',
+          boxShadow: 0,
         }}
       >
         <Grid container spacing={3} alignItems="center">
@@ -318,7 +317,7 @@ export const UserSafetyCenter: React.FC = () => {
 
       {/* Tab 1: Active Restrictions */}
       {activeTab === 1 && (
-        <Card sx={{ borderRadius: '24px', p: 3, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)' }}>
+        <Card sx={{ borderRadius: '24px', p: 3, bgcolor: 'background.paper',  }}>
           <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>
             Account Status & Active Restrictions
           </Typography>
@@ -367,7 +366,7 @@ export const UserSafetyCenter: React.FC = () => {
         <Grid container spacing={3}>
           {/* Block List */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ borderRadius: '24px', p: 3, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)' }}>
+            <Card sx={{ borderRadius: '24px', p: 3, bgcolor: 'background.paper',  }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 900, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <BlockIcon color="error" /> Blocked Accounts ({blocks.length})
@@ -378,7 +377,7 @@ export const UserSafetyCenter: React.FC = () => {
               </Stack>
               <Stack spacing={1.5}>
                 {blocks.map((blk) => (
-                  <Paper key={blk.id} elevation={0} sx={{ p: 2, borderRadius: '12px', background: 'rgba(0,0,0,0.03)' }}>
+                  <Paper key={blk.id} elevation={0} sx={{ p: 2, borderRadius: '12px', bgcolor: 'background.paper' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
@@ -400,13 +399,13 @@ export const UserSafetyCenter: React.FC = () => {
 
           {/* Mute List */}
           <Grid item xs={12} md={6}>
-            <Card sx={{ borderRadius: '24px', p: 3, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)' }}>
+            <Card sx={{ borderRadius: '24px', p: 3, bgcolor: 'background.paper',  }}>
               <Typography variant="h6" sx={{ fontWeight: 900, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <VolumeOffIcon color="action" /> Muted Feeds & Users ({mutes.length})
               </Typography>
               <Stack spacing={1.5}>
                 {mutes.map((mut) => (
-                  <Paper key={mut.id} elevation={0} sx={{ p: 2, borderRadius: '12px', background: 'rgba(0,0,0,0.03)' }}>
+                  <Paper key={mut.id} elevation={0} sx={{ p: 2, borderRadius: '12px', bgcolor: 'background.paper' }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Box>
                         <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
@@ -430,7 +429,7 @@ export const UserSafetyCenter: React.FC = () => {
 
       {/* Tab 3: Report History */}
       {activeTab === 3 && (
-        <Card sx={{ borderRadius: '24px', p: 3, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)' }}>
+        <Card sx={{ borderRadius: '24px', p: 3, bgcolor: 'background.paper',  }}>
           <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>
             My Submitted Confidential Reports
           </Typography>

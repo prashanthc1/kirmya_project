@@ -25,31 +25,31 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onCreateResume }) 
       id: 'profile',
       title: 'Import From Kirmya Profile',
       desc: 'Auto-populate personal info, experience, education, skills, and certifications from your profile.',
-      icon: <AccountCircleIcon sx={{ fontSize: 40, color: '#0066FF' }} />,
+      icon: <AccountCircleIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
     },
     {
       id: 'blank',
       title: 'Start Blank Resume',
       desc: 'Build a custom resume section by section from scratch with ATS-friendly templates.',
-      icon: <NoteAddIcon sx={{ fontSize: 40, color: '#00CC66' }} />,
+      icon: <NoteAddIcon sx={{ fontSize: 40, color: 'success.main' }} />,
     },
     {
       id: 'import',
       title: 'Import Existing PDF / DOCX',
       desc: 'Upload a PDF or Word document to parse and extract resume sections automatically.',
-      icon: <CloudUploadIcon sx={{ fontSize: 40, color: '#9933FF' }} />,
+      icon: <CloudUploadIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
     },
     {
       id: 'job',
       title: 'Job-Specific Tailored Resume',
       desc: 'Target a specific job description for maximum ATS score and keyword matching.',
-      icon: <WorkIcon sx={{ fontSize: 40, color: '#FF9900' }} />,
+      icon: <WorkIcon sx={{ fontSize: 40, color: 'warning.main' }} />,
     },
     {
       id: 'ai',
       title: 'AI-Assisted Resume Generator',
       desc: 'Let Kirmya AI draft your bullet points, summary, and achievements based on your target role.',
-      icon: <AutoAwesomeIcon sx={{ fontSize: 40, color: '#FF3366' }} />,
+      icon: <AutoAwesomeIcon sx={{ fontSize: 40, color: 'error.main' }} />,
     },
   ];
 
@@ -97,13 +97,11 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onCreateResume }) 
                     p: 3,
                     borderRadius: 3,
                     cursor: 'pointer',
-                    background: isSelected ? 'rgba(0, 102, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                    bgcolor: isSelected ? 'rgba(0, 102, 255, 0.08)' : "action.hover",
                     border: isSelected ? '2px solid #0066FF' : '1px solid rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(16px)',
                     transition: surfaceTransition(0.2),
                     '&:hover': {
                       borderColor: 'primary.main',
-                      transform: 'translateY(-2px)',
                     },
                   }}
                 >

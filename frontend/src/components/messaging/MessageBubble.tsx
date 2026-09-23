@@ -123,7 +123,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   sx={{
                     borderRadius: `${tokens.radius.sm}px`,
                     maxWidth: '100%',
-                    bgcolor: isOutgoing ? 'rgba(255,255,255,0.2)' : 'action.hover',
+                    bgcolor: isOutgoing ? "action.hover" : 'action.hover',
                     color: 'inherit',
                   }}
                 />

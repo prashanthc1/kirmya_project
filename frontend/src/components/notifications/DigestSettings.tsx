@@ -33,9 +33,9 @@ export const DigestSettings: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: { xs: 3, md: 4 },
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
@@ -90,7 +90,7 @@ export const DigestSettings: React.FC = () => {
           borderRadius: '12px',
           fontWeight: 800,
           px: 4,
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          bgcolor: "primary.main",
         }}
       >
         Save Digest Settings

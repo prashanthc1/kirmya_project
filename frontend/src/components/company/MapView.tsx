@@ -46,8 +46,8 @@ export const MapView: React.FC = () => {
         sx={{
           height: 380,
           borderRadius: '20px',
-          bgcolor: isDark ? '#0f172a' : '#f1f5f9',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          bgcolor: isDark ? "background.default" : '#f1f5f9',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           position: 'relative',
           overflow: 'hidden',
           display: 'flex',
@@ -58,9 +58,9 @@ export const MapView: React.FC = () => {
         <Box
           sx={{
             flexGrow: 1,
-            background: isDark
-              ? 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)'
-              : 'radial-gradient(circle at 50% 50%, #e2e8f0 0%, #cbd5e1 100%)',
+            bgcolor: isDark
+              ? "primary.main"
+              : "primary.main",
             position: 'relative',
             p: 3,
             display: 'flex',
@@ -84,7 +84,7 @@ export const MapView: React.FC = () => {
                   transform: isSel ? 'scale(1.15)' : 'scale(1)',
                 }}
               >
-                <LocationOnIcon sx={{ color: isSel ? '#ec4899' : '#6366f1', fontSize: isSel ? 44 : 32 }} />
+                <LocationOnIcon sx={{ color: isSel ? '#ec4899' : "primary.main", fontSize: isSel ? 44 : 32 }} />
                 <Chip
                   label={loc.city}
                   size="small"
@@ -101,7 +101,7 @@ export const MapView: React.FC = () => {
           sx={{
             width: { xs: '100%', md: 320 },
             p: 3,
-            bgcolor: isDark ? 'rgba(30, 41, 59, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            bgcolor: isDark ? "background.paper" : "action.hover",
             borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             flexDirection: 'column',

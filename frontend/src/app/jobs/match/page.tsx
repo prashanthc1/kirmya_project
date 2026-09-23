@@ -75,19 +75,19 @@ export default function AIJobMatchPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: '100dvh', color: "text.primary", py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#38bdf8', p: 1.5, borderRadius: 2, color: '#0f172a', display: 'flex' }}>
+            <Box sx={{ bgcolor: "primary.main", p: 1.5, borderRadius: 2, color: "primary.contrastText", display: 'flex' }}>
               <AutoAwesomeIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
                 Kirmya AI Job Matching Engine
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 Multi-dimensional match scoring across 8 factors with ML feedback loops & upskilling recommendations
               </Typography>
             </Box>
@@ -100,13 +100,13 @@ export default function AIJobMatchPage() {
           </Alert>
         )}
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: "background.paper", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />}
 
         <Grid container spacing={3}>
           {/* Matches Sidebar */}
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#f8fafc' }}>
+            <Paper sx={{ p: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5 }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "text.primary" }}>
                 Top Matched Positions ({matches.length})
               </Typography>
 
@@ -116,12 +116,12 @@ export default function AIJobMatchPage() {
                     key={m.id}
                     onClick={() => setSelectedMatch(m)}
                     sx={{
-                      bgcolor: selectedMatch?.id === m.id ? '#0f172a' : '#1e293b',
+                      bgcolor: selectedMatch?.id === m.id ? "background.default" : "background.paper",
                       border: `1px solid ${selectedMatch?.id === m.id ? '#38bdf8' : '#334155'}`,
                       borderRadius: 2,
                       cursor: 'pointer',
                       transition: surfaceTransition(0.2),
-                      '&:hover': { borderColor: '#38bdf8' },
+                      '&:hover': { borderColor: "primary.main" },
                     }}
                   >
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -129,18 +129,18 @@ export default function AIJobMatchPage() {
                         <Chip
                           label={`${m.overall_score}% MATCH`}
                           size="small"
-                          sx={{ bgcolor: getScoreColor(m.overall_score), color: '#0f172a', fontWeight: 'bold' }}
+                          sx={{ bgcolor: getScoreColor(m.overall_score), color: "text.primary", fontWeight: 'bold' }}
                         />
-                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
                           {m.match_tier.replace('_', ' ').toUpperCase()}
                         </Typography>
                       </Box>
 
-                      <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                      <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "text.primary" }}>
                         {m.job_title}
                       </Typography>
 
-                      <Typography variant="body2" sx={{ color: '#38bdf8', fontWeight: 'bold' }}>
+                      <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 'bold' }}>
                         {m.company_name}
                       </Typography>
                     </CardContent>
@@ -153,14 +153,14 @@ export default function AIJobMatchPage() {
           {/* Selected Match Details Studio */}
           {selectedMatch && (
             <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 4, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+              <Paper sx={{ p: 4, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5 }}>
                 {/* Top Section: Score Gauge & Job Header */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
                   <Box>
-                    <Typography variant="h5" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                    <Typography variant="h5" fontWeight="bold" sx={{ color: "text.primary" }}>
                       {selectedMatch.job_title}
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ color: '#38bdf8', fontWeight: 'bold' }}>
+                    <Typography variant="subtitle1" sx={{ color: "primary.main", fontWeight: 'bold' }}>
                       {selectedMatch.company_name}
                     </Typography>
                   </Box>
@@ -175,39 +175,39 @@ export default function AIJobMatchPage() {
                       sx={{ color: getScoreColor(selectedMatch.overall_score) }}
                     />
                     <Box sx={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', lineHeight: 1 }}>
+                      <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", lineHeight: 1 }}>
                         {selectedMatch.overall_score}%
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: 10 }}>
+                      <Typography variant="caption" sx={{ color: "text.secondary", fontSize: 10 }}>
                         MATCH
                       </Typography>
                     </Box>
                   </Box>
                 </Box>
 
-                <Divider sx={{ mb: 3, borderColor: '#334155' }} />
+                <Divider sx={{ mb: 3, borderColor: "divider" }} />
 
                 {/* Natural Language Match Explanation */}
-                <Card sx={{ bgcolor: '#0f172a', border: '1px solid #334155', borderRadius: 2, mb: 3 }}>
+                <Card sx={{ bgcolor: "background.default", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2, mb: 3 }}>
                   <CardContent sx={{ p: 2.5 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#38bdf8', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle2" fontWeight="bold" sx={{ color: "primary.main", mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                       <AutoAwesomeIcon fontSize="small" /> Why You Match This Role
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#f8fafc' }}>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
                       {selectedMatch.explanation}
                     </Typography>
                   </CardContent>
                 </Card>
 
                 {/* Skill Comparison Component */}
-                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#f8fafc' }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "text.primary" }}>
                   Skill & Requirement Breakdown
                 </Typography>
 
                 <Grid container spacing={2} sx={{ mb: 3 }}>
                   {/* Matched Skills */}
                   <Grid item xs={12} sm={6}>
-                    <Paper sx={{ p: 2.5, bgcolor: '#0f172a', border: '1px solid #10b981', borderRadius: 2 }}>
+                    <Paper sx={{ p: 2.5, bgcolor: "background.default", border: '1px solid #10b981', borderRadius: 2 }}>
                       <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#10b981', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CheckCircleIcon fontSize="small" /> Matched Skills ({selectedMatch.matched_skills.length})
                       </Typography>
@@ -221,7 +221,7 @@ export default function AIJobMatchPage() {
 
                   {/* Missing Skills */}
                   <Grid item xs={12} sm={6}>
-                    <Paper sx={{ p: 2.5, bgcolor: '#0f172a', border: '1px solid #f43f5e', borderRadius: 2 }}>
+                    <Paper sx={{ p: 2.5, bgcolor: "background.default", border: '1px solid #f43f5e', borderRadius: 2 }}>
                       <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f43f5e', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CancelIcon fontSize="small" /> Skill Requirements Needed ({selectedMatch.missing_skills.length})
                       </Typography>
@@ -237,24 +237,24 @@ export default function AIJobMatchPage() {
                 {/* Multi-Factor Sub-Score Progress Bars */}
                 {selectedMatch.breakdown && (
                   <Box sx={{ mb: 4 }}>
-                    <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#f8fafc' }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "text.primary" }}>
                       8-Factor Score Breakdown
                     </Typography>
 
                     <Grid container spacing={2}>
                       <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>Skills Match ({selectedMatch.breakdown.skills_score}%)</Typography>
-                        <LinearProgress variant="determinate" value={selectedMatch.breakdown.skills_score} sx={{ mt: 0.5, height: 6, borderRadius: 3, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Skills Match ({selectedMatch.breakdown.skills_score}%)</Typography>
+                        <LinearProgress variant="determinate" value={selectedMatch.breakdown.skills_score} sx={{ mt: 0.5, height: 6, borderRadius: 3, bgcolor: "background.default", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />
                       </Grid>
 
                       <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>Experience Seniority ({selectedMatch.breakdown.experience_score}%)</Typography>
-                        <LinearProgress variant="determinate" value={selectedMatch.breakdown.experience_score} sx={{ mt: 0.5, height: 6, borderRadius: 3, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Experience Seniority ({selectedMatch.breakdown.experience_score}%)</Typography>
+                        <LinearProgress variant="determinate" value={selectedMatch.breakdown.experience_score} sx={{ mt: 0.5, height: 6, borderRadius: 3, bgcolor: "background.default", '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />
                       </Grid>
 
                       <Grid item xs={6} sm={4}>
-                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>Career Goals ({selectedMatch.breakdown.goals_score}%)</Typography>
-                        <LinearProgress variant="determinate" value={selectedMatch.breakdown.goals_score} sx={{ mt: 0.5, height: 6, borderRadius: 3, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: '#a855f7' } }} />
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Career Goals ({selectedMatch.breakdown.goals_score}%)</Typography>
+                        <LinearProgress variant="determinate" value={selectedMatch.breakdown.goals_score} sx={{ mt: 0.5, height: 6, borderRadius: 3, bgcolor: "background.default", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />
                       </Grid>
                     </Grid>
                   </Box>
@@ -263,19 +263,19 @@ export default function AIJobMatchPage() {
                 {/* Recommended Upskilling Actions */}
                 {selectedMatch.recommended_actions?.length > 0 && (
                   <Box sx={{ mb: 4 }}>
-                    <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <SchoolIcon sx={{ color: '#a855f7' }} /> Recommended Actions to Reach 98%+ Match
+                    <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, color: "text.primary", display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <SchoolIcon sx={{ color: "primary.main" }} /> Recommended Actions to Reach 98%+ Match
                     </Typography>
 
                     <Grid container spacing={2}>
                       {selectedMatch.recommended_actions.map((act, idx) => (
                         <Grid item xs={12} sm={6} key={idx}>
-                          <Card sx={{ bgcolor: '#0f172a', border: '1px solid #334155', borderRadius: 2 }}>
+                          <Card sx={{ bgcolor: "background.default", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
                             <CardContent sx={{ p: 2 }}>
-                              <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#38bdf8', mb: 0.5 }}>
+                              <Typography variant="subtitle2" fontWeight="bold" sx={{ color: "primary.main", mb: 0.5 }}>
                                 {act.title}
                               </Typography>
-                              <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 1.5 }}>
+                              <Typography variant="caption" sx={{ color: "text.secondary", display: 'block', mb: 1.5 }}>
                                 {act.description}
                               </Typography>
                               <Button
@@ -283,7 +283,7 @@ export default function AIJobMatchPage() {
                                 size="small"
                                 href={act.action_url}
                                 endIcon={<OpenInNewIcon fontSize="small" />}
-                                sx={{ color: '#38bdf8', borderColor: '#38bdf8', py: 0.2 }}
+                                sx={{ color: "primary.main", borderColor: "primary.main", py: 0.2 }}
                               >
                                 Enroll Course
                               </Button>
@@ -297,19 +297,19 @@ export default function AIJobMatchPage() {
 
                 {/* ML Feedback Actions */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 2, borderTop: '1px solid #334155' }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
                     Is this match recommendation relevant to your career goals?
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Tooltip title="Match Relevant">
-                      <IconButton onClick={() => handleFeedback(selectedMatch.id, 'relevant')} sx={{ bgcolor: '#0f172a', color: '#10b981', border: '1px solid #10b981' }}>
+                      <IconButton onClick={() => handleFeedback(selectedMatch.id, 'relevant')} sx={{ bgcolor: "background.default", color: '#10b981', border: '1px solid #10b981' }}>
                         <ThumbUpIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
 
                     <Tooltip title="Match Not Relevant">
-                      <IconButton onClick={() => handleFeedback(selectedMatch.id, 'not_relevant')} sx={{ bgcolor: '#0f172a', color: '#f43f5e', border: '1px solid #f43f5e' }}>
+                      <IconButton onClick={() => handleFeedback(selectedMatch.id, 'not_relevant')} sx={{ bgcolor: "background.default", color: '#f43f5e', border: '1px solid #f43f5e' }}>
                         <ThumbDownIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -317,7 +317,7 @@ export default function AIJobMatchPage() {
                     <Button
                       variant="contained"
                       onClick={() => handleFeedback(selectedMatch.id, 'applied')}
-                      sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', ml: 1 }}
+                      sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', ml: 1 }}
                     >
                       1-Click Apply
                     </Button>

@@ -201,7 +201,7 @@ export const MentorshipFeedbackModal: React.FC<MentorshipFeedbackModalProps> = (
             sx={{
               borderRadius: '12px',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              bgcolor: "primary.main",
               px: 3,
             }}
           >

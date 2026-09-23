@@ -122,9 +122,9 @@ export const CommunitiesStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
 										p: 2.5,
 										borderRadius: "16px",
 										bgcolor: isDark
-											? "rgba(30, 41, 59, 0.7)"
+											? "background.paper"
 											: "rgba(241, 245, 249, 0.8)",
-										border: "1px solid rgba(255, 255, 255, 0.1)",
+										border: (theme) => `1px solid ${theme.palette.divider}`,
 										height: "100%",
 										display: "flex",
 										flexDirection: "column",

@@ -41,17 +41,17 @@ export const AICoachChatWindow: React.FC<AICoachChatWindowProps> = ({ session, o
       sx={{
         p: 3,
         borderRadius: 4,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
         display: 'flex',
         flexDirection: 'column',
         height: 520,
       }}
     >
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2, pb: 2, borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
-        <Avatar sx={{ bgcolor: '#8B5CF6' }}>
+        <Avatar sx={{ bgcolor: "primary.main" }}>
           <AutoAwesome />
         </Avatar>
         <Box>
@@ -76,9 +76,9 @@ export const AICoachChatWindow: React.FC<AICoachChatWindowProps> = ({ session, o
                 maxWidth: '80%',
                 p: 2,
                 borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                background: isUser ? 'linear-gradient(90deg, #3B82F6 0%, #2563EB 100%)' : 'rgba(15, 23, 42, 0.8)',
+                bgcolor: isUser ? "primary.main" : "background.paper",
                 border: isUser ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#fff',
+                color: "primary.contrastText",
               }}
             >
               <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
@@ -100,8 +100,8 @@ export const AICoachChatWindow: React.FC<AICoachChatWindowProps> = ({ session, o
             disabled={loading}
             sx={{
               '& .MuiOutlinedInput-root': {
-                color: '#fff',
-                bgcolor: 'rgba(15, 23, 42, 0.6)',
+                color: "text.primary",
+                bgcolor: "background.paper",
                 borderRadius: 3,
               },
             }}
@@ -111,8 +111,8 @@ export const AICoachChatWindow: React.FC<AICoachChatWindowProps> = ({ session, o
             variant="contained"
             disabled={loading || !inputMsg.trim()}
             sx={{
-              background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-              color: '#fff',
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               borderRadius: 3,
               px: 3,
             }}

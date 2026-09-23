@@ -86,7 +86,7 @@ export const PhotoUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
               sx={{
                 width: 140,
                 height: 140,
-                boxShadow: '0 8px 30px rgba(99, 102, 241, 0.25)',
+                boxShadow: "none",
                 border: '4px solid',
                 borderColor: 'primary.main',
                 transform: `rotate(${rotation}deg) scale(${zoom})`,

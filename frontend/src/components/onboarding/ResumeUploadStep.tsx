@@ -122,7 +122,7 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
                   borderRadius: '12px',
                   fontWeight: 800,
                   textTransform: 'none',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                  bgcolor: "primary.main",
                 }}
               >
                 Browse File
@@ -133,7 +133,7 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
 
           {loading && (
             <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#a855f7', mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "primary.main", mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                 <AutoAwesomeIcon /> Extracting Resume Data with AI...
               </Typography>
               <LinearProgress sx={{ borderRadius: 4, height: 8 }} />
@@ -146,7 +146,7 @@ export const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
                 border: '1px solid rgba(16, 185, 129, 0.4)',
                 width: '100%',
               }}

@@ -27,7 +27,7 @@ export const BillingPlanCard: React.FC<PlanCardProps> = ({
       sx={{
         p: 3,
         borderRadius: '24px',
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(20px)',
         border: isCurrent ? '2px solid #10b981' : '1px solid rgba(255, 255, 255, 0.12)',
         height: '100%',
@@ -42,7 +42,7 @@ export const BillingPlanCard: React.FC<PlanCardProps> = ({
           {isCurrent && <Chip label="Active Plan" color="success" size="small" sx={{ fontWeight: 800 }} />}
         </Stack>
 
-        <Typography variant="h4" sx={{ fontWeight: 900, my: 1, color: '#6366f1' }}>
+        <Typography variant="h4" sx={{ fontWeight: 900, my: 1, color: "primary.main" }}>
           {price}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>

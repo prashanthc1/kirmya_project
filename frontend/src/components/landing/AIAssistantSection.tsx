@@ -8,19 +8,7 @@ import GlassCard from './GlassCard';
 
 export const AIAssistantSection: React.FC = () => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-
-  /*
-   * F15. The eyebrow chip painted #a855f7 on a 15% wash of itself, which reads
-   * 3.83:1 in dark mode — under the 4.5:1 AA threshold, and this is 13px bold
-   * text, so the large-text exemption does not apply.
-   *
-   * One colour cannot pass on both grounds: the same wash composites to a near
-   * black in dark mode and a near white in light mode. So the label tracks the
-   * mode while the wash and border, which are decoration, stay put.
-   * #c084fc on the dark composite = 5.74:1; #7e22ce on the light one = 5.56:1.
-   */
-  const accent = isDark ? '#c084fc' : '#7e22ce';
+  const accent = theme.palette.primary.main;
 
   const aiCards = [
     { title: 'AI Resume Review', desc: 'Detailed scoring & bullet point recommendations to pass ATS screeners.' },
@@ -42,15 +30,16 @@ export const AIAssistantSection: React.FC = () => {
               icon={<AutoAwesomeIcon sx={{ color: `${accent} !important` }} />}
               label="NEXT-GEN CAREER AI"
               sx={{
-                fontWeight: 800,
+                fontWeight: 700,
                 px: 1,
                 mb: 2,
-                bgcolor: 'rgba(168, 85, 247, 0.15)',
-                color: accent,
-                border: '1px solid rgba(168, 85, 247, 0.3)',
+                bgcolor: 'action.hover',
+                color: 'primary.main',
+                border: '1px solid',
+                borderColor: 'divider',
               }}
             />
-            <Typography variant="h3" sx={{ fontWeight: 900, mb: 3, color: 'text.primary' }}>
+            <Typography variant="h3" sx={{ fontWeight: 700, mb: 3, color: 'text.primary' }}>
               Your 24/7 AI Career Companion
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4, lineHeight: 1.7, fontSize: '1.05rem' }}>
@@ -78,14 +67,11 @@ export const AIAssistantSection: React.FC = () => {
 
           {/* Right Column: Interactive AI Chat Simulation */}
           <Grid item xs={12} md={6}>
-            <GlassCard
-              glowColor="rgba(168, 85, 247, 0.3)"
-              sx={{ border: '1px solid rgba(168, 85, 247, 0.3)' }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                <Avatar sx={{ bgcolor: '#a855f7', width: 44, height: 44, fontWeight: 900 }}>AI</Avatar>
+            <GlassCard>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 44, height: 44, fontWeight: 700 }}>AI</Avatar>
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     Kirmya Career Coach
                   </Typography>
                   <Typography variant="caption" sx={{ color: accent, fontWeight: 600 }}>
@@ -100,7 +86,7 @@ export const AIAssistantSection: React.FC = () => {
                   sx={{
                     p: 2,
                     borderRadius: '14px',
-                    bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(241, 245, 249, 0.9)',
+                    bgcolor: 'action.hover',
                     maxWidth: '88%',
                   }}
                 >
@@ -130,11 +116,11 @@ export const AIAssistantSection: React.FC = () => {
                   sx={{
                     p: 2,
                     borderRadius: '14px',
-                    bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(241, 245, 249, 0.9)',
+                    bgcolor: 'action.hover',
                     maxWidth: '88%',
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: accent, fontWeight: 800, display: 'block', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: accent, fontWeight: 700, display: 'block', mb: 0.5 }}>
                     ✨ AI Suggested Bullet:
                   </Typography>
                   <Typography variant="body2" sx={{ fontStyle: 'italic', lineHeight: 1.6 }}>

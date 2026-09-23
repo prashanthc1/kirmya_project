@@ -48,13 +48,13 @@ export const CompanyOverview: React.FC<CompanyOverviewProps> = ({ company, profi
             sx={{
               p: 3,
               borderRadius: '16px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               height: '100%',
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
-              <TrackChangesIcon sx={{ color: '#6366f1' }} />
+              <TrackChangesIcon sx={{ color: "primary.main" }} />
               <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                 Our Mission
               </Typography>
@@ -72,8 +72,8 @@ export const CompanyOverview: React.FC<CompanyOverviewProps> = ({ company, profi
             sx={{
               p: 3,
               borderRadius: '16px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               height: '100%',
             }}
           >
@@ -90,7 +90,7 @@ export const CompanyOverview: React.FC<CompanyOverviewProps> = ({ company, profi
         </Grid>
       </Grid>
 
-      <Divider sx={{ my: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+      <Divider sx={{ my: 3, borderColor: "divider" }} />
 
       {/* Core Values */}
       <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>

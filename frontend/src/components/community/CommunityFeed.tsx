@@ -212,8 +212,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
         sx={{
           p: 3,
           borderRadius: '20px',
-          background: (theme) =>
-            theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(30, 41, 59, 0.85)',
+          bgcolor: (theme) =>
+            theme.palette.mode === 'light' ? "action.hover" : "background.paper",
           backdropFilter: 'blur(16px)',
           border: (theme) =>
             theme.palette.mode === 'light'
@@ -280,8 +280,8 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
             data-testid={`post-card-${post.id}`}
             sx={{
               borderRadius: '20px',
-              background: (theme) =>
-                theme.palette.mode === 'light' ? '#ffffff' : 'rgba(30, 41, 59, 0.75)',
+              bgcolor: (theme) =>
+                theme.palette.mode === 'light' ? '#ffffff' : "background.paper",
               backdropFilter: 'blur(12px)',
               border: (theme) =>
                 post.isAnnouncement
@@ -420,7 +420,7 @@ export const CommunityFeed: React.FC<CommunityFeedProps> = ({
                           p: 1.5,
                           borderRadius: '12px',
                           bgcolor: (theme) =>
-                            theme.palette.mode === 'light' ? 'rgba(241, 245, 249, 0.8)' : 'rgba(15, 23, 42, 0.6)',
+                            theme.palette.mode === 'light' ? 'rgba(241, 245, 249, 0.8)' : "background.paper",
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>

@@ -62,7 +62,7 @@ export default function PerformanceDashboard() {
 
   if (loading) {
     return (
-      <Card sx={{ borderRadius: 3, p: 3, bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(16px)' }}>
+      <Card sx={{ borderRadius: 3, p: 3, bgcolor: isDark ? "background.paper" : "action.hover", backdropFilter: 'blur(16px)' }}>
         <Skeleton variant="text" width={200} height={40} />
         <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 2, my: 2 }} />
       </Card>
@@ -80,7 +80,7 @@ export default function PerformanceDashboard() {
    */
   if (failed || !data) {
     return (
-      <Card sx={{ borderRadius: 3, p: 3, bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(16px)' }}>
+      <Card sx={{ borderRadius: 3, p: 3, bgcolor: isDark ? "background.paper" : "action.hover", backdropFilter: 'blur(16px)' }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
           System Performance Telemetry
         </Typography>
@@ -98,9 +98,9 @@ export default function PerformanceDashboard() {
       sx={{
         borderRadius: 4,
         p: 3,
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.4)' : '0 8px 32px rgba(0, 0, 0, 0.06)',
       }}
     >
@@ -127,8 +127,8 @@ export default function PerformanceDashboard() {
               sx={{
                 p: 2.5,
                 borderRadius: 3,
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : '#f8fafc',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
               }}
             >
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
@@ -148,14 +148,14 @@ export default function PerformanceDashboard() {
               sx={{
                 p: 2.5,
                 borderRadius: 3,
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : '#f8fafc',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
               }}
             >
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
                 P95 TAIL LATENCY
               </Typography>
-              <Typography variant="h4" fontWeight={900} sx={{ color: '#3b82f6', my: 0.5 }}>
+              <Typography variant="h4" fontWeight={900} sx={{ color: "primary.main", my: 0.5 }}>
                 {perf.p95_latency_ms} ms
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -169,8 +169,8 @@ export default function PerformanceDashboard() {
               sx={{
                 p: 2.5,
                 borderRadius: 3,
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : '#f8fafc',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
               }}
             >
               <Typography variant="caption" color="text.secondary" fontWeight={700}>
@@ -187,7 +187,7 @@ export default function PerformanceDashboard() {
 
           {/* Key Metrics */}
           <Grid item xs={12} sm={6}>
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : '#f1f5f9' }}>
+            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? "background.paper" : '#f1f5f9' }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <SignalCellularAltIcon color="info" />
@@ -222,7 +222,7 @@ export default function PerformanceDashboard() {
 
           {/* Database & Cache Latency Gauges */}
           <Grid item xs={12} sm={6}>
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? 'rgba(15, 23, 42, 0.4)' : '#f1f5f9' }}>
+            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? "background.paper" : '#f1f5f9' }}>
               <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 2 }}>
                 Infrastructure Micro-Latency Gauges
               </Typography>

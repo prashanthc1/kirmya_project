@@ -87,7 +87,7 @@ export const ResumeShareDialog: React.FC<ResumeShareDialogProps> = ({
               <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
                 QR Code for Scannable Resumes
               </Typography>
-              <Box component="img" src={shareInfo.qrCodeUrl} alt="QR Code" sx={{ width: 140, height: 140, borderRadius: 2, border: '1px solid rgba(255,255,255,0.2)', mx: 'auto' }} />
+              <Box component="img" src={shareInfo.qrCodeUrl} alt="QR Code" sx={{ width: 140, height: 140, borderRadius: 2, border: 1, borderColor: 'divider', mx: 'auto' }} />
             </Box>
           </Stack>
         )}

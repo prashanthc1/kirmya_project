@@ -164,7 +164,7 @@ export function InterviewDashboard({
                       boxShadow: (theme) =>
                         theme.palette.mode === 'dark'
                           ? '0 8px 24px rgba(0,0,0,0.3)'
-                          : '0 8px 24px rgba(99, 102, 241, 0.08)',
+                          : "none",
                     },
                   }}
                 >

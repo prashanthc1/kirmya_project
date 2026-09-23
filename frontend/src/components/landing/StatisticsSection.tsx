@@ -34,25 +34,25 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({ statistics
 
   const statItems = [
     {
-      icon: <WorkIcon sx={{ fontSize: 36, color: '#6366f1' }} />,
+      icon: <WorkIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
       value: statistics.open_jobs,
       label: 'Open Jobs',
       description: 'Live postings you can apply to right now.',
     },
     {
-      icon: <BusinessIcon sx={{ fontSize: 36, color: '#ec4899' }} />,
+      icon: <BusinessIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
       value: statistics.hiring_companies,
       label: 'Companies Hiring',
       description: 'Employers with at least one open role on Kirmya.',
     },
     {
-      icon: <GroupsIcon sx={{ fontSize: 36, color: '#10b981' }} />,
+      icon: <GroupsIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
       value: statistics.members,
       label: 'Members',
       description: 'Professionals with an active Kirmya account.',
     },
     {
-      icon: <AssignmentTurnedInIcon sx={{ fontSize: 36, color: '#f59e0b' }} />,
+      icon: <AssignmentTurnedInIcon sx={{ fontSize: 36, color: 'primary.main' }} />,
       value: statistics.applications_submitted,
       label: 'Applications Sent',
       description: 'Applications candidates have submitted through Kirmya.',
@@ -86,7 +86,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({ statistics
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      bgcolor: 'rgba(99, 102, 241, 0.1)',
+                      bgcolor: 'action.hover',
                     }}
                   >
                     {item.icon}

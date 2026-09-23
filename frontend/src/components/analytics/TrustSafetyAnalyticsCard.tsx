@@ -62,7 +62,7 @@ export default function TrustSafetyAnalyticsCard() {
 
   if (loading) {
     return (
-      <Card sx={{ borderRadius: 4, p: 3, bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>
+      <Card sx={{ borderRadius: 4, p: 3, bgcolor: isDark ? "background.paper" : "action.hover" }}>
         <Skeleton variant="text" width={220} height={40} />
         <Skeleton variant="rectangular" height={140} sx={{ borderRadius: 2, my: 2 }} />
       </Card>
@@ -76,7 +76,7 @@ export default function TrustSafetyAnalyticsCard() {
    */
   if (failed || !data) {
     return (
-      <Card sx={{ borderRadius: 4, p: 3, bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)' }}>
+      <Card sx={{ borderRadius: 4, p: 3, bgcolor: isDark ? "background.paper" : "action.hover" }}>
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
           Trust &amp; Safety Moderation Metrics
         </Typography>
@@ -95,9 +95,9 @@ export default function TrustSafetyAnalyticsCard() {
       sx={{
         borderRadius: 4,
         p: 3,
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.4)' : '0 8px 32px rgba(0, 0, 0, 0.06)',
       }}
     >
@@ -119,7 +119,7 @@ export default function TrustSafetyAnalyticsCard() {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc' }}>
+            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? "background.paper" : '#f8fafc' }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                 <ReportProblemIcon color="warning" fontSize="small" />
                 <Typography variant="caption" color="text.secondary" fontWeight={700}>
@@ -136,14 +136,14 @@ export default function TrustSafetyAnalyticsCard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc' }}>
+            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? "background.paper" : '#f8fafc' }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                 <TimerIcon color="info" fontSize="small" />
                 <Typography variant="caption" color="text.secondary" fontWeight={700}>
                   AVG RESOLUTION TIME
                 </Typography>
               </Stack>
-              <Typography variant="h4" fontWeight={900} sx={{ color: '#3b82f6' }}>
+              <Typography variant="h4" fontWeight={900} sx={{ color: "primary.main" }}>
                 {ts.avg_resolution_time_mins}m
               </Typography>
               <Typography variant="caption" color="text.secondary">
@@ -153,7 +153,7 @@ export default function TrustSafetyAnalyticsCard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc' }}>
+            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? "background.paper" : '#f8fafc' }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                 <GavelIcon color="secondary" fontSize="small" />
                 <Typography variant="caption" color="text.secondary" fontWeight={700}>
@@ -172,7 +172,7 @@ export default function TrustSafetyAnalyticsCard() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : '#f8fafc' }}>
+            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: isDark ? "background.paper" : '#f8fafc' }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                 <FlagIcon color="error" fontSize="small" />
                 <Typography variant="caption" color="text.secondary" fontWeight={700}>

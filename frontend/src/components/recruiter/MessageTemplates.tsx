@@ -98,7 +98,7 @@ export const MessageTemplates: React.FC = () => {
           sx={{
             borderRadius: '12px',
             fontWeight: 800,
-            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+            bgcolor: 'primary.main',
           }}
         >
           Create New Template
@@ -113,9 +113,8 @@ export const MessageTemplates: React.FC = () => {
                 borderRadius: '20px',
                 p: 3,
                 height: '100%',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                bgcolor: isDark ? "background.paper" : "action.hover",
+                border: 1, borderColor: 'divider',
               }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
@@ -127,7 +126,7 @@ export const MessageTemplates: React.FC = () => {
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, fontWeight: 700 }}>
                 Subject: {tpl.subject}
               </Typography>
-              <Box sx={{ p: 2, borderRadius: '12px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)', fontFamily: 'monospace' }}>
+              <Box sx={{ p: 2, borderRadius: '12px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', fontFamily: 'monospace' }}>
                 <Typography variant="body2" whiteSpace="pre-line">
                   {tpl.body}
                 </Typography>

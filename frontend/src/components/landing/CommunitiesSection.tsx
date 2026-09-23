@@ -15,12 +15,12 @@ export const CommunitiesSection: React.FC = () => {
   const theme = useTheme();
 
   const communities = [
-    { title: 'Facilities Management Guild', category: 'Industry Group', members: '14,200 members', icon: <GroupsIcon sx={{ color: '#6366f1' }} /> },
-    { title: 'Tech & AI Innovators Hub', category: 'Career Discussions', members: '32,800 members', icon: <ForumIcon sx={{ color: '#ec4899' }} /> },
-    { title: 'Global Career Transition Network', category: 'Peer Support', members: '48,500 members', icon: <VolunteerActivismIcon sx={{ color: '#10b981' }} /> },
-    { title: 'Marketing & Brand Leaders', category: 'Industry Group', members: '18,400 members', icon: <GroupsIcon sx={{ color: '#f59e0b' }} /> },
-    { title: 'Executive Upskilling & Certifications', category: 'Learning Group', members: '24,100 members', icon: <SchoolIcon sx={{ color: '#06b6d4' }} /> },
-    { title: 'Global Tech Summits & Webinars', category: 'Events', members: '12,600 attendees', icon: <EventIcon sx={{ color: '#8b5cf6' }} /> },
+    { title: 'Facilities Management Guild', category: 'Industry Group', members: '14,200 members', icon: <GroupsIcon color="primary" /> },
+    { title: 'Tech & AI Innovators Hub', category: 'Career Discussions', members: '32,800 members', icon: <ForumIcon color="primary" /> },
+    { title: 'Global Career Transition Network', category: 'Peer Support', members: '48,500 members', icon: <VolunteerActivismIcon color="primary" /> },
+    { title: 'Marketing & Brand Leaders', category: 'Industry Group', members: '18,400 members', icon: <GroupsIcon color="primary" /> },
+    { title: 'Executive Upskilling & Certifications', category: 'Learning Group', members: '24,100 members', icon: <SchoolIcon color="primary" /> },
+    { title: 'Global Tech Summits & Webinars', category: 'Events', members: '12,600 attendees', icon: <EventIcon color="primary" /> },
   ];
 
   return (
@@ -59,7 +59,7 @@ export const CommunitiesSection: React.FC = () => {
                         width: 44,
                         height: 44,
                         borderRadius: '12px',
-                        bgcolor: 'rgba(99, 102, 241, 0.1)',
+                        bgcolor: 'action.hover',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',

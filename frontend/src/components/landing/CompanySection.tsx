@@ -16,13 +16,7 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
   const router = useRouter();
   const theme = useTheme();
 
-  /*
-   * F15. #10b981 on a 15% wash of itself reads 2.11:1 in light mode — the worst
-   * contrast on the page, and it is 13px bold text, so no large-text exemption
-   * applies. As with the other eyebrows, one colour cannot serve both grounds:
-   * #065f46 on the light composite = 6.40:1, #34d399 on the dark one = 7.37:1.
-   */
-  const accent = theme.palette.mode === 'dark' ? '#34d399' : '#065f46';
+  const accent = theme.palette.primary.main;
 
   const companyBenefits = [
     'Premium Employer Branding & Company Pages',
@@ -46,7 +40,7 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
                   fontWeight: 800,
                   px: 1,
                   mb: 2,
-                  bgcolor: 'rgba(16, 185, 129, 0.15)',
+                  bgcolor: 'action.hover',
                   color: accent,
                 }}
               />
@@ -80,8 +74,6 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
                   borderRadius: '12px',
                   fontWeight: 800,
                   textTransform: 'none',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)',
                 }}
               >
                 Register Company
@@ -93,8 +85,9 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
                 sx={{
                   p: 3,
                   borderRadius: '18px',
-                  bgcolor: 'rgba(16, 185, 129, 0.08)',
-                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  bgcolor: 'action.hover',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   textAlign: 'center',
                 }}
               >
@@ -103,17 +96,6 @@ export const CompanySection: React.FC<CompanySectionProps> = ({ hiringCompanies 
                   The real count now comes from the landing API when it can be
                   counted; when it cannot, the tile keeps its heading and drops
                   the number rather than inventing one.
-                */}
-                {/*
-                  The count uses the same per-mode accent as the eyebrow above,
-                  and for the same reason. #10b981 on this tile's own 8% wash
-                  composites to #ebf9f4 in light mode and reads 2.34:1, against
-                  the 3:1 that 22px bold text needs.
-
-                  This one is worth noting for how it hid: the tile renders only
-                  when the API returns a real count, so an accessibility scan run
-                  against a build that could not reach the API sees no number at
-                  all and passes. The first scan of this page did exactly that.
                 */}
                 {typeof hiringCompanies === 'number' && (
                   <Typography variant="h4" sx={{ fontWeight: 900, color: accent, mb: 1 }}>

@@ -111,10 +111,9 @@ export const BackgroundJobManager: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: { xs: 2, md: 3 },
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} spacing={2}>
@@ -162,8 +161,8 @@ export const BackgroundJobManager: React.FC = () => {
               sx={{
                 p: 2,
                 borderRadius: '16px',
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: 1, borderColor: 'divider',
                 textAlign: 'center',
               }}
             >

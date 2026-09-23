@@ -31,7 +31,7 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({ skills, onChange }) 
         Skills & Industry Expertise
       </Typography>
 
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.08)', mb: 3 }}>
+      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={5}>
             <TextField fullWidth size="small" label="Skill Name (e.g. Golang, React, Docker)" value={name} onChange={(e) => setName(e.target.value)} />
@@ -73,10 +73,10 @@ export const SkillsEditor: React.FC<SkillsEditorProps> = ({ skills, onChange }) 
             label={`${sk.name} (${sk.proficiency})`}
             onDelete={() => handleRemoveSkill(idx)}
             sx={{
-              bgcolor: 'rgba(0, 102, 255, 0.1)',
-              color: '#0066FF',
+              bgcolor: 'background.paper',
+              color: 'primary.main',
               fontWeight: 700,
-              border: '1px solid rgba(0, 102, 255, 0.3)',
+              border: 1, borderColor: 'divider',
               py: 2,
             }}
           />

@@ -21,13 +21,13 @@ export const HighlightsSection: React.FC<HighlightsSectionProps> = ({ profile })
 
   const highlights = [
     { label: 'Open Positions', value: `${profile.openJobsCount || 18} Active`, icon: <WorkIcon sx={{ color: '#10b981' }} /> },
-    { label: 'Total Employees', value: (profile.employeesCount || 12500).toLocaleString(), icon: <PeopleIcon sx={{ color: '#6366f1' }} /> },
+    { label: 'Total Employees', value: (profile.employeesCount || 12500).toLocaleString(), icon: <PeopleIcon sx={{ color: "primary.main" }} /> },
     { label: 'Followers', value: (profile.followersCount || 14200).toLocaleString(), icon: <GroupsIcon sx={{ color: '#ec4899' }} /> },
     { label: 'Global Offices', value: '3 Locations', icon: <LocationOnIcon sx={{ color: '#f59e0b' }} /> },
     { label: 'Years in Business', value: `${new Date().getFullYear() - (profile.foundedYear || 1997)} Years`, icon: <EventIcon sx={{ color: '#06b6d4' }} /> },
     { label: 'Hiring Status', value: profile.isHiring ? 'Actively Hiring' : 'Selective', icon: <CheckCircleIcon sx={{ color: '#10b981' }} /> },
-    { label: 'Verification', value: profile.isVerified ? 'Verified Employer' : 'Standard', icon: <VerifiedIcon sx={{ color: '#0284c7' }} /> },
-    { label: 'Response Time', value: profile.responseTime || 'Within 24 Hours', icon: <AccessTimeIcon sx={{ color: '#8b5cf6' }} /> },
+    { label: 'Verification', value: profile.isVerified ? 'Verified Employer' : 'Standard', icon: <VerifiedIcon sx={{ color: "primary.main" }} /> },
+    { label: 'Response Time', value: profile.responseTime || 'Within 24 Hours', icon: <AccessTimeIcon sx={{ color: "primary.main" }} /> },
   ];
 
   return (
@@ -39,8 +39,8 @@ export const HighlightsSection: React.FC<HighlightsSectionProps> = ({ profile })
             sx={{
               p: 2.5,
               borderRadius: '16px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               display: 'flex',
               alignItems: 'center',
               gap: 2,
@@ -51,7 +51,7 @@ export const HighlightsSection: React.FC<HighlightsSectionProps> = ({ profile })
               sx={{
                 p: 1.2,
                 borderRadius: '12px',
-                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                bgcolor: "action.hover",
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

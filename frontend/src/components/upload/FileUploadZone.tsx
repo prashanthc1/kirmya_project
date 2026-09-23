@@ -153,7 +153,6 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             backgroundColor: isDragOver
               ? alpha(theme.palette.primary.main, 0.08)
               : alpha(theme.palette.background.paper, 0.6),
-            backdropFilter: 'blur(12px)',
             transition: surfaceTransition(0.25),
             opacity: disabled ? 0.6 : 1,
             '&:hover': {
@@ -200,7 +199,6 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             border: '1px solid',
             borderColor: alpha(theme.palette.primary.main, 0.3),
             backgroundColor: alpha(theme.palette.background.paper, 0.7),
-            backdropFilter: 'blur(12px)',
           }}
         >
           <Stack spacing={2}>
@@ -237,7 +235,6 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             border: '1px solid',
             borderColor: alpha(theme.palette.success.main, 0.4),
             backgroundColor: alpha(theme.palette.success.main, 0.05),
-            backdropFilter: 'blur(12px)',
           }}
         >
           <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">

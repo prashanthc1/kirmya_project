@@ -61,10 +61,10 @@ export default function QuestionBankPage() {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Box>
-          <Typography variant="h4" fontWeight={700} sx={{ color: '#F8FAFC' }}>
+          <Typography variant="h4" fontWeight={700} sx={{ color: "text.primary" }}>
             Interview Question Bank & STAR Hub
           </Typography>
-          <Typography variant="body1" sx={{ color: '#94A3B8' }}>
+          <Typography variant="body1" sx={{ color: "text.secondary" }}>
             Practice questions categorized by behavioral, technical, situational, and leadership dimensions.
           </Typography>
         </Box>
@@ -74,8 +74,8 @@ export default function QuestionBankPage() {
           startIcon={<AutoAwesome />}
           onClick={() => setGenModalOpen(true)}
           sx={{
-            background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-            color: '#fff',
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
             fontWeight: 600,
             borderRadius: 2.5,
             px: 3,
@@ -106,17 +106,17 @@ export default function QuestionBankPage() {
               p: 4,
               textAlign: 'center',
               borderRadius: 4,
-              background: 'rgba(30, 41, 59, 0.5)',
+              bgcolor: "background.paper",
               border: '1px border-dashed rgba(255, 255, 255, 0.1)',
             }}
           >
-            <Typography variant="h6" sx={{ color: '#94A3B8' }}>
+            <Typography variant="h6" sx={{ color: "text.secondary" }}>
               No matching questions found in your bank.
             </Typography>
             <Button
               variant="outlined"
               onClick={() => setGenModalOpen(true)}
-              sx={{ mt: 2, borderColor: 'rgba(96, 165, 250, 0.4)', color: '#60A5FA' }}
+              sx={{ mt: 2, borderColor: 'rgba(96, 165, 250, 0.4)', color: "primary.main" }}
             >
               Generate Tailored Questions with AI
             </Button>

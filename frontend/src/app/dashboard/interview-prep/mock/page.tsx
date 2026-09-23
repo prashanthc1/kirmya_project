@@ -97,8 +97,8 @@ function MockInterviewRoomContent() {
   if (loading) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-        <CircularProgress sx={{ color: '#3B82F6' }} />
-        <Typography variant="body1" sx={{ color: '#94A3B8', mt: 2 }}>
+        <CircularProgress sx={{ color: "primary.main" }} />
+        <Typography variant="body1" sx={{ color: "text.secondary", mt: 2 }}>
           Initializing AI Mock Interview Room...
         </Typography>
       </Container>
@@ -113,7 +113,7 @@ function MockInterviewRoomContent() {
         component={Link}
         href="/dashboard/interview-prep"
         startIcon={<ArrowBack />}
-        sx={{ color: '#94A3B8', textTransform: 'none', mb: 3 }}
+        sx={{ color: "text.secondary", textTransform: 'none', mb: 3 }}
       >
         Exit Mock Room
       </Button>
@@ -123,15 +123,15 @@ function MockInterviewRoomContent() {
         sx={{
           p: 4,
           borderRadius: 4,
-          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)',
+          bgcolor: "background.paper",
           backdropFilter: 'blur(16px)',
           border: '1px solid rgba(59, 130, 246, 0.3)',
-          color: '#fff',
+          color: "text.primary",
         }}
       >
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <AutoAwesome sx={{ color: '#60A5FA' }} />
+            <AutoAwesome sx={{ color: "primary.main" }} />
             <Typography variant="h5" fontWeight={700}>
               Interactive AI Mock Interview Session
             </Typography>
@@ -139,18 +139,18 @@ function MockInterviewRoomContent() {
 
           <Chip
             label={`Question ${Math.min(currentPromptIndex + 1, session?.total_questions || 3)} of ${session?.total_questions || 3}`}
-            sx={{ bgcolor: 'rgba(59, 130, 246, 0.2)', color: '#60A5FA', fontWeight: 700 }}
+            sx={{ bgcolor: 'rgba(59, 130, 246, 0.2)', color: "primary.main", fontWeight: 700 }}
           />
         </Stack>
 
         {!sessionComplete ? (
           <Stack spacing={3}>
             {/* Active AI Prompt Card */}
-            <Box sx={{ p: 3, borderRadius: 3, bgcolor: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-              <Typography variant="caption" fontWeight={700} sx={{ color: '#60A5FA', display: 'block', mb: 1 }}>
+            <Box sx={{ p: 3, borderRadius: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main", display: 'block', mb: 1 }}>
                 AI INTERVIEWER QUESTION PROMPT
               </Typography>
-              <Typography variant="h6" fontWeight={600} sx={{ color: '#F8FAFC' }}>
+              <Typography variant="h6" fontWeight={600} sx={{ color: "text.primary" }}>
                 &quot;{currentQuestionText}&quot;
               </Typography>
             </Box>
@@ -158,7 +158,7 @@ function MockInterviewRoomContent() {
             {/* Answer Input Controls */}
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                <Typography variant="subtitle2" fontWeight={600} sx={{ color: '#CBD5E1' }}>
+                <Typography variant="subtitle2" fontWeight={600} sx={{ color: "text.secondary" }}>
                   Your Response (Speech or Type)
                 </Typography>
                 <SpeechToTextButton
@@ -182,8 +182,8 @@ function MockInterviewRoomContent() {
                 disabled={submitting}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    color: '#fff',
-                    bgcolor: 'rgba(15, 23, 42, 0.6)',
+                    color: "text.primary",
+                    bgcolor: "background.paper",
                     borderRadius: 3,
                   },
                 }}
@@ -197,8 +197,8 @@ function MockInterviewRoomContent() {
               startIcon={<Send />}
               sx={{
                 py: 1.5,
-                background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-                color: '#fff',
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
                 fontWeight: 700,
                 borderRadius: 2.5,
                 fontSize: '1rem',
@@ -211,10 +211,10 @@ function MockInterviewRoomContent() {
         ) : (
           <Box textAlign="center" py={4}>
             <CheckCircle sx={{ fontSize: '4rem', color: '#34D399', mb: 2 }} />
-            <Typography variant="h4" fontWeight={700} sx={{ color: '#F8FAFC', mb: 1 }}>
+            <Typography variant="h4" fontWeight={700} sx={{ color: "text.primary", mb: 1 }}>
               Mock Session Completed!
             </Typography>
-            <Typography variant="body1" sx={{ color: '#94A3B8', mb: 3 }}>
+            <Typography variant="body1" sx={{ color: "text.secondary", mb: 3 }}>
               Great job! Your response metrics have been computed and added to your readiness index.
             </Typography>
 
@@ -222,7 +222,7 @@ function MockInterviewRoomContent() {
               component={Link}
               href="/dashboard/interview-prep"
               variant="contained"
-              sx={{ background: '#3B82F6', color: '#fff', borderRadius: 2.5, px: 4 }}
+              sx={{ bgcolor: "primary.main", color: "primary.contrastText", borderRadius: 2.5, px: 4 }}
             >
               Return to Preparation Dashboard
             </Button>
@@ -245,7 +245,7 @@ export default function MockInterviewRoomPage() {
     <Suspense
       fallback={
         <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-          <CircularProgress sx={{ color: '#3B82F6' }} />
+          <CircularProgress sx={{ color: "primary.main" }} />
         </Container>
       }
     >

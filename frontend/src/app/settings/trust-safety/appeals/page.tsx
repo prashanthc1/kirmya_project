@@ -115,7 +115,7 @@ export default function UserSettingsAppealsPage() {
       )}
 
       {/* Active Restrictions Section */}
-      <Card sx={{ borderRadius: '24px', p: 3, mb: 4, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)' }}>
+      <Card sx={{ borderRadius: '24px', p: 3, mb: 4, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
         <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>
           Active Account Enforcement Status
         </Typography>
@@ -153,7 +153,7 @@ export default function UserSettingsAppealsPage() {
       </Card>
 
       {/* Submitted Appeals Table */}
-      <Card sx={{ borderRadius: '24px', p: 3, background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)' }}>
+      <Card sx={{ borderRadius: '24px', p: 3, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
         <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>
           My Submitted Decision Appeals
         </Typography>

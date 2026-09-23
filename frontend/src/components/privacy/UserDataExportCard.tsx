@@ -55,13 +55,13 @@ export default function UserDataExportCard() {
   };
 
   return (
-    <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, color: '#f8fafc' }}>
+    <Paper sx={{ p: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, color: "text.primary" }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <SecurityIcon sx={{ color: '#38bdf8' }} />
+          <SecurityIcon sx={{ color: "primary.main" }} />
           <Box>
             <Typography variant="h6" fontWeight="bold">Download Your Personal Data (GDPR Data Portability)</Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               Request a full ZIP package containing your profile, resume, job applications, messages, connections, and privacy settings.
             </Typography>
           </Box>
@@ -72,23 +72,23 @@ export default function UserDataExportCard() {
           startIcon={<DownloadIcon />}
           disabled={requesting}
           onClick={handleRequestExport}
-          sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', '&:hover': { bgcolor: '#0284c7' } }}
+          sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', '&:hover': { bgcolor: "primary.main" } }}
         >
           {requesting ? 'Generating Archive...' : 'Request Data Export'}
         </Button>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {loading && <LinearProgress sx={{ mb: 2, bgcolor: '#0f172a', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+      {loading && <LinearProgress sx={{ mb: 2, bgcolor: "background.default", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />}
 
-      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#94a3b8', mb: 1, mt: 3 }}>
+      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: "text.secondary", mb: 1, mt: 3 }}>
         Your Data Export History & Downloads
       </Typography>
 
       <TableContainer>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ '& th': { color: '#94a3b8', borderColor: '#334155' } }}>
+            <TableRow sx={{ '& th': { color: "text.secondary", borderColor: "divider" } }}>
               <TableCell>Requested At</TableCell>
               <TableCell>Format</TableCell>
               <TableCell>Status</TableCell>
@@ -98,13 +98,13 @@ export default function UserDataExportCard() {
           </TableHead>
           <TableBody>
             {exports.map((e) => (
-              <TableRow key={e.id} sx={{ '& td': { color: '#f8fafc', borderColor: '#334155' } }}>
+              <TableRow key={e.id} sx={{ '& td': { color: "text.primary", borderColor: "divider" } }}>
                 <TableCell>{new Date(e.createdAt).toLocaleString()}</TableCell>
-                <TableCell><Chip label={e.format.toUpperCase()} size="small" sx={{ bgcolor: '#0f172a', color: '#38bdf8' }} /></TableCell>
+                <TableCell><Chip label={e.format.toUpperCase()} size="small" sx={{ bgcolor: "background.default", color: "primary.main" }} /></TableCell>
                 <TableCell><Chip label={e.status} color="success" size="small" /></TableCell>
                 <TableCell>{new Date(e.expiresAt).toLocaleTimeString()}</TableCell>
                 <TableCell align="right">
-                  <Button size="small" variant="text" sx={{ color: '#38bdf8' }} href={e.downloadUrl || '#'}>
+                  <Button size="small" variant="text" sx={{ color: "primary.main" }} href={e.downloadUrl || '#'}>
                     Download Archive
                   </Button>
                 </TableCell>
@@ -112,7 +112,7 @@ export default function UserDataExportCard() {
             ))}
             {exports.length === 0 && !loading && (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ color: '#94a3b8', py: 3 }}>
+                <TableCell colSpan={5} align="center" sx={{ color: "text.secondary", py: 3 }}>
                   No active data export requests found. Click &quot;Request Data Export&quot; above to generate your data archive.
                 </TableCell>
               </TableRow>

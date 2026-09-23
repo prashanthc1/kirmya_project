@@ -99,19 +99,19 @@ export default function RecommendationStudioPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: '100dvh', color: "text.primary", py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#a855f7', p: 1.5, borderRadius: 2, color: '#fff', display: 'flex' }}>
+            <Box sx={{ bgcolor: "primary.main", p: 1.5, borderRadius: 2, color: "primary.contrastText", display: 'flex' }}>
               <AutoAwesomeIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #a855f7 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
                 Kirmya Unified Recommendation Engine Studio
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 4-Stage ML-Ready Pipeline across Jobs, People, Communities, Courses, Events, Candidates, & Talent Pools
               </Typography>
             </Box>
@@ -127,7 +127,7 @@ export default function RecommendationStudioPage() {
         )}
 
         {/* Multi-Domain Category Hub Tabs */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+        <Paper sx={{ mb: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
           <Tabs
             value={tabValue}
             onChange={(_, val) => setTabValue(val)}
@@ -136,9 +136,9 @@ export default function RecommendationStudioPage() {
             variant="scrollable"
             scrollButtons="auto"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#a855f7' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#a855f7' },
+              '& .MuiTabs-indicator': { bgcolor: "primary.main" },
+              '& .MuiTab-root': { color: "text.secondary", fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: "primary.main" },
             }}
           >
             <Tab icon={<WorkIcon fontSize="small" />} iconPosition="start" label="Recommended Jobs" />
@@ -151,13 +151,13 @@ export default function RecommendationStudioPage() {
           </Tabs>
         </Paper>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#a855f7' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: "background.paper", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />}
 
         {/* Recommendation Cards Grid */}
         <Grid container spacing={3}>
           {getItemsForCurrentTab().map((item) => (
             <Grid item xs={12} md={6} key={item.item_id}>
-              <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                     <Chip label={item.category_tag.toUpperCase()} size="small" sx={{ bgcolor: '#3b0764', color: '#e9d5ff', fontWeight: 'bold' }} />
@@ -170,32 +170,32 @@ export default function RecommendationStudioPage() {
                     />
                   </Box>
 
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 0.5 }}>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 0.5 }}>
                     {item.title}
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: '#38bdf8', fontWeight: 'bold', mb: 2 }}>
+                  <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 'bold', mb: 2 }}>
                     {item.subtitle}
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2.5, lineHeight: 1.6 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 2.5, lineHeight: 1.6 }}>
                     {item.description}
                   </Typography>
 
                   {/* ML Rationale & Feature Vector */}
-                  <Box sx={{ bgcolor: '#0f172a', border: '1px solid #334155', borderRadius: 2, p: 2, mb: 3, mt: 'auto' }}>
-                    <Typography variant="caption" fontWeight="bold" sx={{ color: '#a855f7', display: 'block', mb: 0.5 }}>
+                  <Box sx={{ bgcolor: "background.default", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2, p: 2, mb: 3, mt: 'auto' }}>
+                    <Typography variant="caption" fontWeight="bold" sx={{ color: "primary.main", display: 'block', mb: 0.5 }}>
                       💡 ML Recommendation Rationale:
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#f8fafc', mb: 1.5 }}>
+                    <Typography variant="body2" sx={{ color: "text.primary", mb: 1.5 }}>
                       {item.match_rationale}
                     </Typography>
 
                     {/* Normalized Vector Display */}
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', mr: 0.5 }}>Vector:</Typography>
+                      <Typography variant="caption" sx={{ color: "text.secondary", mr: 0.5 }}>Vector:</Typography>
                       {item.feature_vector.slice(0, 6).map((val, idx) => (
-                        <Chip key={idx} label={val.toFixed(2)} size="small" sx={{ height: 18, fontSize: 10, bgcolor: '#334155', color: '#38bdf8' }} />
+                        <Chip key={idx} label={val.toFixed(2)} size="small" sx={{ height: 18, fontSize: 10, bgcolor: "action.hover", color: "primary.main" }} />
                       ))}
                     </Box>
                   </Box>
@@ -207,19 +207,19 @@ export default function RecommendationStudioPage() {
                       size="small"
                       startIcon={<ThumbUpIcon />}
                       onClick={() => handleFeedback(item, 'click')}
-                      sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold', flex: 1 }}
+                      sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', flex: 1 }}
                     >
                       Relevant
                     </Button>
 
                     <Tooltip title="Save to Collection">
-                      <IconButton onClick={() => handleFeedback(item, 'save')} sx={{ color: '#38bdf8', border: '1px solid #334155' }}>
+                      <IconButton onClick={() => handleFeedback(item, 'save')} sx={{ color: "primary.main", border: (theme) => `1px solid ${theme.palette.divider}` }}>
                         <BookmarkIcon />
                       </IconButton>
                     </Tooltip>
 
                     <Tooltip title="Dismiss & Lower Weight">
-                      <IconButton onClick={() => handleFeedback(item, 'dismiss')} sx={{ color: '#f43f5e', border: '1px solid #334155' }}>
+                      <IconButton onClick={() => handleFeedback(item, 'dismiss')} sx={{ color: '#f43f5e', border: (theme) => `1px solid ${theme.palette.divider}` }}>
                         <DeleteIcon />
                       </IconButton>
                     </Tooltip>

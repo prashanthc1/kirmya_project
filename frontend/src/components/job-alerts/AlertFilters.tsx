@@ -29,9 +29,9 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
         p: 2,
         mb: 3,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
@@ -51,7 +51,7 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
-              background: 'rgba(255, 255, 255, 0.02)',
+              bgcolor: "action.hover",
             },
           }}
         />

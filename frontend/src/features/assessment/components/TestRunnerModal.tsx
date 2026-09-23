@@ -109,51 +109,51 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       {/* Test Header */}
-      <DialogTitle sx={{ bgcolor: '#1e293b', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle sx={{ bgcolor: 'background.paper', color: 'text.primary', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <QuizIcon sx={{ color: '#38bdf8' }} />
+          <QuizIcon sx={{ color: 'primary.main' }} />
           <Typography variant="h6" fontWeight="bold">{assessment.title}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Chip
-            icon={<TimerIcon sx={{ color: '#f59e0b !important' }} />}
+            icon={<TimerIcon sx={{ color: 'warning.main' }} />}
             label={timerFormatted}
-            sx={{ bgcolor: '#0f172a', color: '#f59e0b', fontWeight: 'bold', border: '1px solid #f59e0b', fontSize: '0.9rem' }}
+            sx={{ bgcolor: 'background.default', color: 'warning.main', fontWeight: 'bold', border: 1, borderColor: 'divider', fontSize: '0.9rem' }}
           />
-          <IconButton onClick={onClose} sx={{ color: '#94a3b8' }}>
+          <IconButton onClick={onClose} sx={{ color: 'text.secondary' }}>
             <CloseIcon />
           </IconButton>
         </Box>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ bgcolor: '#0f172a', color: '#f8fafc', p: 3 }}>
+      <DialogContent dividers sx={{ bgcolor: 'background.default', color: 'text.primary', p: 3 }}>
         {/* Progress Bar */}
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               Question {currentIndex + 1} of {questions.length}
             </Typography>
-            <Typography variant="caption" sx={{ color: '#38bdf8', fontWeight: 'bold' }}>
+            <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
               {currentQ.question_type === 'mcq' ? 'Multiple Choice Test Item' : 'Practical Hands-on Scenario'}
             </Typography>
           </Box>
           <LinearProgress
             variant="determinate"
             value={((currentIndex + 1) * 100) / questions.length}
-            sx={{ height: 8, borderRadius: 4, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }}
+            sx={{ height: 8, borderRadius: 4, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }}
           />
         </Box>
 
         {/* Question Prompt */}
-        <Paper sx={{ p: 3, mb: 3, bgcolor: '#1e293b', border: '1px solid #334155' }}>
+        <Paper sx={{ p: 3, mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', mb: 2 }}>
             {currentQ.question_type === 'mcq' ? (
-              <QuizIcon sx={{ color: '#38bdf8', mt: 0.5 }} />
+              <QuizIcon sx={{ color: 'primary.main', mt: 0.5 }} />
             ) : (
-              <CodeIcon sx={{ color: '#10b981', mt: 0.5 }} />
+              <CodeIcon sx={{ color: 'success.main', mt: 0.5 }} />
             )}
-            <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', lineHeight: 1.4 }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary', lineHeight: 1.4 }}>
               {currentQ.question_text}
             </Typography>
           </Box>
@@ -170,18 +170,18 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({
                   sx={{
                     p: 1.5,
                     mb: 1.5,
-                    bgcolor: answers[currentQ.id]?.selected_option === optIdx ? '#0f172a' : '#1e293b',
+                    bgcolor: answers[currentQ.id]?.selected_option === optIdx ? "background.default" : "background.paper",
                     border: answers[currentQ.id]?.selected_option === optIdx ? '2px solid #38bdf8' : '1px solid #334155',
                     borderRadius: 1.5,
                     cursor: 'pointer',
-                    '&:hover': { bgcolor: '#0f172a' },
+                    '&:hover': { bgcolor: 'background.default' },
                   }}
                   onClick={() => handleSelectOption(currentQ.id, optIdx)}
                 >
                   <FormControlLabel
                     value={optIdx}
-                    control={<Radio sx={{ color: '#38bdf8', '&.Mui-checked': { color: '#38bdf8' } }} />}
-                    label={<Typography sx={{ color: '#e2e8f0' }}>{opt}</Typography>}
+                    control={<Radio sx={{ color: 'primary.main', '&.Mui-checked': { color: 'primary.main' } }} />}
+                    label={<Typography sx={{ color: 'text.primary' }}>{opt}</Typography>}
                   />
                 </Paper>
               ))}
@@ -203,9 +203,9 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({
                 value={answers[currentQ.id]?.practical_response || ''}
                 onChange={(e) => handleTextResponse(currentQ.id, e.target.value)}
                 sx={{
-                  textarea: { color: '#f8fafc', fontFamily: 'monospace' },
-                  bgcolor: '#0f172a',
-                  '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } },
+                  textarea: { color: 'text.primary', fontFamily: 'monospace' },
+                  bgcolor: 'background.default',
+                  '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } },
                 }}
               />
             </Box>
@@ -213,12 +213,12 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({
         </Paper>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, bgcolor: '#1e293b', justifyContent: 'space-between' }}>
+      <DialogActions sx={{ p: 2, bgcolor: 'background.paper', justifyContent: 'space-between' }}>
         <Button
           disabled={currentIndex === 0}
           onClick={() => setCurrentIndex(currentIndex - 1)}
           startIcon={<ArrowBackIcon />}
-          sx={{ color: '#94a3b8' }}
+          sx={{ color: 'text.secondary' }}
         >
           Previous
         </Button>
@@ -228,7 +228,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({
             variant="contained"
             onClick={() => setCurrentIndex(currentIndex + 1)}
             endIcon={<ArrowForwardIcon />}
-            sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', '&:hover': { bgcolor: '#0284c7' } }}
+            sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold', '&:hover': { bgcolor: 'primary.main' } }}
           >
             Next Question
           </Button>
@@ -237,7 +237,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({
             variant="contained"
             onClick={handleSubmit}
             disabled={submitting}
-            sx={{ bgcolor: '#10b981', color: '#fff', fontWeight: 'bold', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold', '&:hover': { bgcolor: 'success.main' } }}
           >
             {submitting ? 'Evaluating Test & AI Scoring...' : 'Submit Assessment'}
           </Button>

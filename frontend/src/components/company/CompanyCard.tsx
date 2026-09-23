@@ -53,7 +53,6 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ item }) => {
 
   return (
     <GlassCard
-      hoverScale={1.02}
       onClick={() => router.push(`/company/${company.handle}`)}
       sx={{
         cursor: 'pointer',
@@ -68,9 +67,9 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ item }) => {
       <Box
         sx={{
           height: 100,
-          background: profile.coverUrl
+          bgcolor: profile.coverUrl
             ? `url(${profile.coverUrl}) center/cover no-repeat`
-            : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #ec4899 100%)',
+            : "primary.main",
           position: 'relative',
         }}
       >
@@ -83,7 +82,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ item }) => {
             right: 10,
             bgcolor: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(8px)',
-            color: saved ? '#f59e0b' : '#ffffff',
+            color: saved ? '#f59e0b' : "text.primary",
             '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.6)' },
           }}
         >
@@ -134,7 +133,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ item }) => {
           <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2, color: 'text.primary' }}>
             {company.name}
           </Typography>
-          {profile.isVerified && <VerifiedIcon sx={{ color: '#0284c7', fontSize: 18 }} titleAccess="Verified Employer" />}
+          {profile.isVerified && <VerifiedIcon sx={{ color: "primary.main", fontSize: 18 }} titleAccess="Verified Employer" />}
         </Stack>
 
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, display: 'block', mb: 1 }}>

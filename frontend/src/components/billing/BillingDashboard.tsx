@@ -12,7 +12,7 @@ export const BillingDashboard: React.FC = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-        <PaymentIcon sx={{ color: '#6366f1', fontSize: 36 }} />
+        <PaymentIcon sx={{ color: "primary.main", fontSize: 36 }} />
         <Typography variant="h4" sx={{ fontWeight: 900 }}>
           Billing &amp; Subscription Management
         </Typography>

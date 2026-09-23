@@ -68,15 +68,12 @@ export const PipelineCard: React.FC<Props> = ({ candidate, onMoveStage, onViewDe
       sx={{
         p: 2,
         borderRadius: '16px',
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.06)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
         cursor: 'pointer',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         '&:hover': {
-          transform: 'translateY(-3px)',
-          boxShadow: '0 12px 24px rgba(99, 102, 241, 0.15)',
+          boxShadow: 0,
         },
       }}
     >

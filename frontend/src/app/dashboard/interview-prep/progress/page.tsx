@@ -28,10 +28,10 @@ export default function ReadinessProgressPage() {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight={700} sx={{ color: '#F8FAFC' }}>
+        <Typography variant="h4" fontWeight={700} sx={{ color: "text.primary" }}>
           Readiness & Skills Analytics
         </Typography>
-        <Typography variant="body1" sx={{ color: '#94A3B8' }}>
+        <Typography variant="body1" sx={{ color: "text.secondary" }}>
           Track your interview readiness score, technical depth, behavioral STAR proficiency, and communication metrics.
         </Typography>
       </Box>

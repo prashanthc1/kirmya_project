@@ -80,8 +80,8 @@ export const DataQualityDashboard: React.FC = () => {
               p: 3,
               borderRadius: '24px',
               backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -130,8 +130,8 @@ export const DataQualityDashboard: React.FC = () => {
               p: 3,
               borderRadius: '24px',
               backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
@@ -152,8 +152,8 @@ export const DataQualityDashboard: React.FC = () => {
               p: 3,
               borderRadius: '24px',
               backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
@@ -174,8 +174,8 @@ export const DataQualityDashboard: React.FC = () => {
               p: 3,
               borderRadius: '24px',
               backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
@@ -197,8 +197,8 @@ export const DataQualityDashboard: React.FC = () => {
           borderRadius: '24px',
           p: 3,
           backdropFilter: 'blur(12px)',
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          bgcolor: "action.hover",
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
         }}
       >

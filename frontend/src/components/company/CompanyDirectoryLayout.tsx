@@ -36,9 +36,9 @@ export const CompanyDirectoryLayout: React.FC<LayoutProps> = ({ children }) => {
       {/* Top Banner Header */}
       <Box
         sx={{
-          background: isDark
-            ? 'linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)'
-            : 'linear-gradient(135deg, rgba(238, 242, 255, 0.9) 0%, rgba(241, 245, 249, 0.95) 100%)',
+          bgcolor: isDark
+            ? "background.paper"
+            : "background.paper",
           pt: 4,
           pb: 6,
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
@@ -62,15 +62,15 @@ export const CompanyDirectoryLayout: React.FC<LayoutProps> = ({ children }) => {
                 width: 64,
                 height: 64,
                 borderRadius: '20px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                bgcolor: "primary.main",
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mb: 1,
-                boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+                boxShadow: "none",
               }}
             >
-              <BusinessIcon sx={{ color: '#ffffff', fontSize: 36 }} />
+              <BusinessIcon sx={{ color: "text.primary", fontSize: 36 }} />
             </Box>
 
             <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>

@@ -12,7 +12,7 @@ export const AdminBillingCenter: React.FC = () => {
   return (
     <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-        <MonetizationOnIcon sx={{ color: '#6366f1', fontSize: 36 }} />
+        <MonetizationOnIcon sx={{ color: "primary.main", fontSize: 36 }} />
         <Typography variant="h4" sx={{ fontWeight: 900 }}>
           Administrative Billing Control &amp; Entitlements
         </Typography>
@@ -23,7 +23,7 @@ export const AdminBillingCenter: React.FC = () => {
 
       <Alert
         severity="info"
-        icon={<LockIcon sx={{ color: '#6366f1' }} />}
+        icon={<LockIcon sx={{ color: "primary.main" }} />}
         sx={{ mb: 4, borderRadius: '16px' }}
       >
         <strong>Billing Status:</strong> Billing is currently disabled. All platform users operate under the default conceptual FREE plan.
@@ -50,7 +50,7 @@ export const AdminBillingCenter: React.FC = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 2.5, borderRadius: '20px', textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 900, color: '#6366f1' }}>7</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 900, color: "primary.main" }}>7</Typography>
             <Typography variant="caption" color="text.secondary">Active Core Entitlements</Typography>
           </Paper>
         </Grid>
@@ -60,9 +60,9 @@ export const AdminBillingCenter: React.FC = () => {
         sx={{
           p: 3,
           borderRadius: '24px',
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>

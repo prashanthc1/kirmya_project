@@ -26,7 +26,7 @@ export const LegalDocumentViewer: React.FC<LegalDocumentViewerProps> = ({
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 900, mx: 'auto' }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-        <GavelIcon sx={{ color: '#6366f1', fontSize: 36 }} />
+        <GavelIcon sx={{ color: "primary.main", fontSize: 36 }} />
         <Typography variant="h4" sx={{ fontWeight: 900 }}>
           {title}
         </Typography>
@@ -43,9 +43,9 @@ export const LegalDocumentViewer: React.FC<LegalDocumentViewerProps> = ({
         sx={{
           p: 4,
           borderRadius: '24px',
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
         <Typography variant="body1" sx={{ lineHeight: 1.8 }}>

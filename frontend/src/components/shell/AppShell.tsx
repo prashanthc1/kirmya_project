@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from 'react';
-import { Box, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 import { usePathname } from 'next/navigation';
 import AppHeader from './AppHeader';
 import MobileDrawer from './MobileDrawer';
@@ -71,7 +71,6 @@ export const AppShell: React.FC<AppShellProps> = ({
   context,
   contextActions,
 }) => {
-  const theme = useTheme();
   const pathname = usePathname() || '/';
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
@@ -138,7 +137,8 @@ export const AppShell: React.FC<AppShellProps> = ({
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            pb: showBottom ? { xs: 8, sm: 0 } : 0,
+            minWidth: 0,
+            pb: showBottom ? { xs: 'calc(5rem + env(safe-area-inset-bottom))', lg: 0 } : 0,
             outline: 'none',
           }}
         >

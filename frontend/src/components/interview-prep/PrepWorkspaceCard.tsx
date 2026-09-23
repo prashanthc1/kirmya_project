@@ -30,10 +30,10 @@ export const PrepWorkspaceCard: React.FC<PrepWorkspaceCardProps> = ({ prep, onDe
       elevation={0}
       sx={{
         borderRadius: 3.5,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
         transition: 'transform 0.2s ease, border-color 0.2s ease',
         '&:hover': {
           transform: 'translateY(-4px)',
@@ -45,12 +45,12 @@ export const PrepWorkspaceCard: React.FC<PrepWorkspaceCardProps> = ({ prep, onDe
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
           <Box>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-              <Business sx={{ fontSize: '1.1rem', color: '#94A3B8' }} />
-              <Typography variant="subtitle2" sx={{ color: '#94A3B8', fontWeight: 600 }}>
+              <Business sx={{ fontSize: '1.1rem', color: "text.secondary" }} />
+              <Typography variant="subtitle2" sx={{ color: "text.secondary", fontWeight: 600 }}>
                 {prep.company_name}
               </Typography>
             </Stack>
-            <Typography variant="h6" fontWeight={700} sx={{ color: '#F8FAFC' }}>
+            <Typography variant="h6" fontWeight={700} sx={{ color: "text.primary" }}>
               {prep.job_title}
             </Typography>
           </Box>
@@ -69,18 +69,18 @@ export const PrepWorkspaceCard: React.FC<PrepWorkspaceCardProps> = ({ prep, onDe
         </Stack>
 
         <Stack direction="row" spacing={1} flexWrap="wrap" gap={1} sx={{ mb: 2.5 }}>
-          <Chip label={prep.interview_type} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.06)', color: '#CBD5E1' }} />
-          <Chip label={prep.interview_round} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.06)', color: '#CBD5E1' }} />
-          <Chip label={prep.experience_level} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.06)', color: '#CBD5E1' }} />
+          <Chip label={prep.interview_type} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
+          <Chip label={prep.interview_round} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
+          <Chip label={prep.experience_level} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
         </Stack>
 
         {/* Readiness Meter */}
         <Box sx={{ mb: 2.5 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.8 }}>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 600 }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
               Readiness Score
             </Typography>
-            <Typography variant="caption" fontWeight={700} sx={{ color: '#60A5FA' }}>
+            <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main" }}>
               {prep.readiness_score}%
             </Typography>
           </Stack>
@@ -90,10 +90,10 @@ export const PrepWorkspaceCard: React.FC<PrepWorkspaceCardProps> = ({ prep, onDe
             sx={{
               height: 8,
               borderRadius: 4,
-              bgcolor: 'rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
               '& .MuiLinearProgress-bar': {
                 borderRadius: 4,
-                background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 100%)',
+                bgcolor: "primary.main",
               },
             }}
           />
@@ -102,13 +102,13 @@ export const PrepWorkspaceCard: React.FC<PrepWorkspaceCardProps> = ({ prep, onDe
         <Stack direction="row" justifyContent="space-between" alignItems="center" pt={1} borderTop="1px solid rgba(255, 255, 255, 0.06)">
           {prep.interview_date ? (
             <Stack direction="row" spacing={0.8} alignItems="center">
-              <Event sx={{ fontSize: '0.95rem', color: '#94A3B8' }} />
-              <Typography variant="caption" sx={{ color: '#94A3B8' }}>
+              <Event sx={{ fontSize: '0.95rem', color: "text.secondary" }} />
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
                 {new Date(prep.interview_date).toLocaleDateString()}
               </Typography>
             </Stack>
           ) : (
-            <Typography variant="caption" sx={{ color: '#64748B' }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
               Targeting: {prep.preparation_duration}
             </Typography>
           )}
@@ -131,7 +131,7 @@ export const PrepWorkspaceCard: React.FC<PrepWorkspaceCardProps> = ({ prep, onDe
               endIcon={<ArrowForward />}
               sx={{
                 bgcolor: 'rgba(59, 130, 246, 0.2)',
-                color: '#60A5FA',
+                color: "primary.main",
                 fontWeight: 600,
                 borderRadius: 2,
                 textTransform: 'none',

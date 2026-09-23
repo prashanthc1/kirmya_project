@@ -102,19 +102,19 @@ export default function TrustSafetyPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#f43f5e', p: 1.5, borderRadius: 2, color: '#fff', display: 'flex' }}>
+            <Box sx={{ bgcolor: 'error.main', p: 1.5, borderRadius: 2, color: 'error.contrastText', display: 'flex' }}>
               <SecurityIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #f43f5e 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{    }}>
                 Kirmya Trust & Safety Moderation Studio
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 Privacy-first professional environment with automated fake job detection & verification badges
               </Typography>
             </Box>
@@ -124,22 +124,22 @@ export default function TrustSafetyPage() {
         </Box>
 
         {successMsg && (
-          <Alert severity="success" onClose={() => setSuccessMsg(null)} sx={{ mb: 3, bgcolor: '#064e3b', color: '#6ee7b7' }}>
+          <Alert severity="success" onClose={() => setSuccessMsg(null)} sx={{ mb: 3, bgcolor: '#064e3b', color: 'success.main' }}>
             {successMsg}
           </Alert>
         )}
 
         {/* Navigation Tabs */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+        <Paper sx={{ mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
           <Tabs
             value={tabValue}
             onChange={(_, val) => setTabValue(val)}
             textColor="inherit"
             indicatorColor="primary"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#f43f5e' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#f43f5e' },
+              '& .MuiTabs-indicator': { bgcolor: 'error.main' },
+              '& .MuiTab-root': { color: 'text.secondary', fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: 'error.main' },
             }}
           >
             <Tab icon={<ReportProblemIcon fontSize="small" />} iconPosition="start" label="Incident Reports Queue" />
@@ -148,25 +148,25 @@ export default function TrustSafetyPage() {
           </Tabs>
         </Paper>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#f43f5e' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'error.main' } }} />}
 
         {/* Tab 0: Incident Reports Queue */}
         {tabValue === 0 && (
           <Grid container spacing={3}>
             {reports.map((rep) => (
               <Grid item xs={12} md={6} key={rep.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+                <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                       <Chip label={rep.category.toUpperCase()} color="error" size="small" sx={{ fontWeight: 'bold' }} />
-                      <Chip label={rep.status.toUpperCase()} size="small" sx={{ bgcolor: '#334155', color: '#fff' }} />
+                      <Chip label={rep.status.toUpperCase()} size="small" sx={{ bgcolor: 'action.hover', color: 'text.primary' }} />
                     </Box>
 
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary', mb: 1 }}>
                       {rep.target_name}
                     </Typography>
 
-                    <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2.5, lineHeight: 1.6 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5, lineHeight: 1.6 }}>
                       Reason: {rep.reason}
                     </Typography>
 
@@ -175,7 +175,7 @@ export default function TrustSafetyPage() {
                       fullWidth
                       startIcon={<GavelIcon />}
                       onClick={() => handleOpenAction(rep)}
-                      sx={{ bgcolor: '#f43f5e', color: '#fff', fontWeight: 'bold' }}
+                      sx={{ bgcolor: 'error.main', color: 'error.contrastText', fontWeight: 'bold' }}
                     >
                       Enforce Moderation Action
                     </Button>
@@ -191,17 +191,17 @@ export default function TrustSafetyPage() {
           <Grid container spacing={3}>
             {fraudLogs.map((log) => (
               <Grid item xs={12} key={log.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #f43f5e', borderRadius: 2.5 }}>
+                <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                      <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                         {log.entity_title}
                       </Typography>
                       <Chip label={`${log.fraud_score}% FRAUD RISK`} color="error" sx={{ fontWeight: 'bold', fontSize: 14 }} />
                     </Box>
 
-                    <Box sx={{ bgcolor: '#0f172a', p: 2, borderRadius: 2, mb: 2, border: '1px solid #334155' }}>
-                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f43f5e', mb: 1 }}>
+                    <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 2, mb: 2, border: 1, borderColor: 'divider' }}>
+                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: 'error.main', mb: 1 }}>
                         Detection Triggers Signal Analysis:
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -211,7 +211,7 @@ export default function TrustSafetyPage() {
                       </Box>
                     </Box>
 
-                    <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 'bold' }}>
+                    <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 'bold' }}>
                       Automated System Action: {log.action_taken}
                     </Typography>
                   </CardContent>
@@ -225,11 +225,11 @@ export default function TrustSafetyPage() {
         {tabValue === 2 && (
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card sx={{ bgcolor: '#1e293b', border: '1px solid #10b981', borderRadius: 2.5 }}>
+              <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                    <CheckCircleIcon sx={{ color: '#10b981', fontSize: 32 }} />
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 32 }} />
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                       Verified Candidate Badges
                     </Typography>
                   </Box>
@@ -246,18 +246,18 @@ export default function TrustSafetyPage() {
 
         {/* Moderation Action Modal */}
         <Dialog open={openActionModal} onClose={() => setOpenActionModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: '#1e293b', color: '#fff', border: '1px solid #334155' } }}>
-          <DialogTitle sx={{ fontWeight: 'bold', color: '#f43f5e' }}>
+          <DialogTitle sx={{ fontWeight: 'bold', color: 'error.main' }}>
             Execute Moderation Enforcement Action
           </DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
               <FormControl fullWidth size="small">
-                <InputLabel sx={{ color: '#94a3b8' }}>Enforcement Action</InputLabel>
+                <InputLabel sx={{ color: 'text.secondary' }}>Enforcement Action</InputLabel>
                 <Select
                   value={actionType}
                   label="Enforcement Action"
                   onChange={(e) => setActionType(e.target.value as any)}
-                  sx={{ color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' } }}
+                  sx={{ color: 'text.primary', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
                 >
                   <MenuItem value="warn">Issue Official Warning</MenuItem>
                   <MenuItem value="remove">Remove Listing / Post</MenuItem>
@@ -279,8 +279,8 @@ export default function TrustSafetyPage() {
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenActionModal(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleExecuteAction} variant="contained" sx={{ bgcolor: '#f43f5e', color: '#fff', fontWeight: 'bold' }}>
+            <Button onClick={() => setOpenActionModal(false)} sx={{ color: 'text.secondary' }}>Cancel</Button>
+            <Button onClick={handleExecuteAction} variant="contained" sx={{ bgcolor: 'error.main', color: 'error.contrastText', fontWeight: 'bold' }}>
               Confirm & Execute Action
             </Button>
           </DialogActions>

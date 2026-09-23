@@ -31,9 +31,9 @@ export const NotificationChannels: React.FC<NotificationChannelsProps> = ({
       sx={{
         p: 3,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
@@ -54,7 +54,7 @@ export const NotificationChannels: React.FC<NotificationChannelsProps> = ({
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <PhoneIphoneIcon sx={{ color: '#9933FF' }} />
+            <PhoneIphoneIcon sx={{ color: "primary.main" }} />
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Mobile Push Notifications</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>Instant real-time notifications on mobile app</Typography>
@@ -65,7 +65,7 @@ export const NotificationChannels: React.FC<NotificationChannelsProps> = ({
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <NotificationsActiveIcon sx={{ color: '#00CCFF' }} />
+            <NotificationsActiveIcon sx={{ color: "primary.main" }} />
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>In-App Notifications</Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>Alert badges in Kirmya dashboard</Typography>

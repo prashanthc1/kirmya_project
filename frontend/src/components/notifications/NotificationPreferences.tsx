@@ -49,7 +49,7 @@ const CATEGORY_DEFINITIONS: {
     category: 'Jobs',
     label: 'Job Alerts & Matches',
     description: 'AI recommendation matches, saved search alerts, job deadline notices',
-    icon: <WorkOutlineIcon sx={{ color: '#6366f1' }} />,
+    icon: <WorkOutlineIcon sx={{ color: "primary.main" }} />,
   },
   {
     category: 'Applications',
@@ -67,7 +67,7 @@ const CATEGORY_DEFINITIONS: {
     category: 'Recruiter',
     label: 'Recruiter Outreach & Messages',
     description: 'Direct recruiter inquiries, talent pool invitations',
-    icon: <WorkOutlineIcon sx={{ color: '#8b5cf6' }} />,
+    icon: <WorkOutlineIcon sx={{ color: "primary.main" }} />,
   },
   {
     category: 'Networking',

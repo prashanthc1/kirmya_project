@@ -33,9 +33,9 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({ children, on
         sx={{
           py: 2,
           borderBottom: '1px solid',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+          borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
           backdropFilter: 'blur(16px)',
-          bgcolor: isDark ? 'rgba(9, 13, 22, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? 'rgba(9, 13, 22, 0.85)' : "action.hover",
           position: 'sticky',
           top: 0,
           zIndex: 1100,

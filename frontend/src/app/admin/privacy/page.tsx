@@ -50,25 +50,25 @@ export default function AdminPrivacyPage() {
       {/* KPI Overview */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2.5, borderRadius: '20px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ p: 2.5, borderRadius: '20px', bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Total Tracked Datasets</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: 'primary.main' }}>4</Typography>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2.5, borderRadius: '20px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ p: 2.5, borderRadius: '20px', bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Active DSAR Requests</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: 'warning.main' }}>3</Typography>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2.5, borderRadius: '20px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ p: 2.5, borderRadius: '20px', bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Active Legal Holds</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: 'info.main' }}>1</Typography>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 2.5, borderRadius: '20px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ p: 2.5, borderRadius: '20px', bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Verified Sub-Processors</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, mt: 0.5, color: 'success.main' }}>3</Typography>
           </Card>
@@ -76,7 +76,7 @@ export default function AdminPrivacyPage() {
       </Grid>
 
       {/* Tabs Navigation */}
-      <Card sx={{ borderRadius: '24px', p: 1, mb: 4, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+      <Card sx={{ borderRadius: '24px', p: 1, mb: 4, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
         <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} variant="scrollable" scrollButtons="auto">
           <Tab icon={<StorageIcon />} iconPosition="start" label="Data Inventory (RoPA)" sx={{ fontWeight: 800 }} />
           <Tab icon={<AssignmentIndIcon />} iconPosition="start" label="Subject Requests (DSAR)" sx={{ fontWeight: 800 }} />

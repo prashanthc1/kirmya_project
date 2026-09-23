@@ -109,7 +109,7 @@ export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = ({ items 
                   bgcolor: idx === 0 ? 'primary.main' : 'action.selected',
                   color: idx === 0 ? 'primary.contrastText' : 'text.primary',
                   zIndex: 1,
-                  boxShadow: idx === 0 ? '0 2px 8px rgba(99,102,241,0.25)' : 'none',
+                  boxShadow: idx === 0 ? "none" : 'none',
                 }}
               >
                 {getEventIcon(item.status || item.title)}

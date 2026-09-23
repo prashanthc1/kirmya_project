@@ -18,9 +18,9 @@ export default function AnalyticsCard({ title, value, change, isPositive = true,
   return (
     <Card
       sx={{
-        bgcolor: '#1e293b',
-        color: '#f8fafc',
-        border: '1px solid #334155',
+        bgcolor: "background.paper",
+        color: "text.primary",
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
         height: '100%',
@@ -28,13 +28,13 @@ export default function AnalyticsCard({ title, value, change, isPositive = true,
     >
       <CardContent sx={{ p: 2.5 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-          <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 600 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600 }}>
             {title}
           </Typography>
-          {icon && <Box sx={{ color: '#38bdf8' }}>{icon}</Box>}
+          {icon && <Box sx={{ color: "primary.main" }}>{icon}</Box>}
         </Box>
 
-        <Typography variant="h4" fontWeight="bold" sx={{ color: '#ffffff', mb: 1 }}>
+        <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
           {value}
         </Typography>
 
@@ -53,7 +53,7 @@ export default function AnalyticsCard({ title, value, change, isPositive = true,
             />
           )}
           {subtitle && (
-            <Typography variant="caption" sx={{ color: '#64748b' }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
               {subtitle}
             </Typography>
           )}

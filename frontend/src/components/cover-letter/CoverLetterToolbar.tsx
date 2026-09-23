@@ -31,9 +31,9 @@ export const CoverLetterToolbar: React.FC<CoverLetterToolbarProps> = ({
   return (
     <Box
       sx={{
-        background: 'rgba(255, 255, 255, 0.05)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         borderRadius: 2,
         p: 1,
         display: 'flex',

@@ -266,12 +266,12 @@ export default function SettingsHubPage() {
                         width: 44,
                         height: 44,
                         borderRadius: `${tokens.radius.sm}px`,
-                        bgcolor: '#f8fafc',
-                        border: '1px solid #e2e8f0',
+                        bgcolor: 'background.default',
+                        border: 1, borderColor: 'divider',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#f59e0b',
+                        color: 'warning.main',
                       }}
                     >
                       <LightModeIcon />
@@ -319,12 +319,12 @@ export default function SettingsHubPage() {
                         width: 44,
                         height: 44,
                         borderRadius: `${tokens.radius.sm}px`,
-                        bgcolor: '#0f172a',
-                        border: '1px solid #334155',
+                        bgcolor: 'background.default',
+                        border: 1, borderColor: 'divider',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#38bdf8',
+                        color: 'primary.main',
                       }}
                     >
                       <DarkModeIcon />
@@ -364,7 +364,7 @@ export default function SettingsHubPage() {
                   transition: 'border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                   '&:hover': {
                     borderColor: 'primary.main',
-                    boxShadow: '0 4px 20px 0 rgba(0, 0, 0, 0.06)',
+                    boxShadow: 0,
                   },
                 }}
               >

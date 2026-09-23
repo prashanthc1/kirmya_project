@@ -32,7 +32,7 @@ export const NetworkStats: React.FC<{ stats?: NetworkGrowthStats }> = ({ stats }
         mb: 3,
         backdropFilter: 'blur(16px)',
         bgcolor: (theme) =>
-          theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          theme.palette.mode === 'dark' ? "background.paper" : "action.hover",
         border: '1px solid',
         borderColor: 'divider',
       }}

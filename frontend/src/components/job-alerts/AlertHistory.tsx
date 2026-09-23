@@ -26,9 +26,9 @@ export const AlertHistory: React.FC<AlertHistoryProps> = ({ history }) => {
       sx={{
         p: 3,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>

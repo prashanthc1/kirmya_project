@@ -198,10 +198,10 @@ export const PipelineBoard: React.FC<Props> = ({ jobId, onSelectCandidate }) => 
                   minWidth: 280,
                   maxWidth: 320,
                   flexShrink: 0,
-                  bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
                   borderRadius: '20px',
                   p: 2,
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: 1, borderColor: 'divider',
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>

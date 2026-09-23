@@ -131,8 +131,8 @@ export const UserPrivacySettings: React.FC = () => {
               p: 3,
               borderRadius: '24px',
               backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
               height: '100%',
               display: 'flex',
@@ -165,7 +165,7 @@ export const UserPrivacySettings: React.FC = () => {
                     </Box>
                   }
                 />
-                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                <Divider sx={{ borderColor: "divider" }} />
 
                 <FormControlLabel
                   control={
@@ -186,7 +186,7 @@ export const UserPrivacySettings: React.FC = () => {
                     </Box>
                   }
                 />
-                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                <Divider sx={{ borderColor: "divider" }} />
 
                 <FormControlLabel
                   control={
@@ -207,7 +207,7 @@ export const UserPrivacySettings: React.FC = () => {
                     </Box>
                   }
                 />
-                <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                <Divider sx={{ borderColor: "divider" }} />
 
                 <FormControlLabel
                   control={
@@ -251,8 +251,8 @@ export const UserPrivacySettings: React.FC = () => {
               p: 3,
               borderRadius: '24px',
               backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              bgcolor: "action.hover",
+              border: (theme) => `1px solid ${theme.palette.divider}`,
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
               height: '100%',
               display: 'flex',
@@ -273,8 +273,8 @@ export const UserPrivacySettings: React.FC = () => {
                   sx={{
                     p: 2,
                     borderRadius: '16px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    bgcolor: "action.hover",
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
                   }}
                 >
                   <Stack direction="row" spacing={1.5} alignItems="center">
@@ -305,8 +305,8 @@ export const UserPrivacySettings: React.FC = () => {
                   sx={{
                     p: 2,
                     borderRadius: '16px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    bgcolor: "action.hover",
+                    border: (theme) => `1px solid ${theme.palette.divider}`,
                   }}
                 >
                   <Stack direction="row" spacing={1.5} alignItems="center">
@@ -358,8 +358,8 @@ export const UserPrivacySettings: React.FC = () => {
           borderRadius: '24px',
           p: 3,
           backdropFilter: 'blur(12px)',
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          bgcolor: "action.hover",
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
         }}
       >

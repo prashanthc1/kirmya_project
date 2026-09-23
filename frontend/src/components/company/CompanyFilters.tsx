@@ -119,7 +119,7 @@ export const CompanyFilters: React.FC<CompanyFiltersProps> = ({ filters, onChang
           <MenuItem value="United Kingdom">United Kingdom</MenuItem>
         </TextField>
 
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+        <Divider sx={{ borderColor: "divider" }} />
 
         {/* Checkboxes */}
         <Stack spacing={1}>

@@ -46,7 +46,7 @@ export const ResumeSectionEditor: React.FC<ResumeSectionEditorProps> = ({ sectio
   };
 
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={activeTab} onChange={(_, val) => setActiveTab(val)} variant="scrollable" scrollButtons="auto">
           <Tab icon={<PersonIcon />} label="Personal Info" />

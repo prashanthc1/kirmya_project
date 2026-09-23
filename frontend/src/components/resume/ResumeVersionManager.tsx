@@ -13,7 +13,7 @@ interface ResumeVersionManagerProps {
 
 export const ResumeVersionManager: React.FC<ResumeVersionManagerProps> = ({ versions, onRestore }) => {
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+    <Paper elevation={0} sx={{ p: 3, borderRadius: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
         <HistoryIcon sx={{ color: 'primary.main', fontSize: 28 }} />
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -33,8 +33,8 @@ export const ResumeVersionManager: React.FC<ResumeVersionManagerProps> = ({ vers
               sx={{
                 p: 2,
                 borderRadius: 2,
-                bgcolor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                bgcolor: 'action.hover',
+                border: 1, borderColor: 'divider',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',

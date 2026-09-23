@@ -1,14 +1,8 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { cookies } from 'next/headers';
 import Providers from './providers';
 import React from 'react';
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-  fallback: ['system-ui', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-});
 
 export const metadata: Metadata = {
   title: 'Kirmya - Restart Your Career With Confidence | AI Career Recovery & Professional Network',
@@ -71,13 +65,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const savedMode = (await cookies()).get('kirmya-theme-mode')?.value;
+  const initialMode = savedMode === 'dark' ? 'dark' : 'light';
   return (
-    <html lang="en" className={jakarta.variable}>
+    <html lang="en">
       <body style={{ margin: 0, padding: 0 }}>
         {/*
           Inlined rather than themed: MUI's styles are injected on the client, so a
@@ -88,7 +84,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
 .skip-link{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-.skip-link:focus{position:fixed;top:12px;left:12px;width:auto;height:auto;margin:0;padding:12px 20px;clip:auto;clip-path:none;overflow:visible;z-index:1600;background:#4f46e5;color:#fff;font-family:var(--font-sans),sans-serif;font-size:.95rem;font-weight:600;text-decoration:none;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.35);outline:2px solid #f8fafc;outline-offset:2px}
+.skip-link:focus{position:fixed;top:12px;left:12px;width:auto;height:auto;margin:0;padding:12px 20px;clip:auto;clip-path:none;overflow:visible;z-index:1600;background:#0066cc;color:#fff;font-family:system-ui,sans-serif;font-size:.95rem;font-weight:600;text-decoration:none;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);outline:2px solid #fff;outline-offset:2px}
 #main-content{scroll-margin-top:96px}
 #main-content:focus{outline:none}
 `.trim(),
@@ -97,7 +93,7 @@ export default function RootLayout({
         <a className="skip-link" href="#main-content">
           Skip to main content
         </a>
-        <Providers>
+        <Providers initialMode={initialMode}>
           <main id="main-content" tabIndex={-1}>
             {children}
           </main>

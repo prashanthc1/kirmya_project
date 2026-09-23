@@ -45,7 +45,7 @@ export const JobTailoringDialog: React.FC<JobTailoringDialogProps> = ({ open, on
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
       <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <AutoAwesomeIcon sx={{ color: '#9933FF' }} /> Tailor Resume For Specific Job Description
+        <AutoAwesomeIcon sx={{ color: 'primary.main' }} /> Tailor Resume For Specific Job Description
       </DialogTitle>
 
       <DialogContent>
@@ -64,12 +64,12 @@ export const JobTailoringDialog: React.FC<JobTailoringDialogProps> = ({ open, on
         />
 
         {result && (
-          <Box sx={{ p: 2.5, borderRadius: 2, bgcolor: 'rgba(0, 102, 255, 0.05)', border: '1px solid rgba(0, 102, 255, 0.2)' }}>
+          <Box sx={{ p: 2.5, borderRadius: 2, bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 Job Match Score
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: '#00CC66' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main' }}>
                 {result.matchScore}%
               </Typography>
             </Box>

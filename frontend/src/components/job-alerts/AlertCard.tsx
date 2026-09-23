@@ -27,13 +27,13 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onEdit, onDelete, o
       sx={{
         p: 3,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
         border: alert.is_active ? '1px solid rgba(0, 102, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
         transition: surfaceTransition(0.25),
         '&:hover': {
           transform: 'translateY(-2px)',
-          borderColor: alert.is_active ? 'rgba(0, 102, 255, 0.6)' : 'rgba(255, 255, 255, 0.2)',
+          borderColor: alert.is_active ? 'rgba(0, 102, 255, 0.6)' : "divider",
         },
       }}
     >
@@ -104,7 +104,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onEdit, onDelete, o
         <Stack direction="row" spacing={1}>
           {alert.channel_email && <Chip label="Email" size="small" color="primary" sx={{ height: 20, fontSize: '0.65rem' }} />}
           {alert.channel_push && <Chip label="Push" size="small" color="secondary" sx={{ height: 20, fontSize: '0.65rem' }} />}
-          {alert.channel_in_app && <Chip label="In-App" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: 'rgba(0, 204, 255, 0.15)', color: '#00CCFF' }} />}
+          {alert.channel_in_app && <Chip label="In-App" size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: 'rgba(0, 204, 255, 0.15)', color: "primary.main" }} />}
         </Stack>
         <Chip
           label={alert.is_active ? 'Active' : 'Paused'}
@@ -112,7 +112,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onEdit, onDelete, o
           sx={{
             fontWeight: 700,
             fontSize: '0.7rem',
-            bgcolor: alert.is_active ? 'rgba(0, 204, 102, 0.15)' : 'rgba(255, 255, 255, 0.1)',
+            bgcolor: alert.is_active ? 'rgba(0, 204, 102, 0.15)' : "action.hover",
             color: alert.is_active ? '#00CC66' : 'text.disabled',
           }}
         />

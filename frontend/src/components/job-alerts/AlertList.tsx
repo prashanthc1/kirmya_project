@@ -20,7 +20,7 @@ export const AlertList: React.FC<AlertListProps> = ({
 }) => {
   if (alerts.length === 0) {
     return (
-      <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, background: 'rgba(255, 255, 255, 0.02)' }}>
+      <Paper elevation={0} sx={{ p: 6, textAlign: 'center', borderRadius: 3, bgcolor: "action.hover" }}>
         <Typography variant="h6" sx={{ color: 'text.secondary', fontWeight: 600 }}>
           No job alerts configured yet
         </Typography>

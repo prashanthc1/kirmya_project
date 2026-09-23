@@ -93,7 +93,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ applicationId, candidate
         </Typography>
       </Stack>
 
-      <Paper elevation={0} sx={{ p: 2.5, borderRadius: '14px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+      <Paper elevation={0} sx={{ p: 2.5, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
         <TextField
           multiline
           rows={3}
@@ -148,7 +148,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ applicationId, candidate
         )}
 
         {notes.map((n) => (
-          <Paper key={n.id} elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)' }}>
+          <Paper key={n.id} elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem', fontWeight: 800 }}>

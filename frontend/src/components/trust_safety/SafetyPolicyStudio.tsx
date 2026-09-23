@@ -176,10 +176,9 @@ export const SafetyPolicyStudio: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: 3,
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+        bgcolor: 'background.paper',
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       {/* Header */}
@@ -237,17 +236,16 @@ export const SafetyPolicyStudio: React.FC = () => {
                 sx={{
                   p: 3,
                   borderRadius: '20px',
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: 'background.paper',
+                  border: 1, borderColor: 'divider',
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   justify: 'space-between',
                   transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
-                    borderColor: 'rgba(99, 102, 241, 0.4)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                    borderColor: 'divider',
+                    boxShadow: 0,
                   },
                 }}
               >
@@ -260,7 +258,7 @@ export const SafetyPolicyStudio: React.FC = () => {
                       </Typography>
                     </Box>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip label={p.version} size="small" sx={{ fontWeight: 800, background: 'rgba(0,0,0,0.06)' }} />
+                      <Chip label={p.version} size="small" sx={{ fontWeight: 800, bgcolor: 'background.paper' }} />
                       {getSeverityBadge(p.severity)}
                     </Stack>
                   </Stack>

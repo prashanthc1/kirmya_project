@@ -32,9 +32,9 @@ export const CareerInsightsComponent: React.FC<CareerInsightsProps> = ({ insight
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.03)',
+              bgcolor: "action.hover",
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -66,17 +66,17 @@ export const CareerInsightsComponent: React.FC<CareerInsightsProps> = ({ insight
             sx={{
               p: 3,
               borderRadius: 3,
-              background: 'rgba(255, 255, 255, 0.03)',
+              bgcolor: "action.hover",
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <WorkIcon sx={{ color: '#9933FF' }} /> Salary Benchmarks & Growth
+              <WorkIcon sx={{ color: "primary.main" }} /> Salary Benchmarks & Growth
             </Typography>
             <Stack spacing={2}>
               {insights.salary_trends.map((st) => (
-                <Box key={st.role} sx={{ p: 1.5, borderRadius: 2, bgcolor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <Box key={st.role} sx={{ p: 1.5, borderRadius: 2, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{st.role}</Typography>
                     <Chip label={`+${st.growth_pct}% YOY`} size="small" color="success" sx={{ fontWeight: 700 }} />
@@ -96,7 +96,7 @@ export const CareerInsightsComponent: React.FC<CareerInsightsProps> = ({ insight
             sx={{
               p: 3.5,
               borderRadius: 3,
-              background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(153, 51, 255, 0.08) 100%)',
+              bgcolor: "background.paper",
               border: '1px solid rgba(153, 51, 255, 0.2)',
             }}
           >

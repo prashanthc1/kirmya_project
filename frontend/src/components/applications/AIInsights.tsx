@@ -59,14 +59,14 @@ export const AIInsights: React.FC<AIInsightsProps> = ({ insights }) => {
       sx={{
         p: 3.5,
         borderRadius: 3,
-        background: 'linear-gradient(135deg, rgba(0, 102, 255, 0.08) 0%, rgba(153, 51, 255, 0.08) 100%)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(153, 51, 255, 0.2)',
         mb: 4,
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-        <InsightsIcon sx={{ color: '#9933FF', fontSize: 28 }} />
+        <InsightsIcon sx={{ color: "primary.main", fontSize: 28 }} />
         <Typography id="application-insights-heading" variant="h6" sx={{ fontWeight: 700 }}>
           Your application outcomes
         </Typography>

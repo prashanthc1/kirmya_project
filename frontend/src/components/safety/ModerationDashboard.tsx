@@ -35,7 +35,7 @@ export const ModerationDashboard: React.FC = () => {
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
         <Box>
           <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-            <ShieldIcon sx={{ color: '#10b981', fontSize: 36 }} />
+            <ShieldIcon sx={{ color: 'success.main', fontSize: 36 }} />
             <Typography variant="h4" sx={{ fontWeight: 900 }}>
               Trust &amp; Safety Moderation Center
             </Typography>
@@ -48,28 +48,28 @@ export const ModerationDashboard: React.FC = () => {
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)' }}>
+          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? "background.paper" : "action.hover" }}>
             <Typography variant="caption" color="text.secondary">Reports Today</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, mt: 1 }}>42</Typography>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)' }}>
+          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? "background.paper" : "action.hover" }}>
             <Typography variant="caption" color="text.secondary">Open Cases</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, color: 'warning.main', mt: 1 }}>12</Typography>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)' }}>
+          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? "background.paper" : "action.hover" }}>
             <Typography variant="caption" color="text.secondary">Fake Job Reports</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, color: 'error.main', mt: 1 }}>8</Typography>
           </Card>
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)' }}>
+          <Card sx={{ p: 3, borderRadius: '24px', bgcolor: isDark ? "background.paper" : "action.hover" }}>
             <Typography variant="caption" color="text.secondary">Avg Review Time</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900, color: 'success.main', mt: 1 }}>3.4h</Typography>
           </Card>
@@ -80,9 +80,8 @@ export const ModerationDashboard: React.FC = () => {
         sx={{
           borderRadius: '24px',
           p: 3,
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
+          border: 1, borderColor: 'divider',
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Moderation Review Queue</Typography>
@@ -108,7 +107,7 @@ export const ModerationDashboard: React.FC = () => {
                   <TableCell><Typography variant="body2" sx={{ fontWeight: 800, color: 'error.main' }}>{c.risk} / 100</Typography></TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <SmartToyIcon sx={{ fontSize: 18, color: '#6366f1' }} />
+                      <SmartToyIcon sx={{ fontSize: 18, color: 'primary.main' }} />
                       <Typography variant="caption" color="text.secondary">{c.aiRec}</Typography>
                     </Stack>
                   </TableCell>

@@ -53,7 +53,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
       {/* Header Stat Cards */}
       <Grid container spacing={3}>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)', borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(16px)', borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <CardContent>
               <Typography variant="overline" color="text.secondary">
                 Total Cover Letters
@@ -65,7 +65,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)', borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(16px)', borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <CardContent>
               <Typography variant="overline" color="text.secondary">
                 Job Tailored Letters
@@ -77,7 +77,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
           </Card>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(16px)', borderRadius: 3, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(16px)', borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <CardContent>
               <Typography variant="overline" color="text.secondary">
                 AI Copilot Generations
@@ -95,7 +95,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
         <Button variant="contained" size="large" startIcon={<AddIcon />} onClick={onCreateNew} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700 }}>
           Create Cover Letter
         </Button>
-        <Button variant="outlined" size="large" startIcon={<AIIcon />} onClick={onGenerateAI} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700, borderColor: '#6366f1', color: '#818cf8' }}>
+        <Button variant="outlined" size="large" startIcon={<AIIcon />} onClick={onGenerateAI} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700, borderColor: "primary.main", color: "primary.main" }}>
           Generate With AI
         </Button>
         <Button variant="outlined" size="large" startIcon={<TemplateIcon />} onClick={onBrowseTemplates} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700 }}>
@@ -109,7 +109,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
           Your Saved Cover Letters
         </Typography>
         {letters.length === 0 ? (
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.02)', p: 6, textAlign: 'center', borderRadius: 3 }}>
+          <Card sx={{ bgcolor: "action.hover", p: 6, textAlign: 'center', borderRadius: 3 }}>
             <Typography variant="h6" fontWeight={700} color="text.secondary" mb={1}>
               No Cover Letters Yet
             </Typography>

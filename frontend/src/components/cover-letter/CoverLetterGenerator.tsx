@@ -48,9 +48,9 @@ export const CoverLetterGenerator: React.FC<CoverLetterGeneratorProps> = ({ onGe
   return (
     <Card
       sx={{
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
         p: { xs: 2, md: 4 },
       }}

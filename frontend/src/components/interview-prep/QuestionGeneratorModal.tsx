@@ -79,7 +79,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
             AI Target Question Generator
           </Typography>
         </Stack>
-        <IconButton onClick={onClose} sx={{ color: '#94A3B8' }}>
+        <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -91,7 +91,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
             fullWidth
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
-            sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+            sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
           />
 
           <TextField
@@ -99,7 +99,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
             fullWidth
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+            sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
           />
 
           <Stack direction="row" spacing={2}>
@@ -109,7 +109,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
               fullWidth
               value={category}
               onChange={(e) => setCategory(e.target.value as any)}
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             >
               <MenuItem value="Behavioral">Behavioral</MenuItem>
               <MenuItem value="Technical">Technical</MenuItem>
@@ -124,7 +124,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
               fullWidth
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value as any)}
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             >
               <MenuItem value="Beginner">Beginner</MenuItem>
               <MenuItem value="Intermediate">Intermediate</MenuItem>
@@ -139,7 +139,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
             fullWidth
             value={count}
             onChange={(e) => setCount(Number(e.target.value))}
-            sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+            sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
           >
             <MenuItem value={3}>3 Questions</MenuItem>
             <MenuItem value={5}>5 Questions</MenuItem>
@@ -149,7 +149,7 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 1 }}>
-        <Button onClick={onClose} sx={{ color: '#94A3B8' }}>
+        <Button onClick={onClose} sx={{ color: "text.secondary" }}>
           Cancel
         </Button>
         <Button
@@ -158,8 +158,8 @@ export const QuestionGeneratorModal: React.FC<QuestionGeneratorModalProps> = ({
           disabled={loading}
           startIcon={<AutoAwesome />}
           sx={{
-            background: 'linear-gradient(90deg, #F59E0B 0%, #8B5CF6 100%)',
-            color: '#fff',
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
             fontWeight: 600,
             borderRadius: 2.5,
             px: 3,

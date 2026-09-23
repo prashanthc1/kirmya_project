@@ -316,7 +316,7 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
                               : activeStep > index
                               ? 'success.main'
                               : 'action.disabledBackground',
-                          color: '#fff',
+                          color: "primary.contrastText",
                           fontSize: '0.8rem',
                           fontWeight: 700,
                         }}

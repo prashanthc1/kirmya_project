@@ -105,9 +105,9 @@ export const AdminNotificationCenter: React.FC = () => {
               borderRadius: '24px',
               p: 3,
               height: '100%',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
@@ -179,7 +179,7 @@ export const AdminNotificationCenter: React.FC = () => {
                   py: 1.2,
                   borderRadius: '12px',
                   fontWeight: 800,
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  bgcolor: "primary.main",
                 }}
               >
                 Broadcast System Announcement
@@ -194,13 +194,13 @@ export const AdminNotificationCenter: React.FC = () => {
               borderRadius: '24px',
               p: 3,
               height: '100%',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-              <BarChartIcon sx={{ color: '#6366f1', fontSize: 32 }} />
+              <BarChartIcon sx={{ color: "primary.main", fontSize: 32 }} />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 800 }}>
                   System Notification Performance
@@ -213,25 +213,25 @@ export const AdminNotificationCenter: React.FC = () => {
 
             <Grid container spacing={2} sx={{ mb: 3 }}>
               <Grid item xs={6}>
-                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Total Created</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main', mt: 0.5 }}>1,420</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6}>
-                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Successful Delivery Rate</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, color: 'success.main', mt: 0.5 }}>97.2%</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6}>
-                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>User Open / Read Rate</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, color: '#f59e0b', mt: 0.5 }}>68.5%</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={6}>
-                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+                <Paper sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Dead Letter Failures</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, color: 'error.main', mt: 0.5 }}>2.8%</Typography>
                 </Paper>
@@ -247,9 +247,9 @@ export const AdminNotificationCenter: React.FC = () => {
           borderRadius: '24px',
           p: 3,
           mb: 4,
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
@@ -338,13 +338,13 @@ export const AdminNotificationCenter: React.FC = () => {
         sx={{
           borderRadius: '24px',
           p: 3,
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-          <DescriptionIcon sx={{ color: '#8b5cf6', fontSize: 32 }} />
+          <DescriptionIcon sx={{ color: "primary.main", fontSize: 32 }} />
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
             Configured Notification System Templates
           </Typography>

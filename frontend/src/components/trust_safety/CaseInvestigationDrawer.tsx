@@ -136,8 +136,8 @@ export const CaseInvestigationDrawer: React.FC<CaseInvestigationDrawerProps> = (
           sx={{
             p: 2.5,
             borderRadius: '16px',
-            background: 'rgba(0, 0, 0, 0.03)',
-            border: '1px solid rgba(0, 0, 0, 0.08)',
+            bgcolor: 'background.paper',
+            border: 1, borderColor: 'divider',
           }}
         >
           <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1, color: 'text.secondary' }}>
@@ -177,8 +177,8 @@ export const CaseInvestigationDrawer: React.FC<CaseInvestigationDrawerProps> = (
           sx={{
             p: 2.5,
             borderRadius: '16px',
-            background: 'rgba(99, 102, 241, 0.08)',
-            border: '1px solid rgba(99, 102, 241, 0.2)',
+            bgcolor: 'background.paper',
+            border: 1, borderColor: 'divider',
           }}
         >
           <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1, color: 'indigo', display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -199,7 +199,7 @@ export const CaseInvestigationDrawer: React.FC<CaseInvestigationDrawerProps> = (
           <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1 }}>
             EVIDENCE & USER REPORTS ({caseItem.reports_count || 1})
           </Typography>
-          <List sx={{ background: 'rgba(0,0,0,0.02)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.06)' }}>
+          <List sx={{ bgcolor: 'background.paper', borderRadius: '12px', border: 1, borderColor: 'divider' }}>
             {(caseItem.evidence || [
               { type: 'text', note: 'Advance payment request of $200 requested via wire transfer.' },
               { type: 'url', url: 'https://example.com/suspicious-link' },
@@ -223,7 +223,7 @@ export const CaseInvestigationDrawer: React.FC<CaseInvestigationDrawerProps> = (
           <Typography variant="subtitle2" sx={{ fontWeight: 900, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
             <HistoryIcon fontSize="small" /> TARGET PREVIOUS VIOLATIONS ({caseItem.previous_violations_count || 0})
           </Typography>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: '12px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.06)' }}>
+          <Paper elevation={0} sx={{ p: 2, borderRadius: '12px', bgcolor: 'background.paper', border: 1, borderColor: 'divider' }}>
             {caseItem.previous_violations_count && caseItem.previous_violations_count > 0 ? (
               <Typography variant="body2" color="error.main" sx={{ fontWeight: 700 }}>
                 ⚠️ Target has {caseItem.previous_violations_count} prior policy violation record(s) on file.

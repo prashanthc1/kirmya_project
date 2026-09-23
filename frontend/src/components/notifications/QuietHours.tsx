@@ -38,14 +38,14 @@ export const QuietHours: React.FC = () => {
         borderRadius: '24px',
         p: { xs: 3, md: 4 },
         mb: 4,
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <DarkModeIcon sx={{ color: '#6366f1', fontSize: 32 }} />
+          <DarkModeIcon sx={{ color: "primary.main", fontSize: 32 }} />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 900 }}>
               Quiet Hours &amp; Do-Not-Disturb Schedule
@@ -114,7 +114,7 @@ export const QuietHours: React.FC = () => {
           borderRadius: '12px',
           fontWeight: 800,
           px: 4,
-          background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+          bgcolor: "primary.main",
         }}
       >
         Save Quiet Hours

@@ -50,9 +50,8 @@ export const CandidateResume: React.FC<Props> = ({ candidateId, candidateName })
         sx={{
           borderRadius: '24px',
           p: 3,
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
+          border: 1, borderColor: 'divider',
         }}
       >
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -81,7 +80,7 @@ export const CandidateResume: React.FC<Props> = ({ candidateId, candidateName })
               sx={{
                 borderRadius: '12px',
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                bgcolor: 'primary.main',
               }}
             >
               Download PDF Resume
@@ -98,21 +97,21 @@ export const CandidateResume: React.FC<Props> = ({ candidateId, candidateName })
 
         <Grid container spacing={2.5} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+            <Box sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
               <Typography variant="caption" color="text.secondary">ATS Parsability Score</Typography>
               <Typography variant="h4" sx={{ fontWeight: 900, color: 'success.main' }}>98/100</Typography>
               <LinearProgress variant="determinate" value={98} color="success" sx={{ mt: 1, height: 6, borderRadius: 3 }} />
             </Box>
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+            <Box sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
               <Typography variant="caption" color="text.secondary">Skill Density Score</Typography>
               <Typography variant="h4" sx={{ fontWeight: 900, color: 'primary.main' }}>94/100</Typography>
               <LinearProgress variant="determinate" value={94} color="primary" sx={{ mt: 1, height: 6, borderRadius: 3 }} />
             </Box>
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Box sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+            <Box sx={{ p: 2, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
               <Typography variant="caption" color="text.secondary">Impact & Quantified Metrics</Typography>
               <Typography variant="h4" sx={{ fontWeight: 900, color: 'info.main' }}>90/100</Typography>
               <LinearProgress variant="determinate" value={90} color="info" sx={{ mt: 1, height: 6, borderRadius: 3 }} />
@@ -125,9 +124,9 @@ export const CandidateResume: React.FC<Props> = ({ candidateId, candidateName })
           sx={{
             p: 4,
             borderRadius: '16px',
-            bgcolor: isDark ? '#0f172a' : '#ffffff',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)',
+            bgcolor: isDark ? "background.default" : '#ffffff',
+            border: 1, borderColor: 'divider',
+            boxShadow: 0,
             fontFamily: 'monospace',
           }}
         >

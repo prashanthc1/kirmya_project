@@ -26,9 +26,9 @@ interface ApplicationTimelineProps {
  */
 function iconFor(status: string) {
   const s = status.toLowerCase();
-  if (s.includes('offer')) return <LocalOfferIcon sx={{ color: '#8b5cf6' }} />;
+  if (s.includes('offer')) return <LocalOfferIcon sx={{ color: "primary.main" }} />;
   if (s.includes('interview')) return <EventIcon sx={{ color: '#f59e0b' }} />;
-  return <CheckCircleIcon sx={{ color: '#6366f1' }} />;
+  return <CheckCircleIcon sx={{ color: "primary.main" }} />;
 }
 
 export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = ({ applicationId }) => {
@@ -85,8 +85,8 @@ export const ApplicationTimeline: React.FC<ApplicationTimelineProps> = ({ applic
             sx={{
               p: 2,
               borderRadius: '14px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="flex-start">

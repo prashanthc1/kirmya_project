@@ -41,8 +41,8 @@ export const DashboardCards: React.FC<DashboardCardsProps> = ({ overview }) => {
             sx={{
               p: 2,
               borderRadius: '16px',
-              bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+              border: 1, borderColor: 'divider',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',

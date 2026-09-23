@@ -207,7 +207,7 @@ export const SignInForm: React.FC = () => {
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            sx={{ mt: -0.5 }}
+            sx={{ mt: -0.5, flexWrap: 'wrap', gap: 1 }}
           >
             <Controller
               name="rememberMe"

@@ -29,10 +29,10 @@ export default function ProfileAnalytics() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight="bold" sx={{ color: '#fff', mb: 1 }}>
+      <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
         Personal Career & Profile Analytics
       </Typography>
-      <Typography variant="body1" sx={{ color: '#94a3b8', mb: 4 }}>
+      <Typography variant="body1" sx={{ color: "text.secondary", mb: 4 }}>
         Real-time insights on your profile views, search appearances, and application outcomes.
       </Typography>
 

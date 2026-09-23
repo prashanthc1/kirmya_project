@@ -133,7 +133,7 @@ export default function FeedPage() {
                         borderRadius: `${tokens.radius.sm}px`,
                         '&:hover': {
                           color: 'text.primary',
-                          bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.04)',
+                          bgcolor: isDark ? "action.hover" : "background.paper",
                         },
                       }}
                     >
@@ -155,9 +155,9 @@ export default function FeedPage() {
               sx={{
                 p: 3,
                 borderRadius: `${tokens.radius.lg}px`,
-                background: isDark
-                  ? 'linear-gradient(135deg, rgba(129, 140, 248, 0.12) 0%, rgba(30, 41, 59, 0.9) 100%)'
-                  : 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, #ffffff 100%)',
+                bgcolor: isDark
+                  ? "background.paper"
+                  : "background.paper",
               }}
             >
               <Typography variant="h5" component="h1" sx={{ fontWeight: 800, mb: 0.5 }}>

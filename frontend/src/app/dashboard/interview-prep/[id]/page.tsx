@@ -98,7 +98,7 @@ export default function WorkspaceDetailPage() {
     return (
       <Container maxWidth="lg" sx={{ py: 6, textCenter: 'center' }}>
         <Typography variant="h5" color="error">Preparation Workspace Not Found</Typography>
-        <Button component={Link} href="/dashboard/interview-prep" sx={{ mt: 2, color: '#60A5FA' }}>Return to Dashboard</Button>
+        <Button component={Link} href="/dashboard/interview-prep" sx={{ mt: 2, color: "primary.main" }}>Return to Dashboard</Button>
       </Container>
     );
   }
@@ -112,14 +112,14 @@ export default function WorkspaceDetailPage() {
           p: 3,
           mb: 4,
           borderRadius: 4,
-          background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%)',
+          bgcolor: "background.paper",
           backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          color: '#fff',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          color: "text.primary",
         }}
       >
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-          <Button component={Link} href="/dashboard/interview-prep" startIcon={<ArrowBack />} sx={{ color: '#94A3B8', textTransform: 'none' }}>
+          <Button component={Link} href="/dashboard/interview-prep" startIcon={<ArrowBack />} sx={{ color: "text.secondary", textTransform: 'none' }}>
             Back to All Preparations
           </Button>
         </Stack>
@@ -127,16 +127,16 @@ export default function WorkspaceDetailPage() {
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} justifyContent="space-between" alignItems={{ md: 'center' }}>
           <Box>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-              <Typography variant="h4" fontWeight={700} sx={{ color: '#F8FAFC' }}>
+              <Typography variant="h4" fontWeight={700} sx={{ color: "text.primary" }}>
                 {prep?.company_name} - {prep?.job_title}
               </Typography>
               <Chip label={prep?.status} color="success" size="small" />
             </Stack>
 
             <Stack direction="row" spacing={1} flexWrap="wrap" gap={1} mt={1}>
-              <Chip label={prep?.interview_type} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.06)', color: '#CBD5E1' }} />
-              <Chip label={prep?.interview_round} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.06)', color: '#CBD5E1' }} />
-              <Chip label={prep?.experience_level} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.06)', color: '#CBD5E1' }} />
+              <Chip label={prep?.interview_type} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
+              <Chip label={prep?.interview_round} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
+              <Chip label={prep?.experience_level} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
             </Stack>
           </Box>
 
@@ -145,7 +145,7 @@ export default function WorkspaceDetailPage() {
               variant="outlined"
               startIcon={<AutoAwesome />}
               onClick={() => setGenModalOpen(true)}
-              sx={{ borderColor: 'rgba(96, 165, 250, 0.4)', color: '#60A5FA', borderRadius: 2.5, textTransform: 'none', fontWeight: 600 }}
+              sx={{ borderColor: 'rgba(96, 165, 250, 0.4)', color: "primary.main", borderRadius: 2.5, textTransform: 'none', fontWeight: 600 }}
             >
               Generate AI Questions
             </Button>
@@ -156,8 +156,8 @@ export default function WorkspaceDetailPage() {
               variant="contained"
               startIcon={<PlayArrow />}
               sx={{
-                background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-                color: '#fff',
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
                 fontWeight: 600,
                 borderRadius: 2.5,
                 textTransform: 'none',
@@ -177,10 +177,10 @@ export default function WorkspaceDetailPage() {
             {/* Question Library */}
             <Box>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography variant="h5" fontWeight={700} sx={{ color: '#F8FAFC' }}>
+                <Typography variant="h5" fontWeight={700} sx={{ color: "text.primary" }}>
                   Preparation Question Library ({questions.length})
                 </Typography>
-                <Button size="small" startIcon={<Add />} onClick={() => setGenModalOpen(true)} sx={{ color: '#60A5FA', textTransform: 'none' }}>
+                <Button size="small" startIcon={<Add />} onClick={() => setGenModalOpen(true)} sx={{ color: "primary.main", textTransform: 'none' }}>
                   Generate More
                 </Button>
               </Stack>
@@ -191,7 +191,7 @@ export default function WorkspaceDetailPage() {
                 ))}
 
                 {questions.length === 0 && !loading && (
-                  <Typography variant="body2" sx={{ color: '#64748B', textAlign: 'center', py: 3 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary", textAlign: 'center', py: 3 }}>
                     No target questions generated yet. Click &apos;Generate AI Questions&apos; above.
                   </Typography>
                 )}

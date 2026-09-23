@@ -41,7 +41,7 @@ export const AIReviewStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={springs.entrance}>
       <GlassCard sx={{ p: { xs: 3, md: 5 } }}>
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-          <AutoAwesomeIcon sx={{ color: '#a855f7', fontSize: 32 }} />
+          <AutoAwesomeIcon sx={{ color: "primary.main", fontSize: 32 }} />
           <Typography variant="h4" sx={{ fontWeight: 800 }}>
             AI Profile Review &amp; Insights
           </Typography>
@@ -59,8 +59,8 @@ export const AIReviewStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
                 sx={{
                   p: 2.5,
                   borderRadius: '16px',
-                  bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
                   textAlign: 'center',
                 }}
               >
@@ -76,7 +76,7 @@ export const AIReviewStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
                   sx={{
                     height: 6,
                     borderRadius: 3,
-                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                    bgcolor: "action.hover",
                     '& .MuiLinearProgress-bar': { bgcolor: m.color, borderRadius: 3 },
                   }}
                 />
@@ -96,7 +96,7 @@ export const AIReviewStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
             mb: 4,
           }}
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#a855f7', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "primary.main", mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
             <TrendingUpIcon /> AI Strategic Recommendations
           </Typography>
 
@@ -141,7 +141,7 @@ export const AIReviewStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
               borderRadius: '12px',
               fontWeight: 800,
               textTransform: 'none',
-              background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+              bgcolor: "primary.main",
             }}
           >
             Review &amp; Finalize

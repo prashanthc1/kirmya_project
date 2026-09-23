@@ -23,9 +23,9 @@ export const LearningSuggestions: React.FC<LearningSuggestionsProps> = ({ insigh
           sx={{
             p: 3,
             borderRadius: 3,
-            background: 'rgba(255, 255, 255, 0.03)',
+            bgcolor: "action.hover",
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -60,17 +60,17 @@ export const LearningSuggestions: React.FC<LearningSuggestionsProps> = ({ insigh
           sx={{
             p: 3,
             borderRadius: 3,
-            background: 'rgba(255, 255, 255, 0.03)',
+            bgcolor: "action.hover",
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <WorkspacePremiumIcon sx={{ color: '#9933FF' }} /> Recommended Certifications
+            <WorkspacePremiumIcon sx={{ color: "primary.main" }} /> Recommended Certifications
           </Typography>
           <Stack spacing={1.5}>
             {insights.recommended_certifications.map((cert) => (
-              <Box key={cert} sx={{ p: 1.5, borderRadius: 2, bgcolor: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+              <Box key={cert} sx={{ p: 1.5, borderRadius: 2, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}` }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{cert}</Typography>
                 <Chip label="High Hiring Impact" size="small" color="secondary" sx={{ mt: 0.8, fontWeight: 700, fontSize: '0.68rem' }} />
               </Box>

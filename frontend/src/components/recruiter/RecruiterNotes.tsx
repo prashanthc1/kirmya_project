@@ -108,9 +108,9 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
           borderRadius: '20px',
           p: 3,
           mb: 3,
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>
@@ -160,7 +160,7 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
               borderRadius: '12px',
               fontWeight: 800,
               px: 3,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              bgcolor: "primary.main",
             }}
           >
             Post Private Note
@@ -204,7 +204,7 @@ export const RecruiterNotes: React.FC<Props> = ({ candidateId, candidateName }) 
               borderRadius: '16px',
               p: 2.5,
               border: n.isPinned ? '2px solid #6366f1' : '1px solid rgba(255, 255, 255, 0.1)',
-              bgcolor: isDark ? 'rgba(15, 23, 42, 0.5)' : 'rgba(248, 250, 252, 0.9)',
+              bgcolor: isDark ? "background.paper" : 'rgba(248, 250, 252, 0.9)',
             }}
           >
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>

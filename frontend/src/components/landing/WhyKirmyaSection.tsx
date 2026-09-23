@@ -72,7 +72,7 @@ export const WhyKirmyaSection: React.FC = () => {
             variant="h2"
             sx={{
               fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' },
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: '-0.03em',
               lineHeight: 1.1,
               mb: 1.5,
@@ -89,12 +89,14 @@ export const WhyKirmyaSection: React.FC = () => {
           {cards.map((card, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
               <Card
-                elevation={1}
+                elevation={0}
                 sx={{
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   borderRadius: `${tokens.radius.lg}px`,
+                  border: '1px solid',
+                  borderColor: 'divider',
                 }}
               >
                 <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>

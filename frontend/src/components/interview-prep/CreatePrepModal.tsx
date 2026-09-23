@@ -70,12 +70,12 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <AutoAwesome sx={{ color: '#60A5FA' }} />
+          <AutoAwesome sx={{ color: "primary.main" }} />
           <Typography variant="h6" fontWeight={700}>
             New Interview Preparation Workspace
           </Typography>
         </Stack>
-        <IconButton onClick={onClose} sx={{ color: '#94A3B8' }}>
+        <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -90,7 +90,7 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               placeholder="e.g. Google, Microsoft, Stripe"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
 
             <TextField
@@ -100,7 +100,7 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               placeholder="e.g. Senior Frontend Engineer"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
 
             <Stack direction="row" spacing={2}>
@@ -110,7 +110,7 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
                 fullWidth
                 value={interviewType}
                 onChange={(e) => setInterviewType(e.target.value as any)}
-                sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+                sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
               >
                 <MenuItem value="Behavioral">Behavioral</MenuItem>
                 <MenuItem value="Technical">Technical</MenuItem>
@@ -125,7 +125,7 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
                 fullWidth
                 value={interviewRound}
                 onChange={(e) => setInterviewRound(e.target.value as any)}
-                sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+                sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
               >
                 <MenuItem value="Recruiter Round">Recruiter Round</MenuItem>
                 <MenuItem value="Hiring Manager">Hiring Manager</MenuItem>
@@ -141,7 +141,7 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
                 fullWidth
                 value={experienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value as any)}
-                sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+                sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
               >
                 <MenuItem value="Entry-Level">Entry-Level</MenuItem>
                 <MenuItem value="Mid-Level">Mid-Level</MenuItem>
@@ -155,7 +155,7 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
                 fullWidth
                 value={preparationDuration}
                 onChange={(e) => setPreparationDuration(e.target.value as any)}
-                sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+                sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
               >
                 <MenuItem value="3 Days">3 Days</MenuItem>
                 <MenuItem value="7 Days">7 Days</MenuItem>
@@ -172,13 +172,13 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste key responsibilities or target requirements..."
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
           </Stack>
         </DialogContent>
 
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={onClose} sx={{ color: '#94A3B8' }}>
+          <Button onClick={onClose} sx={{ color: "text.secondary" }}>
             Cancel
           </Button>
           <Button
@@ -186,8 +186,8 @@ export const CreatePrepModal: React.FC<CreatePrepModalProps> = ({ open, onClose,
             variant="contained"
             disabled={loading}
             sx={{
-              background: 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-              color: '#fff',
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               fontWeight: 600,
               borderRadius: 2.5,
               px: 3,

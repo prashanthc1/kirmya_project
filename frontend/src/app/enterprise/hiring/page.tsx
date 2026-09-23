@@ -114,19 +114,19 @@ export default function EnterpriseHiringWorkspacePage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: '100dvh', color: "text.primary", py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#38bdf8', p: 1.5, borderRadius: 2, color: '#0f172a', display: 'flex' }}>
+            <Box sx={{ bgcolor: "primary.main", p: 1.5, borderRadius: 2, color: "primary.contrastText", display: 'flex' }}>
               <BusinessIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
                 Enterprise Hiring Solution & Governance
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 {enterprise?.name || 'Stripe Global Enterprise'} • {enterprise?.industry || 'Fintech Infrastructure'}
               </Typography>
             </Box>
@@ -134,29 +134,29 @@ export default function EnterpriseHiringWorkspacePage() {
 
           <Box sx={{ display: 'flex', gap: 1.5 }}>
             <Chip icon={<VerifiedUserIcon />} label="ENTERPRISE PREMIUM TIER" color="primary" sx={{ fontWeight: 'bold' }} />
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenTeamModal(true)} sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenTeamModal(true)} sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }}>
               Create Hiring Team
             </Button>
           </Box>
         </Box>
 
         {successMsg && (
-          <Alert severity="success" onClose={() => setSuccessMsg(null)} sx={{ mb: 3, bgcolor: '#0c4a6e', color: '#38bdf8' }}>
+          <Alert severity="success" onClose={() => setSuccessMsg(null)} sx={{ mb: 3, bgcolor: '#0c4a6e', color: "primary.main" }}>
             {successMsg}
           </Alert>
         )}
 
         {/* Navigation Tabs */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+        <Paper sx={{ mb: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
           <Tabs
             value={tabValue}
             onChange={(_, val) => setTabValue(val)}
             textColor="inherit"
             indicatorColor="primary"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#38bdf8' },
+              '& .MuiTabs-indicator': { bgcolor: "primary.main" },
+              '& .MuiTab-root': { color: "text.secondary", fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: "primary.main" },
             }}
           >
             <Tab icon={<GroupsIcon fontSize="small" />} iconPosition="start" label="Hiring Teams & Departments" />
@@ -165,28 +165,28 @@ export default function EnterpriseHiringWorkspacePage() {
           </Tabs>
         </Paper>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: "background.paper", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />}
 
         {/* Tab 0: Hiring Teams */}
         {tabValue === 0 && (
           <Grid container spacing={3}>
             {teams.map((team) => (
               <Grid item xs={12} md={6} key={team.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+                <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Typography variant="overline" fontWeight="bold" sx={{ color: '#38bdf8' }}>
+                      <Typography variant="overline" fontWeight="bold" sx={{ color: "primary.main" }}>
                         {team.department_name}
                       </Typography>
-                      <Chip label={`${team.member_count} Recruiters`} size="small" sx={{ bgcolor: '#334155', color: '#fff' }} />
+                      <Chip label={`${team.member_count} Recruiters`} size="small" sx={{ bgcolor: "action.hover", color: '#fff' }} />
                     </Box>
 
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 2 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 2 }}>
                       {team.team_name}
                     </Typography>
 
-                    <Box sx={{ bgcolor: '#0f172a', p: 2, borderRadius: 2, border: '1px solid #334155' }}>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>Team Lead:</Typography>
+                    <Box sx={{ bgcolor: "background.default", p: 2, borderRadius: 2, border: (theme) => `1px solid ${theme.palette.divider}` }}>
+                      <Typography variant="caption" sx={{ color: "text.secondary", display: 'block' }}>Team Lead:</Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#10b981' }}>
                         {team.team_lead_name}
                       </Typography>
@@ -202,7 +202,7 @@ export default function EnterpriseHiringWorkspacePage() {
         {tabValue === 1 && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenPoolModal(true)} sx={{ borderColor: '#38bdf8', color: '#38bdf8', fontWeight: 'bold' }}>
+              <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenPoolModal(true)} sx={{ borderColor: "primary.main", color: "primary.main", fontWeight: 'bold' }}>
                 New Talent Pipeline
               </Button>
             </Box>
@@ -210,20 +210,20 @@ export default function EnterpriseHiringWorkspacePage() {
             <Grid container spacing={3}>
               {pools.map((pool) => (
                 <Grid item xs={12} md={6} key={pool.id}>
-                  <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+                  <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5 }}>
                     <CardContent sx={{ p: 3 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary" }}>
                           {pool.name}
                         </Typography>
                         <Chip label={`${pool.candidate_count} Candidates`} color="primary" sx={{ fontWeight: 'bold' }} />
                       </Box>
 
-                      <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2 }}>
+                      <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
                         {pool.description}
                       </Typography>
 
-                      <Button variant="contained" fullWidth sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+                      <Button variant="contained" fullWidth sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }}>
                         View Bulk Candidates Pipeline
                       </Button>
                     </CardContent>
@@ -236,27 +236,27 @@ export default function EnterpriseHiringWorkspacePage() {
 
         {/* Tab 2: Security Audit Logs */}
         {tabValue === 2 && (
-          <TableContainer component={Paper} sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+          <TableContainer component={Paper} sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
             <Table>
-              <TableHead sx={{ bgcolor: '#0f172a' }}>
+              <TableHead sx={{ bgcolor: "background.default" }}>
                 <TableRow>
-                  <TableCell sx={{ color: '#38bdf8', fontWeight: 'bold' }}>Actor</TableCell>
-                  <TableCell sx={{ color: '#38bdf8', fontWeight: 'bold' }}>Action</TableCell>
-                  <TableCell sx={{ color: '#38bdf8', fontWeight: 'bold' }}>Resource Affected</TableCell>
-                  <TableCell sx={{ color: '#38bdf8', fontWeight: 'bold' }}>IP Address</TableCell>
-                  <TableCell sx={{ color: '#38bdf8', fontWeight: 'bold' }}>Timestamp</TableCell>
+                  <TableCell sx={{ color: "primary.main", fontWeight: 'bold' }}>Actor</TableCell>
+                  <TableCell sx={{ color: "primary.main", fontWeight: 'bold' }}>Action</TableCell>
+                  <TableCell sx={{ color: "primary.main", fontWeight: 'bold' }}>Resource Affected</TableCell>
+                  <TableCell sx={{ color: "primary.main", fontWeight: 'bold' }}>IP Address</TableCell>
+                  <TableCell sx={{ color: "primary.main", fontWeight: 'bold' }}>Timestamp</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {auditLogs.map((log) => (
-                  <TableRow key={log.id} sx={{ '&:hover': { bgcolor: '#334155' } }}>
-                    <TableCell sx={{ color: '#f8fafc', fontWeight: 'bold' }}>{log.actor_email}</TableCell>
+                  <TableRow key={log.id} sx={{ '&:hover': { bgcolor: "action.hover" } }}>
+                    <TableCell sx={{ color: "text.primary", fontWeight: 'bold' }}>{log.actor_email}</TableCell>
                     <TableCell>
-                      <Chip label={log.action} size="small" sx={{ bgcolor: '#0284c7', color: '#fff', fontWeight: 'bold' }} />
+                      <Chip label={log.action} size="small" sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }} />
                     </TableCell>
-                    <TableCell sx={{ color: '#94a3b8' }}>{log.resource}</TableCell>
-                    <TableCell sx={{ color: '#94a3b8' }}>{log.ip_address}</TableCell>
-                    <TableCell sx={{ color: '#94a3b8' }}>{new Date(log.created_at).toLocaleTimeString()}</TableCell>
+                    <TableCell sx={{ color: "text.secondary" }}>{log.resource}</TableCell>
+                    <TableCell sx={{ color: "text.secondary" }}>{log.ip_address}</TableCell>
+                    <TableCell sx={{ color: "text.secondary" }}>{new Date(log.created_at).toLocaleTimeString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -266,7 +266,7 @@ export default function EnterpriseHiringWorkspacePage() {
 
         {/* Create Team Modal */}
         <Dialog open={openTeamModal} onClose={() => setOpenTeamModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: '#1e293b', color: '#fff', border: '1px solid #334155' } }}>
-          <DialogTitle sx={{ fontWeight: 'bold', color: '#38bdf8' }}>Create Enterprise Hiring Team</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 'bold', color: "primary.main" }}>Create Enterprise Hiring Team</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
               <TextField
@@ -288,8 +288,8 @@ export default function EnterpriseHiringWorkspacePage() {
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenTeamModal(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleCreateTeam} variant="contained" sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+            <Button onClick={() => setOpenTeamModal(false)} sx={{ color: "text.secondary" }}>Cancel</Button>
+            <Button onClick={handleCreateTeam} variant="contained" sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }}>
               Create Team
             </Button>
           </DialogActions>
@@ -297,7 +297,7 @@ export default function EnterpriseHiringWorkspacePage() {
 
         {/* Create Pool Modal */}
         <Dialog open={openPoolModal} onClose={() => setOpenPoolModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: '#1e293b', color: '#fff', border: '1px solid #334155' } }}>
-          <DialogTitle sx={{ fontWeight: 'bold', color: '#38bdf8' }}>Create Talent Pipeline</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 'bold', color: "primary.main" }}>Create Talent Pipeline</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
               <TextField
@@ -321,8 +321,8 @@ export default function EnterpriseHiringWorkspacePage() {
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenPoolModal(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleCreatePool} variant="contained" sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+            <Button onClick={() => setOpenPoolModal(false)} sx={{ color: "text.secondary" }}>Cancel</Button>
+            <Button onClick={handleCreatePool} variant="contained" sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }}>
               Create Talent Pool
             </Button>
           </DialogActions>

@@ -58,7 +58,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onClose, onAdd
         <Typography variant="h6" fontWeight={700}>
           Add Preparation Task
         </Typography>
-        <IconButton onClick={onClose} sx={{ color: '#94A3B8' }}>
+        <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
           <Close />
         </IconButton>
       </DialogTitle>
@@ -73,7 +73,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onClose, onAdd
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Prepare system architecture diagrams"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             />
 
             <TextField
@@ -82,7 +82,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onClose, onAdd
               fullWidth
               value={category}
               onChange={(e) => setCategory(e.target.value as any)}
-              sx={{ '& .MuiOutlinedInput-root': { color: '#fff' }, '& .MuiInputLabel-root': { color: '#94A3B8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: "text.primary" }, '& .MuiInputLabel-root': { color: "text.secondary" } }}
             >
               <MenuItem value="General">General</MenuItem>
               <MenuItem value="Research">Company Research</MenuItem>
@@ -93,7 +93,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onClose, onAdd
         </DialogContent>
 
         <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={onClose} sx={{ color: '#94A3B8' }}>
+          <Button onClick={onClose} sx={{ color: "text.secondary" }}>
             Cancel
           </Button>
           <Button
@@ -101,8 +101,8 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({ open, onClose, onAdd
             variant="contained"
             disabled={loading}
             sx={{
-              background: '#3B82F6',
-              color: '#fff',
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
               fontWeight: 600,
               borderRadius: 2.5,
               px: 2.5,

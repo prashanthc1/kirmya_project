@@ -12,7 +12,7 @@ export interface VersionManagerProps {
 
 export const VersionManager: React.FC<VersionManagerProps> = ({ versions, onRestore }) => {
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 3, background: 'rgba(255, 255, 255, 0.03)', backdropFilter: 'blur(12px)' }}>
+    <Paper sx={{ p: 2.5, borderRadius: 3, bgcolor: "action.hover", backdropFilter: 'blur(12px)' }}>
       <Box display="flex" alignItems="center" gap={1} mb={2}>
         <HistoryIcon color="primary" />
         <Typography variant="h6" fontWeight={700}>
@@ -33,8 +33,8 @@ export const VersionManager: React.FC<VersionManagerProps> = ({ versions, onRest
                 mb: 1,
                 p: 1.5,
                 borderRadius: 2,
-                background: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                bgcolor: "action.hover",
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 justifyContent: 'space-between',
               }}

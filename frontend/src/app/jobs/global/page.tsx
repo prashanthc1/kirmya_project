@@ -92,28 +92,28 @@ export default function GlobalJobMarketplacePage() {
   const getWorkArrangementBadge = (arr: string) => {
     switch (arr) {
       case 'remote':
-        return <Chip label="REMOTE" size="small" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }} />;
+        return <Chip label="REMOTE" size="small" sx={{ bgcolor: '#10b981', color: "success.contrastText", fontWeight: 'bold' }} />;
       case 'hybrid':
-        return <Chip label="HYBRID" size="small" sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }} />;
+        return <Chip label="HYBRID" size="small" sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }} />;
       default:
-        return <Chip label="ON-SITE" size="small" sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold' }} />;
+        return <Chip label="ON-SITE" size="small" sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }} />;
     }
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: '100dvh', color: "text.primary", py: 4 }}>
       <Container maxWidth="xl">
         {/* Header Bar */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#38bdf8', p: 1.5, borderRadius: 2, color: '#0f172a', display: 'flex' }}>
+            <Box sx={{ bgcolor: "primary.main", p: 1.5, borderRadius: 2, color: "primary.contrastText", display: 'flex' }}>
               <LanguageIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
                 Global Job Marketplace Infrastructure
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 International job discovery across UAE 🇦🇪, India 🇮🇳, Saudi Arabia / GCC 🇸🇦, & Global Remote 🌎
               </Typography>
             </Box>
@@ -121,12 +121,12 @@ export default function GlobalJobMarketplacePage() {
 
           {/* Currency Switcher */}
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel sx={{ color: '#38bdf8' }}>Display Currency</InputLabel>
+            <InputLabel sx={{ color: "primary.main" }}>Display Currency</InputLabel>
             <Select
               value={selectedCurrency}
               label="Display Currency"
               onChange={(e) => setSelectedCurrency(e.target.value)}
-              sx={{ color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' } }}
+              sx={{ color: "text.primary", '& .MuiOutlinedInput-notchedOutline': { borderColor: "divider" } }}
             >
               <MenuItem value="ORIGINAL">Local Currency</MenuItem>
               {currencies.map((curr) => (
@@ -139,7 +139,7 @@ export default function GlobalJobMarketplacePage() {
         </Box>
 
         {/* Region Filter Tabs */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+        <Paper sx={{ mb: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
           <Tabs
             value={selectedRegion}
             onChange={(_, val) => handleRegionChange(val)}
@@ -148,9 +148,9 @@ export default function GlobalJobMarketplacePage() {
             variant="scrollable"
             scrollButtons="auto"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#38bdf8' },
+              '& .MuiTabs-indicator': { bgcolor: "primary.main" },
+              '& .MuiTab-root': { color: "text.secondary", fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: "primary.main" },
             }}
           >
             <Tab icon={<LanguageIcon fontSize="small" />} iconPosition="start" label="All Global Markets" value="ALL" />
@@ -163,7 +163,7 @@ export default function GlobalJobMarketplacePage() {
 
         {/* Work Arrangement Filters */}
         <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 'bold', mr: 1 }}>Work Arrangement:</Typography>
+          <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 'bold', mr: 1 }}>Work Arrangement:</Typography>
           <Chip
             label="All Arrangements"
             clickable
@@ -194,18 +194,18 @@ export default function GlobalJobMarketplacePage() {
           />
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: "background.paper", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />}
 
         {/* International Jobs Cards Grid */}
         <Grid container spacing={3}>
           {jobs.map((item) => (
             <Grid item xs={12} md={6} key={item.job_id}>
-              <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="h5">{item.primary_location.flag_emoji}</Typography>
-                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                      <Typography variant="subtitle2" fontWeight="bold" sx={{ color: "text.primary" }}>
                         {item.primary_location.country_name} ({item.primary_location.city})
                       </Typography>
                     </Box>
@@ -213,15 +213,15 @@ export default function GlobalJobMarketplacePage() {
                     {getWorkArrangementBadge(item.primary_location.work_arrangement)}
                   </Box>
 
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 0.5 }}>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 0.5 }}>
                     {item.title}
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: '#38bdf8', fontWeight: 'bold', mb: 2 }}>
+                  <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 'bold', mb: 2 }}>
                     {item.company}
                   </Typography>
 
-                  <Box sx={{ bgcolor: '#0f172a', border: '1px solid #334155', borderRadius: 2, p: 2, mb: 2 }}>
+                  <Box sx={{ bgcolor: "background.default", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2, p: 2, mb: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AttachMoneyIcon sx={{ color: '#10b981' }} />
@@ -234,7 +234,7 @@ export default function GlobalJobMarketplacePage() {
                         icon={<AutoAwesomeIcon fontSize="small" />}
                         label={`${item.match_score}% MATCH`}
                         size="small"
-                        sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
+                        sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }}
                       />
                     </Box>
                   </Box>
@@ -242,7 +242,7 @@ export default function GlobalJobMarketplacePage() {
                   <Button
                     variant="contained"
                     fullWidth
-                    sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1, mt: 'auto' }}
+                    sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', py: 1, mt: 'auto' }}
                   >
                     1-Click Global Apply
                   </Button>

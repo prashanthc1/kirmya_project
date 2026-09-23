@@ -37,31 +37,35 @@ export default function GlobalError({
       <head>
         <title>Application Error | Kirmya</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>{`
+          button { font-family: inherit; min-height: 44px; touch-action: manipulation; }
+          button:focus-visible { outline: 2px solid #80bfff; outline-offset: 3px; }
+          button:active { transform: scale(.97); }
+          @media (prefers-reduced-motion: reduce) { button:active { transform: none; } }
+          @media (prefers-contrast: more) { main { border-color: #f5f5f7 !important; } }
+        `}</style>
       </head>
       <body
         style={{
           margin: 0,
           padding: 0,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          backgroundColor: '#0A0D14',
-          color: '#F9FAFB',
+          backgroundColor: '#161617',
+          color: '#f5f5f7',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100dvh',
         }}
       >
-        <div
+        <main
           style={{
-            maxWidth: '520px',
+            maxWidth: '32.5rem',
             width: '90%',
             padding: '2.5rem',
-            backgroundColor: 'rgba(255, 255, 255, 0.04)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '20px',
+            backgroundColor: '#242426',
+            borderRadius: '1.5rem',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
             textAlign: 'center',
           }}
         >
@@ -79,13 +83,13 @@ export default function GlobalError({
               marginBottom: '1.5rem',
             }}
           >
-            ⚠️
+            <span aria-hidden="true">!</span>
           </div>
 
           <h1
             style={{
               fontSize: '1.6rem',
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: '-0.02em',
               margin: '0 0 0.75rem 0',
               color: '#FFFFFF',
@@ -98,7 +102,7 @@ export default function GlobalError({
             style={{
               fontSize: '0.95rem',
               lineHeight: 1.6,
-              color: '#9CA3AF',
+              color: '#b8b8be',
               margin: '0 0 2rem 0',
             }}
           >
@@ -119,8 +123,8 @@ export default function GlobalError({
                 padding: '12px 24px',
                 borderRadius: '10px',
                 border: 'none',
-                backgroundColor: '#3B82F6',
-                color: '#FFFFFF',
+                backgroundColor: '#80bfff',
+                color: '#1d1d1f',
                 fontSize: '0.95rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -146,7 +150,7 @@ export default function GlobalError({
               Go to Home
             </button>
           </div>
-        </div>
+        </main>
       </body>
     </html>
   );

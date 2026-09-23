@@ -74,10 +74,10 @@ export const SupportTicketDetails: React.FC<{ ticketId: string }> = ({ ticketId 
             sx={{
               p: 2.5,
               borderRadius: '16px',
-              bgcolor: m.sender_type === 'user' ? 'primary.50' : 'action.hover',
+              bgcolor: m.sender_type === 'user' ? "action.hover" : 'action.hover',
               alignSelf: m.sender_type === 'user' ? 'flex-end' : 'flex-start',
               maxWidth: '85%',
-              border: '1px solid rgba(0,0,0,0.06)',
+              border: 1, borderColor: 'divider',
             }}
           >
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, mb: 0.5, display: 'block' }}>

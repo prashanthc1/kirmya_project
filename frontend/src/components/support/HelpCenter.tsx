@@ -48,9 +48,8 @@ export const HelpCenter: React.FC = () => {
           borderRadius: '24px',
           p: { xs: 4, md: 6 },
           mb: 4,
-          background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(156, 39, 176, 0.08) 100%)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          bgcolor: 'background.paper',
+          border: 1, borderColor: 'divider',
           textAlign: 'center',
         }}
       >
@@ -95,10 +94,8 @@ export const HelpCenter: React.FC = () => {
                 display: 'block',
                 textDecoration: 'none',
                 color: 'inherit',
-                transition: 'transform 0.2s, box-shadow 0.2s',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
+                  boxShadow: 0,
                 },
               }}
             >

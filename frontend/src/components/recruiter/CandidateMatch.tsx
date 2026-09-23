@@ -57,9 +57,8 @@ export const CandidateMatch: React.FC<Props> = ({ candidateId, candidateName }) 
         sx={{
           borderRadius: '24px',
           p: 3,
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
+          border: 1, borderColor: 'divider',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
@@ -81,8 +80,8 @@ export const CandidateMatch: React.FC<Props> = ({ candidateId, candidateName }) 
                 p: 3,
                 borderRadius: '20px',
                 textAlign: 'center',
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
+                bgcolor: 'background.paper',
+                border: 1, borderColor: 'divider',
               }}
             >
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>
@@ -163,7 +162,7 @@ export const CandidateMatch: React.FC<Props> = ({ candidateId, candidateName }) 
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Box sx={{ p: 3, borderRadius: '16px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)' }}>
+            <Box sx={{ p: 3, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
                 AI Recommendation Summary
               </Typography>

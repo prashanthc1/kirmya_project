@@ -85,10 +85,10 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({ currentStep, t
         sx={{
           height: 8,
           borderRadius: 4,
-          bgcolor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+          bgcolor: isDark ? "action.hover" : 'rgba(0, 0, 0, 0.08)',
           '& .MuiLinearProgress-bar': {
             borderRadius: 4,
-            background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+            bgcolor: "primary.main",
           },
         }}
       />

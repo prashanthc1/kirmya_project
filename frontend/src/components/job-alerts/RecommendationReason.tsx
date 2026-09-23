@@ -34,14 +34,14 @@ export const RecommendationReason: React.FC<RecommendationReasonProps> = ({ reco
       sx={{
         p: 3.5,
         borderRadius: 3,
-        background: 'rgba(255, 255, 255, 0.03)',
+        bgcolor: "action.hover",
         backdropFilter: 'blur(16px)',
         border: '1px solid rgba(153, 51, 255, 0.3)',
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <AutoAwesomeIcon sx={{ color: '#9933FF', fontSize: 32 }} />
+          <AutoAwesomeIcon sx={{ color: "primary.main", fontSize: 32 }} />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
               AI Match Breakdown
@@ -54,7 +54,7 @@ export const RecommendationReason: React.FC<RecommendationReasonProps> = ({ reco
         <MatchScoreIndicator score={score.overall_score} size={64} />
       </Box>
 
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#9933FF' }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: "primary.main" }}>
         Recommendation Reasons
       </Typography>
       <Stack spacing={1} sx={{ mb: 3 }}>
@@ -68,7 +68,7 @@ export const RecommendationReason: React.FC<RecommendationReasonProps> = ({ reco
         ))}
       </Stack>
 
-      <Divider sx={{ my: 2.5, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+      <Divider sx={{ my: 2.5, borderColor: "divider" }} />
 
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
         Multi-Dimensional Scoring Vector
@@ -86,7 +86,7 @@ export const RecommendationReason: React.FC<RecommendationReasonProps> = ({ reco
               sx={{
                 height: 6,
                 borderRadius: 3,
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                bgcolor: "action.hover",
                 '& .MuiLinearProgress-bar': { bgcolor: item.color },
               }}
             />

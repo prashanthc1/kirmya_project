@@ -46,13 +46,13 @@ export const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({ onAction
       sx={{
         background: 'rgba(99, 102, 241, 0.08)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(99, 102, 241, 0.25)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
         p: 2,
       }}
     >
       <Box display="flex" alignItems="center" mb={1.5} gap={1}>
-        <AIIcon sx={{ color: '#818cf8' }} />
+        <AIIcon sx={{ color: "primary.main" }} />
         <Typography variant="h6" fontWeight={700} color="text.primary">
           AI Copilot Assistant
         </Typography>
@@ -75,9 +75,9 @@ export const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({ onAction
             sx={{
               borderRadius: 2,
               borderColor: 'rgba(99, 102, 241, 0.4)',
-              color: '#c7d2fe',
+              color: "primary.main",
               '&:hover': {
-                borderColor: '#6366f1',
+                borderColor: "primary.main",
                 background: 'rgba(99, 102, 241, 0.15)',
               },
             }}

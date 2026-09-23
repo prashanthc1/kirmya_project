@@ -53,9 +53,9 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
         sx={{
           borderRadius: '24px',
           p: 3,
-          bgcolor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.16)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
         }}
       >

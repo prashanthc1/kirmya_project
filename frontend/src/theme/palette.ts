@@ -1,63 +1,32 @@
 import { PaletteOptions } from '@mui/material/styles';
 
-/**
- * Restrained Light and Dark Mode Color Palettes (Prompt 13/50)
- * 
- * Philosophy:
- * - Neutral page backgrounds with subtle contrast against elevated surfaces.
- * - Single recognizable primary brand color (Indigo) with refined states.
- * - High-contrast text meeting WCAG AA/AAA standards.
- * - Restrained semantic status colors (Success, Warning, Error, Info).
- */
+/** Neutral materials, one blue accent, and distinct semantic status colors. */
 
 export const getPalette = (mode: 'light' | 'dark'): PaletteOptions => {
   const isLight = mode === 'light';
 
   return {
     mode,
-    /*
-     * F15. Every filled button on the site failed WCAG AA on contrast.
-     *
-     * White on the dark-mode primary #818cf8 measures 2.98:1 against a required
-     * 4.5:1, and white on the light-mode #6366f1 measures 4.47:1 — just under.
-     * That is not an edge case: it is the submit button on sign-in and
-     * registration, and every primary call to action on the marketing pages.
-     *
-     * The two modes are fixed differently on purpose. Light mode deepens the
-     * indigo so white text passes. Dark mode keeps the bright indigo the design
-     * is built around and flips the label to the dark ink instead, which reads
-     * at 5.98:1 — darkening it there would have made every button muddy against
-     * the dark ground for no accessibility gain.
-     */
     primary: {
-      main: isLight ? '#4f46e5' : '#818cf8',
-      light: isLight ? '#a5b4fc' : '#c7d2fe',
-      // `dark` is the hover fill, and it has to move *away* from the label, not
-      // toward it. In light mode the label is white, so hover deepens; in dark
-      // mode the label is the dark ink, so hover lightens. Keeping the usual
-      // darker shade there put #0f172a on #6366f1 at 4.00:1 — every primary
-      // button in dark mode failed AA the moment a pointer touched it.
-      dark: isLight ? '#4338ca' : '#a5b4fc',
-      // white on #4f46e5 = 6.29:1, on #4338ca = 7.53:1
-      // #0f172a on #818cf8 = 5.98:1, on #a5b4fc = 8.96:1
-      contrastText: isLight ? '#ffffff' : '#0f172a',
+      main: isLight ? '#0066cc' : '#80bfff',
+      light: isLight ? '#e6f2ff' : '#b3d9ff',
+      dark: isLight ? '#0055aa' : '#a6d2ff',
+      contrastText: isLight ? '#ffffff' : '#1d1d1f',
     },
     secondary: {
-      main: isLight ? '#db2777' : '#f472b6',
-      light: isLight ? '#f472b6' : '#fbcfe8',
-      dark: isLight ? '#be185d' : '#f9a8d4',
-      // white on #db2777 = 4.60:1, on #be185d = 6.05:1
-      // #0f172a on #f472b6 = 6.74:1, on #f9a8d4 = 9.84:1
-      contrastText: isLight ? '#ffffff' : '#0f172a',
+      main: isLight ? '#515154' : '#c7c7cc',
+      light: isLight ? '#e8e8ed' : '#e5e5ea',
+      dark: isLight ? '#3a3a3c' : '#e5e5ea',
+      contrastText: isLight ? '#ffffff' : '#1d1d1f',
     },
     background: {
-      default: isLight ? '#f8fafc' : '#0f172a',
-      paper: isLight ? '#ffffff' : '#1e293b',
+      default: isLight ? '#f5f5f7' : '#161617',
+      paper: isLight ? '#ffffff' : '#242426',
     },
     text: {
-      primary: isLight ? '#0f172a' : '#f8fafc',
-      secondary: isLight ? '#475569' : '#cbd5e1',
-      disabled: isLight ? '#94a3b8' : '#64748b',
+      primary: isLight ? '#1d1d1f' : '#f5f5f7',
+      secondary: isLight ? '#626267' : '#b8b8be',
+      disabled: isLight ? '#86868b' : '#77777d',
     },
     divider: isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)',
     /*
@@ -106,10 +75,10 @@ export const getPalette = (mode: 'light' | 'dark'): PaletteOptions => {
     action: {
       active: isLight ? 'rgba(15, 23, 42, 0.54)' : 'rgba(255, 255, 255, 0.7)',
       hover: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-      selected: isLight ? 'rgba(99, 102, 241, 0.08)' : 'rgba(129, 140, 248, 0.12)',
+      selected: isLight ? 'rgba(0, 102, 204, 0.08)' : 'rgba(128, 191, 255, 0.12)',
       disabled: isLight ? 'rgba(15, 23, 42, 0.26)' : 'rgba(255, 255, 255, 0.3)',
       disabledBackground: isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.08)',
-      focus: isLight ? 'rgba(99, 102, 241, 0.12)' : 'rgba(129, 140, 248, 0.16)',
+      focus: isLight ? 'rgba(0, 102, 204, 0.12)' : 'rgba(128, 191, 255, 0.16)',
     },
   };
 };

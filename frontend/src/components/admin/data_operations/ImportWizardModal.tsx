@@ -76,11 +76,11 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { bgcolor: '#0f172a', color: '#f8fafc', border: '1px solid #334155', borderRadius: 2.5 } }}>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: '#a855f7' }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'primary.main' }}>
         <CloudUploadIcon /> Step-by-Step CSV Data Import Wizard
       </DialogTitle>
-      <DialogContent dividers sx={{ borderColor: '#334155' }}>
-        <Stepper activeStep={activeStep} sx={{ mb: 3, '& .MuiStepLabel-label': { color: '#94a3b8' }, '& .Mui-active .MuiStepLabel-label': { color: '#a855f7', fontWeight: 'bold' } }}>
+      <DialogContent dividers sx={{ borderColor: 'divider' }}>
+        <Stepper activeStep={activeStep} sx={{ mb: 3, '& .MuiStepLabel-label': { color: 'text.secondary' }, '& .Mui-active .MuiStepLabel-label': { color: 'primary.main', fontWeight: 'bold' } }}>
           {STEPS.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -100,7 +100,7 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
               value={importType}
               onChange={(e) => setImportType(e.target.value)}
               margin="normal"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#f8fafc', borderColor: '#334155' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: 'text.primary', borderColor: 'divider' }, '& .MuiInputLabel-root': { color: 'text.secondary' } }}
             >
               <MenuItem value="jobs">Job Postings (Jobs Schema)</MenuItem>
               <MenuItem value="skills">Technical & Professional Skills</MenuItem>
@@ -115,7 +115,7 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
               value={strategy}
               onChange={(e) => setStrategy(e.target.value)}
               margin="normal"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#f8fafc', borderColor: '#334155' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: 'text.primary', borderColor: 'divider' }, '& .MuiInputLabel-root': { color: 'text.secondary' } }}
             >
               <MenuItem value="create_or_update">Create or Update Existing Matches</MenuItem>
               <MenuItem value="create_only">Create Only (Ignore Existing)</MenuItem>
@@ -134,7 +134,7 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
               value={filename}
               onChange={(e) => setFilename(e.target.value)}
               margin="normal"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#f8fafc' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: 'text.primary' }, '& .MuiInputLabel-root': { color: 'text.secondary' } }}
             />
             <TextField
               fullWidth
@@ -144,9 +144,9 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
               value={csvContent}
               onChange={(e) => setCsvContent(e.target.value)}
               margin="normal"
-              sx={{ '& .MuiOutlinedInput-root': { color: '#f8fafc', fontFamily: 'monospace' }, '& .MuiInputLabel-root': { color: '#94a3b8' } }}
+              sx={{ '& .MuiOutlinedInput-root': { color: 'text.primary', fontFamily: 'monospace' }, '& .MuiInputLabel-root': { color: 'text.secondary' } }}
             />
-            <Alert severity="info" sx={{ mt: 1, bgcolor: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8' }}>
+            <Alert severity="info" sx={{ mt: 1, bgcolor: 'background.paper', color: 'primary.main' }}>
               Formula injection protection is active. Any leading =, +, -, @ will be safely escaped.
             </Alert>
           </Box>
@@ -155,7 +155,7 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
         {/* Step 2: Dry-Run Preview */}
         {activeStep === 2 && preview && (
           <Box sx={{ py: 2 }}>
-            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#38bdf8', mb: 1 }}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ color: 'primary.main', mb: 1 }}>
               Dry-Run Validation Summary (No Database Changes Made)
             </Typography>
 
@@ -166,20 +166,20 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
               <Chip label={`Duplicates: ${preview.duplicateCount}`} color="warning" />
             </Box>
 
-            <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 1 }}>DETECTED & MAPPED COLUMNS</Typography>
-            <Paper sx={{ p: 1.5, bgcolor: '#1e293b', mb: 2 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>DETECTED & MAPPED COLUMNS</Typography>
+            <Paper sx={{ p: 1.5, bgcolor: 'background.paper', mb: 2 }}>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {Object.entries(preview.mappedFields).map(([target, csvCol]) => (
-                  <Chip key={target} label={`${csvCol} → ${target}`} size="small" variant="outlined" sx={{ color: '#a855f7', borderColor: '#a855f7' }} />
+                  <Chip key={target} label={`${csvCol} → ${target}`} size="small" variant="outlined" sx={{ color: 'primary.main', borderColor: 'primary.main' }} />
                 ))}
               </Box>
             </Paper>
 
-            <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 1 }}>SAMPLE PREVIEW ROWS</Typography>
-            <TableContainer component={Paper} sx={{ bgcolor: '#1e293b', maxHeight: 200 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>SAMPLE PREVIEW ROWS</Typography>
+            <TableContainer component={Paper} sx={{ bgcolor: 'background.paper', maxHeight: 200 }}>
               <Table size="small">
                 <TableHead>
-                  <TableRow sx={{ '& th': { color: '#94a3b8' } }}>
+                  <TableRow sx={{ '& th': { color: 'text.secondary' } }}>
                     {preview.detectedColumns.map((c) => (
                       <TableCell key={c}>{c}</TableCell>
                     ))}
@@ -187,7 +187,7 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
                 </TableHead>
                 <TableBody>
                   {preview.sampleRows.map((r, idx) => (
-                    <TableRow key={idx} sx={{ '& td': { color: '#f8fafc' } }}>
+                    <TableRow key={idx} sx={{ '& td': { color: 'text.primary' } }}>
                       {preview.detectedColumns.map((c) => (
                         <TableCell key={c}>{r[c] || ''}</TableCell>
                       ))}
@@ -201,15 +201,15 @@ export default function ImportWizardModal({ open, onClose, onComplete }: ImportW
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} sx={{ color: '#94a3b8' }}>Cancel</Button>
+        <Button onClick={onClose} sx={{ color: 'text.secondary' }}>Cancel</Button>
         {activeStep > 0 && activeStep < 2 && (
-          <Button onClick={() => setActiveStep(activeStep - 1)} sx={{ color: '#94a3b8' }}>Back</Button>
+          <Button onClick={() => setActiveStep(activeStep - 1)} sx={{ color: 'text.secondary' }}>Back</Button>
         )}
         {activeStep === 0 && (
-          <Button variant="contained" onClick={() => setActiveStep(1)} sx={{ bgcolor: '#a855f7' }}>Next: Upload File</Button>
+          <Button variant="contained" onClick={() => setActiveStep(1)} sx={{ bgcolor: 'primary.main' }}>Next: Upload File</Button>
         )}
         {activeStep === 1 && (
-          <Button variant="contained" disabled={loading} onClick={handlePreview} sx={{ bgcolor: '#a855f7' }}>
+          <Button variant="contained" disabled={loading} onClick={handlePreview} sx={{ bgcolor: 'primary.main' }}>
             {loading ? 'Validating...' : 'Validate & Preview'}
           </Button>
         )}

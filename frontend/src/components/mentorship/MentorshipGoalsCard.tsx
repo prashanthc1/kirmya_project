@@ -97,10 +97,10 @@ export const MentorshipGoalsCard: React.FC<MentorshipGoalsCardProps> = ({
   return (
     <Card
       sx={{
-        background: (theme) =>
+        bgcolor: (theme) =>
           theme.palette.mode === 'light'
-            ? 'rgba(255, 255, 255, 0.8)'
-            : 'rgba(30, 41, 59, 0.8)',
+            ? "action.hover"
+            : "background.paper",
         backdropFilter: 'blur(16px)',
         border: (theme) =>
           theme.palette.mode === 'light'
@@ -135,7 +135,7 @@ export const MentorshipGoalsCard: React.FC<MentorshipGoalsCardProps> = ({
             sx={{
               borderRadius: '10px',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+              bgcolor: "primary.main",
             }}
           >
             Add Goal
@@ -164,7 +164,7 @@ export const MentorshipGoalsCard: React.FC<MentorshipGoalsCardProps> = ({
                   : 'rgba(129, 140, 248, 0.15)',
               '& .MuiLinearProgress-bar': {
                 borderRadius: 5,
-                background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 100%)',
+                bgcolor: "primary.main",
               },
             }}
           />
@@ -200,8 +200,8 @@ export const MentorshipGoalsCard: React.FC<MentorshipGoalsCardProps> = ({
                           ? 'rgba(34, 197, 94, 0.06)'
                           : 'rgba(34, 197, 94, 0.1)'
                         : theme.palette.mode === 'light'
-                        ? 'rgba(255, 255, 255, 0.6)'
-                        : 'rgba(15, 23, 42, 0.4)',
+                        ? "action.hover"
+                        : "background.paper",
                     border: (theme) =>
                       isDone
                         ? '1px solid rgba(34, 197, 94, 0.3)'

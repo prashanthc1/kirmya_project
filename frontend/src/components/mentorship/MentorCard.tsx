@@ -41,10 +41,10 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onRequestMentors
   return (
     <Card
       sx={{
-        background: (theme) =>
+        bgcolor: (theme) =>
           theme.palette.mode === 'light'
-            ? 'rgba(255, 255, 255, 0.75)'
-            : 'rgba(30, 41, 59, 0.75)',
+            ? "action.hover"
+            : "background.paper",
         backdropFilter: 'blur(16px)',
         border: (theme) =>
           theme.palette.mode === 'light'
@@ -60,7 +60,7 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onRequestMentors
           transform: 'translateY(-4px)',
           boxShadow: (theme) =>
             theme.palette.mode === 'light'
-              ? '0 16px 40px 0 rgba(99, 102, 241, 0.15)'
+              ? "none"
               : '0 16px 40px 0 rgba(0, 0, 0, 0.5)',
         },
         height: '100%',
@@ -219,8 +219,8 @@ export const MentorCard: React.FC<MentorCardProps> = ({ mentor, onRequestMentors
               sx={{
                 borderRadius: '12px',
                 fontWeight: 600,
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.35)',
+                bgcolor: "primary.main",
+                boxShadow: "none",
               }}
             >
               Request

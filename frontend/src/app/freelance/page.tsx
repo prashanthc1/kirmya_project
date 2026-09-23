@@ -135,19 +135,19 @@ export default function FreelanceMarketplacePage() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: '100dvh', color: "text.primary", py: 4 }}>
       <Container maxWidth="xl">
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ bgcolor: '#10b981', p: 1.5, borderRadius: 2, color: '#0f172a', display: 'flex' }}>
+            <Box sx={{ bgcolor: '#10b981', p: 1.5, borderRadius: 2, color: "success.contrastText", display: 'flex' }}>
               <WorkIcon fontSize="large" />
             </Box>
             <Box>
-              <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #10b981 0%, #38bdf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Typography variant="h4" fontWeight="bold" sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
                 Kirmya Freelance & Gig Marketplace
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 Helping transitioning professionals earn income through short-term contract opportunities
               </Typography>
             </Box>
@@ -157,7 +157,7 @@ export default function FreelanceMarketplacePage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setOpenPostModal(true)}
-            sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold', px: 3, py: 1.2 }}
+            sx={{ bgcolor: '#10b981', color: "success.contrastText", fontWeight: 'bold', px: 3, py: 1.2 }}
           >
             Post Short-Term Project
           </Button>
@@ -186,7 +186,7 @@ export default function FreelanceMarketplacePage() {
           <Alert
             severity={capability === 'suspended' ? 'warning' : 'info'}
             icon={<WorkIcon fontSize="inherit" />}
-            sx={{ mb: 3, bgcolor: '#0f172a', color: '#e2e8f0', border: '1px solid #334155' }}
+            sx={{ mb: 3, bgcolor: "background.default", color: "text.primary", border: (theme) => `1px solid ${theme.palette.divider}` }}
             action={
               capability === 'suspended' ? undefined : (
                 <Button
@@ -209,7 +209,7 @@ export default function FreelanceMarketplacePage() {
         )}
 
         {/* Navigation Tabs */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+        <Paper sx={{ mb: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
           <Tabs
             value={tabValue}
             onChange={(_, val) => setTabValue(val)}
@@ -217,7 +217,7 @@ export default function FreelanceMarketplacePage() {
             indicatorColor="primary"
             sx={{
               '& .MuiTabs-indicator': { bgcolor: '#10b981' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
+              '& .MuiTab-root': { color: "text.secondary", fontWeight: 'bold', textTransform: 'none' },
               '& .Mui-selected': { color: '#10b981' },
             }}
           >
@@ -226,26 +226,26 @@ export default function FreelanceMarketplacePage() {
           </Tabs>
         </Paper>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: "background.paper", '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />}
 
         {/* Tab 0: Open Projects Grid */}
         {tabValue === 0 && (
           <Grid container spacing={3}>
             {projects.map((proj) => (
               <Grid item xs={12} md={6} key={proj.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                      <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', flex: 1, mr: 1 }}>
+                      <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", flex: 1, mr: 1 }}>
                         {proj.title}
                       </Typography>
                       <Chip
                         label={proj.budget_type === 'fixed' ? `Fixed $${proj.budget}` : `$${proj.budget}/hr`}
-                        sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }}
+                        sx={{ bgcolor: '#10b981', color: "success.contrastText", fontWeight: 'bold' }}
                       />
                     </Box>
 
-                    <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2.5, lineHeight: 1.6 }}>
+                    <Typography variant="body2" sx={{ color: "text.secondary", mb: 2.5, lineHeight: 1.6 }}>
                       {proj.description}
                     </Typography>
 
@@ -257,7 +257,7 @@ export default function FreelanceMarketplacePage() {
                           icon={<CodeIcon fontSize="small" />}
                           label={skill}
                           size="small"
-                          sx={{ bgcolor: '#0f172a', color: '#38bdf8', border: '1px solid #334155' }}
+                          sx={{ bgcolor: "background.default", color: "primary.main", border: (theme) => `1px solid ${theme.palette.divider}` }}
                         />
                       ))}
                     </Box>
@@ -286,10 +286,10 @@ export default function FreelanceMarketplacePage() {
           <Grid container spacing={3}>
             {contracts.map((contract) => (
               <Grid item xs={12} md={6} key={contract.id}>
-                <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+                <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                      <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary" }}>
                         {contract.project_title}
                       </Typography>
                       <Chip label="ACTIVE CONTRACT" color="success" size="small" sx={{ fontWeight: 'bold' }} />
@@ -299,7 +299,7 @@ export default function FreelanceMarketplacePage() {
                       Total Agreed Value: ${contract.total_amount}
                     </Typography>
 
-                    <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 2 }}>
+                    <Typography variant="caption" sx={{ color: "text.secondary", display: 'block', mb: 2 }}>
                       Contract ID: {contract.id}
                     </Typography>
 
@@ -351,8 +351,8 @@ export default function FreelanceMarketplacePage() {
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenProposalModal(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleSubmitProposal} variant="contained" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }}>
+            <Button onClick={() => setOpenProposalModal(false)} sx={{ color: "text.secondary" }}>Cancel</Button>
+            <Button onClick={handleSubmitProposal} variant="contained" sx={{ bgcolor: '#10b981', color: "success.contrastText", fontWeight: 'bold' }}>
               Send Proposal to Client
             </Button>
           </DialogActions>
@@ -395,8 +395,8 @@ export default function FreelanceMarketplacePage() {
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setOpenPostModal(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleCreateProject} variant="contained" sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold' }}>
+            <Button onClick={() => setOpenPostModal(false)} sx={{ color: "text.secondary" }}>Cancel</Button>
+            <Button onClick={handleCreateProject} variant="contained" sx={{ bgcolor: '#10b981', color: "success.contrastText", fontWeight: 'bold' }}>
               Publish Project
             </Button>
           </DialogActions>

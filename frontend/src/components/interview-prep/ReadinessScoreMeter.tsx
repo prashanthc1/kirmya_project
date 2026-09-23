@@ -20,10 +20,10 @@ export const ReadinessScoreMeter: React.FC<ReadinessScoreMeterProps> = ({ score 
       sx={{
         p: 3,
         borderRadius: 4,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        color: "text.primary",
       }}
     >
       <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
@@ -45,7 +45,7 @@ export const ReadinessScoreMeter: React.FC<ReadinessScoreMeterProps> = ({ score 
             size={90}
             thickness={6}
             sx={{
-              color: '#3B82F6',
+              color: "primary.main",
               position: 'absolute',
               left: 0,
               '& .MuiCircularProgress-circle': { strokeLinecap: 'round' },
@@ -58,10 +58,10 @@ export const ReadinessScoreMeter: React.FC<ReadinessScoreMeterProps> = ({ score 
               flexDirection: 'column',
             }}
           >
-            <Typography variant="h5" fontWeight={800} sx={{ color: '#F8FAFC' }}>
+            <Typography variant="h5" fontWeight={800} sx={{ color: "text.primary" }}>
               {overall}%
             </Typography>
-            <Typography variant="caption" sx={{ color: '#94A3B8', fontSize: '0.65rem' }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontSize: '0.65rem' }}>
               READINESS
             </Typography>
           </Box>
@@ -70,30 +70,30 @@ export const ReadinessScoreMeter: React.FC<ReadinessScoreMeterProps> = ({ score 
         <Stack spacing={1.2} flex={1}>
           <Box>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.3 }}>
-              <Typography variant="caption" sx={{ color: '#CBD5E1', fontWeight: 600 }}>Technical Depth</Typography>
-              <Typography variant="caption" fontWeight={700} sx={{ color: '#60A5FA' }}>{technical}%</Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>Technical Depth</Typography>
+              <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main" }}>{technical}%</Typography>
             </Stack>
-            <Box sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-              <Box sx={{ width: `${technical}%`, height: '100%', bgcolor: '#3B82F6', borderRadius: 3 }} />
+            <Box sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", overflow: 'hidden' }}>
+              <Box sx={{ width: `${technical}%`, height: '100%', bgcolor: "primary.main", borderRadius: 3 }} />
             </Box>
           </Box>
 
           <Box>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.3 }}>
-              <Typography variant="caption" sx={{ color: '#CBD5E1', fontWeight: 600 }}>Behavioral STAR</Typography>
-              <Typography variant="caption" fontWeight={700} sx={{ color: '#A78BFA' }}>{behavioral}%</Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>Behavioral STAR</Typography>
+              <Typography variant="caption" fontWeight={700} sx={{ color: "primary.main" }}>{behavioral}%</Typography>
             </Stack>
-            <Box sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-              <Box sx={{ width: `${behavioral}%`, height: '100%', bgcolor: '#8B5CF6', borderRadius: 3 }} />
+            <Box sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", overflow: 'hidden' }}>
+              <Box sx={{ width: `${behavioral}%`, height: '100%', bgcolor: "primary.main", borderRadius: 3 }} />
             </Box>
           </Box>
 
           <Box>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.3 }}>
-              <Typography variant="caption" sx={{ color: '#CBD5E1', fontWeight: 600 }}>Communication</Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>Communication</Typography>
               <Typography variant="caption" fontWeight={700} sx={{ color: '#34D399' }}>{communication}%</Typography>
             </Stack>
-            <Box sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <Box sx={{ height: 6, borderRadius: 3, bgcolor: "action.hover", overflow: 'hidden' }}>
               <Box sx={{ width: `${communication}%`, height: '100%', bgcolor: '#10B981', borderRadius: 3 }} />
             </Box>
           </Box>

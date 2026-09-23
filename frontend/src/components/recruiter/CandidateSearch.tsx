@@ -45,7 +45,7 @@ export const CandidateSearch: React.FC<CandidateSearchProps> = ({ onSearch }) =>
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LocationOnIcon sx={{ color: '#ec4899' }} />
+                  <LocationOnIcon sx={{ color: 'primary.main' }} />
                 </InputAdornment>
               ),
             }}

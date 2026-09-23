@@ -40,9 +40,8 @@ export default function AdminTrustSafetyDashboardPage() {
           p: 4,
           mb: 4,
           borderRadius: '28px',
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(236, 72, 153, 0.12) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
+          bgcolor: 'background.paper',
+          border: 1, borderColor: 'divider',
         }}
       >
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2}>
@@ -74,7 +73,7 @@ export default function AdminTrustSafetyDashboardPage() {
       {/* Metrics Summary Grid */}
       <Grid container spacing={2.5} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', bgcolor: 'background.paper',  border: 1, borderColor: 'divider' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>TOTAL REPORTS (ALL TIME)</Typography>
             <Typography variant="h3" sx={{ fontWeight: 900, mt: 0.5 }}>{metrics?.total_reports || 142}</Typography>
             <Typography variant="caption" color="success.main" sx={{ fontWeight: 700 }}>+12% vs last week</Typography>
@@ -82,7 +81,7 @@ export default function AdminTrustSafetyDashboardPage() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', bgcolor: 'background.paper',  border: 1, borderColor: 'divider' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>OPEN MODERATION CASES</Typography>
             <Typography variant="h3" sx={{ fontWeight: 900, color: 'warning.main', mt: 0.5 }}>{metrics?.open_cases || 12}</Typography>
             <Typography variant="caption" color="warning.main" sx={{ fontWeight: 700 }}>{metrics?.high_risk_count || 2} High Risk Cases</Typography>
@@ -90,7 +89,7 @@ export default function AdminTrustSafetyDashboardPage() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', bgcolor: 'background.paper',  border: 1, borderColor: 'divider' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>RESOLVED TODAY</Typography>
             <Typography variant="h3" sx={{ fontWeight: 900, color: 'success.main', mt: 0.5 }}>{metrics?.resolved_today || 18}</Typography>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>Avg: {metrics?.avg_resolution_time_hrs || 3.8} hrs</Typography>
@@ -98,7 +97,7 @@ export default function AdminTrustSafetyDashboardPage() {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: '22px', bgcolor: 'background.paper',  border: 1, borderColor: 'divider' }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800 }}>PENDING APPEALS</Typography>
             <Typography variant="h3" sx={{ fontWeight: 900, color: 'info.main', mt: 0.5 }}>{metrics?.pending_appeals || 2}</Typography>
             <Typography variant="caption" color="info.main" sx={{ fontWeight: 700 }}>{metrics?.active_restrictions || 3} Active Restrictions</Typography>
@@ -114,9 +113,8 @@ export default function AdminTrustSafetyDashboardPage() {
             sx={{
               p: 3,
               borderRadius: '24px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
@@ -148,9 +146,8 @@ export default function AdminTrustSafetyDashboardPage() {
             sx={{
               p: 3,
               borderRadius: '24px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
@@ -182,9 +179,8 @@ export default function AdminTrustSafetyDashboardPage() {
             sx={{
               p: 3,
               borderRadius: '24px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              bgcolor: 'background.paper',
+              border: 1, borderColor: 'divider',
               height: '100%',
               display: 'flex',
               flexDirection: 'column',

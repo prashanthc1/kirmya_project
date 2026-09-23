@@ -53,7 +53,7 @@ export const HiringCharts: React.FC = () => {
                   sx={{
                     height: 8,
                     borderRadius: 4,
-                    bgcolor: 'rgba(255, 255, 255, 0.08)',
+                    bgcolor: 'action.hover',
                     '& .MuiLinearProgress-bar': { bgcolor: st.color, borderRadius: 4 },
                   }}
                 />
@@ -67,7 +67,7 @@ export const HiringCharts: React.FC = () => {
       <Grid item xs={12} md={5}>
         <GlassCard sx={{ p: 3, height: '100%' }}>
           <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-            <BarChartIcon sx={{ color: '#10b981' }} />
+            <BarChartIcon sx={{ color: 'success.main' }} />
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
               Candidate Source Channels
             </Typography>
@@ -81,8 +81,8 @@ export const HiringCharts: React.FC = () => {
                 sx={{
                   p: 2,
                   borderRadius: '14px',
-                  bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                  border: 1, borderColor: 'divider',
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
@@ -99,7 +99,7 @@ export const HiringCharts: React.FC = () => {
                   sx={{
                     height: 6,
                     borderRadius: 3,
-                    bgcolor: 'rgba(255, 255, 255, 0.08)',
+                    bgcolor: 'action.hover',
                     '& .MuiLinearProgress-bar': { bgcolor: src.color, borderRadius: 3 },
                   }}
                 />

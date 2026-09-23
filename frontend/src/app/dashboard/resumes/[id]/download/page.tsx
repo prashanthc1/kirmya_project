@@ -31,7 +31,7 @@ export default function ResumeDownloadPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 8 }}>
-      <Paper elevation={0} sx={{ p: 5, borderRadius: 4, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'center' }}>
+      <Paper elevation={0} sx={{ p: 5, borderRadius: 4, bgcolor: "action.hover", border: (theme) => `1px solid ${theme.palette.divider}`, textAlign: 'center' }}>
         <CheckCircleIcon sx={{ fontSize: 64, color: '#00CC66', mb: 2 }} />
 
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>

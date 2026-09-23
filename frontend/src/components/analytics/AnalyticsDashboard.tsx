@@ -38,10 +38,10 @@ export default function AnalyticsDashboard() {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: '#fff' }}>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary" }}>
             Platform Product Intelligence & Executive Dashboard
           </Typography>
-          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             Data Freshness: {overview?.data_freshness_timestamp ? new Date(overview.data_freshness_timestamp).toLocaleTimeString() : 'Just now'} • Latency: {overview?.event_processing_latency_ms ?? 4.2}ms
           </Typography>
         </Box>
@@ -50,7 +50,7 @@ export default function AnalyticsDashboard() {
           variant="contained"
           startIcon={<DownloadIcon />}
           onClick={() => setExportOpen(true)}
-          sx={{ bgcolor: '#0284c7', color: '#fff', fontWeight: 'bold', borderRadius: 2 }}
+          sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', borderRadius: 2 }}
         >
           Export Data
         </Button>

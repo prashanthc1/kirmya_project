@@ -78,8 +78,8 @@ export const DirectorySearchBar: React.FC<DirectorySearchBarProps> = ({ onSearch
               fontWeight: 800,
               textTransform: 'none',
               minWidth: 160,
-              background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-              boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
+              bgcolor: "primary.main",
+              boxShadow: "none",
             }}
           >
             Find Companies

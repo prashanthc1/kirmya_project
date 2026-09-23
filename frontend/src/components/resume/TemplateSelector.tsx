@@ -31,20 +31,18 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 p: 2.5,
                 borderRadius: 3,
                 cursor: 'pointer',
-                background: isSelected ? 'rgba(0, 102, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                bgcolor: isSelected ? 'rgba(0, 102, 255, 0.08)' : "action.hover",
                 border: isSelected ? '2px solid #0066FF' : '1px solid rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(16px)',
                 transition: surfaceTransition(0.2),
                 position: 'relative',
                 '&:hover': {
                   borderColor: 'primary.main',
-                  transform: 'translateY(-2px)',
                 },
               }}
             >
               {isSelected && (
                 <Box sx={{ position: 'absolute', top: 12, right: 12 }}>
-                  <CheckCircleIcon sx={{ color: '#0066FF', fontSize: 26 }} />
+                  <CheckCircleIcon sx={{ color: 'primary.main', fontSize: 26 }} />
                 </Box>
               )}
 
@@ -53,8 +51,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 sx={{
                   height: 140,
                   borderRadius: 2,
-                  bgcolor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  bgcolor: 'action.hover',
+                  border: 1, borderColor: 'divider',
                   p: 2,
                   mb: 2,
                   display: 'flex',
@@ -64,11 +62,11 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 }}
               >
                 <Box sx={{ height: 12, width: '40%', bgcolor: 'primary.main', borderRadius: 1 }} />
-                <Box sx={{ height: 6, width: '70%', bgcolor: 'rgba(255, 255, 255, 0.3)', borderRadius: 1 }} />
-                <Box sx={{ height: 1, bgcolor: 'rgba(255, 255, 255, 0.1)', my: 0.5 }} />
-                <Box sx={{ height: 6, width: '90%', bgcolor: 'rgba(255, 255, 255, 0.2)', borderRadius: 1 }} />
-                <Box sx={{ height: 6, width: '85%', bgcolor: 'rgba(255, 255, 255, 0.2)', borderRadius: 1 }} />
-                <Box sx={{ height: 6, width: '60%', bgcolor: 'rgba(255, 255, 255, 0.2)', borderRadius: 1 }} />
+                <Box sx={{ height: 6, width: '70%', bgcolor: 'action.hover', borderRadius: 1 }} />
+                <Box sx={{ height: 1, bgcolor: 'action.hover', my: 0.5 }} />
+                <Box sx={{ height: 6, width: '90%', bgcolor: 'action.hover', borderRadius: 1 }} />
+                <Box sx={{ height: 6, width: '85%', bgcolor: 'action.hover', borderRadius: 1 }} />
+                <Box sx={{ height: 6, width: '60%', bgcolor: 'action.hover', borderRadius: 1 }} />
               </Box>
 
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
@@ -82,11 +80,11 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                 <Chip
                   label={`${tpl.atsCompatibility}% ATS Compatible`}
-                  icon={<VerifiedIcon sx={{ fontSize: '14px !important', color: '#00CC66' }} />}
+                  icon={<VerifiedIcon sx={{ fontSize: '14px !important', color: 'success.main' }} />}
                   size="small"
                   sx={{
-                    bgcolor: 'rgba(0, 204, 102, 0.1)',
-                    color: '#00CC66',
+                    bgcolor: 'background.paper',
+                    color: 'success.main',
                     fontWeight: 700,
                     fontSize: '0.75rem',
                   }}

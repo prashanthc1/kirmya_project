@@ -79,7 +79,7 @@ export const SavedSearchManager: React.FC<SavedSearchManagerProps> = ({
 
       <DialogContent>
         {/* Form to Save Current Search */}
-        <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+        <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.5 }}>
             Save Active Search Parameters
           </Typography>
@@ -122,8 +122,8 @@ export const SavedSearchManager: React.FC<SavedSearchManagerProps> = ({
               sx={{
                 p: 2,
                 borderRadius: '14px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',

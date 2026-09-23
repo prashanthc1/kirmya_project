@@ -100,8 +100,8 @@ export const ExperienceStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 position: 'relative',
               }}
             >
@@ -205,7 +205,7 @@ export const ExperienceStep: React.FC<StepProps> = ({ onNext, onPrev }) => {
                       size="small"
                       startIcon={<AutoAwesomeIcon fontSize="small" />}
                       onClick={() => handleAIRewrite(idx)}
-                      sx={{ color: '#a855f7', fontWeight: 700, textTransform: 'none', fontSize: '0.75rem' }}
+                      sx={{ color: "primary.main", fontWeight: 700, textTransform: 'none', fontSize: '0.75rem' }}
                     >
                       AI Rewrite &amp; Enhance
                     </Button>

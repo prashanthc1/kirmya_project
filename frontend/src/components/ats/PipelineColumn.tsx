@@ -38,8 +38,8 @@ export const PipelineColumn: React.FC<PipelineColumnProps> = ({
         maxWidth: 320,
         p: 2,
         borderRadius: '16px',
-        bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.6)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         display: 'flex',
         flexDirection: 'column',
       }}

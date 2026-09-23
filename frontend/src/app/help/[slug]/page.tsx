@@ -80,9 +80,9 @@ export default function KnowledgeBaseArticlePage() {
         sx={{
           borderRadius: '24px',
           p: { xs: 3, md: 5 },
-          bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          border: (theme) => `1px solid ${theme.palette.divider}`,
         }}
       >
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>

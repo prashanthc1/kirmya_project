@@ -136,15 +136,15 @@ export default function EventsPage() {
 
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: '100dvh', color: "text.primary", py: 4 }}>
       <Container maxWidth="xl">
         {/* Title Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{ bgcolor: "transparent", WebkitBackgroundClip: 'text', WebkitTextFillColor: "currentColor" }}>
               Professional Networking Events & Webinars Studio
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               Discover career fairs, technical webinars, virtual hiring hackathons, and community meetups with live streaming integration.
             </Typography>
           </Box>
@@ -153,45 +153,45 @@ export default function EventsPage() {
             variant="contained"
             onClick={() => setHostModalOpen(true)}
             startIcon={<AddIcon />}
-            sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold', py: 1, '&:hover': { bgcolor: '#0284c7' } }}
+            sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', py: 1, '&:hover': { bgcolor: "primary.main" } }}
           >
             Host an Event
           </Button>
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: "background.paper", '& .MuiLinearProgress-bar': { bgcolor: "primary.main" } }} />}
 
         {/* Category Filter Bar */}
-        <Paper sx={{ p: 2, mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ color: '#94a3b8', mr: 1, fontWeight: 'bold' }}>Filter Events:</Typography>
+        <Paper sx={{ p: 2, mb: 3, bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", mr: 1, fontWeight: 'bold' }}>Filter Events:</Typography>
           <Chip
             label="All Categories"
             onClick={() => setSelectedCategory('')}
-            sx={{ bgcolor: selectedCategory === '' ? '#38bdf8' : '#0f172a', color: selectedCategory === '' ? '#0f172a' : '#94a3b8', fontWeight: 'bold' }}
+            sx={{ bgcolor: selectedCategory === '' ? "primary.main" : "background.default", color: selectedCategory === '' ? "primary.contrastText" : "text.secondary", fontWeight: 'bold' }}
           />
           <Chip
             icon={<WorkIcon fontSize="small" sx={{ color: 'inherit !important' }} />}
             label="Hiring Fairs"
             onClick={() => setSelectedCategory('hiring_event')}
-            sx={{ bgcolor: selectedCategory === 'hiring_event' ? '#38bdf8' : '#0f172a', color: selectedCategory === 'hiring_event' ? '#0f172a' : '#94a3b8', fontWeight: 'bold' }}
+            sx={{ bgcolor: selectedCategory === 'hiring_event' ? "primary.main" : "background.default", color: selectedCategory === 'hiring_event' ? "primary.contrastText" : "text.secondary", fontWeight: 'bold' }}
           />
           <Chip
             icon={<SchoolIcon fontSize="small" sx={{ color: 'inherit !important' }} />}
             label="Webinars"
             onClick={() => setSelectedCategory('webinar')}
-            sx={{ bgcolor: selectedCategory === 'webinar' ? '#38bdf8' : '#0f172a', color: selectedCategory === 'webinar' ? '#0f172a' : '#94a3b8', fontWeight: 'bold' }}
+            sx={{ bgcolor: selectedCategory === 'webinar' ? "primary.main" : "background.default", color: selectedCategory === 'webinar' ? "primary.contrastText" : "text.secondary", fontWeight: 'bold' }}
           />
           <Chip
             icon={<EventIcon fontSize="small" sx={{ color: 'inherit !important' }} />}
             label="Career Workshops"
             onClick={() => setSelectedCategory('career_event')}
-            sx={{ bgcolor: selectedCategory === 'career_event' ? '#38bdf8' : '#0f172a', color: selectedCategory === 'career_event' ? '#0f172a' : '#94a3b8', fontWeight: 'bold' }}
+            sx={{ bgcolor: selectedCategory === 'career_event' ? "primary.main" : "background.default", color: selectedCategory === 'career_event' ? "primary.contrastText" : "text.secondary", fontWeight: 'bold' }}
           />
           <Chip
             icon={<GroupsIcon fontSize="small" sx={{ color: 'inherit !important' }} />}
             label="Community Meetups"
             onClick={() => setSelectedCategory('community_meetup')}
-            sx={{ bgcolor: selectedCategory === 'community_meetup' ? '#38bdf8' : '#0f172a', color: selectedCategory === 'community_meetup' ? '#0f172a' : '#94a3b8', fontWeight: 'bold' }}
+            sx={{ bgcolor: selectedCategory === 'community_meetup' ? "primary.main" : "background.default", color: selectedCategory === 'community_meetup' ? "primary.contrastText" : "text.secondary", fontWeight: 'bold' }}
           />
         </Paper>
 
@@ -199,48 +199,48 @@ export default function EventsPage() {
         <Grid container spacing={3}>
           {events.map((ev) => (
             <Grid item xs={12} md={6} key={ev.id}>
-              <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
                     <Chip
                       label={ev.event_type.replace('_', ' ').toUpperCase()}
                       size="small"
-                      sx={{ bgcolor: '#0f172a', color: '#38bdf8', border: '1px solid #334155', fontWeight: 'bold' }}
+                      sx={{ bgcolor: "background.default", color: "primary.main", border: (theme) => `1px solid ${theme.palette.divider}`, fontWeight: 'bold' }}
                     />
                     <Chip
                       icon={<PeopleIcon sx={{ color: '#10b981 !important' }} />}
                       label={`${ev.current_attendees}/${ev.max_attendees} Registered`}
                       size="small"
-                      sx={{ bgcolor: '#0f172a', color: '#10b981', fontWeight: 'bold' }}
+                      sx={{ bgcolor: "background.default", color: '#10b981', fontWeight: 'bold' }}
                     />
                   </Box>
 
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc', mb: 1 }}>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
                     {ev.title}
                   </Typography>
 
-                  <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2, flexGrow: 1 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 2, flexGrow: 1 }}>
                     {ev.description}
                   </Typography>
 
                   {/* Host Info */}
                   {ev.host && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, bgcolor: '#0f172a', p: 1.5, borderRadius: 1.5 }}>
-                      <Avatar sx={{ bgcolor: '#a855f7', width: 36, height: 36, fontWeight: 'bold' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, bgcolor: "background.default", p: 1.5, borderRadius: 1.5 }}>
+                      <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, fontWeight: 'bold' }}>
                         {ev.host.host_name.charAt(0)}
                       </Avatar>
                       <Box>
-                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: "text.primary" }}>
                           Hosted by {ev.host.host_name}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#38bdf8' }}>
+                        <Typography variant="caption" sx={{ color: "primary.main" }}>
                           {ev.host.title} • {ev.host.company_name}
                         </Typography>
                       </Box>
                     </Box>
                   )}
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b', mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: "text.secondary", mb: 2 }}>
                     <AccessTimeIcon fontSize="small" />
                     <Typography variant="caption">
                       {new Date(ev.start_time).toLocaleString()}
@@ -254,8 +254,8 @@ export default function EventsPage() {
                       onClick={() => handleRegister(ev)}
                       startIcon={ev.is_registered ? <CheckCircleIcon /> : <EventIcon />}
                       sx={{
-                        bgcolor: ev.is_registered ? 'transparent' : '#38bdf8',
-                        color: ev.is_registered ? '#22c55e' : '#0f172a',
+                        bgcolor: ev.is_registered ? 'transparent' : "primary.main",
+                        color: ev.is_registered ? '#22c55e' : "primary.contrastText",
                         borderColor: ev.is_registered ? '#22c55e' : 'transparent',
                         fontWeight: 'bold',
                         py: 1,
@@ -268,7 +268,7 @@ export default function EventsPage() {
                       variant="contained"
                       onClick={() => handleLaunchLiveRoom(ev)}
                       startIcon={<VideoCameraFrontIcon />}
-                      sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold', minWidth: 140 }}
+                      sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', minWidth: 140 }}
                     >
                       Launch Live
                     </Button>
@@ -281,10 +281,10 @@ export default function EventsPage() {
 
         {/* Host New Event Modal */}
         <Dialog open={hostModalOpen} onClose={() => setHostModalOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ bgcolor: '#1e293b', color: '#fff', fontWeight: 'bold' }}>
+          <DialogTitle sx={{ bgcolor: "background.paper", color: "text.primary", fontWeight: 'bold' }}>
             Organize Professional Networking Event
           </DialogTitle>
-          <DialogContent dividers sx={{ bgcolor: '#0f172a', color: '#f8fafc', p: 3 }}>
+          <DialogContent dividers sx={{ bgcolor: "background.default", color: "text.primary", p: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
@@ -293,18 +293,18 @@ export default function EventsPage() {
                   size="small"
                   value={eventTitle}
                   onChange={(e) => setEventTitle(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: "text.primary" }, label: { color: "text.secondary" }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: "divider" } } }}
                 />
               </Grid>
 
               <Grid item xs={12} sm={6}>
-                <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 0.5 }}>Event Category:</Typography>
+                <Typography variant="caption" sx={{ color: "text.secondary", display: 'block', mb: 0.5 }}>Event Category:</Typography>
                 <Select
                   value={eventType}
                   size="small"
                   fullWidth
                   onChange={(e) => setEventType(e.target.value as EventCategory)}
-                  sx={{ color: '#fff', bgcolor: '#1e293b', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' } }}
+                  sx={{ color: "text.primary", bgcolor: "background.paper", '& .MuiOutlinedInput-notchedOutline': { borderColor: "divider" } }}
                 >
                   <MenuItem value="hiring_event">Virtual Hiring Fair</MenuItem>
                   <MenuItem value="webinar">Technical Webinar</MenuItem>
@@ -320,7 +320,7 @@ export default function EventsPage() {
                   size="small"
                   value={eventHostName}
                   onChange={(e) => setEventHostName(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: "text.primary" }, label: { color: "text.secondary" }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: "divider" } } }}
                 />
               </Grid>
 
@@ -331,7 +331,7 @@ export default function EventsPage() {
                   size="small"
                   value={eventCompany}
                   onChange={(e) => setEventCompany(e.target.value)}
-                  sx={{ input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ input: { color: "text.primary" }, label: { color: "text.secondary" }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: "divider" } } }}
                 />
               </Grid>
 
@@ -344,14 +344,14 @@ export default function EventsPage() {
                   size="small"
                   value={eventDesc}
                   onChange={(e) => setEventDesc(e.target.value)}
-                  sx={{ textarea: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                  sx={{ textarea: { color: "text.primary" }, label: { color: "text.secondary" }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: "divider" } } }}
                 />
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ p: 2, bgcolor: '#1e293b' }}>
-            <Button onClick={() => setHostModalOpen(false)} sx={{ color: '#94a3b8' }}>Cancel</Button>
-            <Button onClick={handleCreateEvent} variant="contained" sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}>
+          <DialogActions sx={{ p: 2, bgcolor: "background.paper" }}>
+            <Button onClick={() => setHostModalOpen(false)} sx={{ color: "text.secondary" }}>Cancel</Button>
+            <Button onClick={handleCreateEvent} variant="contained" sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold' }}>
               Publish Event & Generate Stream Room
             </Button>
           </DialogActions>
@@ -359,29 +359,29 @@ export default function EventsPage() {
 
         {/* Live Stream Room Modal */}
         <Dialog open={liveModalOpen} onClose={() => setLiveModalOpen(false)} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ bgcolor: '#1e293b', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <DialogTitle sx={{ bgcolor: "background.paper", color: "text.primary", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PlayCircleIcon sx={{ color: '#a855f7' }} />
+              <PlayCircleIcon sx={{ color: "primary.main" }} />
               <Typography variant="h6" fontWeight="bold">{activeLiveEvent?.title}</Typography>
             </Box>
-            <IconButton onClick={() => setLiveModalOpen(false)} sx={{ color: '#94a3b8' }}>
+            <IconButton onClick={() => setLiveModalOpen(false)} sx={{ color: "text.secondary" }}>
               <CloseIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers sx={{ bgcolor: '#0f172a', color: '#f8fafc', p: 3, textAlign: 'center' }}>
+          <DialogContent dividers sx={{ bgcolor: "background.default", color: "text.primary", p: 3, textAlign: 'center' }}>
             <Box sx={{ bgcolor: '#000', borderRadius: 2.5, py: 8, px: 3, mb: 3, border: '2px solid #a855f7' }}>
-              <VideoCameraFrontIcon sx={{ fontSize: 64, color: '#a855f7', mb: 2 }} />
-              <Typography variant="h5" fontWeight="bold" sx={{ color: '#fff', mb: 1 }}>
+              <VideoCameraFrontIcon sx={{ fontSize: 64, color: "primary.main", mb: 2 }} />
+              <Typography variant="h5" fontWeight="bold" sx={{ color: "text.primary", mb: 1 }}>
                 Live Virtual Video Room Ready
               </Typography>
-              <Typography variant="body2" sx={{ color: '#94a3b8', mb: 2 }}>
+              <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
                 Provider: <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>{activeLiveEvent?.live_stream?.provider || 'Kirmya WebRTC Studio'}</span> • Room ID: <span style={{ fontFamily: 'monospace', color: '#a855f7' }}>{activeLiveEvent?.live_stream?.room_id}</span>
               </Typography>
               <Button
                 variant="contained"
                 href={activeLiveEvent?.live_stream?.stream_url || '#'}
                 target="_blank"
-                sx={{ bgcolor: '#a855f7', color: '#fff', fontWeight: 'bold', px: 4, py: 1.2 }}
+                sx={{ bgcolor: "primary.main", color: "primary.contrastText", fontWeight: 'bold', px: 4, py: 1.2 }}
               >
                 Join Video Broadcast Stream
               </Button>

@@ -38,14 +38,14 @@ export const ConsentBanner: React.FC<ConsentBannerProps> = ({ onCustomize }) => 
         zIndex: 1400,
         p: 3,
         borderRadius: '24px',
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
       }}
     >
       <Stack spacing={2}>
         <Stack direction="row" spacing={1.5} alignItems="center">
-          <CookieIcon sx={{ color: '#6366f1', fontSize: 28 }} />
+          <CookieIcon sx={{ color: "primary.main", fontSize: 28 }} />
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
             Cookie &amp; Privacy Preferences
           </Typography>

@@ -28,7 +28,6 @@ import { newsletterApi } from '../../features/landing/newsletter';
 
 export const Footer: React.FC = () => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -71,7 +70,7 @@ export const Footer: React.FC = () => {
       component="footer"
       aria-label="Site footer"
       sx={{
-        bgcolor: isDark ? '#05070d' : '#f8fafc',
+        bgcolor: 'background.paper',
         color: 'text.primary',
         pt: { xs: 8, md: 10 },
         pb: 6,
@@ -122,7 +121,7 @@ export const Footer: React.FC = () => {
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             borderRadius: `${tokens.radius.sm}px`,
-                            bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#ffffff',
+                            bgcolor: 'background.default',
                           },
                         }}
                       />
@@ -161,7 +160,7 @@ export const Footer: React.FC = () => {
                     sx={{
                       color: 'text.secondary',
                       border: `1px solid ${theme.palette.divider}`,
-                      '&:hover': { color: 'primary.main', bgcolor: isDark ? 'rgba(129, 140, 248, 0.1)' : 'rgba(99, 102, 241, 0.08)' },
+                      '&:hover': { color: 'primary.main', bgcolor: 'action.hover' },
                     }}
                   >
                     {s.icon}

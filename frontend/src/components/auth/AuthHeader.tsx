@@ -16,7 +16,7 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({ title, subtitle }) => {
         <BrandLockup size={40} variant="h5" />
       </Stack>
 
-      <Typography variant="h5" component="h1" sx={{ fontWeight: 800, mb: 0.75, letterSpacing: '-0.02em' }}>
+      <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 0.75, letterSpacing: '-0.02em' }}>
         {title}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>

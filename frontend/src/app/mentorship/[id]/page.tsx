@@ -153,10 +153,10 @@ export default function MentorshipWorkspacePage() {
           p: 4,
           mb: 4,
           borderRadius: '24px',
-          background: (theme) =>
+          bgcolor: (theme) =>
             theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%)'
-              : 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%)',
+              ? "background.paper"
+              : "background.paper",
           backdropFilter: 'blur(16px)',
           border: (theme) =>
             theme.palette.mode === 'light'

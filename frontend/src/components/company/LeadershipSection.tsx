@@ -40,8 +40,8 @@ export const LeadershipSection: React.FC<LeadershipSectionProps> = ({ leaders })
               sx={{
                 p: 3,
                 borderRadius: '16px',
-                bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(241, 245, 249, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 gap: 2.5,
               }}

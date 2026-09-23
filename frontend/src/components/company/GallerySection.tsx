@@ -31,9 +31,9 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ gallery }) => {
               sx={{
                 height: 180,
                 borderRadius: '16px',
-                background: item.mediaUrl
+                bgcolor: item.mediaUrl
                   ? `url(${item.mediaUrl}) center/cover no-repeat`
-                  : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #ec4899 100%)',
+                  : "primary.main",
                 position: 'relative',
                 overflow: 'hidden',
                 p: 2,
@@ -56,7 +56,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ gallery }) => {
                   fontSize: '0.65rem',
                 }}
               />
-              <Typography variant="subtitle2" sx={{ color: '#ffffff', fontWeight: 800, textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>
+              <Typography variant="subtitle2" sx={{ color: "text.primary", fontWeight: 800, textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>
                 {item.title}
               </Typography>
             </Paper>

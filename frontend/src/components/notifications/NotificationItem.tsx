@@ -59,7 +59,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       case 'Interviews':
         return <EventIcon sx={{ color: '#ec4899', fontSize: 20 }} />;
       case 'Jobs':
-        return <WorkOutlineIcon sx={{ color: '#6366f1', fontSize: 20 }} />;
+        return <WorkOutlineIcon sx={{ color: "primary.main", fontSize: 20 }} />;
       case 'Applications':
         return <WorkOutlineIcon sx={{ color: '#f59e0b', fontSize: 20 }} />;
       case 'Networking':
@@ -69,9 +69,9 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       case 'Career':
       case 'Resume':
       case 'Cover Letters':
-        return <SchoolOutlinedIcon sx={{ color: '#8b5cf6', fontSize: 20 }} />;
+        return <SchoolOutlinedIcon sx={{ color: "primary.main", fontSize: 20 }} />;
       default:
-        return <NotificationsIcon sx={{ color: '#3b82f6', fontSize: 20 }} />;
+        return <NotificationsIcon sx={{ color: "primary.main", fontSize: 20 }} />;
     }
   };
 

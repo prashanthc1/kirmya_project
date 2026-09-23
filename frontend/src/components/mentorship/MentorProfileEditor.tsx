@@ -102,10 +102,10 @@ export const MentorProfileEditor: React.FC<MentorProfileEditorProps> = ({ profil
   return (
     <Card
       sx={{
-        background: (theme) =>
+        bgcolor: (theme) =>
           theme.palette.mode === 'light'
-            ? 'rgba(255, 255, 255, 0.85)'
-            : 'rgba(30, 41, 59, 0.85)',
+            ? "action.hover"
+            : "background.paper",
         backdropFilter: 'blur(16px)',
         border: (theme) =>
           theme.palette.mode === 'light'
@@ -311,7 +311,7 @@ export const MentorProfileEditor: React.FC<MentorProfileEditorProps> = ({ profil
                 fontWeight: 600,
                 px: 4,
                 py: 1,
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                bgcolor: "primary.main",
               }}
             >
               {saving ? 'Saving...' : 'Save Preferences'}

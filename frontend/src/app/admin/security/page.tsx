@@ -19,7 +19,7 @@ export default function AdminSecurityPage() {
       <Container maxWidth="xl">
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2} sx={{ mb: 4 }}>
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 900, background: 'linear-gradient(45deg, #10B981 30%, #3B82F6 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" sx={{ fontWeight: 900,    }}>
               Executive Security Operations Center (SOC)
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">

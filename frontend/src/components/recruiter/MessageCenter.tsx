@@ -25,7 +25,7 @@ import { routes } from '../../shared/routes';
 export const MessageCenter: React.FC = () => (
   <GlassCard sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
     <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-      <MessageIcon sx={{ color: '#06b6d4', fontSize: 28 }} aria-hidden />
+      <MessageIcon sx={{ color: 'primary.main', fontSize: 28 }} aria-hidden />
       <Typography variant="h5" component="h2" sx={{ fontWeight: 900 }}>
         Candidate messages
       </Typography>

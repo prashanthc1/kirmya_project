@@ -13,7 +13,9 @@ import {
   MenuItem,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckIcon from '@mui/icons-material/Check';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
@@ -63,6 +65,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
   onNavigate,
 }) => {
   const auth = useAuth();
+  const theme = useTheme();
   // Defensive for the same reason activeWorkspace is: this renders inside the
   // shell on every authenticated page, and no workspaces simply means no
   // switcher.
@@ -123,11 +126,15 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
       sx={{
         textTransform: 'none',
         fontWeight: 600,
-        maxWidth: variant === 'drawer' ? '100%' : 220,
+        maxWidth: variant === 'drawer' ? '100%' : { lg: 160, xl: 200 },
         width: variant === 'drawer' ? '100%' : 'auto',
         justifyContent: variant === 'drawer' ? 'flex-start' : 'center',
         borderRadius: 2,
         px: 1.5,
+        minHeight: 44,
+        bgcolor: 'background.default',
+        '&:active': { bgcolor: 'action.selected', transition: 'none' },
+        '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
         '& .MuiButton-endIcon': { marginLeft: 'auto', paddingLeft: 1 },
       }}
     >
@@ -156,7 +163,24 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({
         MenuListProps={{ 'aria-labelledby': 'workspace-switcher-button' }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-        slotProps={{ paper: { sx: { minWidth: 260, maxWidth: 320, mt: 1, p: 0.5 } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              minWidth: 'min(260px, calc(100vw - 32px))',
+              maxWidth: 'min(320px, calc(100vw - 32px))',
+              mt: 1,
+              p: 0.5,
+              bgcolor: alpha(theme.palette.background.paper, 0.96),
+              backdropFilter: 'blur(24px) saturate(150%)',
+              '& .MuiMenuItem-root': { minHeight: 44, borderRadius: 1.5, '&:active': { bgcolor: 'action.selected', transition: 'none' } },
+              '@media (prefers-reduced-transparency: reduce), (prefers-contrast: more)': {
+                bgcolor: 'background.paper',
+                backdropFilter: 'none',
+              },
+              '@media (prefers-contrast: more)': { border: `1px solid ${theme.palette.text.primary}` },
+            },
+          },
+        }}
       >
         <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
           <Typography variant="overline" color="text.secondary">

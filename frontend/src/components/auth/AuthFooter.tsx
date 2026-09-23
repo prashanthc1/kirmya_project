@@ -25,7 +25,7 @@ export const AuthFooter: React.FC = () => {
         </Stack>
       </Stack>
 
-      <Stack direction="row" spacing={2} justifyContent="center">
+      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={2} justifyContent="center">
         <MuiLink component={Link} href="/terms" variant="caption" color="text.secondary" underline="hover">
           Terms of Service
         </MuiLink>
@@ -37,7 +37,7 @@ export const AuthFooter: React.FC = () => {
         </MuiLink>
       </Stack>
 
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, opacity: 0.8 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
         © {new Date().getFullYear()} Kirmya. All rights reserved.
       </Typography>
     </Box>

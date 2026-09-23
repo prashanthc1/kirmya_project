@@ -101,13 +101,13 @@ export const NotificationBell: React.FC = () => {
         return <EventIcon sx={{ color: '#ec4899', fontSize: 18 }} />;
       case 'Jobs':
       case 'Applications':
-        return <WorkOutlineIcon sx={{ color: '#6366f1', fontSize: 18 }} />;
+        return <WorkOutlineIcon sx={{ color: "primary.main", fontSize: 18 }} />;
       case 'Networking':
         return <PeopleOutlineIcon sx={{ color: '#10b981', fontSize: 18 }} />;
       case 'Messaging':
         return <ChatBubbleOutlineIcon sx={{ color: '#06b6d4', fontSize: 18 }} />;
       default:
-        return <NotificationsNoneIcon sx={{ color: '#3b82f6', fontSize: 18 }} />;
+        return <NotificationsNoneIcon sx={{ color: "primary.main", fontSize: 18 }} />;
     }
   };
 

@@ -170,79 +170,79 @@ function VerificationDashboardContent() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#090d16', minHeight: '100dvh', color: '#f8fafc', py: 4 }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', color: 'text.primary', py: 4 }}>
       <Container maxWidth="xl">
         {/* Title Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ background: 'linear-gradient(90deg, #38bdf8 0%, #10b981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{    }}>
               Professional Verification Center
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Increase recruiter trust through verified email, employment, skill badges, and credentials with granular privacy controls.
             </Typography>
           </Box>
         </Box>
 
-        {loading && <LinearProgress sx={{ mb: 3, bgcolor: '#1e293b', '& .MuiLinearProgress-bar': { bgcolor: '#38bdf8' } }} />}
+        {loading && <LinearProgress sx={{ mb: 3, bgcolor: 'background.paper', '& .MuiLinearProgress-bar': { bgcolor: 'primary.main' } }} />}
 
         {/* Top KPI: Trust Score & Privacy Controls Bar */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           {/* Trust Score Card */}
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-                  <CircularProgress variant="determinate" value={100} size={76} thickness={4} sx={{ color: '#0f172a' }} />
-                  <CircularProgress variant="determinate" value={currentStatus.trust_score} size={76} thickness={4} sx={{ color: '#10b981', position: 'absolute', left: 0 }} />
+                  <CircularProgress variant="determinate" value={100} size={76} thickness={4} sx={{ color: 'text.primary' }} />
+                  <CircularProgress variant="determinate" value={currentStatus.trust_score} size={76} thickness={4} sx={{ color: 'success.main', position: 'absolute', left: 0 }} />
                   <Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#10b981' }}>{currentStatus.trust_score}</Typography>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'success.main' }}>{currentStatus.trust_score}</Typography>
                   </Box>
                 </Box>
 
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <ShieldIcon sx={{ color: '#10b981' }} />
-                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                    <ShieldIcon sx={{ color: 'success.main' }} />
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                       Candidate Trust Score
                     </Typography>
                   </Box>
                   <Chip
                     label={currentStatus.badge_level}
                     size="small"
-                    icon={<VerifiedIcon sx={{ color: '#0f172a !important' }} />}
-                    sx={{ bgcolor: '#10b981', color: '#0f172a', fontWeight: 'bold', mt: 0.5 }}
+                    icon={<VerifiedIcon sx={{ color: 'text.primary' }} />}
+                    sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold', mt: 0.5 }}
                   />
                 </Box>
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {currentStatus.email_verified && <Chip label="Email ✓" size="small" sx={{ bgcolor: '#0f172a', color: '#38bdf8', border: '1px solid #334155' }} />}
-                {currentStatus.employment_verified && <Chip label="Work ✓" size="small" sx={{ bgcolor: '#0f172a', color: '#10b981', border: '1px solid #334155' }} />}
-                {currentStatus.skills_verified && <Chip label="Skill ✓" size="small" sx={{ bgcolor: '#0f172a', color: '#a855f7', border: '1px solid #334155' }} />}
+                {currentStatus.email_verified && <Chip label="Email ✓" size="small" sx={{ bgcolor: 'background.default', color: 'primary.main', border: 1, borderColor: 'divider' }} />}
+                {currentStatus.employment_verified && <Chip label="Work ✓" size="small" sx={{ bgcolor: 'background.default', color: 'success.main', border: 1, borderColor: 'divider' }} />}
+                {currentStatus.skills_verified && <Chip label="Skill ✓" size="small" sx={{ bgcolor: 'background.default', color: 'primary.main', border: 1, borderColor: 'divider' }} />}
               </Box>
             </Paper>
           </Grid>
 
           {/* Privacy Controls Panel */}
           <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2.5 }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <LockIcon sx={{ color: '#f59e0b' }} />
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                <LockIcon sx={{ color: 'warning.main' }} />
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'text.primary' }}>
                   Candidate Privacy Controls
                 </Typography>
               </Box>
 
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mb: 0.5 }}>Visibility Audience:</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>Visibility Audience:</Typography>
                   <Select
                     value={currentStatus.privacy_setting}
                     size="small"
                     fullWidth
                     onChange={(e) => handleUpdatePrivacy(e.target.value as PrivacySetting, currentStatus.hide_sensitive_docs)}
-                    sx={{ color: '#fff', bgcolor: '#0f172a', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' } }}
+                    sx={{ color: 'text.primary', bgcolor: 'background.default', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' } }}
                   >
                     <MenuItem value="public">Public (Everyone)</MenuItem>
                     <MenuItem value="recruiters_only">Verified Recruiters Only</MenuItem>
@@ -259,7 +259,7 @@ function VerificationDashboardContent() {
                         color="primary"
                       />
                     }
-                    label={<Typography variant="body2" sx={{ color: '#cbd5e1' }}>Redact Proof Documents</Typography>}
+                    label={<Typography variant="body2" sx={{ color: 'text.primary' }}>Redact Proof Documents</Typography>}
                   />
                 </Grid>
               </Grid>
@@ -268,16 +268,16 @@ function VerificationDashboardContent() {
         </Grid>
 
         {/* Tab Navigation */}
-        <Paper sx={{ mb: 3, bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 1.5 }}>
+        <Paper sx={{ mb: 3, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 1.5 }}>
           <Tabs
             value={activeTab}
             onChange={(_, val) => setActiveTab(val)}
             textColor="inherit"
             indicatorColor="primary"
             sx={{
-              '& .MuiTabs-indicator': { bgcolor: '#38bdf8' },
-              '& .MuiTab-root': { color: '#94a3b8', fontWeight: 'bold', textTransform: 'none' },
-              '& .Mui-selected': { color: '#38bdf8' },
+              '& .MuiTabs-indicator': { bgcolor: 'primary.main' },
+              '& .MuiTab-root': { color: 'text.secondary', fontWeight: 'bold', textTransform: 'none' },
+              '& .Mui-selected': { color: 'primary.main' },
             }}
           >
             <Tab icon={<EmailIcon fontSize="small" />} iconPosition="start" label="Work Email Verification" />
@@ -290,10 +290,10 @@ function VerificationDashboardContent() {
         <Grid container spacing={3}>
           {/* Submission Form Panel */}
           <Grid item xs={12} md={5}>
-            <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155' }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default', border: 1, borderColor: 'divider' }}>
               {activeTab === 0 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
                     Verify Work Email Domain
                   </Typography>
                   <TextField
@@ -302,14 +302,14 @@ function VerificationDashboardContent() {
                     size="small"
                     value={workEmail}
                     onChange={(e) => setWorkEmail(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <Button
                     fullWidth
                     variant="contained"
                     onClick={() => handleCreateVerification('email', 'Work Email Verification', 'Corporate Email', undefined, undefined, workEmail)}
                     startIcon={<EmailIcon />}
-                    sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
+                    sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}
                   >
                     Submit Email Verification
                   </Button>
@@ -318,7 +318,7 @@ function VerificationDashboardContent() {
 
               {activeTab === 1 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
                     Verify Employment History
                   </Typography>
                   <TextField
@@ -327,7 +327,7 @@ function VerificationDashboardContent() {
                     size="small"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <TextField
                     label="Job Title / Role"
@@ -335,14 +335,14 @@ function VerificationDashboardContent() {
                     size="small"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <Button
                     fullWidth
                     variant="contained"
                     onClick={() => handleCreateVerification('employment', jobTitle, companyName)}
                     startIcon={<BusinessIcon />}
-                    sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
+                    sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}
                   >
                     Submit Employment Verification
                   </Button>
@@ -351,7 +351,7 @@ function VerificationDashboardContent() {
 
               {activeTab === 2 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
                     Verify Technical Skill Competency
                   </Typography>
                   <TextField
@@ -360,14 +360,14 @@ function VerificationDashboardContent() {
                     size="small"
                     value={skillTitle}
                     onChange={(e) => setSkillTitle(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <Button
                     fullWidth
                     variant="contained"
                     onClick={() => handleCreateVerification('skill', skillTitle, 'Kirmya Assessment Engine')}
                     startIcon={<WorkspacePremiumIcon />}
-                    sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
+                    sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}
                   >
                     Link & Verify Skill Badge
                   </Button>
@@ -376,7 +376,7 @@ function VerificationDashboardContent() {
 
               {activeTab === 3 && (
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
                     Verify Certification Credentials
                   </Typography>
                   <TextField
@@ -385,7 +385,7 @@ function VerificationDashboardContent() {
                     size="small"
                     value={certTitle}
                     onChange={(e) => setCertTitle(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <TextField
                     label="Issuing Organization"
@@ -393,7 +393,7 @@ function VerificationDashboardContent() {
                     size="small"
                     value={certOrg}
                     onChange={(e) => setCertOrg(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <TextField
                     label="Credential ID"
@@ -401,14 +401,14 @@ function VerificationDashboardContent() {
                     size="small"
                     value={certID}
                     onChange={(e) => setCertID(e.target.value)}
-                    sx={{ mb: 2, input: { color: '#fff' }, label: { color: '#94a3b8' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: '#334155' } } }}
+                    sx={{ mb: 2, input: { color: 'text.primary' }, label: { color: 'text.secondary' }, '& .MuiOutlinedInput-root': { fieldset: { borderColor: 'divider' } } }}
                   />
                   <Button
                     fullWidth
                     variant="contained"
                     onClick={() => handleCreateVerification('certification', certTitle, certOrg, certID, certURL)}
                     startIcon={<SchoolIcon />}
-                    sx={{ bgcolor: '#38bdf8', color: '#0f172a', fontWeight: 'bold' }}
+                    sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 'bold' }}
                   >
                     Submit Certification Credential
                   </Button>
@@ -419,37 +419,37 @@ function VerificationDashboardContent() {
 
           {/* Verification Audit Feed Panel */}
           <Grid item xs={12} md={7}>
-            <Paper sx={{ p: 3, bgcolor: '#0f172a', border: '1px solid #334155', minHeight: 400 }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ color: '#38bdf8', mb: 2 }}>
+            <Paper sx={{ p: 3, bgcolor: 'background.default', border: 1, borderColor: 'divider', minHeight: 400 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main', mb: 2 }}>
                 Verified Credentials & Requests ({requests.length})
               </Typography>
-              <Divider sx={{ borderColor: '#334155', mb: 2 }} />
+              <Divider sx={{ borderColor: 'divider', mb: 2 }} />
 
               <Grid container spacing={2}>
                 {requests.map((req) => (
                   <Grid item xs={12} key={req.id}>
-                    <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+                    <Card sx={{ bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 2 }}>
                       <CardContent sx={{ p: 2.5 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                          <Typography variant="h6" fontWeight="bold" sx={{ color: '#f8fafc' }}>
+                          <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
                             {req.title}
                           </Typography>
                           <Chip
                             label={req.status.toUpperCase()}
                             size="small"
-                            icon={<CheckCircleIcon sx={{ color: '#fff !important' }} />}
-                            sx={{ bgcolor: '#22c55e', color: '#fff', fontWeight: 'bold' }}
+                            icon={<CheckCircleIcon sx={{ color: 'text.primary' }} />}
+                            sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontWeight: 'bold' }}
                           />
                         </Box>
 
                         {req.organization_name && (
-                          <Typography variant="body2" sx={{ color: '#38bdf8', mb: 1 }}>
+                          <Typography variant="body2" sx={{ color: 'primary.main', mb: 1 }}>
                             Organization: {req.organization_name}
                           </Typography>
                         )}
 
                         {req.reviewer_notes && (
-                          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', bgcolor: '#0f172a', p: 1.5, borderRadius: 1 }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', bgcolor: 'background.default', p: 1.5, borderRadius: 1 }}>
                             Reviewer Audit Note: {req.reviewer_notes}
                           </Typography>
                         )}

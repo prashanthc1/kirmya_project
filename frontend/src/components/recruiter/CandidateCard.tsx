@@ -55,10 +55,10 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                 {candidate.name}
               </Typography>
               <Chip
-                icon={<AutoAwesomeIcon sx={{ fontSize: '14px !important', color: '#10b981 !important' }} />}
+                icon={<AutoAwesomeIcon sx={{ fontSize: '14px !important', color: 'success.main' }} />}
                 label={`${candidate.matchScore}% MATCH`}
                 size="small"
-                sx={{ bgcolor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: 900, fontSize: '0.7rem' }}
+                sx={{ bgcolor: 'rgba(16, 185, 129, 0.15)', color: 'success.main', fontWeight: 900, fontSize: '0.7rem' }}
               />
             </Stack>
 
@@ -95,7 +95,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                 p: 1.5,
                 borderRadius: '12px',
                 bgcolor: isDark ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
+                border: 1, borderColor: 'divider',
               }}
             >
               <Typography variant="caption" sx={{ fontWeight: 600, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 0.8 }}>

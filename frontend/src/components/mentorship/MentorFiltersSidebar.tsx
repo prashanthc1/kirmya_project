@@ -80,10 +80,10 @@ export const MentorFiltersSidebar: React.FC<MentorFiltersSidebarProps> = ({
       elevation={0}
       sx={{
         p: 3,
-        background: (theme) =>
+        bgcolor: (theme) =>
           theme.palette.mode === 'light'
-            ? 'rgba(255, 255, 255, 0.8)'
-            : 'rgba(30, 41, 59, 0.8)',
+            ? "action.hover"
+            : "background.paper",
         backdropFilter: 'blur(16px)',
         border: (theme) =>
           theme.palette.mode === 'light'

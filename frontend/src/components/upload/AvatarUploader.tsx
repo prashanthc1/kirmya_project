@@ -115,7 +115,6 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backdropFilter: 'blur(4px)',
             }}
           >
             <CircularProgress

@@ -20,16 +20,16 @@ export default function AnalyticsFilters({
 
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-      <ButtonGroup variant="outlined" size="small" sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 2 }}>
+      <ButtonGroup variant="outlined" size="small" sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 2 }}>
         {ranges.map((r) => (
           <Button
             key={r}
             onClick={() => onDateRangeChange(r)}
             sx={{
-              color: dateRange === r ? '#fff' : '#94a3b8',
-              bgcolor: dateRange === r ? '#0284c7' : 'transparent',
+              color: dateRange === r ? "primary.contrastText" : "text.secondary",
+              bgcolor: dateRange === r ? "primary.main" : 'transparent',
               fontWeight: 'bold',
-              '&:hover': { bgcolor: dateRange === r ? '#0284c7' : '#334155' },
+              '&:hover': { bgcolor: dateRange === r ? "primary.main" : "action.hover" },
             }}
           >
             {r}
@@ -39,12 +39,12 @@ export default function AnalyticsFilters({
 
       {onOrgFilterChange && (
         <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel sx={{ color: '#94a3b8' }}>Filter Scope</InputLabel>
+          <InputLabel sx={{ color: "text.secondary" }}>Filter Scope</InputLabel>
           <Select
             value={orgFilter}
             label="Filter Scope"
             onChange={(e) => onOrgFilterChange(e.target.value)}
-            sx={{ color: '#fff', bgcolor: '#1e293b', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#334155' } }}
+            sx={{ color: "text.primary", bgcolor: "background.paper", '& .MuiOutlinedInput-notchedOutline': { borderColor: "divider" } }}
           >
             <MenuItem value="all">All Subsystems</MenuItem>
             <MenuItem value="engineering">Engineering</MenuItem>

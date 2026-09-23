@@ -60,8 +60,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
               p: 2.5,
               borderRadius: 3,
               border: '1px solid',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-              background: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+              borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               backdropFilter: 'blur(12px)',
               textAlign: 'center',
             }}
@@ -86,8 +86,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
               p: 2.5,
               borderRadius: 3,
               border: '1px solid',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-              background: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+              borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               backdropFilter: 'blur(12px)',
               textAlign: 'center',
             }}
@@ -112,8 +112,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
               p: 2.5,
               borderRadius: 3,
               border: '1px solid',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-              background: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+              borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               backdropFilter: 'blur(12px)',
               textAlign: 'center',
             }}
@@ -138,8 +138,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
               p: 2.5,
               borderRadius: 3,
               border: '1px solid',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-              background: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+              borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+              bgcolor: isDark ? "background.paper" : "action.hover",
               backdropFilter: 'blur(12px)',
               textAlign: 'center',
             }}
@@ -164,8 +164,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
           mb: 3,
           borderRadius: 3,
           border: '1px solid',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(12px)',
         }}
       >
@@ -228,8 +228,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
           mb: 3,
           borderRadius: 3,
           border: '1px solid',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+          bgcolor: isDark ? "background.paper" : "action.hover",
           backdropFilter: 'blur(12px)',
         }}
       >
@@ -266,8 +266,8 @@ export const ResumeAnalysisView: React.FC<ResumeAnalysisViewProps> = ({ analysis
           sx={{
             borderRadius: 3,
             border: '1px solid',
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-            background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+            borderColor: isDark ? "divider" : 'rgba(0, 0, 0, 0.08)',
+            bgcolor: isDark ? "background.paper" : "action.hover",
             backdropFilter: 'blur(12px)',
           }}
         >

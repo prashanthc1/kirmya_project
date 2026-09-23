@@ -23,7 +23,7 @@ export default function BrandMark({
       aria-label={title}
       style={{ display: 'block' }}
     >
-      <rect width="64" height="64" rx="15" fill="#4F46E5" />
+      <rect width="64" height="64" rx="15" fill="#0066CC" />
       <g
         fill="none"
         stroke="#FFFFFF"

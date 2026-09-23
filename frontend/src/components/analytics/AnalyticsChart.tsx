@@ -21,20 +21,20 @@ export default function AnalyticsChart({ title, subtitle, data, color = '#38bdf8
   return (
     <Card
       sx={{
-        bgcolor: '#1e293b',
-        color: '#f8fafc',
-        border: '1px solid #334155',
+        bgcolor: "background.paper",
+        color: "text.primary",
+        border: (theme) => `1px solid ${theme.palette.divider}`,
         borderRadius: 3,
         boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
       }}
     >
       <CardContent sx={{ p: 3 }}>
         <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" fontWeight="bold" sx={{ color: '#fff' }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary" }}>
             {title}
           </Typography>
           {subtitle && (
-            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {subtitle}
             </Typography>
           )}
@@ -45,7 +45,7 @@ export default function AnalyticsChart({ title, subtitle, data, color = '#38bdf8
             const heightPercent = (item.value / maxVal) * 100;
             return (
               <Box key={idx} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
-                <Typography variant="caption" sx={{ color: '#cbd5e1', fontWeight: 'bold', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 'bold', mb: 0.5 }}>
                   {item.value}
                 </Typography>
                 <Box
@@ -58,7 +58,7 @@ export default function AnalyticsChart({ title, subtitle, data, color = '#38bdf8
                     transition: 'height 0.3s ease',
                   }}
                 />
-                <Typography variant="caption" sx={{ color: '#64748b', mt: 1, fontSize: 11 }}>
+                <Typography variant="caption" sx={{ color: "text.secondary", mt: 1, fontSize: 11 }}>
                   {item.label}
                 </Typography>
               </Box>

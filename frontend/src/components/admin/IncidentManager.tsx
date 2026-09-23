@@ -156,10 +156,9 @@ export const IncidentManager: React.FC = () => {
       sx={{
         borderRadius: '24px',
         p: { xs: 2, md: 3 },
-        bgcolor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+        bgcolor: isDark ? "background.paper" : "action.hover",
+        border: 1, borderColor: 'divider',
+        boxShadow: 0,
       }}
     >
       <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} spacing={2}>
@@ -230,11 +229,10 @@ export const IncidentManager: React.FC = () => {
                           ? 'rgba(51, 65, 85, 0.9)'
                           : 'rgba(238, 242, 256, 0.9)'
                         : isDark
-                        ? 'rgba(15, 23, 42, 0.5)'
+                        ? "background.paper"
                         : 'rgba(241, 245, 249, 0.7)',
                       border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.08)',
-                      transition: 'transform 0.2s ease, border-color 0.2s ease',
-                      '&:hover': { transform: 'translateY(-2px)' },
+                      '&:hover': {  },
                     }}
                   >
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
@@ -267,8 +265,8 @@ export const IncidentManager: React.FC = () => {
               sx={{
                 p: 3,
                 borderRadius: '20px',
-                bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(248, 250, 252, 0.9)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                bgcolor: isDark ? "background.paper" : 'rgba(248, 250, 252, 0.9)',
+                border: 1, borderColor: 'divider',
               }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
@@ -327,7 +325,7 @@ export const IncidentManager: React.FC = () => {
                     sx={{
                       p: 2,
                       borderRadius: '12px',
-                      bgcolor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+                      bgcolor: isDark ? "background.paper" : "action.hover",
                       borderLeft: '4px solid #3b82f6',
                     }}
                   >

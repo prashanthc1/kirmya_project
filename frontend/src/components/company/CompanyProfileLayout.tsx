@@ -62,7 +62,7 @@ export const CompanyProfileLayout: React.FC<CompanyProfileLayoutProps> = ({
         sx={{
           py: 2,
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          bgcolor: theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          bgcolor: theme.palette.mode === 'dark' ? "background.paper" : "action.hover",
           backdropFilter: 'blur(12px)',
           position: 'sticky',
           top: 0,

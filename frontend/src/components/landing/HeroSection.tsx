@@ -20,15 +20,12 @@ import SearchIcon from '@mui/icons-material/Search';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
-import { motion } from 'framer-motion';
-import { springs } from '../../theme/motion';
 import { tokens } from '../../theme/tokens';
 import { ROUTES } from '../../shared/routes';
 
 export const HeroSection: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
 
   return (
     <Box
@@ -41,29 +38,11 @@ export const HeroSection: React.FC = () => {
         overflow: 'hidden',
       }}
     >
-      {/* Subtle Ambient Glow */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '-10%',
-          left: '20%',
-          width: 600,
-          height: 600,
-          borderRadius: '50%',
-          background: isDark
-            ? 'radial-gradient(circle, rgba(129, 140, 248, 0.12) 0%, transparent 70%)'
-            : 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
-          filter: 'blur(90px)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
         <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
           {/* Left Column: Value Proposition & CTAs */}
           <Grid item xs={12} md={7}>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springs.entrance}>
+            <Box>
               <Chip
                 icon={<AutoAwesomeIcon sx={{ fontSize: 16, color: `${theme.palette.primary.main} !important` }} />}
                 label="AI-Powered Career Recovery & Professional Network"
@@ -73,9 +52,12 @@ export const HeroSection: React.FC = () => {
                   px: 1,
                   py: 0.5,
                   mb: 2.5,
-                  bgcolor: isDark ? 'rgba(129, 140, 248, 0.12)' : 'rgba(99, 102, 241, 0.08)',
-                  border: `1px solid ${isDark ? 'rgba(129, 140, 248, 0.25)' : 'rgba(99, 102, 241, 0.2)'}`,
-                  color: theme.palette.primary.main,
+                  bgcolor: 'action.hover',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  color: 'primary.main',
+                  height: 'auto',
+                  '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 },
                 }}
               />
 
@@ -177,14 +159,14 @@ export const HeroSection: React.FC = () => {
                   </Typography>
                 </Stack>
               </Stack>
-            </motion.div>
+            </Box>
           </Grid>
 
           {/* Right Column: Apple-Inspired Product Card Preview */}
           <Grid item xs={12} md={5}>
-            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={springs.hover}>
+            <Box>
               <Paper
-                elevation={3}
+                elevation={0}
                 sx={{
                   p: 3,
                   borderRadius: `${tokens.radius.lg}px`,
@@ -193,7 +175,7 @@ export const HeroSection: React.FC = () => {
                 }}
               >
                 {/* Header Widget */}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ mb: 2.5 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center">
                     <Avatar sx={{ width: 44, height: 44, bgcolor: theme.palette.primary.main, fontWeight: 700 }}>
                       K
@@ -211,7 +193,7 @@ export const HeroSection: React.FC = () => {
                 </Stack>
 
                 {/* Job Card Details */}
-                <Stack spacing={1.5} sx={{ mb: 2.5, p: 2, bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(15, 23, 42, 0.03)', borderRadius: `${tokens.radius.sm}px` }}>
+                <Stack spacing={1.5} sx={{ mb: 2.5, p: 2, bgcolor: 'action.hover', borderRadius: `${tokens.radius.sm}px` }}>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <LocationOnIcon fontSize="small" sx={{ color: 'text.secondary' }} />
                     <Typography variant="caption" color="text.secondary">
@@ -233,7 +215,7 @@ export const HeroSection: React.FC = () => {
                   View Job & Apply
                 </Button>
               </Paper>
-            </motion.div>
+            </Box>
           </Grid>
         </Grid>
       </Container>

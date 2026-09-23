@@ -18,21 +18,21 @@ export const MockSessionCard: React.FC<MockSessionCardProps> = ({ session }) => 
       elevation={0}
       sx={{
         borderRadius: 3.5,
-        background: 'rgba(30, 41, 59, 0.7)',
+        bgcolor: "background.paper",
         backdropFilter: 'blur(12px)',
         border: isCompleted ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
-        color: '#fff',
+        color: "text.primary",
       }}
     >
       <CardContent sx={{ p: 2.5 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1.5 }}>
           <Box>
-            <Typography variant="h6" fontWeight={700} sx={{ color: '#F8FAFC' }}>
+            <Typography variant="h6" fontWeight={700} sx={{ color: "text.primary" }}>
               {session.title}
             </Typography>
             <Stack direction="row" spacing={1} alignItems="center" mt={0.5}>
-              <Chip label={session.interview_type} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA' }} />
-              <Chip label={session.difficulty} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.06)', color: '#CBD5E1' }} />
+              <Chip label={session.interview_type} size="small" sx={{ bgcolor: 'rgba(59, 130, 246, 0.15)', color: "primary.main" }} />
+              <Chip label={session.difficulty} size="small" sx={{ bgcolor: "action.hover", color: "text.secondary" }} />
             </Stack>
           </Box>
 
@@ -47,29 +47,29 @@ export const MockSessionCard: React.FC<MockSessionCardProps> = ({ session }) => 
           />
         </Stack>
 
-        <Stack direction="row" spacing={3} sx={{ my: 2, p: 1.5, borderRadius: 2.5, bgcolor: 'rgba(15, 23, 42, 0.6)' }}>
+        <Stack direction="row" spacing={3} sx={{ my: 2, p: 1.5, borderRadius: 2.5, bgcolor: "background.paper" }}>
           <Box>
-            <Typography variant="caption" sx={{ color: '#94A3B8' }}>Overall Score</Typography>
-            <Typography variant="h6" fontWeight={800} sx={{ color: '#60A5FA' }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>Overall Score</Typography>
+            <Typography variant="h6" fontWeight={800} sx={{ color: "primary.main" }}>
               {session.overall_score || '--'}/100
             </Typography>
           </Box>
           <Box>
-            <Typography variant="caption" sx={{ color: '#94A3B8' }}>Questions</Typography>
-            <Typography variant="h6" fontWeight={800} sx={{ color: '#F8FAFC' }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>Questions</Typography>
+            <Typography variant="h6" fontWeight={800} sx={{ color: "text.primary" }}>
               {session.completed_questions}/{session.total_questions}
             </Typography>
           </Box>
           <Box>
-            <Typography variant="caption" sx={{ color: '#94A3B8' }}>STAR Structure</Typography>
-            <Typography variant="h6" fontWeight={800} sx={{ color: '#A78BFA' }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>STAR Structure</Typography>
+            <Typography variant="h6" fontWeight={800} sx={{ color: "primary.main" }}>
               {session.structure_score || '--'}%
             </Typography>
           </Box>
         </Stack>
 
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="caption" sx={{ color: '#64748B' }}>
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>
             {new Date(session.started_at).toLocaleDateString()}
           </Typography>
 
@@ -80,8 +80,8 @@ export const MockSessionCard: React.FC<MockSessionCardProps> = ({ session }) => 
             variant="contained"
             startIcon={isCompleted ? <Assessment /> : <PlayArrow />}
             sx={{
-              background: isCompleted ? 'rgba(16, 185, 129, 0.2)' : 'linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%)',
-              color: isCompleted ? '#34D399' : '#fff',
+              bgcolor: isCompleted ? 'rgba(16, 185, 129, 0.2)' : "primary.main",
+              color: isCompleted ? '#34D399' : "primary.contrastText",
               fontWeight: 600,
               borderRadius: 2,
               textTransform: 'none',

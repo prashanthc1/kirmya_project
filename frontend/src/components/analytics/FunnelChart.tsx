@@ -11,9 +11,9 @@ interface FunnelChartProps {
 
 export default function FunnelChart({ title, stages }: FunnelChartProps) {
   return (
-    <Card sx={{ bgcolor: '#1e293b', border: '1px solid #334155', borderRadius: 3 }}>
+    <Card sx={{ bgcolor: "background.paper", border: (theme) => `1px solid ${theme.palette.divider}`, borderRadius: 3 }}>
       <CardContent sx={{ p: 3 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ color: '#fff', mb: 2 }}>
+        <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary", mb: 2 }}>
           {title}
         </Typography>
 
@@ -21,10 +21,10 @@ export default function FunnelChart({ title, stages }: FunnelChartProps) {
           {stages.map((stg, idx) => (
             <Box key={idx}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" sx={{ color: '#cbd5e1', fontWeight: 600 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600 }}>
                   {stg.stage}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#38bdf8', fontWeight: 'bold' }}>
+                <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 'bold' }}>
                   {stg.count} ({stg.percentage.toFixed(1)}%)
                 </Typography>
               </Box>
@@ -34,8 +34,8 @@ export default function FunnelChart({ title, stages }: FunnelChartProps) {
                 sx={{
                   height: 10,
                   borderRadius: 5,
-                  bgcolor: '#0f172a',
-                  '& .MuiLinearProgress-bar': { bgcolor: '#0284c7', borderRadius: 5 },
+                  bgcolor: "background.default",
+                  '& .MuiLinearProgress-bar': { bgcolor: "primary.main", borderRadius: 5 },
                 }}
               />
             </Box>

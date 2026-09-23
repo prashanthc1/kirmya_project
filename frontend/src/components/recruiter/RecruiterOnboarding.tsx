@@ -123,9 +123,9 @@ export const RecruiterOnboarding: React.FC<{ onComplete?: () => void }> = ({ onC
         <Card
           sx={{
             borderRadius: '24px',
-            background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+            bgcolor: isDark ? "background.paper" : "action.hover",
             backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
             p: { xs: 2, md: 4 },
           }}
@@ -155,7 +155,7 @@ export const RecruiterOnboarding: React.FC<{ onComplete?: () => void }> = ({ onC
                   borderRadius: '12px',
                   fontWeight: 800,
                   px: 4,
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                  bgcolor: "primary.main",
                 }}
               >
                 Go to Recruiter Dashboard
@@ -265,7 +265,7 @@ export const RecruiterOnboarding: React.FC<{ onComplete?: () => void }> = ({ onC
                     privacy standards.
                   </Alert>
 
-                  <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: isDark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
+                  <Box sx={{ p: 2.5, borderRadius: '16px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
                       Summary of Onboarding Details:
                     </Typography>
@@ -320,7 +320,7 @@ export const RecruiterOnboarding: React.FC<{ onComplete?: () => void }> = ({ onC
                     borderRadius: '10px',
                     fontWeight: 800,
                     px: 3.5,
-                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                    bgcolor: "primary.main",
                   }}
                 >
                   {activeStep === steps.length - 1 ? (submitting ? 'Submitting...' : 'Complete Verification') : 'Continue'}
