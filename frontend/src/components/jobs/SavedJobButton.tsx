@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { IconButton, Tooltip, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { IconButton, Tooltip, CircularProgress, Box, Typography } from '@mui/material';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { useRouter } from 'next/navigation';
@@ -57,7 +57,9 @@ export const SavedJobButton: React.FC<SavedJobButtonProps> = ({
       setErrorMessage(
         err?.response?.data?.error ||
           err?.message ||
-          (nextSaved ? 'Could not save this job. Please try again.' : 'Could not remove this saved job. Please try again.'),
+          (nextSaved
+            ? 'Could not save this job. Please try again.'
+            : 'Could not remove this saved job. Please try again.'),
       );
     } finally {
       setLoading(false);
@@ -67,8 +69,8 @@ export const SavedJobButton: React.FC<SavedJobButtonProps> = ({
   const label = saved ? `Unsave ${jobTitle}` : `Save ${jobTitle}`;
 
   return (
-    <>
-      <Tooltip title={label}>
+    <Box sx={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Tooltip title={errorMessage || label}>
         <span>
           <IconButton
             onClick={handleToggle}
@@ -94,17 +96,18 @@ export const SavedJobButton: React.FC<SavedJobButtonProps> = ({
           </IconButton>
         </span>
       </Tooltip>
-      <Snackbar
-        open={Boolean(errorMessage)}
-        autoHideDuration={4000}
-        onClose={() => setErrorMessage(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity="error" onClose={() => setErrorMessage(null)} variant="filled">
+      {errorMessage && (
+        <Typography
+          component="span"
+          variant="caption"
+          color="error"
+          role="alert"
+          sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}
+        >
           {errorMessage}
-        </Alert>
-      </Snackbar>
-    </>
+        </Typography>
+      )}
+    </Box>
   );
 };
 
