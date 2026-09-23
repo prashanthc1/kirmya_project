@@ -186,6 +186,9 @@ export const Footer: React.FC = () => {
               <MuiLink component={Link} href={ROUTES.FOR_RECRUITERS} variant="body2" color="text.secondary" underline="hover">
                 For Recruiters
               </MuiLink>
+              <MuiLink component={Link} href={ROUTES.FOR_EMPLOYERS} variant="body2" color="text.secondary" underline="hover">
+                For Employers
+              </MuiLink>
               <MuiLink component={Link} href={ROUTES.COMMUNITIES} variant="body2" color="text.secondary" underline="hover">
                 Communities
               </MuiLink>

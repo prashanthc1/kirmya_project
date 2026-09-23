@@ -11,7 +11,7 @@ export const ROUTES = {
   CONTACT: '/contact',
   CAREERS: '/careers',
   FOR_RECRUITERS: '/for-recruiters',
-  FOR_EMPLOYERS: '/for-recruiters',
+  FOR_EMPLOYERS: '/for-employers',
   PRIVACY: '/privacy',
   TERMS: '/terms',
   HELP: '/help',

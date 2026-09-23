@@ -32,6 +32,9 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import BrandLockup from '../brand/BrandLockup';
 import { useAuth } from '../../hooks/useAuth';
@@ -99,6 +102,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMobileNavOpen }) => {
         return <ChatBubbleOutlineIcon fontSize="small" />;
       case 'NotificationsNone':
         return <NotificationsNoneIcon fontSize="small" />;
+      case 'BusinessCenterOutlined':
+        return <BusinessCenterOutlinedIcon fontSize="small" />;
+      case 'BusinessOutlined':
+        return <BusinessOutlinedIcon fontSize="small" />;
+      case 'HelpOutline':
+        return <HelpOutlineIcon fontSize="small" />;
       default:
         return null;
     }

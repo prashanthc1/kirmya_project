@@ -31,6 +31,9 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
+import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -90,6 +93,12 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ open, onClose }) => 
         return <ChatBubbleOutlineIcon />;
       case 'NotificationsNone':
         return <NotificationsNoneIcon />;
+      case 'BusinessCenterOutlined':
+        return <BusinessCenterOutlinedIcon />;
+      case 'BusinessOutlined':
+        return <BusinessOutlinedIcon />;
+      case 'HelpOutline':
+        return <HelpOutlineIcon />;
       default:
         return null;
     }
