@@ -77,11 +77,12 @@ export const ApplyJobFormFields: React.FC<ApplyJobFormFieldsProps> = ({
         />
         <TextField
           fullWidth
-          label="Phone Number"
+          label="Phone Number (optional)"
           value={phone}
           onChange={(e) => onPhoneChange(e.target.value)}
           placeholder="+1 (555) 000-0000"
           variant="outlined"
+          helperText="Optional. Include country code if you provide one."
         />
       </Stack>
     );

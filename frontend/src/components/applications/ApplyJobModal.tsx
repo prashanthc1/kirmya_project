@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import {
+  useMediaQuery,
+  useTheme,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -50,6 +52,8 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   onSuccess,
 }) => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [activeStep, setActiveStep] = useState(0);
   const [documents, setDocuments] = useState<CandidateDocument[]>([]);
@@ -130,6 +134,14 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   const isValidEmail = (value: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
+  // Optional phone: empty is fine; if provided, require a plausible international number.
+  const isValidPhone = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return true;
+    const digits = trimmed.replace(/[^\d+]/g, '');
+    return /^\+?\d{7,15}$/.test(digits);
+  };
+
   const hasResume = Boolean(selectedResumeId || customResumeUrl.trim());
 
   const unansweredRequiredScreening = (job.screening_questions || []).filter((q, idx) => {
@@ -147,6 +159,10 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       }
       if (!fullName.trim()) {
         setSubmitError('Please provide your full name.');
+        return;
+      }
+      if (!isValidPhone(phone)) {
+        setSubmitError('Please enter a valid phone number, or leave it blank.');
         return;
       }
     }
@@ -169,6 +185,10 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   const onSubmit = () => {
     if (!email.trim() || !isValidEmail(email)) {
       setSubmitError('Please provide a valid email address.');
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      setSubmitError('Please enter a valid phone number, or leave it blank.');
       return;
     }
     if (!hasResume) {
@@ -247,9 +267,10 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       onClose={isSubmitting ? undefined : onClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: `${tokens.radius.lg}px`,
+          borderRadius: isMobile ? 0 : `${tokens.radius.lg}px`,
           p: 1,
         },
       }}
