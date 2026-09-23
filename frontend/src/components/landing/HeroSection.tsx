@@ -146,6 +146,22 @@ export const HeroSection: React.FC = () => {
                 </Button>
               </Stack>
 
+              <Button
+                variant="text"
+                color="inherit"
+                onClick={() => router.push(ROUTES.FOR_RECRUITERS)}
+                sx={{
+                  alignSelf: { xs: 'stretch', sm: 'flex-start' },
+                  mt: 1.5,
+                  px: 0.5,
+                  color: 'text.secondary',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                }}
+              >
+                Hiring talent? See Kirmya for recruiters →
+              </Button>
+
               {/* Trust Indicators */}
               <Stack direction="row" spacing={3} alignItems="center" sx={{ mt: 4, pt: 3, borderTop: `1px solid ${theme.palette.divider}` }}>
                 <Stack direction="row" spacing={1} alignItems="center">
