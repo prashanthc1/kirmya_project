@@ -1,11 +1,9 @@
 import axios from 'axios';
 import { JobDetail, JobListPage, JobSearchParams, JobSummary, SavedJobSummary } from './types';
-import { authApiClient } from '../../services/authService';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+import { authApiClient, API_BASE_URL } from '../../services/authService';
 
 const publicApiClient = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 

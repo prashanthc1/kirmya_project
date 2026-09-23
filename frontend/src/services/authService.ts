@@ -11,14 +11,35 @@ import type { Workspace } from '../shared/workspace/types';
  * reload". Normalising here means either spelling reaches the same endpoints.
  */
 const resolveApiBaseUrl = (): string => {
-  let configured = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').trim();
-  if (typeof window !== 'undefined') {
-    if (window.location.hostname === '127.0.0.1' && configured.includes('localhost')) {
+  let configured = (process.env.NEXT_PUBLIC_API_URL || '').trim();
+
+  // Production pages must never silently talk to a developer laptop. If the
+  // public site is not local and the env still points at localhost (or is
+  // missing), use a same-origin relative API path so a misconfigured deploy
+  // fails at the edge/proxy instead of leaking traffic to 127.0.0.1.
+  const isBrowser = typeof window !== 'undefined';
+  const host = isBrowser ? window.location.hostname : '';
+  const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+  const pointsAtLocal =
+    !configured ||
+    /localhost|127\.0\.0\.1/.test(configured);
+
+  if (isBrowser && !isLocalHost && pointsAtLocal) {
+    return '/api/v1';
+  }
+
+  if (!configured) {
+    configured = 'http://localhost:8080';
+  }
+
+  if (isBrowser) {
+    if (host === '127.0.0.1' && configured.includes('localhost')) {
       configured = configured.replace('localhost', '127.0.0.1');
-    } else if (window.location.hostname === 'localhost' && configured.includes('127.0.0.1')) {
+    } else if (host === 'localhost' && configured.includes('127.0.0.1')) {
       configured = configured.replace('127.0.0.1', 'localhost');
     }
   }
+
   const withoutTrailingSlash = configured.replace(/\/+$/, '');
   if (/\/api\/v\d+$/.test(withoutTrailingSlash)) {
     return withoutTrailingSlash;

@@ -11,6 +11,12 @@ import (
 	"kirmya/internal/legal/models"
 )
 
+// ErrDatabaseUnavailable is returned when a privacy/legal write or read requires
+// PostgreSQL but the repository was constructed without a database handle.
+// Callers must surface this as a failure — never as success — so consent and
+// deletion requests cannot appear to succeed without being persisted.
+var ErrDatabaseUnavailable = errors.New("privacy store is unavailable")
+
 type LegalRepository interface {
 	GetDocumentBySlug(ctx context.Context, slug string) (*models.LegalDocument, error)
 	GetDocumentVersions(ctx context.Context, documentID uuid.UUID) ([]models.LegalDocumentVersion, error)
@@ -112,7 +118,7 @@ func (r *legalRepository) GetDocumentVersions(ctx context.Context, documentID uu
 
 func (r *legalRepository) RecordDocumentAcceptance(ctx context.Context, acceptance *models.LegalAcceptance) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	// Resolve the immutable version in the database; callers cannot invent a version id.
 	err := r.db.QueryRowContext(ctx, `SELECT id FROM legal_document_versions WHERE document_id=$1 AND version=$2 AND status='published'`, acceptance.DocumentID, acceptance.Version).Scan(&acceptance.DocumentVersionID)
@@ -150,7 +156,7 @@ func (r *legalRepository) GetCookies(ctx context.Context) ([]models.CookieItem, 
 
 func (r *legalRepository) SaveCookieConsent(ctx context.Context, consent *models.CookieConsent) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	_, err := r.db.ExecContext(ctx, `INSERT INTO cookie_consents (id,user_id,visitor_id,necessary,preferences,analytics,functional,marketing,third_party,updated_at,ip_address,user_agent) VALUES ($1,$2,$3,true,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT (visitor_id) DO UPDATE SET user_id=COALESCE(EXCLUDED.user_id,cookie_consents.user_id),necessary=true,preferences=EXCLUDED.preferences,analytics=EXCLUDED.analytics,functional=EXCLUDED.functional,marketing=EXCLUDED.marketing,third_party=EXCLUDED.third_party,updated_at=EXCLUDED.updated_at,ip_address=EXCLUDED.ip_address,user_agent=EXCLUDED.user_agent`, consent.ID, consent.UserID, consent.VisitorID, consent.Preferences, consent.Analytics, consent.Functional, consent.Marketing, consent.ThirdParty, consent.UpdatedAt, consent.IPAddress, consent.UserAgent)
 	return err
@@ -204,7 +210,7 @@ func (r *legalRepository) GetPrivacyPreferences(ctx context.Context, userID uuid
 
 func (r *legalRepository) UpdatePrivacyPreferences(ctx context.Context, prefs *models.PrivacyPreferences) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	_, err := r.db.ExecContext(ctx, `INSERT INTO privacy_preferences(user_id,profile_visibility,discover_in_search,recruiter_discoverable,recruiter_contactable,show_resume_to_recruiters,messaging_permission,community_visibility,search_personalization,ai_data_usage,analytics_consent,marketing_consent,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) ON CONFLICT(user_id) DO UPDATE SET profile_visibility=EXCLUDED.profile_visibility,discover_in_search=EXCLUDED.discover_in_search,recruiter_discoverable=EXCLUDED.recruiter_discoverable,recruiter_contactable=EXCLUDED.recruiter_contactable,show_resume_to_recruiters=EXCLUDED.show_resume_to_recruiters,messaging_permission=EXCLUDED.messaging_permission,community_visibility=EXCLUDED.community_visibility,search_personalization=EXCLUDED.search_personalization,ai_data_usage=EXCLUDED.ai_data_usage,analytics_consent=EXCLUDED.analytics_consent,marketing_consent=EXCLUDED.marketing_consent,updated_at=EXCLUDED.updated_at`, prefs.UserID, prefs.ProfileVisibility, prefs.DiscoverInSearch, prefs.RecruiterDiscoverable, prefs.RecruiterContactable, prefs.ShowResumeToRecruiters, prefs.MessagingPermission, prefs.CommunityVisibility, prefs.SearchPersonalization, prefs.AIDataUsage, prefs.AnalyticsConsent, prefs.MarketingConsent, prefs.UpdatedAt)
 	return err
@@ -236,7 +242,7 @@ func (r *legalRepository) GetConsentHistory(ctx context.Context, userID uuid.UUI
 
 func (r *legalRepository) CreatePrivacyRequest(ctx context.Context, req *models.PrivacyRequest) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	_, err := r.db.ExecContext(ctx, `INSERT INTO privacy_requests(id,user_id,request_type,status,due_date,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7)`, req.ID, req.UserID, req.RequestType, req.Status, req.DueDate, req.CreatedAt, req.UpdatedAt)
 	return err
@@ -289,7 +295,7 @@ func (r *legalRepository) GetPrivacyRequestByID(ctx context.Context, id uuid.UUI
 
 func (r *legalRepository) UpdatePrivacyRequest(ctx context.Context, req *models.PrivacyRequest) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	res, err := r.db.ExecContext(ctx, `UPDATE privacy_requests SET status=$2,resolution_notes=$3,completed_at=$4,updated_at=NOW() WHERE id=$1`, req.ID, req.Status, req.ResolutionNotes, req.CompletedAt)
 	if err != nil {
@@ -304,7 +310,7 @@ func (r *legalRepository) UpdatePrivacyRequest(ctx context.Context, req *models.
 
 func (r *legalRepository) CreateDataExportJob(ctx context.Context, job *models.DataExportJob) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	_, err := r.db.ExecContext(ctx, `INSERT INTO data_export_jobs(id,user_id,privacy_request_id,status,download_url,expires_at,file_size_bytes,created_at,updated_at) VALUES($1,$2,$3,$4,NULL,$5,0,$6,$6)`, job.ID, job.UserID, job.PrivacyRequestID, job.Status, job.ExpiresAt, job.CreatedAt)
 	return err
@@ -414,7 +420,7 @@ func (r *legalRepository) GetDataExportPayload(ctx context.Context, userID, jobI
 
 func (r *legalRepository) CreateDataDeletionRequest(ctx context.Context, req *models.DataDeletionRequest) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	_, err := r.db.ExecContext(ctx, `INSERT INTO data_deletion_requests(id,user_id,privacy_request_id,status,grace_period_expires_at,confirmed_at,reason,created_at,updated_at) VALUES($1,$2,$3,$4,$5,NOW(),$6,$7,$7)`, req.ID, req.UserID, req.PrivacyRequestID, req.Status, req.GracePeriodExpiresAt, req.Reason, req.CreatedAt)
 	return err
@@ -483,7 +489,7 @@ func (r *legalRepository) recordDeletionFailure(ctx context.Context, tx *sql.Tx,
 
 func (r *legalRepository) CancelAccountDeletion(ctx context.Context, userID uuid.UUID) error {
 	if r.db == nil {
-		return nil
+		return ErrDatabaseUnavailable
 	}
 	res, err := r.db.ExecContext(ctx, `UPDATE data_deletion_requests SET status='cancelled',cancelled_at=NOW(),updated_at=NOW() WHERE user_id=$1 AND status='grace_period' AND grace_period_expires_at>NOW()`, userID)
 	if err != nil {
