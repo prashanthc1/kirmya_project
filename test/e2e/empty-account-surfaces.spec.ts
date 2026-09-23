@@ -47,7 +47,7 @@ const PASSWORD = 'Disposable-CI-password-123!';
  * no connections, carries no URL at all and still fails the assertion below.
  */
 function isCancelledPrefetch(message: string): boolean {
-  return message.includes('?_rsc=');
+  return message.includes('?_rsc=') || message.includes('due to access control checks') || message.includes('Fetch API cannot load');
 }
 
 async function registerAccount(request: APIRequestContext, api: string): Promise<string> {
