@@ -127,10 +127,25 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
     }));
   };
 
+  const isValidEmail = (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+  const hasResume = Boolean(selectedResumeId || customResumeUrl.trim());
+
   const handleNext = () => {
     setSubmitError(null);
-    if (activeStep === 0 && !email.trim()) {
-      setSubmitError('Please provide a valid email address.');
+    if (activeStep === 0) {
+      if (!email.trim() || !isValidEmail(email)) {
+        setSubmitError('Please provide a valid email address.');
+        return;
+      }
+      if (!fullName.trim()) {
+        setSubmitError('Please provide your full name.');
+        return;
+      }
+    }
+    if (activeStep === 1 && !hasResume) {
+      setSubmitError('Please select a resume or provide a document link.');
       return;
     }
     setActiveStep((prev) => prev + 1);
@@ -142,6 +157,14 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   };
 
   const onSubmit = () => {
+    if (!email.trim() || !isValidEmail(email)) {
+      setSubmitError('Please provide a valid email address.');
+      return;
+    }
+    if (!hasResume) {
+      setSubmitError('Please select a resume or provide a document link.');
+      return;
+    }
     handleSubmit({
       selectedResumeId,
       coverLetter,
