@@ -188,7 +188,7 @@ export const JobCard: React.FC<JobCardProps> = ({
                 ))}
               </Stack>
 
-              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+              <Typography variant="caption" color="text.secondary" suppressHydrationWarning sx={{ flexShrink: 0 }}>
                 {formatRelativeTime(job.published_at || job.created_at)}
               </Typography>
             </Stack>

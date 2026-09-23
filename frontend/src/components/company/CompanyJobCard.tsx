@@ -149,7 +149,7 @@ export const CompanyJobCard: React.FC<CompanyJobCardProps> = ({
               {facts.map((fact) => (
                 <Stack key={fact.text} direction="row" spacing={0.5} alignItems="center">
                   {fact.icon}
-                  <Typography variant="body2">{fact.text}</Typography>
+                  <Typography variant="body2" suppressHydrationWarning>{fact.text}</Typography>
                 </Stack>
               ))}
             </Stack>

@@ -204,7 +204,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 
           {/* Time & Options Menu */}
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: item.isRead ? 500 : 700, fontSize: '0.75rem' }}>
+            <Typography variant="caption" color="text.secondary" suppressHydrationWarning sx={{ fontWeight: item.isRead ? 500 : 700, fontSize: '0.75rem' }}>
               {getRelativeTime(item.createdAt)}
             </Typography>
 
