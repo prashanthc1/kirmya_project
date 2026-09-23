@@ -76,7 +76,7 @@ export default function HomePage() {
       <AppHeader onMobileNavOpen={() => setMobileDrawerOpen(true)} />
       <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
 
-      <div>
+      <Box component="main">
         <HeroSection />
         <StatisticsSection statistics={content?.platform_statistics} />
         <WhyKirmyaSection />
@@ -84,7 +84,7 @@ export default function HomePage() {
         <TestimonialsSection testimonials={content?.testimonials} />
         <FAQSection />
         <CTASection />
-      </div>
+      </Box>
 
       <Footer />
     </Box>

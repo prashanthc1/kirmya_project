@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -32,13 +33,13 @@ func TestLegalService(t *testing.T) {
 		}
 	})
 
-	t.Run("RequestAccountDeletion creates request with grace period", func(t *testing.T) {
-		req, err := svc.RequestAccountDeletion(ctx, uuid.New(), "User requested account closure")
-		if err != nil {
-			t.Fatalf("unexpected error: %v", err)
+	t.Run("RequestAccountDeletion fails closed without a database", func(t *testing.T) {
+		_, err := svc.RequestAccountDeletion(ctx, uuid.New(), "User requested account closure")
+		if err == nil {
+			t.Fatal("expected deletion request to fail when the privacy store is unavailable")
 		}
-		if req.Status != "grace_period" {
-			t.Errorf("expected status 'grace_period', got '%s'", req.Status)
+		if !errors.Is(err, repository.ErrDatabaseUnavailable) {
+			t.Fatalf("expected ErrDatabaseUnavailable, got %v", err)
 		}
 	})
 
@@ -52,14 +53,14 @@ func TestLegalService(t *testing.T) {
 			t.Errorf("expected default profile visibility 'Public', got '%s'", prefs.ProfileVisibility)
 		}
 
-		updated, err := svc.UpdatePrivacyPreferences(ctx, userID, models.UpdatePrivacyPreferencesPayload{
+		_, err = svc.UpdatePrivacyPreferences(ctx, userID, models.UpdatePrivacyPreferencesPayload{
 			ProfileVisibility: "Connections",
 		})
-		if err != nil {
-			t.Fatalf("unexpected update error: %v", err)
+		if err == nil {
+			t.Fatal("expected privacy preference writes to fail without a database")
 		}
-		if updated.ProfileVisibility != "Connections" {
-			t.Errorf("expected updated profile visibility 'Connections', got '%s'", updated.ProfileVisibility)
+		if !errors.Is(err, repository.ErrDatabaseUnavailable) {
+			t.Fatalf("expected ErrDatabaseUnavailable, got %v", err)
 		}
 	})
 

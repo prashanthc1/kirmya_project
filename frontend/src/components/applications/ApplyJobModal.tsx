@@ -268,6 +268,7 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
       maxWidth="md"
       fullWidth
       fullScreen={isMobile}
+      aria-labelledby="apply-job-dialog-title"
       PaperProps={{
         sx: {
           borderRadius: isMobile ? 0 : `${tokens.radius.lg}px`,
@@ -277,7 +278,7 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography id="apply-job-dialog-title" variant="h6" sx={{ fontWeight: 700 }}>
             {submittedAppId ? 'Application Complete' : `Apply to ${job.title}`}
           </Typography>
           <Typography variant="caption" color="text.secondary">

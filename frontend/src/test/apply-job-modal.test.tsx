@@ -102,7 +102,13 @@ describe('ApplyJobModal', () => {
   });
 
   it('handles API submission errors gracefully and displays error alert', async () => {
-    (authApiClient.get as any).mockResolvedValueOnce({ data: [] });
+    (authApiClient.get as any).mockResolvedValueOnce({
+      data: [{
+        id: 'doc-err', candidate_id: 'u1', title: 'Resume.pdf', document_type: 'Resume',
+        file_url: 'https://cdn.kirmya.com/resume.pdf', size_bytes: 1000, file_type: 'pdf',
+        is_default: true, uploaded_at: '2026-08-20T10:00:00Z',
+      }],
+    });
     (authApiClient.post as any).mockRejectedValueOnce({
       response: { data: { message: 'Candidate already applied to this job' } },
     });
