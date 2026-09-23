@@ -92,10 +92,10 @@ describe('ApplyJobModal', () => {
     await waitFor(() => expect(authApiClient.get).toHaveBeenCalled());
 
     for (const expected of [
-      /Select a tailored resume|Senior_Go_Resume|Your Documents/i,
-      /Add a personalized note|Cover Note/i,
+      /Select a tailored resume/i,
+      /Add a personalized note/i,
       /How many years of production Go experience do you have/i,
-      /Please review your application summary|Review/i,
+      /Please review your application summary/i,
     ]) {
       fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
       await waitFor(() => expect(screen.getByText(expected)).toBeDefined());
@@ -148,7 +148,7 @@ describe('ApplyJobModal', () => {
     await waitFor(() => expect(authApiClient.get).toHaveBeenCalled());
     fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
     await waitFor(() =>
-      expect(screen.getByText(/Select a tailored resume|Your Documents|resume/i)).toBeDefined(),
+      expect(screen.getByText(/Select a tailored resume/i)).toBeDefined(),
     );
     fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
     await waitFor(() => {
@@ -180,10 +180,10 @@ describe('ApplyJobModal', () => {
     await waitFor(() => expect(authApiClient.get).toHaveBeenCalled());
 
     for (const expected of [
-      /Select a tailored resume|Senior_Go_Resume|Your Documents/i,
-      /Add a personalized note|Cover Note/i,
-      /screening|No screening|Review|application summary/i,
-      /Please review your application summary|Review/i,
+      /Select a tailored resume/i,
+      /Add a personalized note/i,
+      /No Screening Questions Required/i,
+      /Please review your application summary/i,
     ]) {
       fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
       await waitFor(() => expect(screen.getByText(expected)).toBeDefined());
