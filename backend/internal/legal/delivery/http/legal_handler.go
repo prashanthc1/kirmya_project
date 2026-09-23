@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"kirmya/internal/legal/models"
+	"kirmya/internal/legal/repository"
 	"kirmya/internal/legal/service"
 )
 
@@ -17,6 +18,19 @@ type LegalHandler struct {
 
 func NewLegalHandler(legalService service.LegalService) *LegalHandler {
 	return &LegalHandler{legalService: legalService}
+}
+
+// writeLegalError maps repository/service failures to HTTP status codes.
+// A missing database is a temporary platform fault (503), not a client error
+// and not an opaque 500 that implies the request itself was invalid.
+func writeLegalError(c *gin.Context, err error) {
+	if errors.Is(err, repository.ErrDatabaseUnavailable) {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "Privacy service is temporarily unavailable. Please try again.",
+		})
+		return
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 }
 
 func getUserID(c *gin.Context) (uuid.UUID, bool) {
@@ -49,7 +63,7 @@ func (h *LegalHandler) GetDocumentVersions(c *gin.Context) {
 	slug := c.Param("slug")
 	versions, err := h.legalService.GetDocumentVersions(c.Request.Context(), slug)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "data": versions})
@@ -68,6 +82,10 @@ func (h *LegalHandler) AcceptDocument(c *gin.Context) {
 		return
 	}
 	if err := h.legalService.AcceptDocument(c.Request.Context(), userID, c.Param("slug"), body.Version, c.ClientIP(), c.Request.UserAgent()); err != nil {
+		if errors.Is(err, repository.ErrDatabaseUnavailable) {
+			writeLegalError(c, err)
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -78,7 +96,7 @@ func (h *LegalHandler) AcceptDocument(c *gin.Context) {
 func (h *LegalHandler) GetCookies(c *gin.Context) {
 	cookies, err := h.legalService.GetCookies(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "data": cookies})
@@ -104,7 +122,7 @@ func (h *LegalHandler) SaveCookieConsent(c *gin.Context) {
 
 	err := h.legalService.SaveCookieConsent(c.Request.Context(), body.VisitorID, userID, body.Preferences, c.ClientIP(), c.Request.UserAgent())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -120,7 +138,7 @@ func (h *LegalHandler) GetPrivacyPreferences(c *gin.Context) {
 
 	prefs, err := h.legalService.GetPrivacyPreferences(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -142,7 +160,7 @@ func (h *LegalHandler) UpdatePrivacyPreferences(c *gin.Context) {
 
 	prefs, err := h.legalService.UpdatePrivacyPreferences(c.Request.Context(), userID, payload)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -158,7 +176,7 @@ func (h *LegalHandler) GetConsentHistory(c *gin.Context) {
 
 	history, err := h.legalService.GetConsentHistory(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -174,7 +192,7 @@ func (h *LegalHandler) GetUserPrivacyRequests(c *gin.Context) {
 
 	reqs, err := h.legalService.GetUserPrivacyRequests(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -198,7 +216,7 @@ func (h *LegalHandler) CreatePrivacyRequest(c *gin.Context) {
 
 	req, err := h.legalService.CreatePrivacyRequest(c.Request.Context(), userID, body.RequestType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -236,7 +254,7 @@ func (h *LegalHandler) RequestDataExport(c *gin.Context) {
 
 	job, err := h.legalService.RequestDataExport(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -269,7 +287,7 @@ func (h *LegalHandler) GetDataExportJob(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -287,6 +305,10 @@ func (h *LegalHandler) CancelDataExport(c *gin.Context) {
 		return
 	}
 	if err = h.legalService.CancelDataExport(c.Request.Context(), userID, jobID); err != nil {
+		if errors.Is(err, repository.ErrDatabaseUnavailable) {
+			writeLegalError(c, err)
+			return
+		}
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
@@ -325,6 +347,10 @@ func (h *LegalHandler) RequestAccountDeletion(c *gin.Context) {
 
 	delReq, err := h.legalService.RequestAccountDeletion(c.Request.Context(), userID, body.Reason)
 	if err != nil {
+		if errors.Is(err, repository.ErrDatabaseUnavailable) {
+			writeLegalError(c, err)
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -341,7 +367,7 @@ func (h *LegalHandler) CancelAccountDeletion(c *gin.Context) {
 
 	err := h.legalService.CancelAccountDeletion(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -352,7 +378,7 @@ func (h *LegalHandler) CancelAccountDeletion(c *gin.Context) {
 func (h *LegalHandler) GetRetentionPolicies(c *gin.Context) {
 	policies, err := h.legalService.GetRetentionPolicies(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 

@@ -20,7 +20,7 @@ func NewAdminLegalHandler(legalService service.LegalService) *AdminLegalHandler 
 func (h *AdminLegalHandler) GetAdminPrivacySummary(c *gin.Context) {
 	summary, err := h.legalService.GetPrivacyDashboardSummary(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, summary)
@@ -79,7 +79,7 @@ func (h *AdminLegalHandler) GetAdminConsents(c *gin.Context) {
 func (h *AdminLegalHandler) GetRetentionPolicies(c *gin.Context) {
 	policies, err := h.legalService.GetRetentionPolicies(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, policies)
@@ -94,7 +94,7 @@ func (h *AdminLegalHandler) UpdateRetentionPolicy(c *gin.Context) {
 
 	err := h.legalService.UpdateRetentionPolicy(c.Request.Context(), &policy)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (h *AdminLegalHandler) UpdateRetentionPolicy(c *gin.Context) {
 func (h *AdminLegalHandler) GetDataProcessingRecords(c *gin.Context) {
 	records, err := h.legalService.GetDataProcessingRecords(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		writeLegalError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, records)
