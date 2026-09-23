@@ -24,6 +24,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('../services/authService', () => ({
+  API_BASE_URL: 'http://127.0.0.1:8080/api/v1',
+  extractApiError: (err: any, fallback = 'error') => ({ message: err?.response?.data?.error || err?.message || fallback }),
   authApiClient: {
     get: vi.fn(),
     post: vi.fn(),

@@ -7,6 +7,8 @@ import { ApplyJobModal } from '../components/applications/ApplyJobModal';
 import { authApiClient } from '../services/authService';
 
 vi.mock('../services/authService', () => ({
+  API_BASE_URL: 'http://127.0.0.1:8080/api/v1',
+  extractApiError: (err: any, fallback = 'error') => ({ message: err?.response?.data?.error || err?.message || fallback }),
   authApiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   getAccessToken: () => 'mock-jwt-token',
   API_BASE_URL: 'http://127.0.0.1:8080/api/v1',
