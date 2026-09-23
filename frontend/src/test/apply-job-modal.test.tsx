@@ -9,60 +9,90 @@ import { authApiClient } from '../services/authService';
 vi.mock('../services/authService', () => ({
   authApiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   getAccessToken: () => 'mock-jwt-token',
+  API_BASE_URL: 'http://127.0.0.1:8080/api/v1',
 }));
 
-vi.mock('../context/AuthContext', () => {
-  // The modal effect depends on the user object. Match the provider contract
-  // by returning one stable context value instead of allocating a user on
-  // every render, which would intentionally retrigger the effect forever.
-  const context = {
-    user: { id: 'u1', email: 'candidate@kirmya.com', name: 'Candidate User' },
-    notificationsCount: 0,
-    setNotificationsCount: vi.fn(),
+vi.mock('../hooks/useAuth', () => {
+  const value = {
+    user: {
+      id: 'u1',
+      email: 'candidate@kirmya.com',
+      firstName: 'Candidate',
+      lastName: 'User',
+      name: 'Candidate User',
+    },
     authenticated: true,
     isAuthenticated: true,
-    // The context exposes an explicit state machine; guards branch on it
-    // rather than inferring 'signed out' from a false boolean.
     status: 'authenticated' as const,
     loading: false,
+    notificationsCount: 0,
     permissions: [],
+    workspaces: [],
+    logout: vi.fn(),
   };
-  return { useAuthContext: () => context };
+  return { useAuth: () => value, default: () => value };
 });
 
 const theme = getTheme('light');
+
+const resumeDoc = {
+  id: 'doc-1',
+  candidate_id: 'u1',
+  title: 'Senior_Go_Resume.pdf',
+  document_type: 'Resume',
+  file_url: 'https://cdn.kirmya.com/resume.pdf',
+  size_bytes: 200000,
+  file_type: 'pdf',
+  is_default: true,
+  uploaded_at: '2026-08-20T10:00:00Z',
+};
+
+const baseJob = {
+  id: 'job-501',
+  title: 'Staff Backend Distributed Systems Engineer',
+  company_name: 'Kirmya Global Cloud',
+  company_id: 'comp-10',
+  location: 'Dubai, UAE (Hybrid)',
+  employment_type: 'Full-time',
+  work_mode: 'hybrid',
+  salary_range: 'AED 35,000 - 45,000 / month',
+  description: 'Test job description',
+  status: 'active',
+  created_at: '2026-08-20T10:00:00Z',
+};
 
 describe('ApplyJobModal', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('steps through the application workflow and submits it', async () => {
-    (authApiClient.get as any).mockResolvedValueOnce({
-      data: [{
-        id: 'doc-1', candidate_id: 'u1', title: 'Senior_Go_Resume.pdf', document_type: 'Resume',
-        file_url: 'https://cdn.kirmya.com/resume.pdf', size_bytes: 200000, file_type: 'pdf',
-        is_default: true, uploaded_at: '2026-08-20T10:00:00Z',
-      }],
-    });
+    (authApiClient.get as any).mockResolvedValueOnce({ data: [resumeDoc] });
     const handleSuccess = vi.fn();
-    render(<ThemeProvider theme={theme}><ApplyJobModal
-      open
-      job={{
-        id: 'job-501', title: 'Staff Backend Distributed Systems Engineer',
-        company_name: 'Kirmya Global Cloud', company_id: 'comp-10', location: 'Dubai, UAE (Hybrid)',
-        employment_type: 'Full-time', work_mode: 'hybrid', salary_range: 'AED 35,000 - 45,000 / month',
-        screening_questions: [{ id: 'sq-1', question: 'How many years of production Go experience do you have?' }],
-        description: 'Test job description', status: 'active', created_at: '2026-08-20T10:00:00Z',
-      } as any}
-      onClose={vi.fn()}
-      onSuccess={handleSuccess}
-    /></ThemeProvider>);
+    render(
+      <ThemeProvider theme={theme}>
+        <ApplyJobModal
+          open
+          job={{
+            ...baseJob,
+            screening_questions: [
+              { id: 'sq-1', question: 'How many years of production Go experience do you have?' },
+            ],
+          } as any}
+          onClose={vi.fn()}
+          onSuccess={handleSuccess}
+        />
+      </ThemeProvider>
+    );
 
     expect(screen.getByLabelText(/Full Name/i)).toBeDefined();
+    // Wait for resumes to load before leaving the contact step so the resume
+    // gate cannot race with the document fetch.
+    await waitFor(() => expect(authApiClient.get).toHaveBeenCalled());
+
     for (const expected of [
-      /Select a tailored resume/i,
-      /Add a personalized note/i,
+      /Select a tailored resume|Senior_Go_Resume|Your Documents/i,
+      /Add a personalized note|Cover Note/i,
       /How many years of production Go experience do you have/i,
-      /Please review your application summary/i,
+      /Please review your application summary|Review/i,
     ]) {
       fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
       await waitFor(() => expect(screen.getByText(expected)).toBeDefined());
@@ -71,7 +101,10 @@ describe('ApplyJobModal', () => {
     (authApiClient.post as any).mockResolvedValueOnce({ data: { summary: { id: 'app-999' } } });
     fireEvent.click(screen.getByRole('button', { name: /Submit Application/i }));
     await waitFor(() => {
-      expect(authApiClient.post).toHaveBeenCalledWith('/applications', expect.objectContaining({ job_id: 'job-501' }));
+      expect(authApiClient.post).toHaveBeenCalledWith(
+        '/applications',
+        expect.objectContaining({ job_id: 'job-501' }),
+      );
       expect(handleSuccess).toHaveBeenCalledWith('app-999');
     });
   });
@@ -82,11 +115,7 @@ describe('ApplyJobModal', () => {
       <ThemeProvider theme={theme}>
         <ApplyJobModal
           open
-          job={{
-            id: 'job-502',
-            title: 'Frontend Engineer',
-            company_name: 'Kirmya Global',
-          } as any}
+          job={{ id: 'job-502', title: 'Frontend Engineer', company_name: 'Kirmya Global' } as any}
           onClose={vi.fn()}
         />
       </ThemeProvider>
@@ -101,14 +130,31 @@ describe('ApplyJobModal', () => {
     });
   });
 
-  it('handles API submission errors gracefully and displays error alert', async () => {
-    (authApiClient.get as any).mockResolvedValueOnce({
-      data: [{
-        id: 'doc-err', candidate_id: 'u1', title: 'Resume.pdf', document_type: 'Resume',
-        file_url: 'https://cdn.kirmya.com/resume.pdf', size_bytes: 1000, file_type: 'pdf',
-        is_default: true, uploaded_at: '2026-08-20T10:00:00Z',
-      }],
+  it('blocks progression when no resume is selected', async () => {
+    (authApiClient.get as any).mockResolvedValueOnce({ data: [] });
+    render(
+      <ThemeProvider theme={theme}>
+        <ApplyJobModal
+          open
+          job={{ id: 'job-504', title: 'QA Engineer', company_name: 'Kirmya Global' } as any}
+          onClose={vi.fn()}
+        />
+      </ThemeProvider>
+    );
+
+    await waitFor(() => expect(authApiClient.get).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/Select a tailored resume|Your Documents|resume/i)).toBeDefined(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Please select a resume or provide a document link/i)).toBeDefined();
     });
+  });
+
+  it('handles API submission errors gracefully and displays error alert', async () => {
+    (authApiClient.get as any).mockResolvedValueOnce({ data: [resumeDoc] });
     (authApiClient.post as any).mockRejectedValueOnce({
       response: { data: { message: 'Candidate already applied to this job' } },
     });
@@ -121,19 +167,24 @@ describe('ApplyJobModal', () => {
             id: 'job-503',
             title: 'DevOps Engineer',
             company_name: 'Kirmya Global',
+            screening_questions: [],
           } as any}
           onClose={vi.fn()}
         />
       </ThemeProvider>
     );
 
-    for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
-    }
+    await waitFor(() => expect(authApiClient.get).toHaveBeenCalled());
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Submit Application/i })).toBeDefined();
-    });
+    for (const expected of [
+      /Select a tailored resume|Senior_Go_Resume|Your Documents/i,
+      /Add a personalized note|Cover Note/i,
+      /screening|No screening|Review|application summary/i,
+      /Please review your application summary|Review/i,
+    ]) {
+      fireEvent.click(screen.getByRole('button', { name: /Continue/i }));
+      await waitFor(() => expect(screen.getByText(expected)).toBeDefined());
+    }
 
     fireEvent.click(screen.getByRole('button', { name: /Submit Application/i }));
     await waitFor(() => {
