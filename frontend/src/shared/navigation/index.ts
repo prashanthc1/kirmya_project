@@ -59,6 +59,7 @@ export const MOBILE_NAV_ITEMS: NavItem[] = [
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { id: 'jobs', label: 'Find Jobs', href: ROUTES.JOBS, iconName: 'WorkOutline' },
   { id: 'companies', label: 'Companies', href: ROUTES.COMPANIES, iconName: 'BusinessOutlined' },
+  { id: 'for-recruiters', label: 'For Recruiters', href: ROUTES.FOR_RECRUITERS, iconName: 'BusinessCenterOutlined' },
   { id: 'communities', label: 'Communities', href: ROUTES.COMMUNITIES, iconName: 'ForumOutlined' },
   { id: 'help', label: 'Help', href: ROUTES.HELP, iconName: 'HelpOutline' },
 ];
