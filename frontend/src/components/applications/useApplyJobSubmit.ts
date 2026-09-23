@@ -55,11 +55,14 @@ export function useApplyJobSubmit({
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const questionsList = (job.screening_questions || []).map((q, idx) => ({
-      question_id: q.id || `q-${idx}`,
-      question_text: q.question || `Screening Question #${idx + 1}`,
-      answer: screeningAnswers[q.id || `q-${idx}`] || 'N/A',
-    }));
+    const questionsList = (job.screening_questions || []).map((q, idx) => {
+      const key = q.id || `q-${idx}`;
+      return {
+        question_id: key,
+        question_text: q.question || `Screening Question #${idx + 1}`,
+        answer: (screeningAnswers[key] || '').trim(),
+      };
+    }).filter((item) => item.answer.length > 0);
 
     try {
       const response = await applicationsApi.applyToJob({

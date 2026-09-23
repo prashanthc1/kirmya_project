@@ -132,6 +132,12 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
 
   const hasResume = Boolean(selectedResumeId || customResumeUrl.trim());
 
+  const unansweredRequiredScreening = (job.screening_questions || []).filter((q, idx) => {
+    if (!q.required) return false;
+    const key = q.id || `q-${idx}`;
+    return !(screeningAnswers[key] || '').trim();
+  });
+
   const handleNext = () => {
     setSubmitError(null);
     if (activeStep === 0) {
@@ -146,6 +152,10 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
     }
     if (activeStep === 1 && !hasResume) {
       setSubmitError('Please select a resume or provide a document link.');
+      return;
+    }
+    if (activeStep === 3 && unansweredRequiredScreening.length > 0) {
+      setSubmitError('Please answer all required screening questions.');
       return;
     }
     setActiveStep((prev) => prev + 1);
@@ -163,6 +173,10 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
     }
     if (!hasResume) {
       setSubmitError('Please select a resume or provide a document link.');
+      return;
+    }
+    if (unansweredRequiredScreening.length > 0) {
+      setSubmitError('Please answer all required screening questions.');
       return;
     }
     handleSubmit({
