@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"kirmya/internal/freelance/domain"
 	"kirmya/internal/freelance/payments"
@@ -330,5 +332,63 @@ func TestRefundRoute(t *testing.T) {
 	_ = json.Unmarshal(rec.Body.Bytes(), &m)
 	if m.Status != "cancelled" {
 		t.Fatalf("refunded milestone status = %q", m.Status)
+	}
+}
+
+// The Stripe path through the real routes: funding hands back Stripe's hosted
+// checkout page, and only a correctly signed checkout.session.completed for the
+// exact amount funds the milestone.
+func TestStripeCheckoutThroughTheRoutes(t *testing.T) {
+	stripe := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"id":"cs_test_route","url":"https://checkout.stripe.com/c/pay/cs_test_route"}`))
+	}))
+	defer stripe.Close()
+	gw := payments.NewStripeGateway(payments.StripeConfig{
+		SecretKey: "sk_test_x", WebhookSecret: "whsec_route", AppBaseURL: "https://kirmya.example", APIBase: stripe.URL,
+	})
+	r := newEscrowRoutes(t, gw)
+	milestone := r.path("/milestones/" + r.addMilestone(t, 1000.00))
+
+	rec := request(t, r.engine, http.MethodPost, milestone+"/fund", tokenFor(t, r.client), nil)
+	if rec.Code != http.StatusAccepted {
+		t.Fatalf("fund = %d %s", rec.Code, rec.Body)
+	}
+	var funding struct {
+		CheckoutURL string `json:"checkout_url"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &funding)
+	if funding.CheckoutURL != "https://checkout.stripe.com/c/pay/cs_test_route" {
+		t.Fatalf("checkout_url = %q", funding.CheckoutURL)
+	}
+
+	event := func(eventType string) []byte {
+		return []byte(`{"id":"evt_1","type":"` + eventType + `","data":{"object":{"id":"cs_test_route","object":"checkout.session","payment_status":"paid","amount_total":100000,"currency":"aed"}}}`)
+	}
+	send := func(body []byte, secret string) int {
+		ts := strconv.FormatInt(time.Now().Unix(), 10)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/freelance/payments/webhooks/stripe", bytes.NewReader(body))
+		req.Header.Set(payments.StripeSignatureHeader, "t="+ts+",v1="+payments.SignStripePayload(secret, ts, body))
+		rec := httptest.NewRecorder()
+		r.engine.ServeHTTP(rec, req)
+		return rec.Code
+	}
+
+	if code := send(event("checkout.session.completed"), "whsec_forged"); code != http.StatusUnauthorized {
+		t.Errorf("forged Stripe event = %d, want 401", code)
+	}
+	if code := send(event("payment_intent.created"), "whsec_route"); code != http.StatusOK {
+		t.Errorf("an event escrow ignores = %d, want 200", code)
+	}
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/submit", tokenFor(t, r.freelancer),
+		map[string]any{"summary": "early"}); rec.Code != http.StatusConflict {
+		t.Fatalf("submitting before a genuine confirmation = %d, want 409", rec.Code)
+	}
+	if code := send(event("checkout.session.completed"), "whsec_route"); code != http.StatusOK {
+		t.Fatalf("genuine Stripe confirmation = %d", code)
+	}
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/submit", tokenFor(t, r.freelancer),
+		map[string]any{"summary": "Shipped"}); rec.Code != http.StatusOK {
+		t.Fatalf("submit after funding = %d %s", rec.Code, rec.Body)
 	}
 }

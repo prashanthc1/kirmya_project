@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
@@ -59,7 +60,15 @@ export default function ContractView({ contractID }: { contractID: string }) {
   const queryClient = useQueryClient();
   const [dialog, setDialog] = React.useState<DialogState>(null);
   const [dialogError, setDialogError] = React.useState<string | null>(null);
-  const [notice, setNotice] = React.useState<{ severity: 'success' | 'info' | 'error'; text: string } | null>(null);
+  // Where the payment processor's checkout page sent the client back from.
+  const paymentReturn = useSearchParams()?.get('payment');
+  const [notice, setNotice] = React.useState<{ severity: 'success' | 'info' | 'error'; text: string } | null>(() =>
+    paymentReturn === 'success'
+      ? { severity: 'info', text: 'Payment received. The milestone will show as funded as soon as the payment is confirmed.' }
+      : paymentReturn === 'cancelled'
+        ? { severity: 'info', text: 'Payment cancelled. Nothing was charged, and the milestone is still awaiting payment.' }
+        : null
+  );
 
   const contractKey = ['freelance', 'contract', contractID];
   const {
@@ -70,6 +79,11 @@ export default function ContractView({ contractID }: { contractID: string }) {
     queryKey: contractKey,
     queryFn: () => freelanceApi.getContract(contractID),
     retry: false,
+    // The processor confirms a payment by webhook, usually a moment after it
+    // sends the client back. Look again for a short while rather than show
+    // "awaiting payment" to somebody who has just paid.
+    refetchInterval: query =>
+      paymentReturn === 'success' && query.state.dataUpdateCount < 10 ? 3000 : false,
   });
   const { data: disputes } = useQuery({
     queryKey: ['freelance', 'contract', contractID, 'disputes'],

@@ -661,12 +661,19 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	freelanceRepository := freelanceRepo.NewFreelanceRepository(dbPool)
 	freelanceService := freelanceSvc.NewFreelanceService(freelanceRepository)
 	freelanceHandler := freelanceHttp.NewFreelanceHandler(freelanceService)
-	// The escrow flow. With no payment processor integrated, production gets no
-	// gateway and milestone funding answers 503; outside production the signed
-	// sandbox runs when FREELANCE_SANDBOX_WEBHOOK_SECRET is set.
-	freelanceGateway := freelancePayments.FromEnv(cfg.AppEnv, os.Getenv)
+	// The escrow flow's payment processor: Stripe, the signed sandbox, or none
+	// (funding answers 503). Unsafe or incomplete settings - a live Stripe key
+	// outside production, the sandbox in production - stop the server here
+	// rather than at the moment somebody tries to pay. See payments.FromEnv.
+	freelanceGateway, gatewayErr := freelancePayments.FromEnv(cfg.AppEnv, cfg.AppBaseURL, os.Getenv)
+	if gatewayErr != nil {
+		slog.Error("Freelance payment configuration refused", slog.String("error", gatewayErr.Error()))
+		os.Exit(1)
+	}
 	if freelanceGateway == nil {
 		slog.Warn("Freelance escrow: no payment processor configured; milestone funding is disabled")
+	} else {
+		slog.Info("Freelance escrow payment processor", slog.String("provider", freelanceGateway.Name()))
 	}
 	freelanceEscrowService := freelanceSvc.NewEscrowService(freelanceRepository, freelanceGateway, nil)
 	freelanceEscrowHandler := freelanceHttp.NewEscrowHandler(freelanceEscrowService)

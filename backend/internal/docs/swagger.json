@@ -24302,7 +24302,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "The client asks to pay a pending milestone into escrow. Answers 202 with a payment intent (status requires_payment) and, when the processor uses one, a checkout_url. This does not fund the milestone: it becomes funded only when the payment processor's signed webhook confirms the money, and the contract becomes active on its first funded milestone. 409 (FREELANCE_ESCROW_CONFLICT) while another payment for the milestone is in progress; 503 (FREELANCE_PAYMENTS_UNAVAILABLE) when this deployment has no payment processor; 502 (FREELANCE_PAYMENT_PROVIDER_ERROR) when the processor could not start the payment. Requires a valid Bearer access token.",
+                "description": "The client asks to pay a pending milestone into escrow. Answers 202 with a payment intent (status requires_payment) and, when the processor uses one, a checkout_url - with Stripe, a hosted Checkout page that returns the client to the contract with ?payment=success or ?payment=cancelled. This does not fund the milestone: it becomes funded only when the payment processor's signed webhook confirms the money, and the contract becomes active on its first funded milestone. 409 (FREELANCE_ESCROW_CONFLICT) while another payment for the milestone is in progress; 503 (FREELANCE_PAYMENTS_UNAVAILABLE) when this deployment has no payment processor; 502 (FREELANCE_PAYMENT_PROVIDER_ERROR) when the processor could not start the payment. Requires a valid Bearer access token.",
                 "produces": [
                     "application/json"
                 ],
@@ -25151,7 +25151,7 @@
         },
         "/api/v1/freelance/payments/webhooks/{provider}": {
             "post": {
-                "description": "Called by the payment processor, not by clients. Authenticated only by the processor's signature over the raw body (the sandbox processor uses an HMAC-SHA256 in X-Kirmya-Signature as sha256=\u003chex\u003e); an unverifiable request is refused with 401 and changes nothing. A confirmed charge funds its milestone; a failed one frees the milestone for another attempt. Idempotent: redelivered events are acknowledged without applying twice. 404 for a provider this deployment does not use; 409 when the event cannot apply in the milestone's current state.",
+                "description": "Called by the payment processor, not by clients. Authenticated only by the processor's signature over the raw body; an unverifiable request is refused with 401 and changes nothing. provider=stripe verifies the Stripe-Signature header (t=\u003ctimestamp\u003e,v1=\u003cHMAC-SHA256 of \"\u003ctimestamp\u003e.\u003cbody\u003e\"\u003e, five-minute tolerance) and acts on checkout.session.completed (when paid), checkout.session.async_payment_succeeded, checkout.session.async_payment_failed and checkout.session.expired; other verified events are acknowledged with applied=false. provider=sandbox verifies an HMAC-SHA256 in X-Kirmya-Signature as sha256=\u003chex\u003e. A confirmed charge funds its milestone - only if the captured amount and currency match the charge requested (409 otherwise); a failed one frees the milestone for another attempt. Idempotent: redelivered events are acknowledged without applying twice. 404 for a provider this deployment does not use; 409 when the event cannot apply in the milestone's current state.",
                 "consumes": [
                     "application/json"
                 ],

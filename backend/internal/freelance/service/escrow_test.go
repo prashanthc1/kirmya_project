@@ -454,3 +454,69 @@ func TestWebhooksForOtherProvidersOrChargesAreRefused(t *testing.T) {
 		t.Errorf("unsigned webhook: err = %v, want ErrWebhookRejected", err)
 	}
 }
+
+// A processor that reports what it captured is held to it: a success for a
+// different amount or currency does not fund the milestone.
+func TestCapturedAmountMustMatchTheCharge(t *testing.T) {
+	ctx := context.Background()
+	f := hiredContract(t, sandbox())
+	m := f.addMilestone(t, "Design", 50000)
+	result, err := f.escrow.FundMilestone(ctx, f.client, f.contract.ID, m.ID)
+	if err != nil {
+		t.Fatalf("fund: %v", err)
+	}
+	ref := result.Intent.ProviderReference
+
+	for name, event := range map[string]payments.WebhookEvent{
+		"a different amount":   {Kind: payments.ChargeSucceeded, Reference: ref, AmountMinorUnits: 49999, Currency: "AED"},
+		"a different currency": {Kind: payments.ChargeSucceeded, Reference: ref, AmountMinorUnits: 50000, Currency: "USD"},
+	} {
+		if err := f.escrow.HandlePaymentWebhook(ctx, payments.SandboxName, event); !errors.Is(err, ErrAmountMismatch) || !errors.Is(err, domain.ErrConflict) {
+			t.Errorf("%s: err = %v, want a conflict for the amount mismatch", name, err)
+		}
+	}
+	if got := milestoneIn(t, f.detail(t), m.ID).Status; got != domain.MilestonePending {
+		t.Fatalf("milestone after mismatched confirmations = %q, want pending", got)
+	}
+
+	// The exact amount, in the processor's lower-case currency code, funds it.
+	if err := f.escrow.HandlePaymentWebhook(ctx, payments.SandboxName, payments.WebhookEvent{
+		Kind: payments.ChargeSucceeded, Reference: ref, AmountMinorUnits: 50000, Currency: "aed",
+	}); err != nil {
+		t.Fatalf("matching confirmation: %v", err)
+	}
+	if got := milestoneIn(t, f.detail(t), m.ID).Status; got != domain.MilestoneFunded {
+		t.Fatalf("milestone after the matching confirmation = %q, want funded", got)
+	}
+}
+
+func TestIgnoredEventsChangeNothing(t *testing.T) {
+	f := hiredContract(t, sandbox())
+	if err := f.escrow.HandlePaymentWebhook(context.Background(), payments.SandboxName,
+		payments.WebhookEvent{Kind: payments.EventIgnored}); err != nil {
+		t.Fatalf("an ignored event was refused: %v", err)
+	}
+}
+
+// The milestone's title is what the client sees on the processor's page.
+type recordingGateway struct {
+	payments.Gateway
+	last payments.EscrowChargeRequest
+}
+
+func (g *recordingGateway) CreateEscrowCharge(ctx context.Context, req payments.EscrowChargeRequest) (payments.EscrowCharge, error) {
+	g.last = req
+	return g.Gateway.CreateEscrowCharge(ctx, req)
+}
+
+func TestChargeCarriesTheMilestoneTitle(t *testing.T) {
+	gw := &recordingGateway{Gateway: sandbox()}
+	f := hiredContract(t, gw)
+	m := f.addMilestone(t, "Design system", 50000)
+	if _, err := f.escrow.FundMilestone(context.Background(), f.client, f.contract.ID, m.ID); err != nil {
+		t.Fatalf("fund: %v", err)
+	}
+	if gw.last.Description != "Design system" || gw.last.AmountMinorUnits != 50000 || gw.last.Currency != "AED" {
+		t.Fatalf("charge request = %+v", gw.last)
+	}
+}

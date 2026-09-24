@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"kirmya/internal/freelance/domain"
+	"kirmya/internal/freelance/payments"
 	"kirmya/internal/freelance/service"
 	sharedMiddleware "kirmya/internal/shared/middleware"
 
@@ -350,6 +351,11 @@ func (h *EscrowHandler) PaymentWebhook(c *gin.Context) {
 		return
 	}
 
+	if event.Kind == payments.EventIgnored {
+		// Verified, and nothing escrow acts on: acknowledged so it is not retried.
+		c.JSON(http.StatusOK, gin.H{"received": true, "applied": false})
+		return
+	}
 	if err := h.svc.HandlePaymentWebhook(c.Request.Context(), provider, event); err != nil {
 		switch {
 		case errors.Is(err, domain.ErrNotFound):

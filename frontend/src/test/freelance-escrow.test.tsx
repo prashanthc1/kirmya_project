@@ -11,10 +11,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
  */
 
 const auth = vi.hoisted(() => ({ userID: 'client-1' }));
+const search = vi.hoisted(() => ({ params: '' }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn(), back: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(search.params),
   usePathname: () => '/freelance/contracts/contract-1',
 }));
 
@@ -102,6 +103,7 @@ function renderWithQuery(ui: React.ReactElement) {
 beforeEach(() => {
   vi.clearAllMocks();
   auth.userID = 'client-1';
+  search.params = '';
   api.listContractDisputes.mockResolvedValue({ data: [], count: 0 });
 });
 
@@ -195,6 +197,18 @@ describe('contract screen', () => {
     expect(within(dialog).getByText(/only aed\s?400\.00 of the contract is left/i)).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: /add milestone/i })).toBeDisabled();
     expect(api.addMilestone).not.toHaveBeenCalled();
+  });
+
+  it('tells a client back from checkout where the payment stands', async () => {
+    api.getContract.mockResolvedValue(contract([milestone({ status: 'pending' })]));
+    search.params = 'payment=cancelled';
+    const { unmount } = renderWithQuery(<ContractView contractID="contract-1" />);
+    expect(await screen.findByText(/payment cancelled\. nothing was charged/i)).toBeInTheDocument();
+    unmount();
+
+    search.params = 'payment=success';
+    renderWithQuery(<ContractView contractID="contract-1" />);
+    expect(await screen.findByText(/payment received\. the milestone will show as funded/i)).toBeInTheDocument();
   });
 
   it('shows a stranger that the contract cannot be found', async () => {

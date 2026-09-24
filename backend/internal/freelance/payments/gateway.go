@@ -14,6 +14,7 @@ package payments
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -42,6 +43,9 @@ type EscrowChargeRequest struct {
 	// AmountMinorUnits is in Currency's minor units, exactly as stored.
 	AmountMinorUnits int64
 	Currency         string
+	// Description names the charge to the payer, on the processor's checkout
+	// page and statement: the milestone's title.
+	Description string
 }
 
 // EscrowCharge is the processor's handle on a requested charge.
@@ -71,12 +75,20 @@ const (
 	ChargeSucceeded EventKind = "charge.succeeded"
 	// ChargeFailed: the charge will not complete.
 	ChargeFailed EventKind = "charge.failed"
+	// EventIgnored: a verified event the escrow flow does not act on. It is
+	// acknowledged, so the processor stops redelivering it.
+	EventIgnored EventKind = "ignored"
 )
 
 // WebhookEvent is a verified notification from the processor.
 type WebhookEvent struct {
 	Kind      EventKind
 	Reference string
+	// AmountMinorUnits and Currency are what the processor says it captured,
+	// when it says. The service refuses a success that does not match the
+	// charge it asked for. Zero when the processor does not report it.
+	AmountMinorUnits int64
+	Currency         string
 }
 
 // Gateway is one payment processor.
@@ -108,24 +120,78 @@ type Gateway interface {
 	RefundEscrowCharge(ctx context.Context, req RefundRequest) (string, error)
 }
 
+// Provider names accepted in FREELANCE_PAYMENT_PROVIDER.
+const (
+	ProviderStripe  = StripeName
+	ProviderSandbox = SandboxName
+)
+
+// ErrMisconfigured means the payment settings are unsafe or incomplete. The
+// server refuses to start rather than run with them: a half-configured
+// processor fails at the moment somebody tries to pay.
+var ErrMisconfigured = errors.New("payments: misconfigured")
+
 // FromEnv picks the gateway for a deployment.
 //
-// There is no production processor yet, so production gets none and funding
-// answers 503 until one is integrated. Outside production the signed sandbox
-// gateway is available when its webhook secret is set, which is what lets the
-// whole escrow flow be exercised end to end in development and CI without a
-// processor account. The secret is required even there: an unsigned sandbox
-// would be a way to mark milestones paid by hand, which is exactly the thing
-// the webhook exists to prevent.
-func FromEnv(appEnv string, getenv func(string) string) Gateway {
-	// Both spellings main.go treats as production.
+// FREELANCE_PAYMENT_PROVIDER chooses:
+//
+//	stripe   Stripe Checkout. Needs STRIPE_SECRET_KEY and
+//	         FREELANCE_STRIPE_WEBHOOK_SECRET. Production must use a live key and
+//	         everywhere else a test key, so a development machine can never
+//	         charge a real card and production never takes pretend money.
+//	sandbox  Collects nothing; funds a milestone only on a webhook signed with
+//	         FREELANCE_SANDBOX_WEBHOOK_SECRET. Refused in production.
+//	(unset)  No processor, and funding answers 503 - except outside production,
+//	         where a set FREELANCE_SANDBOX_WEBHOOK_SECRET still selects the
+//	         sandbox, as it did before this setting existed.
+//
+// A nil gateway with a nil error is a deployment that takes no payments.
+func FromEnv(appEnv, appBaseURL string, getenv func(string) string) (Gateway, error) {
+	env := func(key string) string { return strings.TrimSpace(getenv(key)) }
+	var production bool
 	switch strings.ToLower(strings.TrimSpace(appEnv)) {
 	case "production", "prod":
-		return nil
+		production = true
 	}
-	secret := strings.TrimSpace(getenv("FREELANCE_SANDBOX_WEBHOOK_SECRET"))
-	if secret == "" {
-		return nil
+
+	switch provider := strings.ToLower(env("FREELANCE_PAYMENT_PROVIDER")); provider {
+	case ProviderStripe:
+		key, whsec := env("STRIPE_SECRET_KEY"), env("FREELANCE_STRIPE_WEBHOOK_SECRET")
+		if key == "" || whsec == "" {
+			return nil, fmt.Errorf("%w: stripe needs STRIPE_SECRET_KEY and FREELANCE_STRIPE_WEBHOOK_SECRET", ErrMisconfigured)
+		}
+		live := strings.HasPrefix(key, "sk_live_") || strings.HasPrefix(key, "rk_live_")
+		if production && !live {
+			return nil, fmt.Errorf("%w: production must use a live Stripe key", ErrMisconfigured)
+		}
+		if !production && live {
+			return nil, fmt.Errorf("%w: a live Stripe key outside production would charge real cards", ErrMisconfigured)
+		}
+		if strings.TrimSpace(appBaseURL) == "" {
+			return nil, fmt.Errorf("%w: stripe needs APP_BASE_URL to return clients from checkout", ErrMisconfigured)
+		}
+		return NewStripeGateway(StripeConfig{SecretKey: key, WebhookSecret: whsec, AppBaseURL: appBaseURL}), nil
+
+	case ProviderSandbox:
+		if production {
+			return nil, fmt.Errorf("%w: the sandbox processor is refused in production", ErrMisconfigured)
+		}
+		secret := env("FREELANCE_SANDBOX_WEBHOOK_SECRET")
+		if secret == "" {
+			return nil, fmt.Errorf("%w: the sandbox needs FREELANCE_SANDBOX_WEBHOOK_SECRET", ErrMisconfigured)
+		}
+		return NewSandboxGateway(secret), nil
+
+	case "":
+		if production {
+			return nil, nil
+		}
+		if secret := env("FREELANCE_SANDBOX_WEBHOOK_SECRET"); secret != "" {
+			return NewSandboxGateway(secret), nil
+		}
+		return nil, nil
+
+	default:
+		return nil, fmt.Errorf("%w: unknown FREELANCE_PAYMENT_PROVIDER %q", ErrMisconfigured, provider)
 	}
-	return NewSandboxGateway(secret)
 }
