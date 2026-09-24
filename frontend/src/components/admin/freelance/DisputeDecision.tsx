@@ -31,6 +31,7 @@ import {
   MILESTONE_STATUS,
   formatDate,
   formatMoney,
+  personLabel,
 } from '../../freelance/escrowFormat';
 
 /*
@@ -87,6 +88,18 @@ export default function DisputeDecision({ disputeID }: { disputeID: string }) {
   const isOpen = OPEN_DISPUTE_STATUSES.includes(dispute.status);
   const m = dispute.milestone;
   const amount = m ? formatMoney(m.amount, m.currency) : 'the escrowed amount';
+  const parties = dispute.contract;
+  // Evidence and the dispute name their author by id; the author is always one
+  // of the two parties.
+  const roleOf = (userID: string) =>
+    userID === parties?.client.id ? 'client' : userID === parties?.freelancer.id ? 'freelancer' : null;
+  const nameOf = (userID: string) =>
+    userID === parties?.client.id
+      ? personLabel(parties.client)
+      : userID === parties?.freelancer.id
+        ? personLabel(parties.freelancer)
+        : personLabel(undefined, userID);
+  const raiserRole = roleOf(dispute.raised_by);
 
   return (
     <Box sx={{ py: 4, maxWidth: 880 }}>
@@ -100,8 +113,30 @@ export default function DisputeDecision({ disputeID }: { disputeID: string }) {
         <Chip label={DISPUTE_STATUS[dispute.status]?.label ?? dispute.status} color={DISPUTE_STATUS[dispute.status]?.color ?? 'default'} />
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        Opened {formatDate(dispute.created_at)} · contract {dispute.contract_id} · raised by user {dispute.raised_by}
+        {parties?.project_title || 'Untitled project'} · opened {formatDate(dispute.created_at)} by{' '}
+        {personLabel(dispute.raised_by_person, dispute.raised_by)}
+        {raiserRole && ` (the ${raiserRole})`}
       </Typography>
+
+      {parties && (
+        <Paper variant="outlined" sx={{ mt: 3, p: 2 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 4 }}>
+            {(['client', 'freelancer'] as const).map(role => (
+              <Box key={role}>
+                <Typography variant="overline" color="text.secondary">
+                  {role === 'client' ? 'Client' : 'Freelancer'}
+                </Typography>
+                <Typography>{personLabel(parties[role])}</Typography>
+                {parties[role].email && (
+                  <MuiLink href={`mailto:${parties[role].email}`} variant="body2">
+                    {parties[role].email}
+                  </MuiLink>
+                )}
+              </Box>
+            ))}
+          </Stack>
+        </Paper>
+      )}
 
       <Paper variant="outlined" sx={{ mt: 3, p: 3 }}>
         <Typography variant="overline" color="text.secondary">
@@ -123,7 +158,9 @@ export default function DisputeDecision({ disputeID }: { disputeID: string }) {
         {dispute.evidence.map(e => (
           <Paper key={e.id} variant="outlined" sx={{ p: 2 }}>
             <Typography variant="caption" color="text.secondary">
-              {e.uploaded_by === dispute.raised_by ? 'Raiser' : 'Other party'} · {formatDate(e.created_at)}
+              {nameOf(e.uploaded_by)}
+              {roleOf(e.uploaded_by) && ` (${roleOf(e.uploaded_by)})`}
+              {e.uploaded_by === dispute.raised_by && ' · raised the dispute'} · {formatDate(e.created_at)}
             </Typography>
             {e.body && <Typography sx={{ whiteSpace: 'pre-wrap' }}>{e.body}</Typography>}
             {e.file_url && (

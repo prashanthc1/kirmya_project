@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -217,4 +218,89 @@ func TestFreelanceVoluntaryRefund(t *testing.T) {
 		t.Fatalf("after refund: milestone %q, intent %q", milestone, intent)
 	}
 	expect(t, http.StatusConflict, http.MethodPost, p.url("/milestones/"+m+"/refund"), p.freelancer.token, reason)
+}
+
+// The administrator's views carry the names behind the ids: the project, the
+// two parties and whoever raised the dispute, from the users table itself.
+func TestFreelanceAdminViewsNameThePeople(t *testing.T) {
+	p, m, disputeID := disputedMilestone(t)
+	admin := adminFor(t, p.base)
+
+	type person struct {
+		ID    string `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+	type summary struct {
+		ProjectTitle string `json:"project_title"`
+		Client       person `json:"client"`
+		Freelancer   person `json:"freelancer"`
+	}
+	var detail struct {
+		Contract       summary `json:"contract"`
+		RaisedByPerson person  `json:"raised_by_person"`
+	}
+	raw := expect(t, http.StatusOK, http.MethodGet, p.base+"/api/v1/admin/freelance/disputes/"+disputeID, admin.token, nil)
+	if err := json.Unmarshal([]byte(raw), &detail); err != nil {
+		t.Fatal(err)
+	}
+	c := detail.Contract
+	if c.ProjectTitle != "Escrow CI project" ||
+		c.Client.ID != p.client.id || c.Client.Email != p.client.email || c.Client.Name != "CI Batch2" ||
+		c.Freelancer.ID != p.freelancer.id || c.Freelancer.Email != p.freelancer.email {
+		t.Fatalf("dispute contract = %+v", c)
+	}
+	if detail.RaisedByPerson.Email != p.client.email {
+		t.Fatalf("raised by = %+v, want the client", detail.RaisedByPerson)
+	}
+
+	// The queue carries the same, for every row.
+	var queue struct {
+		Data []struct {
+			ID       string  `json:"id"`
+			Contract summary `json:"contract"`
+		} `json:"data"`
+	}
+	raw = expect(t, http.StatusOK, http.MethodGet, p.base+"/api/v1/admin/freelance/disputes?status=all&limit=100", admin.token, nil)
+	if err := json.Unmarshal([]byte(raw), &queue); err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range queue.Data {
+		if row.Contract.ProjectTitle == "" || row.Contract.Client.Email == "" || row.Contract.Freelancer.Email == "" {
+			t.Fatalf("queue row %s is not named: %+v", row.ID, row.Contract)
+		}
+	}
+
+	// A released payout names its payee and project.
+	if code := p.resolve(t, admin.token, disputeID, "release_to_freelancer"); code != http.StatusOK {
+		t.Fatalf("resolve: %d", code)
+	}
+	// Oldest first across every test's payouts, so page until it turns up.
+	for page := 1; ; page++ {
+		var payouts struct {
+			TotalPages int `json:"total_pages"`
+			Data       []struct {
+				MilestoneID  string `json:"milestone_id"`
+				ProjectTitle string `json:"project_title"`
+				Payee        person `json:"payee"`
+			} `json:"data"`
+		}
+		raw = expect(t, http.StatusOK, http.MethodGet,
+			fmt.Sprintf("%s/api/v1/admin/freelance/payouts?status=all&limit=100&page=%d", p.base, page), admin.token, nil)
+		if err := json.Unmarshal([]byte(raw), &payouts); err != nil {
+			t.Fatal(err)
+		}
+		for _, row := range payouts.Data {
+			if row.MilestoneID != m {
+				continue
+			}
+			if row.ProjectTitle != "Escrow CI project" || row.Payee.Email != p.freelancer.email || row.Payee.Name != "CI Batch2" {
+				t.Fatalf("the released payout is not named: %+v", row)
+			}
+			return
+		}
+		if page >= payouts.TotalPages {
+			t.Fatal("the released payout is not in the admin queue")
+		}
+	}
 }

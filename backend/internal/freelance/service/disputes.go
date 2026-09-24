@@ -291,7 +291,7 @@ func (s *escrowService) RefundMilestone(ctx context.Context, freelancerID, contr
 // AdminListDisputes is the queue, oldest first. status narrows it: "open" (the
 // default) is every dispute still awaiting a decision, "all" is everything, and
 // a single status name is that status.
-func (s *escrowService) AdminListDisputes(ctx context.Context, status string, limit, offset int) ([]domain.Dispute, int, error) {
+func (s *escrowService) AdminListDisputes(ctx context.Context, status string, limit, offset int) ([]domain.AdminDispute, int, error) {
 	var statuses []domain.DisputeStatus
 	switch value := strings.ToLower(strings.TrimSpace(status)); value {
 	case "", defaultDisputeFilter:
@@ -306,16 +306,86 @@ func (s *escrowService) AdminListDisputes(ctx context.Context, status string, li
 		}
 		statuses = []domain.DisputeStatus{parsed}
 	}
-	return s.repo.ListDisputes(ctx, statuses, limit, offset)
+	disputes, total, err := s.repo.ListDisputes(ctx, statuses, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	contracts, people, err := s.describeDisputes(ctx, disputes...)
+	if err != nil {
+		return nil, 0, err
+	}
+	out := make([]domain.AdminDispute, 0, len(disputes))
+	for _, d := range disputes {
+		out = append(out, domain.AdminDispute{
+			Dispute:        d,
+			Contract:       contracts[d.ContractID],
+			RaisedByPerson: people[d.RaisedBy],
+		})
+	}
+	return out, total, nil
+}
+
+// describeDisputes names the contracts and raisers behind a page of disputes,
+// in two queries whatever the page size.
+func (s *escrowService) describeDisputes(ctx context.Context, disputes ...domain.Dispute) (map[uuid.UUID]*domain.ContractSummary, map[uuid.UUID]*domain.PersonRef, error) {
+	contractIDs := make([]uuid.UUID, 0, len(disputes))
+	raiserIDs := make([]uuid.UUID, 0, len(disputes))
+	for _, d := range disputes {
+		contractIDs = append(contractIDs, d.ContractID)
+		raiserIDs = append(raiserIDs, d.RaisedBy)
+	}
+	summaries, err := s.repo.ContractSummaries(ctx, contractIDs)
+	if err != nil {
+		return nil, nil, err
+	}
+	contracts := make(map[uuid.UUID]*domain.ContractSummary, len(summaries))
+	people := map[uuid.UUID]*domain.PersonRef{}
+	for id, summary := range summaries {
+		summary := summary
+		contracts[id] = &summary
+		// The raiser is always a party, so the summary usually names them
+		// already.
+		client, freelancer := summary.Client, summary.Freelancer
+		people[client.ID], people[freelancer.ID] = &client, &freelancer
+	}
+	var unnamed []uuid.UUID
+	for _, id := range raiserIDs {
+		if _, ok := people[id]; !ok {
+			unnamed = append(unnamed, id)
+		}
+	}
+	if len(unnamed) > 0 {
+		named, err := s.repo.People(ctx, unnamed)
+		if err != nil {
+			return nil, nil, err
+		}
+		for id, person := range named {
+			person := person
+			people[id] = &person
+		}
+	}
+	return contracts, people, nil
 }
 
 // AdminGetDispute returns any dispute, with its evidence, to an administrator.
-func (s *escrowService) AdminGetDispute(ctx context.Context, disputeID uuid.UUID) (*domain.DisputeDetail, error) {
+func (s *escrowService) AdminGetDispute(ctx context.Context, disputeID uuid.UUID) (*domain.AdminDisputeDetail, error) {
 	d, err := s.repo.GetDispute(ctx, disputeID)
 	if err != nil {
 		return nil, mapDisputeRepoError(err)
 	}
-	return s.disputeDetail(ctx, d)
+	detail, err := s.disputeDetail(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	contracts, people, err := s.describeDisputes(ctx, *d)
+	if err != nil {
+		return nil, err
+	}
+	return &domain.AdminDisputeDetail{
+		DisputeDetail:  *detail,
+		Contract:       contracts[d.ContractID],
+		RaisedByPerson: people[d.RaisedBy],
+	}, nil
 }
 
 // AdminResolveDispute applies an administrator's decision.

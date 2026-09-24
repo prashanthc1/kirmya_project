@@ -6,6 +6,7 @@ import type {
   MilestoneStatus,
   PayoutAccountStatus,
   PayoutStatus,
+  PersonRef,
 } from '../../features/freelance/types';
 
 type ChipColor = 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error';
@@ -121,3 +122,14 @@ export const PAYOUT_ACCOUNT_STATUS: Record<PayoutAccountStatus, { label: string;
     explanation: 'Released milestones are sent to your payout account automatically.',
   },
 };
+
+/**
+ * How an administrator's screen names an account: by name, else by email,
+ * else by the start of its id - never by nothing.
+ */
+export function personLabel(person: PersonRef | undefined, fallbackID?: string): string {
+  if (person?.name?.trim()) return person.name.trim();
+  if (person?.email) return person.email;
+  const id = person?.id || fallbackID;
+  return id ? `Account ${id.slice(0, 8)}` : 'Unknown account';
+}

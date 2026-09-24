@@ -292,6 +292,8 @@ export interface AdminPayout extends Payout {
   provider_reference?: string;
   last_error?: string;
   destination_account?: string;
+  payee?: PersonRef;
+  project_title?: string;
 }
 
 export type PayoutAccountStatus = 'not_started' | 'onboarding' | 'action_required' | 'in_review' | 'enabled';
@@ -324,4 +326,30 @@ export interface Paginated<T> {
   total_items: number;
   total_pages: number;
   data: T[];
+}
+
+/* ----- Administrative views: the names behind the ids. ----- */
+
+/** An account as an administrator sees it. name is empty when the account has none. */
+export interface PersonRef {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface ContractSummary {
+  id: string;
+  project_title: string;
+  client: PersonRef;
+  freelancer: PersonRef;
+}
+
+export interface AdminDispute extends Dispute {
+  contract?: ContractSummary;
+  raised_by_person?: PersonRef;
+}
+
+export interface AdminDisputeDetail extends DisputeDetail {
+  contract?: ContractSummary;
+  raised_by_person?: PersonRef;
 }

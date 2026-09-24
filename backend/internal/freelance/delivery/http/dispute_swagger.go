@@ -113,7 +113,7 @@ func swaggerWithdrawDispute() {}
 // swaggerAdminListFreelanceDisputes documents GET /api/v1/admin/freelance/disputes.
 //
 // @Summary      List freelance disputes
-// @Description  The administrative dispute queue, oldest first. Requires an administrator session AND the freelance.admin.read permission. status narrows it: open (the default, every dispute awaiting a decision), all, or a single dispute status.
+// @Description  The administrative dispute queue, oldest first. Each dispute carries contract (the project title and the client and freelancer, each with id, name and email) and raised_by_person, so the queue can be worked without looking ids up elsewhere. Requires an administrator session AND the freelance.admin.read permission. status narrows it: open (the default, every dispute awaiting a decision), all, or a single dispute status.
 // @Tags         Admin
 // @Produce      json
 // @Param        status  query  string  false  "open (default), all, or one dispute status"
@@ -130,11 +130,11 @@ func swaggerAdminListFreelanceDisputes() {}
 // swaggerAdminGetFreelanceDispute documents GET /api/v1/admin/freelance/disputes/{id}.
 //
 // @Summary      Get a freelance dispute
-// @Description  One dispute with its milestone and all evidence. Requires an administrator session AND the freelance.admin.read permission.
+// @Description  One dispute with its milestone and all evidence, and the people involved: contract names the project and the client and freelancer (id, name, email), and raised_by_person who raised it. Evidence names its author by id, always one of the two parties on contract. Requires an administrator session AND the freelance.admin.read permission.
 // @Tags         Admin
 // @Produce      json
 // @Param        id  path  string  true  "Dispute ID"
-// @Success      200  {object}  domain.DisputeDetail
+// @Success      200  {object}  domain.AdminDisputeDetail
 // @Failure      400  {object}  swagger.ErrorResponse
 // @Failure      401  {object}  swagger.ErrorResponse
 // @Failure      403  {object}  swagger.ErrorResponse

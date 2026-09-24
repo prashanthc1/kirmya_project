@@ -376,3 +376,32 @@ func TestAdminQueueDefaultsToOpenDisputes(t *testing.T) {
 		t.Fatal("an unknown status filter was accepted")
 	}
 }
+
+// The administrator's views name the contract and the people behind a dispute,
+// rather than leaving a person working the queue with ids.
+func TestAdminDisputeViewsNameTheContract(t *testing.T) {
+	ctx := context.Background()
+	f, m := fundedAndSubmitted(t, sandbox())
+	d := f.open(t, f.client, m.ID)
+
+	queue, _, err := f.escrow.AdminListDisputes(ctx, "", 50, 0)
+	if err != nil || len(queue) != 1 {
+		t.Fatalf("queue = %+v, %v", queue, err)
+	}
+	item := queue[0]
+	if item.Contract == nil || item.Contract.ProjectTitle == "" ||
+		item.Contract.Client.ID != f.client || item.Contract.Freelancer.ID != f.freelancer {
+		t.Fatalf("queue item contract = %+v", item.Contract)
+	}
+	if item.RaisedByPerson == nil || item.RaisedByPerson.ID != f.client {
+		t.Fatalf("raised by = %+v", item.RaisedByPerson)
+	}
+
+	detail, err := f.escrow.AdminGetDispute(ctx, d.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if detail.Contract == nil || detail.Contract.ProjectTitle != item.Contract.ProjectTitle || detail.RaisedByPerson == nil {
+		t.Fatalf("detail = %+v", detail)
+	}
+}

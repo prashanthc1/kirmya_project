@@ -415,3 +415,15 @@ func TestAdminPayoutQueueStatus(t *testing.T) {
 		t.Fatalf("an unknown status: err = %v", err)
 	}
 }
+
+func TestAdminPayoutQueueNamesPayeeAndProject(t *testing.T) {
+	f, _ := released(t, sandbox())
+	queue, _, err := f.escrow.AdminListPayouts(context.Background(), "all", 50, 0)
+	if err != nil || len(queue) != 1 {
+		t.Fatalf("queue = %+v, %v", queue, err)
+	}
+	p := queue[0]
+	if p.Payee == nil || p.Payee.ID != f.freelancer || p.ProjectTitle == "" {
+		t.Fatalf("payout = %+v", p)
+	}
+}
