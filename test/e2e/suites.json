@@ -123,6 +123,20 @@
       ]
     },
     {
+      "id": "freelance",
+      "label": "Freelance",
+      "pr": true,
+      "projects": ["chromium"],
+      "owns": "The freelance escrow and payout screens against the real API and the sandbox payment processor: scheduling, funding, delivering and approving a milestone, the freelancer's payout, disputes and their withdrawal, a freelancer's refund, and that a contract is hidden from people outside it.",
+      "specs": ["freelance-escrow.spec.ts"],
+      "pathPatterns": [
+        "^frontend/src/app/(freelance|admin/freelance)/",
+        "^frontend/src/components/(freelance|admin/freelance)/",
+        "^frontend/src/features/freelance/",
+        "^backend/internal/freelance/"
+      ]
+    },
+    {
       "id": "api-critical",
       "label": "API Critical",
       "pr": true,

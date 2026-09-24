@@ -164,6 +164,9 @@ jobs:
       AUTH_RATE_LIMIT_BURST: '12000'
       AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
       AUTH_SESSION_RATE_LIMIT_BURST: '600'
+      # The sandbox payment processor, so the freelance escrow journey can fund
+      # milestones; the spec signs its webhooks with the same disposable secret.
+      FREELANCE_SANDBOX_WEBHOOK_SECRET: disposable-ci-freelance-sandbox-secret
       PLAYWRIGHT_WORKERS: '2'
     steps:
       - name: Checkout Code Repository
