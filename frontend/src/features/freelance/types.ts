@@ -66,6 +66,24 @@ export interface Project {
   proposals?: Proposal[];
 }
 
+/**
+ * A contract's lifecycle, as the server's CHECK constraint lists it. The escrow
+ * flow keeps a working contract in 'active'; 'disputed' while a dispute is open.
+ */
+export type ContractStatus =
+  | 'pending'
+  | 'active'
+  | 'in_progress'
+  | 'submitted'
+  | 'revision_requested'
+  | 'completed'
+  | 'cancelled'
+  | 'disputed';
+
+/**
+ * Amounts are decimal major units of `currency` (1000.5 is AED 1,000.50): the
+ * server stores minor units and converts at the edge, so they arrive exact.
+ */
 export interface Contract {
   id: string;
   project_id: string;
@@ -74,7 +92,8 @@ export interface Contract {
   client_id: string;
   freelancer_id: string;
   total_amount: number;
-  status: 'active' | 'completed';
+  currency: string;
+  status: ContractStatus;
   created_at: string;
   updated_at: string;
 }
@@ -92,3 +111,157 @@ export interface CreateProjectPayload {
   budget_type: 'fixed' | 'hourly';
   skills_required: string[];
 }
+
+/* ---------------------------------------------------------------------------
+ * Escrow: a contract's milestones and the money that funds them.
+ * ------------------------------------------------------------------------- */
+
+export type MilestoneStatus =
+  | 'pending'
+  | 'funded'
+  | 'in_progress'
+  | 'submitted'
+  | 'approved'
+  | 'released'
+  | 'cancelled'
+  | 'disputed';
+
+export interface ContractMilestone {
+  id: string;
+  contract_id: string;
+  position: number;
+  title: string;
+  description?: string;
+  amount: number;
+  currency: string;
+  status: MilestoneStatus;
+  due_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Where a contract's money stands. Computed by the server from the milestones. */
+export interface EscrowSummary {
+  currency: string;
+  contract_total: number;
+  allocated: number;
+  unallocated: number;
+  in_escrow: number;
+  released: number;
+}
+
+export interface ContractDetail extends Contract {
+  milestones: ContractMilestone[];
+  escrow: EscrowSummary;
+}
+
+export type PaymentIntentStatus =
+  | 'requires_payment'
+  | 'processing'
+  | 'held_in_escrow'
+  | 'released'
+  | 'refunded'
+  | 'failed'
+  | 'cancelled';
+
+export interface PaymentIntent {
+  id: string;
+  contract_id: string;
+  milestone_id?: string;
+  amount: number;
+  currency: string;
+  status: PaymentIntentStatus;
+  provider?: string;
+  provider_reference?: string;
+  created_at: string;
+}
+
+/**
+ * What funding a milestone returns. It is a request, not a payment: the
+ * milestone becomes funded only when the processor confirms the money.
+ */
+export interface FundingResult {
+  payment_intent: PaymentIntent;
+  /** Where the processor collects the payment, when it uses a hosted page. */
+  checkout_url?: string;
+}
+
+export interface CreateMilestonePayload {
+  title: string;
+  description?: string;
+  amount: number;
+  due_at?: string;
+}
+
+export interface SubmitMilestonePayload {
+  summary: string;
+  attachments?: string[];
+}
+
+/* ---------------------------------------------------------------------------
+ * Disputes and refunds.
+ * ------------------------------------------------------------------------- */
+
+export type DisputeReason = 'work_not_delivered' | 'quality' | 'scope' | 'unresponsive' | 'other';
+
+export type DisputeStatus =
+  | 'open'
+  | 'under_review'
+  | 'awaiting_evidence'
+  | 'resolved'
+  | 'withdrawn'
+  | 'escalated';
+
+export type DisputeOutcome = 'release_to_freelancer' | 'refund_to_client' | 'resume_work';
+
+export interface Dispute {
+  id: string;
+  contract_id: string;
+  milestone_id?: string;
+  raised_by: string;
+  reason: DisputeReason;
+  detail: string;
+  status: DisputeStatus;
+  outcome?: DisputeOutcome;
+  resolution?: string;
+  resolved_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type EvidenceKind = 'note' | 'link' | 'file';
+
+export interface DisputeEvidence {
+  id: string;
+  dispute_id: string;
+  uploaded_by: string;
+  kind: EvidenceKind;
+  body: string;
+  file_url?: string;
+  created_at: string;
+}
+
+export interface DisputeDetail extends Dispute {
+  milestone?: ContractMilestone;
+  evidence: DisputeEvidence[];
+}
+
+export interface OpenDisputePayload {
+  reason: DisputeReason;
+  detail: string;
+}
+
+export interface AddEvidencePayload {
+  kind: EvidenceKind;
+  body?: string;
+  file_url?: string;
+}
+
+export interface ResolveDisputePayload {
+  outcome: DisputeOutcome;
+  resolution: string;
+}
+
+/** Statuses in which a dispute still awaits a decision. */
+export const OPEN_DISPUTE_STATUSES: DisputeStatus[] = ['open', 'under_review', 'awaiting_evidence', 'escalated'];

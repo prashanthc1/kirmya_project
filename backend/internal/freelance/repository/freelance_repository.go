@@ -690,9 +690,15 @@ func (r *pgxFreelanceRepository) AcceptProposalTx(ctx context.Context, proposalI
 
 func (r *pgxFreelanceRepository) GetUserContracts(ctx context.Context, userID uuid.UUID) ([]domain.Contract, error) {
 	if r.pool != nil {
+		// The project title is joined in because it is how either party
+		// recognises the engagement; without it the list is a column of ids.
 		rows, err := r.pool.Query(ctx,
-			`SELECT `+contractColumns+` FROM freelance_contracts
-			  WHERE freelancer_id = $1 OR client_id = $1 ORDER BY created_at DESC`, userID)
+			`SELECT c.id, c.project_id, c.proposal_id, c.client_id, c.freelancer_id,
+			        c.total_amount_minor_units, c.currency, c.status, c.created_at, c.updated_at,
+			        COALESCE(p.title, '')
+			   FROM freelance_contracts c
+			   LEFT JOIN freelance_projects p ON p.id = c.project_id
+			  WHERE c.freelancer_id = $1 OR c.client_id = $1 ORDER BY c.created_at DESC`, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -700,10 +706,15 @@ func (r *pgxFreelanceRepository) GetUserContracts(ctx context.Context, userID uu
 
 		list := []domain.Contract{}
 		for rows.Next() {
-			c, scanErr := scanContract(rows)
-			if scanErr != nil {
+			c := &domain.Contract{}
+			var total int64
+			var status string
+			if scanErr := rows.Scan(&c.ID, &c.ProjectID, &c.ProposalID, &c.ClientID, &c.FreelancerID,
+				&total, &c.Currency, &status, &c.CreatedAt, &c.UpdatedAt, &c.ProjectTitle); scanErr != nil {
 				return nil, scanErr
 			}
+			c.TotalAmount = domain.Amount(total)
+			c.Status = domain.ContractStatus(status)
 			list = append(list, *c)
 		}
 		// An empty result set is an empty result set. This used to fall through
