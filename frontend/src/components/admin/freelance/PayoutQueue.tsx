@@ -23,7 +23,7 @@ import {
 
 import { freelanceAdminApi } from '../../../features/freelance/api';
 import { freelanceErrorMessage } from '../../../features/freelance/errors';
-import { PAYOUT_STATUS, formatDate, formatMoney } from '../../freelance/escrowFormat';
+import { PAYOUT_STATUS, formatDate, formatMoney, personLabel } from '../../freelance/escrowFormat';
 
 const FILTERS = [
   { value: 'failed', label: 'Failed' },
@@ -115,11 +115,12 @@ export default function PayoutQueue() {
               <TableHead>
                 <TableRow>
                   <TableCell>Released</TableCell>
+                  <TableCell>Payee</TableCell>
+                  <TableCell>Project</TableCell>
                   <TableCell align="right">Amount</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell align="right">Attempts</TableCell>
                   <TableCell>Last error</TableCell>
-                  <TableCell>Contract</TableCell>
                   <TableCell />
                 </TableRow>
               </TableHead>
@@ -127,13 +128,21 @@ export default function PayoutQueue() {
                 {data.data.map(p => (
                   <TableRow key={p.id} hover>
                     <TableCell>{formatDate(p.created_at)}</TableCell>
+                    <TableCell>
+                      {personLabel(p.payee, p.payee_id)}
+                      {p.payee?.name && p.payee.email && (
+                        <Typography variant="caption" color="text.secondary" component="div">
+                          {p.payee.email}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>{p.project_title || 'Untitled project'}</TableCell>
                     <TableCell align="right">{formatMoney(p.amount, p.currency)}</TableCell>
                     <TableCell>
                       <Chip size="small" label={PAYOUT_STATUS[p.status]?.label ?? p.status} color={PAYOUT_STATUS[p.status]?.color ?? 'default'} />
                     </TableCell>
                     <TableCell align="right">{p.attempts}</TableCell>
                     <TableCell sx={{ maxWidth: 320, wordBreak: 'break-word' }}>{p.last_error ?? ''}</TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{p.contract_id?.slice(0, 8) ?? ''}</TableCell>
                     <TableCell>
                       {p.status === 'failed' && (
                         <Button size="small" variant="outlined" disabled={retry.isPending} onClick={() => retry.mutate(p.id)}>

@@ -5,6 +5,8 @@
 import { authApiClient as client } from '../../services/authService';
 import {
   AddEvidencePayload,
+  AdminDispute,
+  AdminDisputeDetail,
   AdminPayout,
   Paginated,
   Payout,
@@ -227,16 +229,12 @@ export const freelanceApi = {
  * freelance.admin.write (decisions).
  */
 export const freelanceAdminApi = {
-  listDisputes: async (
-    status = 'open',
-    page = 1,
-    limit = 20
-  ): Promise<{ page: number; limit: number; total_items: number; total_pages: number; data: Dispute[] }> => {
+  listDisputes: async (status = 'open', page = 1, limit = 20): Promise<Paginated<AdminDispute>> => {
     const response = await client.get('/admin/freelance/disputes', { params: { status, page, limit } });
     return response.data;
   },
 
-  getDispute: async (disputeID: string): Promise<DisputeDetail> => {
+  getDispute: async (disputeID: string): Promise<AdminDisputeDetail> => {
     const response = await client.get(`/admin/freelance/disputes/${disputeID}`);
     return response.data;
   },

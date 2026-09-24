@@ -157,6 +157,9 @@ type AdminPayout struct {
 	// DestinationAccount is the processor account it was sent, or will be
 	// sent, to.
 	DestinationAccount string `json:"destination_account,omitempty"`
+	// Payee is who is being paid; ProjectTitle what for. See admin_views.go.
+	Payee        *PersonRef `json:"payee,omitempty"`
+	ProjectTitle string     `json:"project_title,omitempty"`
 }
 
 // Review is one party's rating of the other after a contract.

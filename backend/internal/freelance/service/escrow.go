@@ -90,8 +90,8 @@ type EscrowService interface {
 	RefundMilestone(ctx context.Context, freelancerID, contractID, milestoneID uuid.UUID, payload domain.RefundMilestonePayload) (*domain.ContractMilestone, error)
 
 	// The administrative half, behind freelance.admin.read and .write.
-	AdminListDisputes(ctx context.Context, status string, limit, offset int) ([]domain.Dispute, int, error)
-	AdminGetDispute(ctx context.Context, disputeID uuid.UUID) (*domain.DisputeDetail, error)
+	AdminListDisputes(ctx context.Context, status string, limit, offset int) ([]domain.AdminDispute, int, error)
+	AdminGetDispute(ctx context.Context, disputeID uuid.UUID) (*domain.AdminDisputeDetail, error)
 	AdminResolveDispute(ctx context.Context, adminID, disputeID uuid.UUID, payload domain.ResolveDisputePayload) (*domain.Dispute, error)
 
 	// Payouts. See payouts.go.

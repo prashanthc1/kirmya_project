@@ -25,7 +25,7 @@ import {
 import { freelanceAdminApi } from '../../../features/freelance/api';
 import { freelanceErrorMessage } from '../../../features/freelance/errors';
 import { routes } from '../../../shared/routes';
-import { DISPUTE_REASONS, DISPUTE_STATUS, formatDate } from '../../freelance/escrowFormat';
+import { DISPUTE_REASONS, DISPUTE_STATUS, formatDate, personLabel } from '../../freelance/escrowFormat';
 
 const FILTERS = [
   { value: 'open', label: 'Awaiting a decision' },
@@ -98,9 +98,11 @@ export default function DisputeQueue() {
               <TableHead>
                 <TableRow>
                   <TableCell>Opened</TableCell>
+                  <TableCell>Project</TableCell>
+                  <TableCell>Client</TableCell>
+                  <TableCell>Freelancer</TableCell>
                   <TableCell>Reason</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell>Contract</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -111,11 +113,13 @@ export default function DisputeQueue() {
                         {formatDate(d.created_at)}
                       </MuiLink>
                     </TableCell>
+                    <TableCell>{d.contract?.project_title || 'Untitled project'}</TableCell>
+                    <TableCell>{personLabel(d.contract?.client)}</TableCell>
+                    <TableCell>{personLabel(d.contract?.freelancer)}</TableCell>
                     <TableCell>{DISPUTE_REASONS[d.reason] ?? d.reason}</TableCell>
                     <TableCell>
                       <Chip size="small" label={DISPUTE_STATUS[d.status]?.label ?? d.status} color={DISPUTE_STATUS[d.status]?.color ?? 'default'} />
                     </TableCell>
-                    <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{d.contract_id.slice(0, 8)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -3824,7 +3824,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "The administrative dispute queue, oldest first. Requires an administrator session AND the freelance.admin.read permission. status narrows it: open (the default, every dispute awaiting a decision), all, or a single dispute status.",
+                "description": "The administrative dispute queue, oldest first. Each dispute carries contract (the project title and the client and freelancer, each with id, name and email) and raised_by_person, so the queue can be worked without looking ids up elsewhere. Requires an administrator session AND the freelance.admin.read permission. status narrows it: open (the default, every dispute awaiting a decision), all, or a single dispute status.",
                 "produces": [
                     "application/json"
                 ],
@@ -3889,7 +3889,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "One dispute with its milestone and all evidence. Requires an administrator session AND the freelance.admin.read permission.",
+                "description": "One dispute with its milestone and all evidence, and the people involved: contract names the project and the client and freelancer (id, name, email), and raised_by_person who raised it. Evidence names its author by id, always one of the two parties on contract. Requires an administrator session AND the freelance.admin.read permission.",
                 "produces": [
                     "application/json"
                 ],
@@ -3910,7 +3910,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.DisputeDetail"
+                            "$ref": "#/definitions/domain.AdminDisputeDetail"
                         }
                     },
                     "400": {
@@ -4035,7 +4035,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "The administrative payout queue, oldest first, with each payout's attempts, last error and destination account. Requires an administrator session AND the freelance.admin.read permission. status narrows it: failed (the default - payouts whose sending stopped after repeated failures), all, or a single payout status.",
+                "description": "The administrative payout queue, oldest first, with each payout's attempts, last error and destination account, the payee (id, name, email) and the project it pays for. Requires an administrator session AND the freelance.admin.read permission. status narrows it: failed (the default - payouts whose sending stopped after repeated failures), all, or a single payout status.",
                 "produces": [
                     "application/json"
                 ],
@@ -47143,6 +47143,78 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.AdminDisputeDetail": {
+            "type": "object",
+            "properties": {
+                "contract": {
+                    "$ref": "#/definitions/domain.ContractSummary"
+                },
+                "contract_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "evidence": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DisputeEvidence"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "milestone": {
+                    "$ref": "#/definitions/domain.ContractMilestone"
+                },
+                "milestone_id": {
+                    "type": "string"
+                },
+                "milestone_status_before": {
+                    "description": "MilestoneStatusBefore is where the milestone was when the dispute froze\nit, so withdrawing the dispute can put it back exactly there.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.MilestoneStatus"
+                        }
+                    ]
+                },
+                "outcome": {
+                    "description": "Outcome is the administrator's decision, once resolved.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.DisputeOutcome"
+                        }
+                    ]
+                },
+                "raised_by": {
+                    "type": "string"
+                },
+                "raised_by_person": {
+                    "$ref": "#/definitions/domain.PersonRef"
+                },
+                "reason": {
+                    "$ref": "#/definitions/domain.DisputeReason"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "resolved_at": {
+                    "type": "string"
+                },
+                "resolved_by": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.DisputeStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.AnalyzeResumePayload": {
             "type": "object",
             "required": [
@@ -47494,6 +47566,23 @@ const docTemplate = `{
                 "ContractCancelled",
                 "ContractDisputed"
             ]
+        },
+        "domain.ContractSummary": {
+            "type": "object",
+            "properties": {
+                "client": {
+                    "$ref": "#/definitions/domain.PersonRef"
+                },
+                "freelancer": {
+                    "$ref": "#/definitions/domain.PersonRef"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "project_title": {
+                    "type": "string"
+                }
+            }
         },
         "domain.CreateAccessReviewPayload": {
             "type": "object",
@@ -49301,6 +49390,21 @@ const docTemplate = `{
                 "PermReviewRespond",
                 "PermReviewModerate"
             ]
+        },
+        "domain.PersonRef": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the account's first and last name; empty when it has none.",
+                    "type": "string"
+                }
+            }
         },
         "domain.PolicyVersionItem": {
             "type": "object",

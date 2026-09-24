@@ -67,6 +67,9 @@ type FreelanceRepository interface {
 	DisputeRepository
 	// Payout accounts and sending payouts. See payout_repository.go.
 	PayoutRepository
+	// Names behind ids, for the administrative screens. See
+	// admin_lookup_repository.go.
+	AdminLookupRepository
 }
 
 type pgxFreelanceRepository struct {

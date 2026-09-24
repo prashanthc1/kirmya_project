@@ -403,7 +403,46 @@ func (s *escrowService) AdminListPayouts(ctx context.Context, status string, lim
 	case !domain.ValidPayoutStatus(status):
 		return nil, 0, domain.NewValidationError("status", "is not a payout status")
 	}
-	return s.repo.AdminListPayouts(ctx, status, limit, offset)
+	payouts, total, err := s.repo.AdminListPayouts(ctx, status, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	if err := s.describePayouts(ctx, payouts); err != nil {
+		return nil, 0, err
+	}
+	return payouts, total, nil
+}
+
+// describePayouts names each payout's payee and project, in two queries
+// whatever the page size.
+func (s *escrowService) describePayouts(ctx context.Context, payouts []domain.AdminPayout) error {
+	var contractIDs, payeeIDs []uuid.UUID
+	for _, p := range payouts {
+		if p.ContractID != nil {
+			contractIDs = append(contractIDs, *p.ContractID)
+		}
+		payeeIDs = append(payeeIDs, p.PayeeID)
+	}
+	contracts, err := s.repo.ContractSummaries(ctx, contractIDs)
+	if err != nil {
+		return err
+	}
+	people, err := s.repo.People(ctx, payeeIDs)
+	if err != nil {
+		return err
+	}
+	for i := range payouts {
+		p := &payouts[i]
+		if p.ContractID != nil {
+			p.ProjectTitle = contracts[*p.ContractID].ProjectTitle
+		}
+		payee, ok := people[p.PayeeID]
+		if !ok {
+			payee = domain.PersonRef{ID: p.PayeeID}
+		}
+		p.Payee = &payee
+	}
+	return nil
 }
 
 // AdminRetryPayout puts a failed payout back in the queue, with a fresh set of

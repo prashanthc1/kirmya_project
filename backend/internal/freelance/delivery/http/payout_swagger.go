@@ -67,7 +67,7 @@ func swaggerRefreshFreelancePayoutAccount() {}
 // swaggerAdminListFreelancePayouts documents GET /api/v1/admin/freelance/payouts.
 //
 // @Summary      List freelance payouts
-// @Description  The administrative payout queue, oldest first, with each payout's attempts, last error and destination account. Requires an administrator session AND the freelance.admin.read permission. status narrows it: failed (the default - payouts whose sending stopped after repeated failures), all, or a single payout status.
+// @Description  The administrative payout queue, oldest first, with each payout's attempts, last error and destination account, the payee (id, name, email) and the project it pays for. Requires an administrator session AND the freelance.admin.read permission. status narrows it: failed (the default - payouts whose sending stopped after repeated failures), all, or a single payout status.
 // @Tags         Admin
 // @Produce      json
 // @Param        status  query  string  false  "failed (default), all, or one payout status"

@@ -250,7 +250,23 @@ func TestFreelancePayoutClaimIsExclusive(t *testing.T) {
 					return
 				}
 				if len(claimed) == 0 {
-					return
+					// An empty claim does not prove there is nothing left:
+					// under READ COMMITTED, FOR UPDATE with LIMIT can come back
+					// short, even empty, when the rows it picked were claimed
+					// by another transaction just before it locked them. Stop
+					// only when none is pending.
+					var pending int
+					if err := pool.QueryRow(ctx,
+						`SELECT COUNT(*) FROM freelance_payouts WHERE payee_id = $1 AND status = 'pending'`,
+						payee.id).Scan(&pending); err != nil {
+						t.Errorf("counting pending: %v", err)
+						return
+					}
+					if pending == 0 {
+						return
+					}
+					time.Sleep(5 * time.Millisecond)
+					continue
 				}
 				mu.Lock()
 				for _, c := range claimed {
