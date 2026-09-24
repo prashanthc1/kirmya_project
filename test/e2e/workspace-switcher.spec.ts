@@ -155,7 +155,13 @@ test('signing in returns to the workspace the account last chose', async ({ page
   await page.waitForURL(/\/recruiter/, { timeout: 15_000 });
 
   // A fresh sign-in, with no returnUrl, opens where they were working.
-  await page.goto('about:blank');
+  // The recruiter page can still be finishing its own client-side navigation,
+  // which aborts ours (NS_BINDING_ABORTED on Firefox). Leaving is the point, so
+  // retry until the page is actually blank.
+  await expect(async () => {
+    await page.goto('about:blank');
+    expect(page.url()).toBe('about:blank');
+  }).toPass({ timeout: 15_000 });
   await page.context().clearCookies();
   await submitSignIn(page, account.email);
 
