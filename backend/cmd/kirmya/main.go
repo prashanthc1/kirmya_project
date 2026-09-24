@@ -861,6 +861,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 			AccessKeyID:     os.Getenv("STORAGE_ACCESS_KEY_ID"),
 			SecretAccessKey: os.Getenv("STORAGE_SECRET_ACCESS_KEY"),
 			PublicBaseURL:   os.Getenv("STORAGE_PUBLIC_BASE_URL"),
+			UsePathStyle:    storagePkg.PathStyleFor(s3Endpoint, os.Getenv("STORAGE_USE_PATH_STYLE")),
 		}, fallback)
 	}
 
