@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -340,6 +341,7 @@ func (s *escrowService) FundMilestone(ctx context.Context, clientID, contractID,
 		PayerID:          clientID,
 		AmountMinorUnits: int64(m.Amount),
 		Currency:         m.Currency,
+		Description:      m.Title,
 	})
 	if err != nil || strings.TrimSpace(charge.Reference) == "" {
 		// Release the milestone for another attempt. The intent was never
@@ -386,7 +388,14 @@ func (s *escrowService) HandlePaymentWebhook(ctx context.Context, provider strin
 	name := s.gateway.Name()
 
 	switch event.Kind {
+	case payments.EventIgnored:
+		// Verified, and nothing the escrow flow acts on.
+		return nil
+
 	case payments.ChargeSucceeded:
+		if err := s.checkCapturedAmount(ctx, name, event); err != nil {
+			return err
+		}
 		outcome, err := s.repo.ConfirmPaymentHeld(ctx, name, event.Reference)
 		if err != nil {
 			if errors.Is(err, repository.ErrIntentNotFound) {
@@ -432,6 +441,42 @@ func (s *escrowService) HandlePaymentWebhook(ctx context.Context, provider strin
 		return nil
 	}
 	return fmt.Errorf("%w: %s", ErrWebhookRejected, event.Kind)
+}
+
+// ErrAmountMismatch means the processor reports capturing a different amount or
+// currency from the charge the escrow flow asked for.
+var ErrAmountMismatch = errors.New("the processor captured a different amount from the one requested")
+
+// checkCapturedAmount refuses to fund a milestone from a success whose captured
+// amount or currency differs from the intent's. The amount is set by us when
+// the charge is created, so a mismatch is a processor-side surprise to be looked
+// at by a person - and funding the milestone anyway would record money in
+// escrow that is not what the contract says.
+//
+// Refused as a conflict, so the webhook answers 409 and the processor keeps the
+// event visible and retrying rather than it being quietly dropped.
+func (s *escrowService) checkCapturedAmount(ctx context.Context, provider string, event payments.WebhookEvent) error {
+	if event.AmountMinorUnits == 0 && event.Currency == "" {
+		return nil // the processor does not report it
+	}
+	intent, err := s.repo.GetPaymentIntentByReference(ctx, provider, event.Reference)
+	if err != nil {
+		if errors.Is(err, repository.ErrIntentNotFound) {
+			return domain.ErrNotFound
+		}
+		return err
+	}
+	if event.AmountMinorUnits == int64(intent.Amount) && strings.EqualFold(event.Currency, intent.Currency) {
+		return nil
+	}
+	slog.Error("Freelance escrow: captured amount does not match the payment intent",
+		slog.String("paymentIntentId", intent.ID.String()),
+		slog.String("provider", provider),
+		slog.Int64("expectedMinorUnits", int64(intent.Amount)),
+		slog.String("expectedCurrency", intent.Currency),
+		slog.Int64("capturedMinorUnits", event.AmountMinorUnits),
+		slog.String("capturedCurrency", event.Currency))
+	return fmt.Errorf("%w: %w", domain.ErrConflict, ErrAmountMismatch)
 }
 
 // SubmitMilestone is the freelancer delivering the work for a funded milestone.

@@ -59,6 +59,8 @@ type EscrowRepository interface {
 	CreatePaymentIntent(ctx context.Context, intent *domain.PaymentIntent) error
 	// SetPaymentIntentReference stores the processor's handle on the charge.
 	SetPaymentIntentReference(ctx context.Context, intentID uuid.UUID, provider, reference string) error
+	// GetPaymentIntentByReference finds an intent by the processor's handle.
+	GetPaymentIntentByReference(ctx context.Context, provider, reference string) (*domain.PaymentIntent, error)
 	// FailPaymentIntent marks an intent failed before the processor held any
 	// money - used when asking the processor for the charge itself failed.
 	FailPaymentIntent(ctx context.Context, intentID uuid.UUID) error
@@ -501,6 +503,26 @@ func (r *pgxFreelanceRepository) SetPaymentIntentReference(ctx context.Context, 
 		return ErrIntentNotFound
 	}
 	return nil
+}
+
+func (r *pgxFreelanceRepository) GetPaymentIntentByReference(ctx context.Context, provider, reference string) (*domain.PaymentIntent, error) {
+	if r.pool == nil {
+		r.mu.RLock()
+		defer r.mu.RUnlock()
+		intent := r.intentByReferenceLocked(provider, reference)
+		if intent == nil {
+			return nil, ErrIntentNotFound
+		}
+		copied := *intent
+		return &copied, nil
+	}
+	intent, err := scanIntent(r.pool.QueryRow(ctx,
+		`SELECT `+intentColumns+` FROM freelance_payment_intents WHERE provider = $1 AND provider_reference = $2`,
+		provider, reference))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrIntentNotFound
+	}
+	return intent, err
 }
 
 func (r *pgxFreelanceRepository) FailPaymentIntent(ctx context.Context, intentID uuid.UUID) error {
