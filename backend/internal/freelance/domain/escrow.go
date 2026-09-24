@@ -1,0 +1,259 @@
+package domain
+
+import "time"
+
+// The escrow lifecycles: a contract's milestones, the money that funds them, and
+// the payouts that release it.
+//
+// Each vocabulary matches the CHECK constraint migration 0102 put on its table,
+// and each transition table is the part a CHECK cannot say - that a released
+// milestone is not funded again, or that money held in escrow is not quietly
+// marked failed. The same pattern as states.go.
+
+// MilestoneStatus is the lifecycle of one step of a contract's schedule.
+type MilestoneStatus string
+
+const (
+	// MilestonePending is agreed but unfunded. The freelancer is not expected to
+	// start work on it: nothing guarantees they will be paid.
+	MilestonePending MilestoneStatus = "pending"
+	// MilestoneFunded means the client's money is held in escrow for it. Only a
+	// verified payment confirmation moves a milestone here - never the client's
+	// own say-so.
+	MilestoneFunded     MilestoneStatus = "funded"
+	MilestoneInProgress MilestoneStatus = "in_progress"
+	// MilestoneSubmitted means the freelancer has delivered and is waiting on the
+	// client's review.
+	MilestoneSubmitted MilestoneStatus = "submitted"
+	// MilestoneApproved is in the schema for a release that happens later than
+	// approval. Approval and release are one act today, so no path writes it.
+	MilestoneApproved MilestoneStatus = "approved"
+	// MilestoneReleased means the escrowed money is owed to the freelancer.
+	MilestoneReleased  MilestoneStatus = "released"
+	MilestoneCancelled MilestoneStatus = "cancelled"
+	MilestoneDisputed  MilestoneStatus = "disputed"
+)
+
+// ParseMilestoneStatus rejects unknown values.
+func ParseMilestoneStatus(value string) (MilestoneStatus, bool) {
+	switch MilestoneStatus(normalize(value)) {
+	case MilestonePending:
+		return MilestonePending, true
+	case MilestoneFunded:
+		return MilestoneFunded, true
+	case MilestoneInProgress:
+		return MilestoneInProgress, true
+	case MilestoneSubmitted:
+		return MilestoneSubmitted, true
+	case MilestoneApproved:
+		return MilestoneApproved, true
+	case MilestoneReleased:
+		return MilestoneReleased, true
+	case MilestoneCancelled:
+		return MilestoneCancelled, true
+	case MilestoneDisputed:
+		return MilestoneDisputed, true
+	}
+	return "", false
+}
+
+// milestoneTransitions.
+//
+// Only an unfunded milestone can be cancelled here. Cancelling a funded one
+// means refunding the client, and refunds belong to the dispute and refund work
+// that has not been built - so the table refuses it rather than letting money
+// sit in escrow against a milestone nobody will ever deliver.
+//
+// submitted -> in_progress is the revision loop, and like the contract's it may
+// go round more than once.
+var milestoneTransitions = map[MilestoneStatus][]MilestoneStatus{
+	MilestonePending:    {MilestoneFunded, MilestoneCancelled},
+	MilestoneFunded:     {MilestoneInProgress, MilestoneSubmitted, MilestoneDisputed},
+	MilestoneInProgress: {MilestoneSubmitted, MilestoneDisputed},
+	MilestoneSubmitted:  {MilestoneInProgress, MilestoneApproved, MilestoneReleased, MilestoneDisputed},
+	MilestoneApproved:   {MilestoneReleased, MilestoneDisputed},
+	MilestoneDisputed:   {MilestoneInProgress, MilestoneReleased, MilestoneCancelled},
+	// Terminal.
+	MilestoneReleased:  nil,
+	MilestoneCancelled: nil,
+}
+
+func (s MilestoneStatus) CanTransitionTo(next MilestoneStatus) bool {
+	return allowed(milestoneTransitions[s], s, next)
+}
+
+func (s MilestoneStatus) IsTerminal() bool {
+	return s == MilestoneReleased || s == MilestoneCancelled
+}
+
+// CountsTowardsContract reports whether the milestone's amount is part of the
+// contract's allocated value. A cancelled milestone gives its share back.
+func (s MilestoneStatus) CountsTowardsContract() bool {
+	return s != MilestoneCancelled
+}
+
+// PaymentIntentStatus is the lifecycle of money moving into escrow.
+type PaymentIntentStatus string
+
+const (
+	// PaymentRequiresPayment: the processor has been asked, the client has not
+	// paid yet.
+	PaymentRequiresPayment PaymentIntentStatus = "requires_payment"
+	PaymentProcessing      PaymentIntentStatus = "processing"
+	// PaymentHeldInEscrow: the processor has confirmed the money. This is the
+	// only state that funds a milestone.
+	PaymentHeldInEscrow PaymentIntentStatus = "held_in_escrow"
+	PaymentReleased     PaymentIntentStatus = "released"
+	PaymentRefunded     PaymentIntentStatus = "refunded"
+	PaymentFailed       PaymentIntentStatus = "failed"
+	PaymentCancelled    PaymentIntentStatus = "cancelled"
+)
+
+// ParsePaymentIntentStatus rejects unknown values.
+func ParsePaymentIntentStatus(value string) (PaymentIntentStatus, bool) {
+	switch PaymentIntentStatus(normalize(value)) {
+	case PaymentRequiresPayment:
+		return PaymentRequiresPayment, true
+	case PaymentProcessing:
+		return PaymentProcessing, true
+	case PaymentHeldInEscrow:
+		return PaymentHeldInEscrow, true
+	case PaymentReleased:
+		return PaymentReleased, true
+	case PaymentRefunded:
+		return PaymentRefunded, true
+	case PaymentFailed:
+		return PaymentFailed, true
+	case PaymentCancelled:
+		return PaymentCancelled, true
+	}
+	return "", false
+}
+
+// paymentIntentTransitions.
+//
+// Money held in escrow leaves it in exactly two ways: to the freelancer
+// (released) or back to the client (refunded). It cannot fail or be cancelled
+// once the processor has confirmed it, because by then it is real money.
+var paymentIntentTransitions = map[PaymentIntentStatus][]PaymentIntentStatus{
+	PaymentRequiresPayment: {PaymentProcessing, PaymentHeldInEscrow, PaymentFailed, PaymentCancelled},
+	PaymentProcessing:      {PaymentHeldInEscrow, PaymentFailed},
+	PaymentHeldInEscrow:    {PaymentReleased, PaymentRefunded},
+	// Terminal.
+	PaymentReleased:  nil,
+	PaymentRefunded:  nil,
+	PaymentFailed:    nil,
+	PaymentCancelled: nil,
+}
+
+func (s PaymentIntentStatus) CanTransitionTo(next PaymentIntentStatus) bool {
+	return allowed(paymentIntentTransitions[s], s, next)
+}
+
+// IsLive reports whether the intent still holds, or may still collect, money for
+// its milestone. At most one live intent may exist per milestone - migration
+// 0103 enforces it - so a client cannot be charged twice for the same step.
+func (s PaymentIntentStatus) IsLive() bool {
+	return s == PaymentRequiresPayment || s == PaymentProcessing || s == PaymentHeldInEscrow
+}
+
+// PayoutStatus is the lifecycle of money leaving escrow towards a freelancer.
+type PayoutStatus string
+
+const (
+	// PayoutPending: owed and recorded, not yet sent. Every payout is created in
+	// this state; sending it is the processor's job and is not built yet.
+	PayoutPending    PayoutStatus = "pending"
+	PayoutProcessing PayoutStatus = "processing"
+	PayoutPaid       PayoutStatus = "paid"
+	PayoutFailed     PayoutStatus = "failed"
+	PayoutCancelled  PayoutStatus = "cancelled"
+)
+
+// DeliveryStatus is the client's verdict on one submission of work.
+type DeliveryStatus string
+
+const (
+	DeliverySubmitted         DeliveryStatus = "submitted"
+	DeliveryAccepted          DeliveryStatus = "accepted"
+	DeliveryRevisionRequested DeliveryStatus = "revision_requested"
+	DeliveryRejected          DeliveryStatus = "rejected"
+)
+
+// CreateMilestonePayload is the client's request to add a step to a contract.
+//
+// There is no currency field: a milestone is in the contract's currency, and
+// accepting a second one would make the contract's total a sum of two different
+// things.
+type CreateMilestonePayload struct {
+	Title       string     `json:"title" binding:"required"`
+	Description string     `json:"description"`
+	Amount      Amount     `json:"amount"`
+	DueAt       *time.Time `json:"due_at"`
+}
+
+// SubmitMilestonePayload is the freelancer's delivery of work for a milestone.
+type SubmitMilestonePayload struct {
+	Summary     string   `json:"summary" binding:"required"`
+	Attachments []string `json:"attachments"`
+}
+
+// RequestRevisionPayload is the client sending a submission back.
+type RequestRevisionPayload struct {
+	Reason string `json:"reason" binding:"required"`
+}
+
+// EscrowSummary is where a contract's money stands, in the contract's currency.
+//
+// Computed from the milestones on every read rather than stored, so it cannot
+// drift from the rows it describes.
+type EscrowSummary struct {
+	Currency string `json:"currency"`
+	// ContractTotal is the agreed value of the whole contract.
+	ContractTotal Amount `json:"contract_total"`
+	// Allocated is the sum of every milestone that has not been cancelled.
+	Allocated Amount `json:"allocated"`
+	// Unallocated is what the client may still schedule into new milestones.
+	Unallocated Amount `json:"unallocated"`
+	// InEscrow is funded and not yet released.
+	InEscrow Amount `json:"in_escrow"`
+	// Released is owed to the freelancer.
+	Released Amount `json:"released"`
+}
+
+// ContractDetail is one contract as a party to it sees it.
+type ContractDetail struct {
+	Contract
+	Milestones []ContractMilestone `json:"milestones"`
+	Escrow     EscrowSummary       `json:"escrow"`
+}
+
+// SummarizeEscrow totals a contract's milestones.
+func SummarizeEscrow(contract *Contract, milestones []ContractMilestone) EscrowSummary {
+	summary := EscrowSummary{Currency: contract.Currency, ContractTotal: contract.TotalAmount}
+	for _, m := range milestones {
+		if !m.Status.CountsTowardsContract() {
+			continue
+		}
+		summary.Allocated += m.Amount
+		switch m.Status {
+		case MilestoneFunded, MilestoneInProgress, MilestoneSubmitted, MilestoneApproved, MilestoneDisputed:
+			summary.InEscrow += m.Amount
+		case MilestoneReleased:
+			summary.Released += m.Amount
+		}
+	}
+	summary.Unallocated = contract.TotalAmount - summary.Allocated
+	if summary.Unallocated < 0 {
+		summary.Unallocated = 0
+	}
+	return summary
+}
+
+// FundingResult is what the client needs to pay for a milestone.
+type FundingResult struct {
+	Intent PaymentIntent `json:"payment_intent"`
+	// CheckoutURL is where the processor collects the payment. Empty when the
+	// processor collects it some other way.
+	CheckoutURL string `json:"checkout_url,omitempty"`
+}

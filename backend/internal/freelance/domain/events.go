@@ -35,6 +35,15 @@ const (
 	AuditContractCreated   = "FREELANCE_CONTRACT_CREATED"
 	AuditContractCompleted = "FREELANCE_CONTRACT_COMPLETED"
 
+	AuditMilestoneCreated   = "FREELANCE_MILESTONE_CREATED"
+	AuditMilestoneCancelled = "FREELANCE_MILESTONE_CANCELLED"
+	AuditMilestoneFunding   = "FREELANCE_MILESTONE_FUNDING_REQUESTED"
+	AuditMilestoneFunded    = "FREELANCE_MILESTONE_FUNDED"
+	AuditMilestoneSubmitted = "FREELANCE_MILESTONE_SUBMITTED"
+	AuditMilestoneRevision  = "FREELANCE_MILESTONE_REVISION_REQUESTED"
+	AuditMilestoneReleased  = "FREELANCE_MILESTONE_RELEASED"
+	AuditPaymentFailed      = "FREELANCE_PAYMENT_FAILED"
+
 	AuditDisputeOpened   = "FREELANCE_DISPUTE_OPENED"
 	AuditDisputeDecided  = "FREELANCE_DISPUTE_DECIDED"
 	AuditAdminActionTook = "FREELANCE_ADMIN_ACTION"
@@ -63,6 +72,12 @@ const (
 	EventContractCreated  = "freelance.contract.created"
 	EventContractComplete = "freelance.contract.completed"
 	EventDisputeOpened    = "freelance.dispute.opened"
+
+	EventMilestoneFunded    = "freelance.milestone.funded"
+	EventMilestoneSubmitted = "freelance.milestone.submitted"
+	EventMilestoneRevision  = "freelance.milestone.revision_requested"
+	EventMilestoneReleased  = "freelance.milestone.released"
+	EventPaymentFailed      = "freelance.payment.failed"
 )
 
 // AllEventTypes is every event this module can publish.
@@ -83,5 +98,10 @@ func AllEventTypes() []string {
 		EventContractCreated,
 		EventContractComplete,
 		EventDisputeOpened,
+		EventMilestoneFunded,
+		EventMilestoneSubmitted,
+		EventMilestoneRevision,
+		EventMilestoneReleased,
+		EventPaymentFailed,
 	}
 }

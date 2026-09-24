@@ -67,6 +67,10 @@ jobs:
       AUTH_SESSION_RATE_LIMIT_REQUESTS: '3000'
       AUTH_SESSION_RATE_LIMIT_BURST: '600'
       STORAGE_ENDPOINT: local
+      # The freelance escrow suite plays the payment processor: the API runs the
+      # signed sandbox gateway with this secret, and the tests sign webhooks with
+      # it. Disposable, like every other secret in this job.
+      FREELANCE_SANDBOX_WEBHOOK_SECRET: disposable-ci-freelance-sandbox-secret
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955

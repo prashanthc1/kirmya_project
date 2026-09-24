@@ -132,6 +132,7 @@ type RouterDependencies struct {
 	// AdminFreelanceMarketplaceHandler serves the administrative marketplace
 	// surface - the projects themselves, as opposed to the capability above.
 	AdminFreelanceMarketplaceHandler *freelanceHttp.AdminMarketplaceHandler
+	FreelanceEscrowHandler           *freelanceHttp.EscrowHandler // milestones, escrow and the payment webhook
 	EnterpriseHandler                *enterpriseHttp.EnterpriseHandler
 	TrustHandler                     *trustHttp.TrustHandler
 	ComplianceHandler                *complianceHttp.ComplianceHandler
@@ -358,6 +359,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	recruiterAIHttp.RegisterRoutes(api, deps.RecruiterAIHandler)
 	marketplaceHttp.RegisterRoutes(api, deps.MarketplaceHandler)
 	freelanceHttp.RegisterRoutes(api, deps.FreelanceHandler, deps.FreelanceService)
+	freelanceHttp.RegisterEscrowRoutes(api, deps.FreelanceEscrowHandler)
 	freelanceHttp.RegisterAdminRoutes(api, deps.AdminFreelanceHandler, adminGuard)
 	freelanceHttp.RegisterAdminMarketplaceRoutes(api, deps.AdminFreelanceMarketplaceHandler, adminGuard)
 	enterpriseHttp.RegisterRoutes(api, deps.EnterpriseHandler)

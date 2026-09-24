@@ -123,9 +123,8 @@ func RegisterRoutes(api *gin.RouterGroup, handler *FreelanceHandler, svc service
 //	PATCH  /api/v1/freelance/my/proposals/:id         withdraw or revise
 //	GET    /api/v1/freelance/services                 the service marketplace
 //	POST   /api/v1/freelance/services                 publish a service
-//	GET    /api/v1/freelance/contracts/:id            one engagement
-//	POST   /api/v1/freelance/contracts/:id/milestones the schedule of work
-//	POST   /api/v1/freelance/contracts/:id/deliveries submit work
+//	GET    /api/v1/freelance/contracts/:id            (mounted, escrow_handler.go)
+//	POST   /api/v1/freelance/contracts/:id/milestones (mounted, escrow_handler.go)
 //	POST   /api/v1/freelance/contracts/:id/reviews    rate the other party
 //	POST   /api/v1/freelance/contracts/:id/disputes   raise a dispute
 //	POST   /api/v1/freelance/disputes/:id/evidence    support a dispute
@@ -133,6 +132,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *FreelanceHandler, svc service
 //	GET    /api/v1/freelance/favorites                saved items
 //	POST   /api/v1/freelance/favorites                save one
 //
-// Payments and payouts are absent from that list on purpose: no processor has
-// been chosen, and the two tables that exist for them carry no provider-specific
-// columns for the same reason.
+// Milestone funding, delivery and release are mounted by RegisterEscrowRoutes,
+// behind a processor-neutral gateway (internal/freelance/payments). No processor
+// has been chosen, so production has none and funding answers 503; sending
+// payouts to freelancers is not built for the same reason.

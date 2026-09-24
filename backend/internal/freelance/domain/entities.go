@@ -8,9 +8,10 @@ import (
 
 // The foundation entities.
 //
-// These mirror the tables migration 0102 creates. No endpoint writes them in
-// this change - the marketplace flows they belong to are not built yet - but
-// they are defined here so that the repository interfaces in the package next
+// These mirror the tables migration 0102 creates. The contract milestones,
+// deliveries, payment intents and payouts are written by the escrow flow (see
+// escrow.go and service/escrow.go); the rest are not written by any endpoint yet,
+// but they are defined here so that the repository interfaces in the package next
 // door have a type to speak in, and so that the shape of each record is settled
 // in one reviewable place rather than invented by whichever handler gets there
 // first.
@@ -36,18 +37,18 @@ type ProposalMilestone struct {
 
 // ContractMilestone is one step of a live contract's schedule of work and money.
 type ContractMilestone struct {
-	ID          uuid.UUID  `json:"id"`
-	ContractID  uuid.UUID  `json:"contract_id"`
-	Position    int        `json:"position"`
-	Title       string     `json:"title"`
-	Description string     `json:"description,omitempty"`
-	Amount      Amount     `json:"amount"`
-	Currency    string     `json:"currency"`
-	Status      string     `json:"status"`
-	DueAt       *time.Time `json:"due_at,omitempty"`
-	CompletedAt *time.Time `json:"completed_at,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID          uuid.UUID       `json:"id"`
+	ContractID  uuid.UUID       `json:"contract_id"`
+	Position    int             `json:"position"`
+	Title       string          `json:"title"`
+	Description string          `json:"description,omitempty"`
+	Amount      Amount          `json:"amount"`
+	Currency    string          `json:"currency"`
+	Status      MilestoneStatus `json:"status"`
+	DueAt       *time.Time      `json:"due_at,omitempty"`
+	CompletedAt *time.Time      `json:"completed_at,omitempty"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 // Service is a productised offering a freelancer sells at a fixed price, as
@@ -85,51 +86,53 @@ type ServicePackage struct {
 
 // Delivery is a submission of work against a contract.
 type Delivery struct {
-	ID          uuid.UUID  `json:"id"`
-	ContractID  uuid.UUID  `json:"contract_id"`
-	MilestoneID *uuid.UUID `json:"milestone_id,omitempty"`
-	SubmittedBy uuid.UUID  `json:"submitted_by"`
-	Summary     string     `json:"summary"`
-	Attachments []string   `json:"attachments"`
-	Status      string     `json:"status"`
-	ReviewedAt  *time.Time `json:"reviewed_at,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	ID          uuid.UUID      `json:"id"`
+	ContractID  uuid.UUID      `json:"contract_id"`
+	MilestoneID *uuid.UUID     `json:"milestone_id,omitempty"`
+	SubmittedBy uuid.UUID      `json:"submitted_by"`
+	Summary     string         `json:"summary"`
+	Attachments []string       `json:"attachments"`
+	Status      DeliveryStatus `json:"status"`
+	ReviewedAt  *time.Time     `json:"reviewed_at,omitempty"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 // PaymentIntent is a request to move money into escrow for a contract.
 //
-// Schema and type only. No payment provider is integrated, nothing writes this,
-// and Provider is deliberately a bare string rather than a processor-specific
-// set of columns: the processor has not been chosen, and modelling one into the
-// schema now would have to be undone.
+// Provider is deliberately a bare string rather than a processor-specific set of
+// columns: the processor has not been chosen, and modelling one into the schema
+// now would have to be undone. Written through the payments.Gateway interface.
 type PaymentIntent struct {
-	ID                uuid.UUID  `json:"id"`
-	ContractID        uuid.UUID  `json:"contract_id"`
-	MilestoneID       *uuid.UUID `json:"milestone_id,omitempty"`
-	PayerID           uuid.UUID  `json:"payer_id"`
-	Amount            Amount     `json:"amount"`
-	Currency          string     `json:"currency"`
-	Status            string     `json:"status"`
-	Provider          string     `json:"provider,omitempty"`
-	ProviderReference string     `json:"provider_reference,omitempty"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at"`
+	ID                uuid.UUID           `json:"id"`
+	ContractID        uuid.UUID           `json:"contract_id"`
+	MilestoneID       *uuid.UUID          `json:"milestone_id,omitempty"`
+	PayerID           uuid.UUID           `json:"payer_id"`
+	Amount            Amount              `json:"amount"`
+	Currency          string              `json:"currency"`
+	Status            PaymentIntentStatus `json:"status"`
+	Provider          string              `json:"provider,omitempty"`
+	ProviderReference string              `json:"provider_reference,omitempty"`
+	CreatedAt         time.Time           `json:"created_at"`
+	UpdatedAt         time.Time           `json:"updated_at"`
 }
 
-// Payout is money leaving escrow towards a freelancer. Schema and type only.
+// Payout is money leaving escrow towards a freelancer.
+//
+// Created as pending when a milestone is released. Sending it is the processor's
+// job, and no processor is integrated, so nothing yet moves a payout past pending.
 type Payout struct {
-	ID                uuid.UUID  `json:"id"`
-	ContractID        *uuid.UUID `json:"contract_id,omitempty"`
-	PayeeID           uuid.UUID  `json:"payee_id"`
-	Amount            Amount     `json:"amount"`
-	Currency          string     `json:"currency"`
-	Status            string     `json:"status"`
-	Provider          string     `json:"provider,omitempty"`
-	ProviderReference string     `json:"provider_reference,omitempty"`
-	PaidAt            *time.Time `json:"paid_at,omitempty"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at"`
+	ID                uuid.UUID    `json:"id"`
+	ContractID        *uuid.UUID   `json:"contract_id,omitempty"`
+	PayeeID           uuid.UUID    `json:"payee_id"`
+	Amount            Amount       `json:"amount"`
+	Currency          string       `json:"currency"`
+	Status            PayoutStatus `json:"status"`
+	Provider          string       `json:"provider,omitempty"`
+	ProviderReference string       `json:"provider_reference,omitempty"`
+	PaidAt            *time.Time   `json:"paid_at,omitempty"`
+	CreatedAt         time.Time    `json:"created_at"`
+	UpdatedAt         time.Time    `json:"updated_at"`
 }
 
 // Review is one party's rating of the other after a contract.
