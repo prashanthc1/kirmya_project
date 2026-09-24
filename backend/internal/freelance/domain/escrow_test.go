@@ -4,13 +4,32 @@ import "testing"
 
 // The escrow lifecycles' money rules, which a CHECK constraint cannot express.
 
-func TestFundedMilestoneCannotBeCancelled(t *testing.T) {
-	// Cancelling a funded milestone would be a refund, which is not built.
-	if MilestoneFunded.CanTransitionTo(MilestoneCancelled) {
-		t.Error("a funded milestone may be cancelled, stranding the client's money")
+// Money that has been released cannot be refunded, and a milestone cancelled
+// by a refund cannot be revived. (A funded milestone may reach cancelled, but
+// only through a refund - the service's CancelMilestone refuses it, which the
+// service tests pin.)
+func TestReleasedMoneyCannotBeRefunded(t *testing.T) {
+	if MilestoneReleased.CanTransitionTo(MilestoneCancelled) {
+		t.Error("a released milestone may be cancelled")
+	}
+	if PaymentReleased.CanTransitionTo(PaymentRefunded) {
+		t.Error("released money may be refunded")
 	}
 	if !MilestonePending.CanTransitionTo(MilestoneCancelled) {
 		t.Error("an unfunded milestone cannot be cancelled")
+	}
+}
+
+func TestOnlyEscrowedMilestonesCanBeDisputed(t *testing.T) {
+	for _, s := range []MilestoneStatus{MilestoneFunded, MilestoneInProgress, MilestoneSubmitted} {
+		if !s.HoldsEscrow() || !s.CanTransitionTo(MilestoneDisputed) {
+			t.Errorf("%s cannot be disputed", s)
+		}
+	}
+	for _, s := range []MilestoneStatus{MilestonePending, MilestoneReleased, MilestoneCancelled} {
+		if s.HoldsEscrow() {
+			t.Errorf("%s reports holding escrow", s)
+		}
 	}
 }
 

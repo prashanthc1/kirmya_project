@@ -34,10 +34,10 @@ import (
 // was hired delivers. Anybody else is told the contract does not exist, for the
 // reason set out at GetOwnProject.
 //
-// What is deliberately not here yet: refunds, disputes, and sending payouts. A
-// funded milestone cannot be cancelled, because cancelling it means returning
-// the client's money and that belongs with disputes; a released milestone's
-// payout is recorded as pending, because sending it needs a processor.
+// Disputes and refunds are in disputes.go. What is deliberately not here yet is
+// sending payouts: a released milestone's payout is recorded as pending, because
+// sending it needs a processor. CancelMilestone only ever cancels an unfunded
+// milestone; a funded one is cancelled only by refunding it.
 
 // Escrow refusals the delivery layer maps onto responses.
 var (
@@ -80,6 +80,19 @@ type EscrowService interface {
 	SubmitMilestone(ctx context.Context, freelancerID, contractID, milestoneID uuid.UUID, payload domain.SubmitMilestonePayload) (*domain.ContractMilestone, error)
 	RequestRevision(ctx context.Context, clientID, contractID, milestoneID uuid.UUID, payload domain.RequestRevisionPayload) (*domain.ContractMilestone, error)
 	ApproveMilestone(ctx context.Context, clientID, contractID, milestoneID uuid.UUID) (*domain.ContractMilestone, error)
+
+	// Disputes and refunds. See disputes.go.
+	OpenDispute(ctx context.Context, userID, contractID, milestoneID uuid.UUID, payload domain.OpenDisputePayload) (*domain.Dispute, error)
+	ListContractDisputes(ctx context.Context, userID, contractID uuid.UUID) ([]domain.Dispute, error)
+	GetDispute(ctx context.Context, userID, disputeID uuid.UUID) (*domain.DisputeDetail, error)
+	AddEvidence(ctx context.Context, userID, disputeID uuid.UUID, payload domain.AddEvidencePayload) (*domain.DisputeEvidence, error)
+	WithdrawDispute(ctx context.Context, userID, disputeID uuid.UUID) (*domain.Dispute, error)
+	RefundMilestone(ctx context.Context, freelancerID, contractID, milestoneID uuid.UUID, payload domain.RefundMilestonePayload) (*domain.ContractMilestone, error)
+
+	// The administrative half, behind freelance.admin.read and .write.
+	AdminListDisputes(ctx context.Context, status string, limit, offset int) ([]domain.Dispute, int, error)
+	AdminGetDispute(ctx context.Context, disputeID uuid.UUID) (*domain.DisputeDetail, error)
+	AdminResolveDispute(ctx context.Context, adminID, disputeID uuid.UUID, payload domain.ResolveDisputePayload) (*domain.Dispute, error)
 }
 
 type escrowService struct {
@@ -434,7 +447,10 @@ func (s *escrowService) SubmitMilestone(ctx context.Context, freelancerID, contr
 	if err != nil {
 		return nil, err
 	}
-	if !m.Status.CanTransitionTo(domain.MilestoneSubmitted) || m.Status == domain.MilestoneSubmitted {
+	// Funded or back in progress after a revision - named outright rather than
+	// read off the transition table, which also lets a withdrawn dispute return
+	// a milestone to submitted.
+	if m.Status != domain.MilestoneFunded && m.Status != domain.MilestoneInProgress {
 		return nil, transitionRefused(m.Status, string(domain.MilestoneSubmitted))
 	}
 	if err := checkText("summary", payload.Summary, true, maxDeliverySummary); err != nil {

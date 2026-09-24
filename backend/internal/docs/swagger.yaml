@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  domain.AddEvidencePayload:
+    properties:
+      body:
+        type: string
+      file_url:
+        type: string
+      kind:
+        type: string
+    type: object
   domain.AnalyzeResumePayload:
     properties:
       resume_text:
@@ -724,6 +733,143 @@ definitions:
       user_id:
         type: string
     type: object
+  domain.Dispute:
+    properties:
+      contract_id:
+        type: string
+      created_at:
+        type: string
+      detail:
+        type: string
+      id:
+        type: string
+      milestone_id:
+        type: string
+      milestone_status_before:
+        allOf:
+        - $ref: '#/definitions/domain.MilestoneStatus'
+        description: |-
+          MilestoneStatusBefore is where the milestone was when the dispute froze
+          it, so withdrawing the dispute can put it back exactly there.
+      outcome:
+        allOf:
+        - $ref: '#/definitions/domain.DisputeOutcome'
+        description: Outcome is the administrator's decision, once resolved.
+      raised_by:
+        type: string
+      reason:
+        $ref: '#/definitions/domain.DisputeReason'
+      resolution:
+        type: string
+      resolved_at:
+        type: string
+      resolved_by:
+        type: string
+      status:
+        $ref: '#/definitions/domain.DisputeStatus'
+      updated_at:
+        type: string
+    type: object
+  domain.DisputeDetail:
+    properties:
+      contract_id:
+        type: string
+      created_at:
+        type: string
+      detail:
+        type: string
+      evidence:
+        items:
+          $ref: '#/definitions/domain.DisputeEvidence'
+        type: array
+      id:
+        type: string
+      milestone:
+        $ref: '#/definitions/domain.ContractMilestone'
+      milestone_id:
+        type: string
+      milestone_status_before:
+        allOf:
+        - $ref: '#/definitions/domain.MilestoneStatus'
+        description: |-
+          MilestoneStatusBefore is where the milestone was when the dispute froze
+          it, so withdrawing the dispute can put it back exactly there.
+      outcome:
+        allOf:
+        - $ref: '#/definitions/domain.DisputeOutcome'
+        description: Outcome is the administrator's decision, once resolved.
+      raised_by:
+        type: string
+      reason:
+        $ref: '#/definitions/domain.DisputeReason'
+      resolution:
+        type: string
+      resolved_at:
+        type: string
+      resolved_by:
+        type: string
+      status:
+        $ref: '#/definitions/domain.DisputeStatus'
+      updated_at:
+        type: string
+    type: object
+  domain.DisputeEvidence:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      dispute_id:
+        type: string
+      file_url:
+        type: string
+      id:
+        type: string
+      kind:
+        $ref: '#/definitions/domain.EvidenceKind'
+      uploaded_by:
+        type: string
+    type: object
+  domain.DisputeOutcome:
+    enum:
+    - release_to_freelancer
+    - refund_to_client
+    - resume_work
+    type: string
+    x-enum-varnames:
+    - OutcomeReleaseToFreelancer
+    - OutcomeRefundToClient
+    - OutcomeResumeWork
+  domain.DisputeReason:
+    enum:
+    - work_not_delivered
+    - quality
+    - scope
+    - unresponsive
+    - other
+    type: string
+    x-enum-varnames:
+    - ReasonWorkNotDelivered
+    - ReasonQuality
+    - ReasonScope
+    - ReasonUnresponsive
+    - ReasonOther
+  domain.DisputeStatus:
+    enum:
+    - open
+    - under_review
+    - awaiting_evidence
+    - resolved
+    - withdrawn
+    - escalated
+    type: string
+    x-enum-varnames:
+    - DisputeOpen
+    - DisputeUnderReview
+    - DisputeAwaitingEvidence
+    - DisputeResolved
+    - DisputeWithdrawn
+    - DisputeEscalated
   domain.DryRunResult:
     properties:
       data_domain:
@@ -827,6 +973,16 @@ definitions:
         description: Unallocated is what the client may still schedule into new milestones.
         type: integer
     type: object
+  domain.EvidenceKind:
+    enum:
+    - note
+    - link
+    - file
+    type: string
+    x-enum-varnames:
+    - EvidenceNote
+    - EvidenceLink
+    - EvidenceFile
   domain.FeaturedJob:
     properties:
       company:
@@ -1112,6 +1268,16 @@ definitions:
       version:
         type: integer
     type: object
+  domain.OpenDisputePayload:
+    properties:
+      detail:
+        type: string
+      reason:
+        type: string
+    required:
+    - detail
+    - reason
+    type: object
   domain.OptimizeJDPayload:
     properties:
       job_id:
@@ -1153,6 +1319,12 @@ definitions:
       provider:
         type: string
       provider_reference:
+        type: string
+      refund_reference:
+        description: RefundReference is the processor's handle on the refund, once
+          refunded.
+        type: string
+      refunded_at:
         type: string
       status:
         $ref: '#/definitions/domain.PaymentIntentStatus'
@@ -1504,6 +1676,13 @@ definitions:
     - device_id
     - refresh_token
     type: object
+  domain.RefundMilestonePayload:
+    properties:
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
   domain.RegisterDevicePayload:
     properties:
       app_version:
@@ -1544,6 +1723,16 @@ definitions:
         type: string
     required:
     - reason
+    type: object
+  domain.ResolveDisputePayload:
+    properties:
+      outcome:
+        type: string
+      resolution:
+        type: string
+    required:
+    - outcome
+    - resolution
     type: object
   domain.ResumeCritiqueRequest:
     properties:
@@ -11713,6 +11902,154 @@ paths:
       summary: Update Feature Flag (Admin)
       tags:
       - Admin Config
+  /api/v1/admin/freelance/disputes:
+    get:
+      description: 'The administrative dispute queue, oldest first. Requires an administrator
+        session AND the freelance.admin.read permission. status narrows it: open (the
+        default, every dispute awaiting a decision), all, or a single dispute status.'
+      parameters:
+      - description: open (default), all, or one dispute status
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List freelance disputes
+      tags:
+      - Admin
+  /api/v1/admin/freelance/disputes/{id}:
+    get:
+      description: One dispute with its milestone and all evidence. Requires an administrator
+        session AND the freelance.admin.read permission.
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.DisputeDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a freelance dispute
+      tags:
+      - Admin
+  /api/v1/admin/freelance/disputes/{id}/resolve:
+    post:
+      consumes:
+      - application/json
+      description: Requires an administrator session AND the freelance.admin.write
+        permission; read alone is not enough, because this moves money. outcome is
+        release_to_freelancer (the escrowed money is released and a payout recorded,
+        as if the client had approved), refund_to_client (the money is refunded through
+        the payment processor and the milestone cancelled), or resume_work (no money
+        moves; the milestone returns to in_progress). A written resolution is mandatory
+        and is shown to both parties. The decision commits as one transaction; a refund
+        the processor refuses changes nothing (502, or 503 without a processor). A
+        dispute already withdrawn or decided answers 409. Recorded in the audit log
+        with the administrator and the outcome.
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Decision
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ResolveDisputePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Dispute'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Decide a freelance dispute
+      tags:
+      - Admin
   /api/v1/admin/freelance/projects:
     get:
       description: Administrative, cross-account view of freelance projects. Requires
@@ -24716,6 +25053,40 @@ paths:
       summary: Get contract
       tags:
       - Jobs
+  /api/v1/freelance/contracts/{id}/disputes:
+    get:
+      description: Every dispute on the contract, newest first, for either party.
+        Anyone else gets 404. Requires a valid Bearer access token.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List a contract's disputes
+      tags:
+      - Jobs
   /api/v1/freelance/contracts/{id}/milestones:
     post:
       consumes:
@@ -24868,6 +25239,62 @@ paths:
       summary: Cancel milestone
       tags:
       - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/dispute:
+    post:
+      consumes:
+      - application/json
+      description: Either party to the contract raises a dispute on a milestone whose
+        money is held in escrow (funded, in progress or submitted). The milestone
+        is frozen - it cannot be submitted, approved, revised or refunded - and the
+        contract and project move to disputed until the dispute is withdrawn or decided
+        by a Kirmya administrator. reason is one of work_not_delivered, quality, scope,
+        unresponsive, other; detail is required. One open dispute per contract (409).
+        Anyone not on the contract gets 404. Requires a valid Bearer access token.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      - description: Dispute
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.OpenDisputePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Dispute'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Open a dispute on a milestone
+      tags:
+      - Jobs
   /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/fund:
     post:
       description: 'The client asks to pay a pending milestone into escrow. Answers
@@ -24928,6 +25355,75 @@ paths:
       security:
       - BearerAuth: []
       summary: Fund milestone
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/refund:
+    post:
+      consumes:
+      - application/json
+      description: 'The freelancer returns a funded milestone''s escrowed money to
+        the client, which cancels the milestone and returns its amount to the contract''s
+        unallocated value. Only the freelancer: it is their payment to give up. A
+        client who wants money back without the freelancer''s agreement opens a dispute.
+        A disputed milestone is refunded by the dispute''s decision, not here (409).
+        The refund goes through the payment processor that holds the money: 503 FREELANCE_PAYMENTS_UNAVAILABLE
+        without it, 502 FREELANCE_PAYMENT_PROVIDER_ERROR if it refuses, and in both
+        cases nothing changes. Requires a valid Bearer access token.'
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RefundMilestonePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ContractMilestone'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Refund a milestone to the client
       tags:
       - Jobs
   /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/request-revision:
@@ -25041,6 +25537,132 @@ paths:
       security:
       - BearerAuth: []
       summary: Submit milestone work
+      tags:
+      - Jobs
+  /api/v1/freelance/disputes/{id}:
+    get:
+      description: A dispute with its milestone and all evidence, for either party
+        to the contract. Both sides see everything submitted. Anyone else gets 404.
+        Requires a valid Bearer access token.
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.DisputeDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a dispute
+      tags:
+      - Jobs
+  /api/v1/freelance/disputes/{id}/evidence:
+    post:
+      consumes:
+      - application/json
+      description: Either party adds a note (body required) or a link or file reference
+        (file_url, an http(s) link, required) to an open dispute. Refused with 409
+        once the dispute is withdrawn or decided. Requires a valid Bearer access token.
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Evidence
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddEvidencePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.DisputeEvidence'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add evidence to a dispute
+      tags:
+      - Jobs
+  /api/v1/freelance/disputes/{id}/withdraw:
+    post:
+      description: The party who raised the dispute withdraws it. The milestone returns
+        to exactly the state it was in when the dispute was opened, and the contract
+        and project return to active. The other party gets 403; anyone else 404. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Dispute'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Withdraw a dispute
       tags:
       - Jobs
   /api/v1/freelance/my/projects:

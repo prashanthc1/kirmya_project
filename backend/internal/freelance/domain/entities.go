@@ -113,8 +113,11 @@ type PaymentIntent struct {
 	Status            PaymentIntentStatus `json:"status"`
 	Provider          string              `json:"provider,omitempty"`
 	ProviderReference string              `json:"provider_reference,omitempty"`
-	CreatedAt         time.Time           `json:"created_at"`
-	UpdatedAt         time.Time           `json:"updated_at"`
+	// RefundReference is the processor's handle on the refund, once refunded.
+	RefundReference string     `json:"refund_reference,omitempty"`
+	RefundedAt      *time.Time `json:"refunded_at,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 }
 
 // Payout is money leaving escrow towards a freelancer.
@@ -154,25 +157,30 @@ type Dispute struct {
 	ContractID  uuid.UUID     `json:"contract_id"`
 	MilestoneID *uuid.UUID    `json:"milestone_id,omitempty"`
 	RaisedBy    uuid.UUID     `json:"raised_by"`
-	Reason      string        `json:"reason"`
+	Reason      DisputeReason `json:"reason"`
 	Detail      string        `json:"detail"`
 	Status      DisputeStatus `json:"status"`
-	Resolution  string        `json:"resolution,omitempty"`
-	ResolvedBy  *uuid.UUID    `json:"resolved_by,omitempty"`
-	ResolvedAt  *time.Time    `json:"resolved_at,omitempty"`
-	CreatedAt   time.Time     `json:"created_at"`
-	UpdatedAt   time.Time     `json:"updated_at"`
+	// Outcome is the administrator's decision, once resolved.
+	Outcome DisputeOutcome `json:"outcome,omitempty"`
+	// MilestoneStatusBefore is where the milestone was when the dispute froze
+	// it, so withdrawing the dispute can put it back exactly there.
+	MilestoneStatusBefore MilestoneStatus `json:"milestone_status_before,omitempty"`
+	Resolution            string          `json:"resolution,omitempty"`
+	ResolvedBy            *uuid.UUID      `json:"resolved_by,omitempty"`
+	ResolvedAt            *time.Time      `json:"resolved_at,omitempty"`
+	CreatedAt             time.Time       `json:"created_at"`
+	UpdatedAt             time.Time       `json:"updated_at"`
 }
 
 // DisputeEvidence is one item submitted in support of a dispute.
 type DisputeEvidence struct {
-	ID         uuid.UUID `json:"id"`
-	DisputeID  uuid.UUID `json:"dispute_id"`
-	UploadedBy uuid.UUID `json:"uploaded_by"`
-	Kind       string    `json:"kind"`
-	Body       string    `json:"body"`
-	FileURL    string    `json:"file_url,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID         uuid.UUID    `json:"id"`
+	DisputeID  uuid.UUID    `json:"dispute_id"`
+	UploadedBy uuid.UUID    `json:"uploaded_by"`
+	Kind       EvidenceKind `json:"kind"`
+	Body       string       `json:"body"`
+	FileURL    string       `json:"file_url,omitempty"`
+	CreatedAt  time.Time    `json:"created_at"`
 }
 
 // VerificationRecord is one check against a freelancer's trading identity.

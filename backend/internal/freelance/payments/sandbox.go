@@ -40,6 +40,12 @@ func (g *SandboxGateway) CreateEscrowCharge(_ context.Context, req EscrowChargeR
 	return EscrowCharge{Reference: "sbx_" + req.IntentID.String()}, nil
 }
 
+// RefundEscrowCharge refunds nothing - the sandbox holds nothing - and issues a
+// reference derived from the intent, so a retry names the same refund.
+func (g *SandboxGateway) RefundEscrowCharge(_ context.Context, req RefundRequest) (string, error) {
+	return "sbx_refund_" + req.IntentID.String(), nil
+}
+
 // sandboxEvent is the sandbox webhook body.
 type sandboxEvent struct {
 	Type      string `json:"type"`

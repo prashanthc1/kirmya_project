@@ -668,8 +668,8 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	if freelanceGateway == nil {
 		slog.Warn("Freelance escrow: no payment processor configured; milestone funding is disabled")
 	}
-	freelanceEscrowHandler := freelanceHttp.NewEscrowHandler(
-		freelanceSvc.NewEscrowService(freelanceRepository, freelanceGateway, nil))
+	freelanceEscrowService := freelanceSvc.NewEscrowService(freelanceRepository, freelanceGateway, nil)
+	freelanceEscrowHandler := freelanceHttp.NewEscrowHandler(freelanceEscrowService)
 
 	enterpriseRepository := enterpriseRepo.NewEnterpriseRepository(dbPool)
 	enterpriseService := enterpriseSvc.NewEnterpriseService(enterpriseRepository)
@@ -938,6 +938,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		AdminFreelanceHandler:            freelanceHttp.NewAdminFreelanceHandler(freelanceService),
 		AdminFreelanceMarketplaceHandler: freelanceHttp.NewAdminMarketplaceHandler(freelanceService),
 		FreelanceEscrowHandler:           freelanceEscrowHandler,
+		AdminFreelanceDisputeHandler:     freelanceHttp.NewAdminDisputeHandler(freelanceEscrowService),
 		EnterpriseHandler:                enterpriseHandler,
 		TrustHandler:                     trustHandler,
 		TrustSafetyHandler:               trustSafetyHandler,

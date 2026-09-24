@@ -3817,6 +3817,217 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/freelance/disputes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The administrative dispute queue, oldest first. Requires an administrator session AND the freelance.admin.read permission. status narrows it: open (the default, every dispute awaiting a decision), all, or a single dispute status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List freelance disputes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "open (default), all, or one dispute status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number (1-based)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.PaginationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/freelance/disputes/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "One dispute with its milestone and all evidence. Requires an administrator session AND the freelance.admin.read permission.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get a freelance dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.DisputeDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/freelance/disputes/{id}/resolve": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires an administrator session AND the freelance.admin.write permission; read alone is not enough, because this moves money. outcome is release_to_freelancer (the escrowed money is released and a payout recorded, as if the client had approved), refund_to_client (the money is refunded through the payment processor and the milestone cancelled), or resume_work (no money moves; the milestone returns to in_progress). A written resolution is mandatory and is shown to both parties. The decision commits as one transaction; a refund the processor refuses changes nothing (502, or 503 without a processor). A dispute already withdrawn or decided answers 409. Recorded in the audit log with the administrator and the outcome.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Decide a freelance dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Decision",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.ResolveDisputePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Dispute"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/freelance/projects": {
             "get": {
                 "security": [
@@ -23739,6 +23950,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/freelance/contracts/{id}/disputes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Every dispute on the contract, newest first, for either party. Anyone else gets 404. Requires a valid Bearer access token.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "List a contract's disputes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Contract ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/freelance/contracts/{id}/milestones": {
             "post": {
                 "security": [
@@ -23957,6 +24220,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/freelance/contracts/{id}/milestones/{milestoneId}/dispute": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Either party to the contract raises a dispute on a milestone whose money is held in escrow (funded, in progress or submitted). The milestone is frozen - it cannot be submitted, approved, revised or refunded - and the contract and project move to disputed until the dispute is withdrawn or decided by a Kirmya administrator. reason is one of work_not_delivered, quality, scope, unresponsive, other; detail is required. One open dispute per contract (409). Anyone not on the contract gets 404. Requires a valid Bearer access token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Open a dispute on a milestone",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Contract ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Milestone ID",
+                        "name": "milestoneId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dispute",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.OpenDisputePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Dispute"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/freelance/contracts/{id}/milestones/{milestoneId}/fund": {
             "post": {
                 "security": [
@@ -23993,6 +24333,101 @@ const docTemplate = `{
                         "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/domain.FundingResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/contracts/{id}/milestones/{milestoneId}/refund": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The freelancer returns a funded milestone's escrowed money to the client, which cancels the milestone and returns its amount to the contract's unallocated value. Only the freelancer: it is their payment to give up. A client who wants money back without the freelancer's agreement opens a dispute. A disputed milestone is refunded by the dispute's decision, not here (409). The refund goes through the payment processor that holds the money: 503 FREELANCE_PAYMENTS_UNAVAILABLE without it, 502 FREELANCE_PAYMENT_PROVIDER_ERROR if it refuses, and in both cases nothing changes. Requires a valid Bearer access token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Refund a milestone to the client",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Contract ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Milestone ID",
+                        "name": "milestoneId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.RefundMilestonePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ContractMilestone"
                         }
                     },
                     "400": {
@@ -24171,6 +24606,192 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.ContractMilestone"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/disputes/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "A dispute with its milestone and all evidence, for either party to the contract. Both sides see everything submitted. Anyone else gets 404. Requires a valid Bearer access token.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get a dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.DisputeDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/disputes/{id}/evidence": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Either party adds a note (body required) or a link or file reference (file_url, an http(s) link, required) to an open dispute. Refused with 409 once the dispute is withdrawn or decided. Requires a valid Bearer access token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Add evidence to a dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Evidence",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.AddEvidencePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.DisputeEvidence"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/swagger.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/freelance/disputes/{id}/withdraw": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The party who raised the dispute withdraws it. The milestone returns to exactly the state it was in when the dispute was opened, and the contract and project return to active. The other party gets 403; anyone else 404. Requires a valid Bearer access token.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Withdraw a dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Dispute"
                         }
                     },
                     "400": {
@@ -46215,6 +46836,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.AddEvidencePayload": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "file_url": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.AnalyzeResumePayload": {
             "type": "object",
             "required": [
@@ -47272,6 +47907,204 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.Dispute": {
+            "type": "object",
+            "properties": {
+                "contract_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "milestone_id": {
+                    "type": "string"
+                },
+                "milestone_status_before": {
+                    "description": "MilestoneStatusBefore is where the milestone was when the dispute froze\nit, so withdrawing the dispute can put it back exactly there.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.MilestoneStatus"
+                        }
+                    ]
+                },
+                "outcome": {
+                    "description": "Outcome is the administrator's decision, once resolved.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.DisputeOutcome"
+                        }
+                    ]
+                },
+                "raised_by": {
+                    "type": "string"
+                },
+                "reason": {
+                    "$ref": "#/definitions/domain.DisputeReason"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "resolved_at": {
+                    "type": "string"
+                },
+                "resolved_by": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.DisputeStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.DisputeDetail": {
+            "type": "object",
+            "properties": {
+                "contract_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "evidence": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DisputeEvidence"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "milestone": {
+                    "$ref": "#/definitions/domain.ContractMilestone"
+                },
+                "milestone_id": {
+                    "type": "string"
+                },
+                "milestone_status_before": {
+                    "description": "MilestoneStatusBefore is where the milestone was when the dispute froze\nit, so withdrawing the dispute can put it back exactly there.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.MilestoneStatus"
+                        }
+                    ]
+                },
+                "outcome": {
+                    "description": "Outcome is the administrator's decision, once resolved.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.DisputeOutcome"
+                        }
+                    ]
+                },
+                "raised_by": {
+                    "type": "string"
+                },
+                "reason": {
+                    "$ref": "#/definitions/domain.DisputeReason"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "resolved_at": {
+                    "type": "string"
+                },
+                "resolved_by": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.DisputeStatus"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.DisputeEvidence": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dispute_id": {
+                    "type": "string"
+                },
+                "file_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "$ref": "#/definitions/domain.EvidenceKind"
+                },
+                "uploaded_by": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.DisputeOutcome": {
+            "type": "string",
+            "enum": [
+                "release_to_freelancer",
+                "refund_to_client",
+                "resume_work"
+            ],
+            "x-enum-varnames": [
+                "OutcomeReleaseToFreelancer",
+                "OutcomeRefundToClient",
+                "OutcomeResumeWork"
+            ]
+        },
+        "domain.DisputeReason": {
+            "type": "string",
+            "enum": [
+                "work_not_delivered",
+                "quality",
+                "scope",
+                "unresponsive",
+                "other"
+            ],
+            "x-enum-varnames": [
+                "ReasonWorkNotDelivered",
+                "ReasonQuality",
+                "ReasonScope",
+                "ReasonUnresponsive",
+                "ReasonOther"
+            ]
+        },
+        "domain.DisputeStatus": {
+            "type": "string",
+            "enum": [
+                "open",
+                "under_review",
+                "awaiting_evidence",
+                "resolved",
+                "withdrawn",
+                "escalated"
+            ],
+            "x-enum-varnames": [
+                "DisputeOpen",
+                "DisputeUnderReview",
+                "DisputeAwaitingEvidence",
+                "DisputeResolved",
+                "DisputeWithdrawn",
+                "DisputeEscalated"
+            ]
+        },
         "domain.DryRunResult": {
             "type": "object",
             "properties": {
@@ -47425,6 +48258,19 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "domain.EvidenceKind": {
+            "type": "string",
+            "enum": [
+                "note",
+                "link",
+                "file"
+            ],
+            "x-enum-varnames": [
+                "EvidenceNote",
+                "EvidenceLink",
+                "EvidenceFile"
+            ]
         },
         "domain.FeaturedJob": {
             "type": "object",
@@ -47833,6 +48679,21 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.OpenDisputePayload": {
+            "type": "object",
+            "required": [
+                "detail",
+                "reason"
+            ],
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.OptimizeJDPayload": {
             "type": "object",
             "required": [
@@ -47894,6 +48755,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "provider_reference": {
+                    "type": "string"
+                },
+                "refund_reference": {
+                    "description": "RefundReference is the processor's handle on the refund, once refunded.",
+                    "type": "string"
+                },
+                "refunded_at": {
                     "type": "string"
                 },
                 "status": {
@@ -48375,6 +49243,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.RefundMilestonePayload": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.RegisterDevicePayload": {
             "type": "object",
             "required": [
@@ -48433,6 +49312,21 @@ const docTemplate = `{
             ],
             "properties": {
                 "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ResolveDisputePayload": {
+            "type": "object",
+            "required": [
+                "outcome",
+                "resolution"
+            ],
+            "properties": {
+                "outcome": {
+                    "type": "string"
+                },
+                "resolution": {
                     "type": "string"
                 }
             }

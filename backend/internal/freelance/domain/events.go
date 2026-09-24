@@ -44,6 +44,10 @@ const (
 	AuditMilestoneReleased  = "FREELANCE_MILESTONE_RELEASED"
 	AuditPaymentFailed      = "FREELANCE_PAYMENT_FAILED"
 
+	AuditMilestoneRefunded = "FREELANCE_MILESTONE_REFUNDED"
+	AuditDisputeWithdrawn  = "FREELANCE_DISPUTE_WITHDRAWN"
+	AuditDisputeEvidence   = "FREELANCE_DISPUTE_EVIDENCE_ADDED"
+
 	AuditDisputeOpened   = "FREELANCE_DISPUTE_OPENED"
 	AuditDisputeDecided  = "FREELANCE_DISPUTE_DECIDED"
 	AuditAdminActionTook = "FREELANCE_ADMIN_ACTION"
@@ -78,6 +82,9 @@ const (
 	EventMilestoneRevision  = "freelance.milestone.revision_requested"
 	EventMilestoneReleased  = "freelance.milestone.released"
 	EventPaymentFailed      = "freelance.payment.failed"
+	EventMilestoneRefunded  = "freelance.milestone.refunded"
+	EventDisputeWithdrawn   = "freelance.dispute.withdrawn"
+	EventDisputeResolved    = "freelance.dispute.resolved"
 )
 
 // AllEventTypes is every event this module can publish.
@@ -103,5 +110,8 @@ func AllEventTypes() []string {
 		EventMilestoneRevision,
 		EventMilestoneReleased,
 		EventPaymentFailed,
+		EventMilestoneRefunded,
+		EventDisputeWithdrawn,
+		EventDisputeResolved,
 	}
 }

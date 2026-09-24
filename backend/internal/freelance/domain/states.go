@@ -210,7 +210,9 @@ var contractTransitions = map[ContractStatus][]ContractStatus{
 	ContractInProgress:        {ContractSubmitted, ContractCancelled, ContractDisputed},
 	ContractSubmitted:         {ContractCompleted, ContractRevisionRequested, ContractDisputed},
 	ContractRevisionRequested: {ContractInProgress, ContractSubmitted, ContractCancelled, ContractDisputed},
-	ContractDisputed:          {ContractInProgress, ContractCompleted, ContractCancelled},
+	// Back to active when a dispute is withdrawn or decided and work goes on;
+	// the escrow flow keeps a working contract in active throughout.
+	ContractDisputed: {ContractActive, ContractInProgress, ContractCompleted, ContractCancelled},
 	// Terminal. Money has changed hands by this point.
 	ContractCompleted: nil,
 	ContractCancelled: nil,
