@@ -125,7 +125,7 @@ func swaggerRequestMilestoneRevision() {}
 // swaggerApproveContractMilestone documents POST /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/approve.
 //
 // @Summary      Approve milestone and release escrow
-// @Description  The client accepts submitted work. In one transaction the milestone and its escrowed payment move to released and a payout is recorded for the freelancer (status pending: sending payouts is not available yet). When this was the last open milestone and the milestones cover the whole contract, the contract and its project complete. Requires a valid Bearer access token.
+// @Description  The client accepts submitted work. In one transaction the milestone and its escrowed payment move to released and a payout is recorded for the freelancer (status pending), which is sent to the freelancer's payout account as soon as it is ready - see /api/v1/freelance/payouts. When this was the last open milestone and the milestones cover the whole contract, the contract and its project complete. Requires a valid Bearer access token.
 // @Tags         Jobs
 // @Produce      json
 // @Param        id           path  string  true  "Contract ID"
@@ -143,7 +143,7 @@ func swaggerApproveContractMilestone() {}
 // swaggerFreelancePaymentWebhook documents POST /api/v1/freelance/payments/webhooks/{provider}.
 //
 // @Summary      Payment processor webhook
-// @Description  Called by the payment processor, not by clients. Authenticated only by the processor's signature over the raw body; an unverifiable request is refused with 401 and changes nothing. provider=stripe verifies the Stripe-Signature header (t=<timestamp>,v1=<HMAC-SHA256 of "<timestamp>.<body>">, five-minute tolerance) and acts on checkout.session.completed (when paid), checkout.session.async_payment_succeeded, checkout.session.async_payment_failed and checkout.session.expired; other verified events are acknowledged with applied=false. provider=sandbox verifies an HMAC-SHA256 in X-Kirmya-Signature as sha256=<hex>. A confirmed charge funds its milestone - only if the captured amount and currency match the charge requested (409 otherwise); a failed one frees the milestone for another attempt. Idempotent: redelivered events are acknowledged without applying twice. 404 for a provider this deployment does not use; 409 when the event cannot apply in the milestone's current state.
+// @Description  Called by the payment processor, not by clients. Authenticated only by the processor's signature over the raw body; an unverifiable request is refused with 401 and changes nothing. provider=stripe verifies the Stripe-Signature header (t=<timestamp>,v1=<HMAC-SHA256 of "<timestamp>.<body>">, five-minute tolerance) - against the Connect endpoint's secret too, when one is configured - and acts on account.updated (a freelancer's payout account changed), checkout.session.completed (when paid), checkout.session.async_payment_succeeded, checkout.session.async_payment_failed and checkout.session.expired; other verified events are acknowledged with applied=false. provider=sandbox verifies an HMAC-SHA256 in X-Kirmya-Signature as sha256=<hex>. A confirmed charge funds its milestone - only if the captured amount and currency match the charge requested (409 otherwise); a failed one frees the milestone for another attempt. Idempotent: redelivered events are acknowledged without applying twice. 404 for a provider this deployment does not use; 409 when the event cannot apply in the milestone's current state.
 // @Tags         Jobs
 // @Accept       json
 // @Produce      json

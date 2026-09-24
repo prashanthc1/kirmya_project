@@ -862,6 +862,7 @@ func (r *pgxFreelanceRepository) ReleaseMilestone(ctx context.Context, milestone
 		if d := r.latestDeliveryLocked(milestoneID); d != nil {
 			d.Status, d.ReviewedAt, d.UpdatedAt = domain.DeliveryAccepted, &now, now
 		}
+		payout.MilestoneID, payout.PaymentIntentID = &m.ID, &intent.ID
 		stored := *payout
 		r.mem().payouts[payout.ID] = &stored
 
@@ -892,26 +893,24 @@ func (r *pgxFreelanceRepository) ReleaseMilestone(ctx context.Context, milestone
 	// is held - which the lifecycle should make impossible - nothing is released
 	// and the whole transaction stops, rather than recording a payout backed by
 	// no money.
-	tag, err := tx.Exec(ctx,
+	var intentID uuid.UUID
+	err = tx.QueryRow(ctx,
 		`UPDATE freelance_payment_intents SET status = 'released', updated_at = NOW()
-		  WHERE milestone_id = $1 AND status = 'held_in_escrow'`, milestoneID)
+		  WHERE milestone_id = $1 AND status = 'held_in_escrow'
+		  RETURNING id`, milestoneID).Scan(&intentID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrStaleState
+	}
 	if err != nil {
 		return nil, err
 	}
-	if tag.RowsAffected() != 1 {
-		return nil, ErrStaleState
-	}
+	payout.MilestoneID, payout.PaymentIntentID = &m.ID, &intentID
 
 	if err := reviewLatestDelivery(ctx, tx, milestoneID, domain.DeliveryAccepted); err != nil {
 		return nil, err
 	}
 
-	if _, err := tx.Exec(ctx,
-		`INSERT INTO freelance_payouts
-		   (id, contract_id, payee_id, amount_minor_units, currency, status, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		payout.ID, payout.ContractID, payout.PayeeID, int64(payout.Amount), payout.Currency,
-		string(payout.Status), payout.CreatedAt, payout.UpdatedAt); err != nil {
+	if err := insertPayout(ctx, tx, payout); err != nil {
 		return nil, err
 	}
 

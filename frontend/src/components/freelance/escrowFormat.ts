@@ -4,6 +4,8 @@ import type {
   DisputeReason,
   DisputeStatus,
   MilestoneStatus,
+  PayoutAccountStatus,
+  PayoutStatus,
 } from '../../features/freelance/types';
 
 type ChipColor = 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error';
@@ -81,5 +83,41 @@ export const DISPUTE_OUTCOMES: Record<DisputeOutcome, { label: string; explanati
   resume_work: {
     label: 'Resume work',
     explanation: 'No money moves. The milestone goes back to in progress and the freelancer continues.',
+  },
+};
+
+export const PAYOUT_STATUS: Record<PayoutStatus, { label: string; color: ChipColor }> = {
+  pending: { label: 'Waiting to be sent', color: 'default' },
+  processing: { label: 'Sending', color: 'info' },
+  paid: { label: 'Sent', color: 'success' },
+  failed: { label: 'Delayed', color: 'warning' },
+  cancelled: { label: 'Cancelled', color: 'default' },
+};
+
+export const PAYOUT_ACCOUNT_STATUS: Record<PayoutAccountStatus, { label: string; color: ChipColor; explanation: string }> = {
+  not_started: {
+    label: 'Not set up',
+    color: 'default',
+    explanation: 'Set up payouts to receive the money clients release to you.',
+  },
+  onboarding: {
+    label: 'Setup not finished',
+    color: 'warning',
+    explanation: 'Finish setting up with our payment processor to receive payouts.',
+  },
+  action_required: {
+    label: 'Action required',
+    color: 'error',
+    explanation: 'Our payment processor needs more information from you before it can pay you.',
+  },
+  in_review: {
+    label: 'Being verified',
+    color: 'info',
+    explanation: 'Your details are with our payment processor for verification. Payouts start when it is done.',
+  },
+  enabled: {
+    label: 'Active',
+    color: 'success',
+    explanation: 'Released milestones are sent to your payout account automatically.',
   },
 };

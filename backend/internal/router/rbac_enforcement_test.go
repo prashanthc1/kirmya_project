@@ -61,6 +61,7 @@ func adminSurfaceHandlers() Handlers {
 		AdminFreelanceHandler:            &freelanceHttp.AdminFreelanceHandler{},
 		AdminFreelanceMarketplaceHandler: &freelanceHttp.AdminMarketplaceHandler{},
 		AdminFreelanceDisputeHandler:     &freelanceHttp.AdminDisputeHandler{},
+		AdminFreelancePayoutHandler:      &freelanceHttp.AdminPayoutHandler{},
 		LandingHandler:                   &landingHttp.LandingHandler{},
 		LegalHandler:                     &legalHttp.LegalHandler{},
 		AdminLegalHandler:                &legalHttp.AdminLegalHandler{},

@@ -546,6 +546,7 @@ func (r *pgxFreelanceRepository) ResolveDispute(ctx context.Context, disputeID u
 		if err := reviewLatestDelivery(ctx, tx, m.ID, domain.DeliveryAccepted); err != nil {
 			return nil, err
 		}
+		payout.MilestoneID, payout.PaymentIntentID = &m.ID, &intent.ID
 		if err := insertPayout(ctx, tx, payout); err != nil {
 			return nil, err
 		}
@@ -609,10 +610,11 @@ func insertPayout(ctx context.Context, tx pgx.Tx, payout *domain.Payout) error {
 	payout.Status = domain.PayoutPending
 	_, err := tx.Exec(ctx,
 		`INSERT INTO freelance_payouts
-		   (id, contract_id, payee_id, amount_minor_units, currency, status, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		payout.ID, payout.ContractID, payout.PayeeID, int64(payout.Amount), payout.Currency,
-		string(payout.Status), payout.CreatedAt, payout.UpdatedAt)
+		   (id, contract_id, milestone_id, payment_intent_id, payee_id, amount_minor_units, currency,
+		    status, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		payout.ID, payout.ContractID, payout.MilestoneID, payout.PaymentIntentID, payout.PayeeID,
+		int64(payout.Amount), payout.Currency, string(payout.Status), payout.CreatedAt, payout.UpdatedAt)
 	return err
 }
 
@@ -666,6 +668,7 @@ func (r *pgxFreelanceRepository) resolveDisputeInMemory(ctx context.Context, dis
 			payout.ID = uuid.New()
 		}
 		payout.CreatedAt, payout.UpdatedAt, payout.Status = now, now, domain.PayoutPending
+		payout.MilestoneID, payout.PaymentIntentID = &m.ID, &intent.ID
 		stored := *payout
 		r.mem().payouts[payout.ID] = &stored
 		result.Payout = payout

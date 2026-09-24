@@ -5,6 +5,11 @@
 import { authApiClient as client } from '../../services/authService';
 import {
   AddEvidencePayload,
+  AdminPayout,
+  Paginated,
+  Payout,
+  PayoutAccountView,
+  PayoutOnboarding,
   Contract,
   ContractDetail,
   ContractMilestone,
@@ -186,10 +191,38 @@ export const freelanceApi = {
     const response = await client.post(`/freelance/disputes/${disputeID}/withdraw`);
     return response.data;
   },
+
+  /* ----- Payouts: the caller's own. ----- */
+
+  listPayouts: async (page = 1, limit = 20): Promise<Paginated<Payout>> => {
+    const response = await client.get('/freelance/payouts', { params: { page, limit } });
+    return response.data;
+  },
+
+  /** Where the payout account stands, as last stored. Does not ask the processor. */
+  getPayoutAccount: async (): Promise<PayoutAccountView> => {
+    const response = await client.get('/freelance/payouts/account');
+    return response.data;
+  },
+
+  /**
+   * Create the payout account if there is none, and get the processor's
+   * onboarding page. Freelancers only.
+   */
+  startPayoutOnboarding: async (): Promise<PayoutOnboarding> => {
+    const response = await client.post('/freelance/payouts/account/onboarding');
+    return response.data;
+  },
+
+  /** Ask the processor where the account stands now, e.g. on return from onboarding. */
+  refreshPayoutAccount: async (): Promise<PayoutAccountView> => {
+    const response = await client.post('/freelance/payouts/account/refresh');
+    return response.data;
+  },
 };
 
 /**
- * The administrative dispute surface. Every call is refused by the server
+ * The administrative dispute and payout surface. Every call is refused by the server
  * without an administrator session holding freelance.admin.read (reads) or
  * freelance.admin.write (decisions).
  */
@@ -210,6 +243,18 @@ export const freelanceAdminApi = {
 
   resolveDispute: async (disputeID: string, payload: ResolveDisputePayload): Promise<Dispute> => {
     const response = await client.post(`/admin/freelance/disputes/${disputeID}/resolve`, payload);
+    return response.data;
+  },
+
+  /** The payout queue, oldest first. status: failed (default), all, or one status. */
+  listPayouts: async (status = 'failed', page = 1, limit = 20): Promise<Paginated<AdminPayout>> => {
+    const response = await client.get('/admin/freelance/payouts', { params: { status, page, limit } });
+    return response.data;
+  },
+
+  /** Put a failed payout back in the queue. Needs freelance.admin.write. */
+  retryPayout: async (payoutID: string): Promise<Payout> => {
+    const response = await client.post(`/admin/freelance/payouts/${payoutID}/retry`);
     return response.data;
   },
 };

@@ -125,6 +125,7 @@ GET /api/v1/admin/data-operations/migrations
 GET /api/v1/admin/feature-flags
 GET /api/v1/admin/freelance/disputes
 GET /api/v1/admin/freelance/disputes/:id
+GET /api/v1/admin/freelance/payouts
 GET /api/v1/admin/freelance/projects
 GET /api/v1/admin/freelancers/:id
 GET /api/v1/admin/incidents
@@ -346,6 +347,8 @@ GET /api/v1/freelance/disputes/:id
 GET /api/v1/freelance/my/projects
 GET /api/v1/freelance/my/projects/:id
 GET /api/v1/freelance/onboarding
+GET /api/v1/freelance/payouts
+GET /api/v1/freelance/payouts/account
 GET /api/v1/freelance/profile
 GET /api/v1/freelance/projects
 GET /api/v1/freelance/projects/:id
@@ -589,6 +592,7 @@ POST /api/v1/admin/data-operations/imports
 POST /api/v1/admin/data-operations/imports/preview
 POST /api/v1/admin/feature-flags
 POST /api/v1/admin/freelance/disputes/:id/resolve
+POST /api/v1/admin/freelance/payouts/:id/retry
 POST /api/v1/admin/freelance/projects/:id/cancel
 POST /api/v1/admin/freelancers/:id/reinstate
 POST /api/v1/admin/freelancers/:id/suspend
@@ -728,6 +732,8 @@ POST /api/v1/freelance/disputes/:id/evidence
 POST /api/v1/freelance/disputes/:id/withdraw
 POST /api/v1/freelance/onboarding/complete
 POST /api/v1/freelance/payments/webhooks/:provider
+POST /api/v1/freelance/payouts/account/onboarding
+POST /api/v1/freelance/payouts/account/refresh
 POST /api/v1/freelance/profile
 POST /api/v1/freelance/profile/enable
 POST /api/v1/freelance/projects

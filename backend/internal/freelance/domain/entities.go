@@ -122,20 +122,41 @@ type PaymentIntent struct {
 
 // Payout is money leaving escrow towards a freelancer.
 //
-// Created as pending when a milestone is released. Sending it is the processor's
-// job, and no processor is integrated, so nothing yet moves a payout past pending.
+// Created as pending when a milestone is released, and sent by the payout
+// sender (service/payouts.go) once the freelancer has a payout account the
+// processor will pay into.
 type Payout struct {
-	ID                uuid.UUID    `json:"id"`
-	ContractID        *uuid.UUID   `json:"contract_id,omitempty"`
+	ID          uuid.UUID  `json:"id"`
+	ContractID  *uuid.UUID `json:"contract_id,omitempty"`
+	MilestoneID *uuid.UUID `json:"milestone_id,omitempty"`
+	// PaymentIntentID is the escrowed charge this payout is paid from. At most
+	// one payout per charge (migration 0105).
+	PaymentIntentID   *uuid.UUID   `json:"payment_intent_id,omitempty"`
 	PayeeID           uuid.UUID    `json:"payee_id"`
 	Amount            Amount       `json:"amount"`
 	Currency          string       `json:"currency"`
 	Status            PayoutStatus `json:"status"`
 	Provider          string       `json:"provider,omitempty"`
 	ProviderReference string       `json:"provider_reference,omitempty"`
-	PaidAt            *time.Time   `json:"paid_at,omitempty"`
-	CreatedAt         time.Time    `json:"created_at"`
-	UpdatedAt         time.Time    `json:"updated_at"`
+	// Attempts is how many times sending has been tried.
+	Attempts      int        `json:"attempts"`
+	NextAttemptAt *time.Time `json:"next_attempt_at,omitempty"`
+	// LastError is the processor's reason for the last failed send. Kept from
+	// the payee: it describes the platform's side - its balance, its keys - and
+	// is for an administrator to act on. AdminPayout exposes it.
+	LastError string     `json:"-"`
+	PaidAt    *time.Time `json:"paid_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+}
+
+// AdminPayout is a payout as the administrator's queue shows it.
+type AdminPayout struct {
+	Payout
+	LastError string `json:"last_error,omitempty"`
+	// DestinationAccount is the processor account it was sent, or will be
+	// sent, to.
+	DestinationAccount string `json:"destination_account,omitempty"`
 }
 
 // Review is one party's rating of the other after a contract.

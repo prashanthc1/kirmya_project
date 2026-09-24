@@ -247,6 +247,7 @@ func compareRoutes(documented map[string]bool) []string {
 		AdminFreelanceMarketplaceHandler: &freelanceHttp.AdminMarketplaceHandler{},
 		FreelanceEscrowHandler:           &freelanceHttp.EscrowHandler{},
 		AdminFreelanceDisputeHandler:     &freelanceHttp.AdminDisputeHandler{},
+		AdminFreelancePayoutHandler:      &freelanceHttp.AdminPayoutHandler{},
 		EnterpriseHandler:                &enterpriseHttp.EnterpriseHandler{},
 		TrustHandler:                     &trustHttp.TrustHandler{},
 		ComplianceHandler:                &complianceHttp.ComplianceHandler{},

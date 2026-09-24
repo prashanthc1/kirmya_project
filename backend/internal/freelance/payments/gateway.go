@@ -89,6 +89,8 @@ type WebhookEvent struct {
 	// charge it asked for. Zero when the processor does not report it.
 	AmountMinorUnits int64
 	Currency         string
+	// Account is the payout account's new state, for AccountUpdated.
+	Account *PayoutAccountState
 }
 
 // Gateway is one payment processor.
@@ -135,9 +137,10 @@ var ErrMisconfigured = errors.New("payments: misconfigured")
 //
 // FREELANCE_PAYMENT_PROVIDER chooses:
 //
-//	stripe   Stripe Checkout. Needs STRIPE_SECRET_KEY and
-//	         FREELANCE_STRIPE_WEBHOOK_SECRET. Production must use a live key and
-//	         everywhere else a test key, so a development machine can never
+//	stripe   Stripe Checkout, and Connect for payouts. Needs STRIPE_SECRET_KEY
+//	         and FREELANCE_STRIPE_WEBHOOK_SECRET; the Connect endpoint's secret
+//	         (account.updated) is FREELANCE_STRIPE_CONNECT_WEBHOOK_SECRET, and
+//	         optional. Production must use a live key and everywhere else a test key, so a development machine can never
 //	         charge a real card and production never takes pretend money.
 //	sandbox  Collects nothing; funds a milestone only on a webhook signed with
 //	         FREELANCE_SANDBOX_WEBHOOK_SECRET. Refused in production.
@@ -170,7 +173,12 @@ func FromEnv(appEnv, appBaseURL string, getenv func(string) string) (Gateway, er
 		if strings.TrimSpace(appBaseURL) == "" {
 			return nil, fmt.Errorf("%w: stripe needs APP_BASE_URL to return clients from checkout", ErrMisconfigured)
 		}
-		return NewStripeGateway(StripeConfig{SecretKey: key, WebhookSecret: whsec, AppBaseURL: appBaseURL}), nil
+		return NewStripeGateway(StripeConfig{
+			SecretKey:            key,
+			WebhookSecret:        whsec,
+			ConnectWebhookSecret: env("FREELANCE_STRIPE_CONNECT_WEBHOOK_SECRET"),
+			AppBaseURL:           appBaseURL,
+		}), nil
 
 	case ProviderSandbox:
 		if production {

@@ -34,7 +34,7 @@ import {
   ReasonDialog,
   SubmitWorkDialog,
 } from './MilestoneDialogs';
-import { CONTRACT_STATUS, MILESTONE_STATUS, formatDate, formatMoney } from './escrowFormat';
+import { CONTRACT_STATUS, MILESTONE_STATUS, PAYOUT_ACCOUNT_STATUS, formatDate, formatMoney } from './escrowFormat';
 
 /*
  * One contract, as either party sees it.
@@ -89,6 +89,13 @@ export default function ContractView({ contractID }: { contractID: string }) {
     queryKey: ['freelance', 'contract', contractID, 'disputes'],
     queryFn: () => freelanceApi.listContractDisputes(contractID),
     enabled: Boolean(contract),
+  });
+  // The freelancer is paid into a payout account; until it is set up, what
+  // the client releases waits. Asked only on the freelancer's own view.
+  const { data: payoutAccount } = useQuery({
+    queryKey: ['freelance', 'payouts', 'account'],
+    queryFn: () => freelanceApi.getPayoutAccount(),
+    enabled: Boolean(contract && user?.id && user.id === contract.freelancer_id),
   });
 
   const refresh = () => {
@@ -212,6 +219,12 @@ export default function ContractView({ contractID }: { contractID: string }) {
           {notice.text}
         </Alert>
       )}
+      {role === 'freelancer' && payoutAccount?.available && payoutAccount.status !== 'enabled' && (
+        <Alert severity="info" sx={{ mt: 3 }}
+          action={<Button component={Link} href={routes.freelance.payouts()} color="inherit" size="small">Set up payouts</Button>}>
+          {PAYOUT_ACCOUNT_STATUS[payoutAccount.status]?.explanation ?? 'Set up payouts to receive released milestones.'}
+        </Alert>
+      )}
       {openDisputeRecord && (
         <Alert severity="warning" sx={{ mt: 3 }}
           action={<Button component={Link} href={routes.freelance.dispute(openDisputeRecord.id)} color="inherit" size="small">View dispute</Button>}>
@@ -229,7 +242,7 @@ export default function ContractView({ contractID }: { contractID: string }) {
       >
         <Stat label="Contract value" value={formatMoney(escrow.contract_total, currency)} />
         <Stat label="In escrow" value={formatMoney(escrow.in_escrow, currency)} />
-        <Stat label="Paid to freelancer" value={formatMoney(escrow.released, currency)} />
+        <Stat label="Released to freelancer" value={formatMoney(escrow.released, currency)} />
         <Stat label="Not yet scheduled" value={formatMoney(escrow.unallocated, currency)} />
       </Box>
 

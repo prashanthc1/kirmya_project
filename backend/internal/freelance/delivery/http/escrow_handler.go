@@ -414,5 +414,18 @@ func RegisterEscrowRoutes(api *gin.RouterGroup, handler *EscrowHandler) {
 			disputes.POST("/:id/evidence", handler.AddEvidence)
 			disputes.POST("/:id/withdraw", handler.WithdrawDispute)
 		}
+
+		// The caller's own payout account and payouts. Not behind the
+		// capability gate: a suspended freelancer is still owed for work
+		// already released, and may see it. The service refuses onboarding to
+		// anybody without a freelancer profile.
+		payouts := freelanceGroup.Group("/payouts")
+		payouts.Use(sharedMiddleware.AuthRequired())
+		{
+			payouts.GET("", handler.ListMyPayouts)
+			payouts.GET("/account", handler.GetPayoutAccount)
+			payouts.POST("/account/onboarding", handler.StartPayoutOnboarding)
+			payouts.POST("/account/refresh", handler.RefreshPayoutAccount)
+		}
 	}
 }

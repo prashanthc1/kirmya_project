@@ -1349,6 +1349,118 @@ definitions:
     - PaymentRefunded
     - PaymentFailed
     - PaymentCancelled
+  domain.Payout:
+    properties:
+      amount:
+        type: integer
+      attempts:
+        description: Attempts is how many times sending has been tried.
+        type: integer
+      contract_id:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      milestone_id:
+        type: string
+      next_attempt_at:
+        type: string
+      paid_at:
+        type: string
+      payee_id:
+        type: string
+      payment_intent_id:
+        description: |-
+          PaymentIntentID is the escrowed charge this payout is paid from. At most
+          one payout per charge (migration 0105).
+        type: string
+      provider:
+        type: string
+      provider_reference:
+        type: string
+      status:
+        $ref: '#/definitions/domain.PayoutStatus'
+      updated_at:
+        type: string
+    type: object
+  domain.PayoutAccount:
+    properties:
+      created_at:
+        type: string
+      details_submitted:
+        type: boolean
+      disabled_reason:
+        type: string
+      payouts_enabled:
+        type: boolean
+      provider:
+        type: string
+      requirements_due:
+        type: boolean
+      transfers_active:
+        type: boolean
+      updated_at:
+        type: string
+    type: object
+  domain.PayoutAccountStatus:
+    enum:
+    - not_started
+    - onboarding
+    - action_required
+    - in_review
+    - enabled
+    type: string
+    x-enum-varnames:
+    - PayoutAccountNotStarted
+    - PayoutAccountOnboarding
+    - PayoutAccountActionRequired
+    - PayoutAccountInReview
+    - PayoutAccountEnabled
+  domain.PayoutAccountView:
+    properties:
+      account:
+        $ref: '#/definitions/domain.PayoutAccount'
+      available:
+        description: Available is false when this deployment cannot send payouts at
+          all.
+        type: boolean
+      status:
+        $ref: '#/definitions/domain.PayoutAccountStatus'
+      waiting:
+        additionalProperties:
+          type: integer
+        description: |-
+          Waiting is what has been released to the freelancer and not yet sent,
+          per currency, in minor units serialized as decimals.
+        type: object
+    type: object
+  domain.PayoutOnboarding:
+    properties:
+      account:
+        $ref: '#/definitions/domain.PayoutAccountView'
+      url:
+        description: |-
+          URL is the processor's onboarding page. Empty when there is nothing to
+          fill in (the sandbox), in which case the account is already refreshed.
+        type: string
+    type: object
+  domain.PayoutStatus:
+    enum:
+    - pending
+    - processing
+    - paid
+    - failed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - PayoutPending
+    - PayoutProcessing
+    - PayoutPaid
+    - PayoutFailed
+    - PayoutCancelled
   domain.Permission:
     enum:
     - company:view
@@ -12048,6 +12160,98 @@ paths:
       security:
       - BearerAuth: []
       summary: Decide a freelance dispute
+      tags:
+      - Admin
+  /api/v1/admin/freelance/payouts:
+    get:
+      description: 'The administrative payout queue, oldest first, with each payout''s
+        attempts, last error and destination account. Requires an administrator session
+        AND the freelance.admin.read permission. status narrows it: failed (the default
+        - payouts whose sending stopped after repeated failures), all, or a single
+        payout status.'
+      parameters:
+      - description: failed (default), all, or one payout status
+        in: query
+        name: status
+        type: string
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List freelance payouts
+      tags:
+      - Admin
+  /api/v1/admin/freelance/payouts/{id}/retry:
+    post:
+      description: Puts a failed payout back in the queue with a fresh set of attempts,
+        once whatever made it fail has been fixed. Requires an administrator session
+        AND the freelance.admin.write permission, because this sends money. Sending
+        is idempotent per payout at the processor, so a retry can never pay twice.
+        Only a failed payout can be retried (409 otherwise). Recorded in the audit
+        log.
+      parameters:
+      - description: Payout ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Payout'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Retry a failed payout
       tags:
       - Admin
   /api/v1/admin/freelance/projects:
@@ -25142,11 +25346,12 @@ paths:
       - Jobs
   /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/approve:
     post:
-      description: 'The client accepts submitted work. In one transaction the milestone
+      description: The client accepts submitted work. In one transaction the milestone
         and its escrowed payment move to released and a payout is recorded for the
-        freelancer (status pending: sending payouts is not available yet). When this
-        was the last open milestone and the milestones cover the whole contract, the
-        contract and its project complete. Requires a valid Bearer access token.'
+        freelancer (status pending), which is sent to the freelancer's payout account
+        as soon as it is ready - see /api/v1/freelance/payouts. When this was the
+        last open milestone and the milestones cover the whole contract, the contract
+        and its project complete. Requires a valid Bearer access token.
       parameters:
       - description: Contract ID
         in: path
@@ -25924,15 +26129,16 @@ paths:
         only by the processor''s signature over the raw body; an unverifiable request
         is refused with 401 and changes nothing. provider=stripe verifies the Stripe-Signature
         header (t=<timestamp>,v1=<HMAC-SHA256 of "<timestamp>.<body>">, five-minute
-        tolerance) and acts on checkout.session.completed (when paid), checkout.session.async_payment_succeeded,
-        checkout.session.async_payment_failed and checkout.session.expired; other
-        verified events are acknowledged with applied=false. provider=sandbox verifies
-        an HMAC-SHA256 in X-Kirmya-Signature as sha256=<hex>. A confirmed charge funds
-        its milestone - only if the captured amount and currency match the charge
-        requested (409 otherwise); a failed one frees the milestone for another attempt.
-        Idempotent: redelivered events are acknowledged without applying twice. 404
-        for a provider this deployment does not use; 409 when the event cannot apply
-        in the milestone''s current state.'
+        tolerance) - against the Connect endpoint''s secret too, when one is configured
+        - and acts on account.updated (a freelancer''s payout account changed), checkout.session.completed
+        (when paid), checkout.session.async_payment_succeeded, checkout.session.async_payment_failed
+        and checkout.session.expired; other verified events are acknowledged with
+        applied=false. provider=sandbox verifies an HMAC-SHA256 in X-Kirmya-Signature
+        as sha256=<hex>. A confirmed charge funds its milestone - only if the captured
+        amount and currency match the charge requested (409 otherwise); a failed one
+        frees the milestone for another attempt. Idempotent: redelivered events are
+        acknowledged without applying twice. 404 for a provider this deployment does
+        not use; 409 when the event cannot apply in the milestone''s current state.'
       parameters:
       - description: Payment provider
         in: path
@@ -25967,6 +26173,133 @@ paths:
           schema:
             $ref: '#/definitions/swagger.ErrorResponse'
       summary: Payment processor webhook
+      tags:
+      - Jobs
+  /api/v1/freelance/payouts:
+    get:
+      description: 'The caller''s payouts, newest first: one per milestone released
+        to them, with its status - pending (waiting for a ready payout account, or
+        for the next attempt after a failed send), processing, paid (transferred to
+        the caller''s payout account, from where the payment processor pays it to
+        their bank on its own schedule), or failed (sending stopped; the platform''s
+        administrators retry it). Requires a valid Bearer access token.'
+      parameters:
+      - default: 1
+        description: Page number (1-based)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.PaginationResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my payouts
+      tags:
+      - Jobs
+  /api/v1/freelance/payouts/account:
+    get:
+      description: 'Where the caller''s payout account stands, as last stored (the
+        payment processor is not asked; POST .../refresh does that): not_started,
+        onboarding (the processor''s form is not finished), action_required (the processor
+        needs more information), in_review, or enabled (payouts are sent). waiting
+        is what has been released to the caller and not yet paid, per currency. available
+        is false when this deployment cannot send payouts. Requires a valid Bearer
+        access token.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PayoutAccountView'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my payout account
+      tags:
+      - Jobs
+  /api/v1/freelance/payouts/account/onboarding:
+    post:
+      description: 'Creates the caller''s payout account at the payment processor
+        if they have none, and returns url: a single-use link to the processor''s
+        hosted onboarding, where the freelancer gives their identity and bank details
+        to the processor directly - Kirmya never receives them. With Stripe the account
+        is an Express connected account, and onboarding returns to /freelance/payouts?onboarding=return
+        (or ?onboarding=refresh when the link expired). No url when there is nothing
+        to fill in. Only for freelancers: without a freelancer profile, 403. 503 (FREELANCE_PAYMENTS_UNAVAILABLE)
+        when this deployment cannot send payouts; 502 (FREELANCE_PAYMENT_PROVIDER_ERROR)
+        when the processor refused. Requires a valid Bearer access token.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PayoutOnboarding'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set up payouts
+      tags:
+      - Jobs
+  /api/v1/freelance/payouts/account/refresh:
+    post:
+      description: Asks the payment processor for the caller's payout account state
+        and stores it; called when the freelancer returns from onboarding, so their
+        payouts start without waiting for the processor's webhook. When the account
+        becomes enabled, payouts waiting for it are sent. Answers the same body as
+        GET .../account. 502 (FREELANCE_PAYMENT_PROVIDER_ERROR) when the processor
+        could not be asked. Requires a valid Bearer access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PayoutAccountView'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Refresh my payout account
       tags:
       - Jobs
   /api/v1/freelance/profile:

@@ -44,6 +44,7 @@ vi.mock('../features/freelance/api', () => ({
     getDispute: vi.fn(),
     addEvidence: vi.fn(),
     withdrawDispute: vi.fn(),
+    getPayoutAccount: vi.fn(),
   },
   freelanceAdminApi: {
     listDisputes: vi.fn(),
@@ -105,6 +106,7 @@ beforeEach(() => {
   auth.userID = 'client-1';
   search.params = '';
   api.listContractDisputes.mockResolvedValue({ data: [], count: 0 });
+  api.getPayoutAccount.mockResolvedValue({ available: true, status: 'enabled', waiting: {} });
 });
 
 describe('contract screen', () => {
@@ -245,6 +247,37 @@ function dispute(overrides: Partial<DisputeDetail> = {}): DisputeDetail {
     ...overrides,
   };
 }
+
+describe('contract screen: payouts', () => {
+  it('tells the freelancer to set up payouts until their account is enabled', async () => {
+    auth.userID = 'freelancer-1';
+    api.getPayoutAccount.mockResolvedValue({ available: true, status: 'not_started', waiting: { AED: 600 } });
+    api.getContract.mockResolvedValue(contract([milestone({ status: 'released' })]));
+    renderWithQuery(<ContractView contractID="contract-1" />);
+
+    const link = await screen.findByRole('link', { name: /set up payouts/i });
+    expect(link).toHaveAttribute('href', '/freelance/payouts');
+  });
+
+  it('says nothing about payouts once the account is enabled', async () => {
+    auth.userID = 'freelancer-1';
+    api.getContract.mockResolvedValue(contract([milestone({ status: 'released' })]));
+    renderWithQuery(<ContractView contractID="contract-1" />);
+
+    await screen.findByTestId('milestone-m-1');
+    await waitFor(() => expect(api.getPayoutAccount).toHaveBeenCalled());
+    expect(screen.queryByRole('link', { name: /set up payouts/i })).not.toBeInTheDocument();
+  });
+
+  it('never asks about the client\'s payout account', async () => {
+    api.getContract.mockResolvedValue(contract([milestone({ status: 'released' })]));
+    renderWithQuery(<ContractView contractID="contract-1" />);
+
+    await screen.findByTestId('milestone-m-1');
+    expect(api.getPayoutAccount).not.toHaveBeenCalled();
+    expect(screen.queryByRole('link', { name: /set up payouts/i })).not.toBeInTheDocument();
+  });
+});
 
 describe('dispute screen', () => {
   beforeEach(() => {

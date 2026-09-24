@@ -51,6 +51,11 @@ const (
 	AuditDisputeOpened   = "FREELANCE_DISPUTE_OPENED"
 	AuditDisputeDecided  = "FREELANCE_DISPUTE_DECIDED"
 	AuditAdminActionTook = "FREELANCE_ADMIN_ACTION"
+
+	AuditPayoutAccountStarted = "FREELANCE_PAYOUT_ACCOUNT_STARTED"
+	AuditPayoutPaid           = "FREELANCE_PAYOUT_PAID"
+	AuditPayoutFailed         = "FREELANCE_PAYOUT_FAILED"
+	AuditPayoutRetried        = "FREELANCE_PAYOUT_RETRIED"
 )
 
 // Domain events, published on the repository's existing in-process bus
@@ -85,6 +90,8 @@ const (
 	EventMilestoneRefunded  = "freelance.milestone.refunded"
 	EventDisputeWithdrawn   = "freelance.dispute.withdrawn"
 	EventDisputeResolved    = "freelance.dispute.resolved"
+	EventPayoutPaid         = "freelance.payout.paid"
+	EventPayoutFailed       = "freelance.payout.failed"
 )
 
 // AllEventTypes is every event this module can publish.
@@ -113,5 +120,7 @@ func AllEventTypes() []string {
 		EventMilestoneRefunded,
 		EventDisputeWithdrawn,
 		EventDisputeResolved,
+		EventPayoutPaid,
+		EventPayoutFailed,
 	}
 }

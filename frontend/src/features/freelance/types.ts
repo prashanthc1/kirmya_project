@@ -265,3 +265,63 @@ export interface ResolveDisputePayload {
 
 /** Statuses in which a dispute still awaits a decision. */
 export const OPEN_DISPUTE_STATUSES: DisputeStatus[] = ['open', 'under_review', 'awaiting_evidence', 'escalated'];
+
+/* ----- Payouts. ----- */
+
+export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'failed' | 'cancelled';
+
+/** Money released to a freelancer, on its way to their payout account. */
+export interface Payout {
+  id: string;
+  contract_id?: string;
+  milestone_id?: string;
+  payee_id: string;
+  amount: number;
+  currency: string;
+  status: PayoutStatus;
+  attempts: number;
+  next_attempt_at?: string;
+  paid_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A payout as the administrator's queue shows it. */
+export interface AdminPayout extends Payout {
+  provider?: string;
+  provider_reference?: string;
+  last_error?: string;
+  destination_account?: string;
+}
+
+export type PayoutAccountStatus = 'not_started' | 'onboarding' | 'action_required' | 'in_review' | 'enabled';
+
+export interface PayoutAccountView {
+  /** False when this deployment cannot send payouts at all. */
+  available: boolean;
+  status: PayoutAccountStatus;
+  account?: {
+    provider: string;
+    details_submitted: boolean;
+    payouts_enabled: boolean;
+    transfers_active: boolean;
+    requirements_due: boolean;
+    disabled_reason?: string;
+  };
+  /** Released and not yet paid, per currency. */
+  waiting: Record<string, number>;
+}
+
+export interface PayoutOnboarding {
+  /** The processor's onboarding page; absent when there is nothing to fill in. */
+  url?: string;
+  account: PayoutAccountView;
+}
+
+export interface Paginated<T> {
+  page: number;
+  limit: number;
+  total_items: number;
+  total_pages: number;
+  data: T[];
+}

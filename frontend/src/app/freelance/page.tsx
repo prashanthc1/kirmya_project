@@ -283,6 +283,13 @@ export default function FreelanceMarketplacePage() {
         )}
 
         {/* Tab 1: Active Contracts */}
+        {tabValue === 1 && isFreelancer && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Button component={Link} href={routes.freelance.payouts()} variant="outlined" size="small">
+              Payouts
+            </Button>
+          </Box>
+        )}
         {tabValue === 1 && (
           <Grid container spacing={3}>
             {contracts.map((contract) => (

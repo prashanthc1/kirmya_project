@@ -35,9 +35,8 @@ import (
 // was hired delivers. Anybody else is told the contract does not exist, for the
 // reason set out at GetOwnProject.
 //
-// Disputes and refunds are in disputes.go. What is deliberately not here yet is
-// sending payouts: a released milestone's payout is recorded as pending, because
-// sending it needs a processor. CancelMilestone only ever cancels an unfunded
+// Disputes and refunds are in disputes.go, and sending the payouts a release
+// records is in payouts.go. CancelMilestone only ever cancels an unfunded
 // milestone; a funded one is cancelled only by refunding it.
 
 // Escrow refusals the delivery layer maps onto responses.
@@ -94,6 +93,18 @@ type EscrowService interface {
 	AdminListDisputes(ctx context.Context, status string, limit, offset int) ([]domain.Dispute, int, error)
 	AdminGetDispute(ctx context.Context, disputeID uuid.UUID) (*domain.DisputeDetail, error)
 	AdminResolveDispute(ctx context.Context, adminID, disputeID uuid.UUID, payload domain.ResolveDisputePayload) (*domain.Dispute, error)
+
+	// Payouts. See payouts.go.
+	GetPayoutAccount(ctx context.Context, userID uuid.UUID) (*domain.PayoutAccountView, error)
+	StartPayoutOnboarding(ctx context.Context, userID uuid.UUID) (*domain.PayoutOnboarding, error)
+	RefreshPayoutAccount(ctx context.Context, userID uuid.UUID) (*domain.PayoutAccountView, error)
+	ListMyPayouts(ctx context.Context, userID uuid.UUID, limit, offset int) ([]domain.Payout, int, error)
+	AdminListPayouts(ctx context.Context, status string, limit, offset int) ([]domain.AdminPayout, int, error)
+	AdminRetryPayout(ctx context.Context, adminID, payoutID uuid.UUID) (*domain.Payout, error)
+	// SendDuePayouts sends every payout that can be sent now; RunPayouts does
+	// so on an interval until ctx ends.
+	SendDuePayouts(ctx context.Context) (int, error)
+	RunPayouts(ctx context.Context, interval time.Duration)
 }
 
 type escrowService struct {
@@ -102,11 +113,19 @@ type escrowService struct {
 	// ErrPaymentsUnavailable and every other step still works.
 	gateway payments.Gateway
 	bus     events.EventBus
+	// payoutNudge wakes RunPayouts when a payout may have become sendable.
+	payoutNudge chan struct{}
+	// payoutBackoff is the wait before each retry of a failed send.
+	payoutBackoff []time.Duration
 }
 
 // NewEscrowService wires the escrow flow. gateway and bus may be nil.
 func NewEscrowService(repo repository.FreelanceRepository, gateway payments.Gateway, bus events.EventBus) EscrowService {
-	return &escrowService{repo: repo, gateway: gateway, bus: bus}
+	return &escrowService{
+		repo: repo, gateway: gateway, bus: bus,
+		payoutNudge:   make(chan struct{}, 1),
+		payoutBackoff: payoutBackoff,
+	}
 }
 
 func (s *escrowService) publish(ctx context.Context, eventType string, payload map[string]interface{}) {
@@ -439,6 +458,13 @@ func (s *escrowService) HandlePaymentWebhook(ctx context.Context, provider strin
 		}
 		s.publish(ctx, domain.EventPaymentFailed, payload)
 		return nil
+
+	case payments.AccountUpdated:
+		if event.Account == nil || s.payoutGateway() == nil {
+			return fmt.Errorf("%w: %s", ErrWebhookRejected, event.Kind)
+		}
+		_, err := s.applyPayoutAccountState(ctx, *event.Account)
+		return err
 	}
 	return fmt.Errorf("%w: %s", ErrWebhookRejected, event.Kind)
 }
@@ -595,8 +621,8 @@ func (s *escrowService) RequestRevision(ctx context.Context, clientID, contractI
 //
 // Approval and release are one act and one transaction: the milestone and its
 // payment move to released, and a payout is recorded as owed to the freelancer.
-// Recording it is as far as this goes - sending it needs a processor - so the
-// payout is pending until that exists.
+// The payout sender (payouts.go) sends it once the freelancer's payout account
+// is ready; it is nudged here so that is straight away when it already is.
 func (s *escrowService) ApproveMilestone(ctx context.Context, clientID, contractID, milestoneID uuid.UUID) (*domain.ContractMilestone, error) {
 	contract, err := s.asClient(ctx, clientID, contractID)
 	if err != nil {
@@ -632,6 +658,7 @@ func (s *escrowService) ApproveMilestone(ctx context.Context, clientID, contract
 		"freelancer_id": contract.FreelancerID.String(),
 		"payout_id":     outcome.Payout.ID.String(),
 	})
+	s.nudgePayouts()
 	if outcome.ContractCompleted {
 		telemetry.LogUserAction(ctx, clientID.String(), domain.AuditContractCompleted, map[string]interface{}{
 			"contractId": contractID.String(),

@@ -387,6 +387,9 @@ func (s *escrowService) AdminResolveDispute(ctx context.Context, adminID, disput
 		"client_id":     contract.ClientID.String(),
 		"freelancer_id": contract.FreelancerID.String(),
 	})
+	if result.Payout != nil {
+		s.nudgePayouts()
+	}
 	if result.ContractCompleted {
 		s.publish(ctx, domain.EventContractComplete, map[string]interface{}{
 			"contract_id":   d.ContractID.String(),

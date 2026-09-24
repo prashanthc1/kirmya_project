@@ -85,3 +85,32 @@ func SignSandboxPayload(secret, payload []byte) string {
 	mac.Write(payload)
 	return hex.EncodeToString(mac.Sum(nil))
 }
+
+var _ PayoutGateway = (*SandboxGateway)(nil)
+
+// CreatePayoutAccount issues an account id derived from the user.
+func (g *SandboxGateway) CreatePayoutAccount(_ context.Context, req PayoutAccountRequest) (string, error) {
+	return "sbx_acct_" + req.UserID.String(), nil
+}
+
+// PayoutOnboardingLink is empty: the sandbox has no onboarding to send anybody to.
+func (g *SandboxGateway) PayoutOnboardingLink(context.Context, string) (string, error) {
+	return "", nil
+}
+
+// GetPayoutAccount reports every sandbox account ready. The sandbox moves no
+// money, so there is nothing for an account to be verified for.
+func (g *SandboxGateway) GetPayoutAccount(_ context.Context, accountID string) (PayoutAccountState, error) {
+	return PayoutAccountState{
+		AccountID:        accountID,
+		DetailsSubmitted: true,
+		PayoutsEnabled:   true,
+		TransfersActive:  true,
+	}, nil
+}
+
+// SendPayout sends nothing and issues a reference derived from the payout, so a
+// retry names the same transfer.
+func (g *SandboxGateway) SendPayout(_ context.Context, req PayoutRequest) (string, error) {
+	return "sbx_transfer_" + req.PayoutID.String(), nil
+}

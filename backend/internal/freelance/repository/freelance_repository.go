@@ -65,6 +65,8 @@ type FreelanceRepository interface {
 	EscrowRepository
 	// Disputes over escrowed money, and refunds. See dispute_repository.go.
 	DisputeRepository
+	// Payout accounts and sending payouts. See payout_repository.go.
+	PayoutRepository
 }
 
 type pgxFreelanceRepository struct {
@@ -78,6 +80,9 @@ type pgxFreelanceRepository struct {
 	// escrow is the no-database store for the escrow tables, created on first
 	// use. See escrow_repository.go.
 	escrow *escrowMemory
+	// payouts is the no-database store for payout accounts. See
+	// payout_repository.go.
+	payouts *payoutMemory
 }
 
 func NewFreelanceRepository(pool *pgxpool.Pool) FreelanceRepository {
