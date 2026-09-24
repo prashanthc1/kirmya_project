@@ -188,6 +188,9 @@ export const routes = {
     home: () => '/freelance',
     /** Becoming a freelancer. Reachable by any signed-in professional account. */
     onboarding: () => ROUTES.FREELANCE_ONBOARDING,
+    /** One contract: its milestones, escrow and disputes. Either party. */
+    contract: (id: string) => `/freelance/contracts/${encodeURIComponent(id)}`,
+    dispute: (id: string) => `/freelance/disputes/${encodeURIComponent(id)}`,
   },
   events: { home: () => '/events' },
 
@@ -259,6 +262,8 @@ export const routes = {
     communities: () => ROUTES.ADMIN.COMMUNITIES,
     jobs: () => ROUTES.ADMIN.JOBS,
     freelance: () => '/admin/freelance',
+    freelanceDisputes: () => '/admin/freelance/disputes',
+    freelanceDispute: (id: string) => `/admin/freelance/disputes/${encodeURIComponent(id)}`,
     moderation: () => '/admin/moderation',
     reports: () => '/admin/reports',
     security: () => '/admin/security',

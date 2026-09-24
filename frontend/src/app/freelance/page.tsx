@@ -31,7 +31,8 @@ import CodeIcon from '@mui/icons-material/Code';
 import Link from 'next/link';
 
 import { freelanceApi } from '../../features/freelance/api';
-import { ROUTES } from '../../shared/routes';
+import { ROUTES, routes } from '../../shared/routes';
+import { CONTRACT_STATUS, formatMoney } from '../../components/freelance/escrowFormat';
 import {
   Contract,
   FreelancerCapability,
@@ -222,7 +223,7 @@ export default function FreelanceMarketplacePage() {
             }}
           >
             <Tab label="Explore Open Projects" />
-            <Tab label="My Active Contracts" />
+            <Tab label="My Contracts" />
           </Tabs>
         </Paper>
 
@@ -290,21 +291,34 @@ export default function FreelanceMarketplacePage() {
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                       <Typography variant="h6" fontWeight="bold" sx={{ color: "text.primary" }}>
-                        {contract.project_title}
+                        {contract.project_title || 'Contract'}
                       </Typography>
-                      <Chip label="ACTIVE CONTRACT" color="success" size="small" sx={{ fontWeight: 'bold' }} />
+                      <Chip
+                        label={CONTRACT_STATUS[contract.status]?.label ?? contract.status}
+                        color={CONTRACT_STATUS[contract.status]?.color ?? 'default'}
+                        size="small"
+                        sx={{ fontWeight: 'bold' }}
+                      />
                     </Box>
 
-                    <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 'bold', mb: 1 }}>
-                      Total Agreed Value: ${contract.total_amount}
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 2 }}>
+                      Agreed value: {formatMoney(contract.total_amount, contract.currency)}
                     </Typography>
 
-                    <Typography variant="caption" sx={{ color: "text.secondary", display: 'block', mb: 2 }}>
-                      Contract ID: {contract.id}
-                    </Typography>
-
-                    <Button variant="contained" color="success" fullWidth startIcon={<AssignmentCheckIcon />}>
-                      Mark Contract Completed
+                    {/*
+                      * Milestones, payment, delivery and disputes all live on
+                      * the contract's own page. This card used to carry a "Mark
+                      * Contract Completed" button with no handler: a contract
+                      * completes when its last milestone is paid, not by a click.
+                      */}
+                    <Button
+                      component={Link}
+                      href={routes.freelance.contract(contract.id)}
+                      variant="contained"
+                      fullWidth
+                      startIcon={<AssignmentCheckIcon />}
+                    >
+                      Open contract
                     </Button>
                   </CardContent>
                 </Card>

@@ -124,10 +124,12 @@ export const STATIC_CONTEXTS = {
       { id: 'companies', label: 'Companies', href: routes.admin.companies() },
       { id: 'communities', label: 'Communities', href: routes.admin.communities() },
       { id: 'jobs', label: 'Jobs', href: routes.admin.jobs() },
-      // Pages and Freelance administration are absent on purpose: neither
-      // /admin/pages nor /admin/freelance is a route in this application, and
-      // the API serves no administrative endpoints for either. A tab that
-      // answers 404 is worse than a missing one.
+      // Freelance administration is the dispute queue, which the API serves
+      // behind freelance.admin.read. Pages administration is absent on purpose:
+      // /admin/pages is not a route in this application and the API serves no
+      // administrative endpoints for it. A tab that answers 404 is worse than a
+      // missing one.
+      { id: 'freelance-disputes', label: 'Freelance disputes', href: routes.admin.freelanceDisputes() },
       { id: 'moderation', label: 'Moderation', href: routes.admin.moderation() },
       { id: 'reports', label: 'Reports', href: routes.admin.reports() },
       { id: 'security', label: 'Security', href: routes.admin.security() },
