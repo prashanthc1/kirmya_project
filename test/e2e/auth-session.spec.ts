@@ -41,11 +41,20 @@ async function signInThroughTheForm(page: Page, api: string, email: string) {
 
   // These pages hydrate by briefly mounting a second copy of the tree; filling
   // before that window closes types into the copy about to be discarded.
+  // The copy can mount after the email field has already counted as one, so
+  // both fields are gated, and the fill is retried until the values stick on
+  // the tree that survived.
   const emailField = page.getByRole('textbox', { name: 'Email Address' });
-  await expect(emailField).toHaveCount(1, { timeout: 15_000 });
-  await expect(emailField).toBeVisible({ timeout: 15_000 });
-  await emailField.fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  const passwordField = page.getByLabel('Password', { exact: true });
+  await expect(async () => {
+    await expect(emailField).toHaveCount(1);
+    await expect(passwordField).toHaveCount(1);
+    await expect(emailField).toBeVisible();
+    await emailField.fill(email);
+    await passwordField.fill(PASSWORD);
+    await expect(emailField).toHaveValue(email);
+    await expect(passwordField).toHaveValue(PASSWORD);
+  }).toPass({ timeout: 20_000 });
 
   const signedIn = page.waitForResponse(
     (r) => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST'
