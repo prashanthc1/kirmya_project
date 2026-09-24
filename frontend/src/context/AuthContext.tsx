@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, startTransition } from 'react';
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import {
   authService,
@@ -12,6 +12,7 @@ import {
   UserMeResponse,
 } from '../services/authService';
 import type { Workspace } from '../shared/workspace/types';
+import { streamedContentSettled } from '../shared/streamedContent';
 
 /**
  * The three states a session can be in, named rather than inferred.
@@ -157,6 +158,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * deploy in progress — is retried once before giving up. Treating every
    * failure as "signed out" is how a five-second outage became an unexplained
    * logout for everyone who reloaded during it.
+   *
+   * The request starts at once, but its outcome is applied only after the
+   * page's streamed server HTML has been revealed (see streamedContent.ts):
+   * changing this context while a streamed boundary is still pending makes
+   * React throw that boundary's server HTML away and render it again on the
+   * client, leaving two copies of it on the page for a moment - on /signin,
+   * two sign-in forms. It is then applied as a transition, so a boundary that
+   * has been revealed but not yet hydrated is hydrated first rather than
+   * rendered again.
    */
   const bootstrap = useCallback(async () => {
     setStatus('loading');
@@ -164,12 +174,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
         await authService.refresh();
-        applyIdentity(await authService.getMe());
+        const me = await authService.getMe();
+        await streamedContentSettled();
+        startTransition(() => applyIdentity(me));
         return;
       } catch (error) {
         if (isAuthenticationFailure(error)) {
           // The server is certain: there is no session behind this cookie.
-          clearIdentity();
+          await streamedContentSettled();
+          startTransition(clearIdentity);
           return;
         }
         if (attempt === 0) {
@@ -178,7 +191,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         // Out of retries. There is no usable session in this tab either way, so
         // the guards must not hold the user on a spinner forever.
-        clearIdentity();
+        await streamedContentSettled();
+        startTransition(clearIdentity);
       }
     }
   }, [applyIdentity, clearIdentity]);
