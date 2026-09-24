@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // The escrow lifecycles: a contract's milestones, the money that funds them, and
 // the payouts that release it.
@@ -168,14 +172,108 @@ func (s PaymentIntentStatus) IsLive() bool {
 type PayoutStatus string
 
 const (
-	// PayoutPending: owed and recorded, not yet sent. Every payout is created in
-	// this state; sending it is the processor's job and is not built yet.
-	PayoutPending    PayoutStatus = "pending"
+	// PayoutPending: owed and recorded, not yet sent - waiting for the payee's
+	// payout account, or for the next attempt after a failed send.
+	PayoutPending PayoutStatus = "pending"
+	// PayoutProcessing: claimed by the sender, which is asking the processor.
 	PayoutProcessing PayoutStatus = "processing"
-	PayoutPaid       PayoutStatus = "paid"
-	PayoutFailed     PayoutStatus = "failed"
-	PayoutCancelled  PayoutStatus = "cancelled"
+	// PayoutPaid: the processor accepted the transfer to the payee's account.
+	PayoutPaid PayoutStatus = "paid"
+	// PayoutFailed: sending failed repeatedly and has stopped. An
+	// administrator retries it once the cause is fixed.
+	PayoutFailed    PayoutStatus = "failed"
+	PayoutCancelled PayoutStatus = "cancelled"
 )
+
+// IsUnpaid reports whether the payout is still owed: recorded and not sent.
+func (s PayoutStatus) IsUnpaid() bool {
+	return s == PayoutPending || s == PayoutProcessing || s == PayoutFailed
+}
+
+// ValidPayoutStatus reports whether s is a payout status.
+func ValidPayoutStatus(s string) bool {
+	switch PayoutStatus(s) {
+	case PayoutPending, PayoutProcessing, PayoutPaid, PayoutFailed, PayoutCancelled:
+		return true
+	}
+	return false
+}
+
+// PayoutAccountStatus is where a freelancer's payout account stands, as they
+// see it.
+type PayoutAccountStatus string
+
+const (
+	// PayoutAccountNotStarted: no account yet. Released payouts wait.
+	PayoutAccountNotStarted PayoutAccountStatus = "not_started"
+	// PayoutAccountOnboarding: the account exists and the freelancer has not
+	// finished the processor's form.
+	PayoutAccountOnboarding PayoutAccountStatus = "onboarding"
+	// PayoutAccountActionRequired: the processor needs more from the freelancer.
+	PayoutAccountActionRequired PayoutAccountStatus = "action_required"
+	// PayoutAccountInReview: everything is submitted and the processor is
+	// verifying it.
+	PayoutAccountInReview PayoutAccountStatus = "in_review"
+	// PayoutAccountEnabled: payouts are sent.
+	PayoutAccountEnabled PayoutAccountStatus = "enabled"
+)
+
+// PayoutAccount is a freelancer's account at the payment processor.
+//
+// Kirmya holds the processor's id for it and the processor's last word on its
+// state; identity and bank details stay with the processor.
+type PayoutAccount struct {
+	UserID           uuid.UUID `json:"-"`
+	Provider         string    `json:"provider"`
+	AccountID        string    `json:"-"`
+	DetailsSubmitted bool      `json:"details_submitted"`
+	PayoutsEnabled   bool      `json:"payouts_enabled"`
+	TransfersActive  bool      `json:"transfers_active"`
+	RequirementsDue  bool      `json:"requirements_due"`
+	DisabledReason   string    `json:"disabled_reason,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+// Ready reports whether payouts to the account are sent.
+func (a *PayoutAccount) Ready() bool {
+	return a != nil && a.TransfersActive && a.PayoutsEnabled
+}
+
+// Status summarises the account for its owner.
+func (a *PayoutAccount) Status() PayoutAccountStatus {
+	switch {
+	case a == nil:
+		return PayoutAccountNotStarted
+	case a.Ready():
+		return PayoutAccountEnabled
+	case !a.DetailsSubmitted:
+		return PayoutAccountOnboarding
+	case a.RequirementsDue:
+		return PayoutAccountActionRequired
+	}
+	return PayoutAccountInReview
+}
+
+// PayoutAccountView is GET /freelance/payouts/account: the account, when there
+// is one, and what it means for the freelancer's money.
+type PayoutAccountView struct {
+	// Available is false when this deployment cannot send payouts at all.
+	Available bool                `json:"available"`
+	Status    PayoutAccountStatus `json:"status"`
+	Account   *PayoutAccount      `json:"account,omitempty"`
+	// Waiting is what has been released to the freelancer and not yet sent,
+	// per currency, in minor units serialized as decimals.
+	Waiting map[string]Amount `json:"waiting"`
+}
+
+// PayoutOnboarding is POST /freelance/payouts/account/onboarding.
+type PayoutOnboarding struct {
+	// URL is the processor's onboarding page. Empty when there is nothing to
+	// fill in (the sandbox), in which case the account is already refreshed.
+	URL     string            `json:"url,omitempty"`
+	Account PayoutAccountView `json:"account"`
+}
 
 // DeliveryStatus is the client's verdict on one submission of work.
 type DeliveryStatus string

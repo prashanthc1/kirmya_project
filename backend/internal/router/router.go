@@ -134,6 +134,7 @@ type RouterDependencies struct {
 	AdminFreelanceMarketplaceHandler *freelanceHttp.AdminMarketplaceHandler
 	FreelanceEscrowHandler           *freelanceHttp.EscrowHandler       // milestones, escrow and the payment webhook
 	AdminFreelanceDisputeHandler     *freelanceHttp.AdminDisputeHandler // the dispute queue and decisions
+	AdminFreelancePayoutHandler      *freelanceHttp.AdminPayoutHandler  // the payouts that could not be sent
 	EnterpriseHandler                *enterpriseHttp.EnterpriseHandler
 	TrustHandler                     *trustHttp.TrustHandler
 	ComplianceHandler                *complianceHttp.ComplianceHandler
@@ -362,6 +363,7 @@ func SetupRouter(engine *gin.Engine, deps RouterDependencies) {
 	freelanceHttp.RegisterRoutes(api, deps.FreelanceHandler, deps.FreelanceService)
 	freelanceHttp.RegisterEscrowRoutes(api, deps.FreelanceEscrowHandler)
 	freelanceHttp.RegisterAdminDisputeRoutes(api, deps.AdminFreelanceDisputeHandler, adminGuard)
+	freelanceHttp.RegisterAdminPayoutRoutes(api, deps.AdminFreelancePayoutHandler, adminGuard)
 	freelanceHttp.RegisterAdminRoutes(api, deps.AdminFreelanceHandler, adminGuard)
 	freelanceHttp.RegisterAdminMarketplaceRoutes(api, deps.AdminFreelanceMarketplaceHandler, adminGuard)
 	enterpriseHttp.RegisterRoutes(api, deps.EnterpriseHandler)

@@ -677,6 +677,18 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	}
 	freelanceEscrowService := freelanceSvc.NewEscrowService(freelanceRepository, freelanceGateway, nil)
 	freelanceEscrowHandler := freelanceHttp.NewEscrowHandler(freelanceEscrowService)
+	// Sends released milestones' payouts to freelancers' payout accounts.
+	// Claims are row-locked and each send is idempotent at the processor, so
+	// this is safe on every replica. A no-op without a processor that pays.
+	payoutInterval := time.Minute
+	if raw := strings.TrimSpace(os.Getenv("FREELANCE_PAYOUT_INTERVAL")); raw != "" {
+		if d, err := time.ParseDuration(raw); err == nil && d >= 5*time.Second {
+			payoutInterval = d
+		} else {
+			slog.Warn("FREELANCE_PAYOUT_INTERVAL ignored; using 1m", slog.String("value", raw))
+		}
+	}
+	go freelanceEscrowService.RunPayouts(context.Background(), payoutInterval)
 
 	enterpriseRepository := enterpriseRepo.NewEnterpriseRepository(dbPool)
 	enterpriseService := enterpriseSvc.NewEnterpriseService(enterpriseRepository)
@@ -946,6 +958,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		AdminFreelanceMarketplaceHandler: freelanceHttp.NewAdminMarketplaceHandler(freelanceService),
 		FreelanceEscrowHandler:           freelanceEscrowHandler,
 		AdminFreelanceDisputeHandler:     freelanceHttp.NewAdminDisputeHandler(freelanceEscrowService),
+		AdminFreelancePayoutHandler:      freelanceHttp.NewAdminPayoutHandler(freelanceEscrowService),
 		EnterpriseHandler:                enterpriseHandler,
 		TrustHandler:                     trustHandler,
 		TrustSafetyHandler:               trustSafetyHandler,

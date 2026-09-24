@@ -132,7 +132,7 @@ func RegisterRoutes(api *gin.RouterGroup, handler *FreelanceHandler, svc service
 //	GET    /api/v1/freelance/favorites                saved items
 //	POST   /api/v1/freelance/favorites                save one
 //
-// Milestone funding, delivery and release are mounted by RegisterEscrowRoutes,
-// behind a processor-neutral gateway (internal/freelance/payments). No processor
-// has been chosen, so production has none and funding answers 503; sending
-// payouts to freelancers is not built for the same reason.
+// Milestone funding, delivery and release, disputes, and freelancers' payout
+// accounts and payouts are mounted by RegisterEscrowRoutes, behind a
+// processor-neutral gateway (internal/freelance/payments). A deployment with no
+// processor answers 503 to funding and to payout onboarding.

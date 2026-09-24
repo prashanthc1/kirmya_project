@@ -63,6 +63,7 @@ GET    /api/v1/admin/data-operations/migrations                       data_opera
 GET    /api/v1/admin/feature-flags                                    feature_flags.manage
 GET    /api/v1/admin/freelance/disputes                               freelance.admin.read
 GET    /api/v1/admin/freelance/disputes/:id                           freelance.admin.read
+GET    /api/v1/admin/freelance/payouts                                freelance.admin.read
 GET    /api/v1/admin/freelance/projects                               freelance.admin.read
 GET    /api/v1/admin/freelancers/:id                                  freelancers.read
 GET    /api/v1/admin/incidents                                        incidents.manage
@@ -183,6 +184,7 @@ POST   /api/v1/admin/data-operations/imports                          data_opera
 POST   /api/v1/admin/data-operations/imports/preview                  data_operations.manage
 POST   /api/v1/admin/feature-flags                                    feature_flags.manage
 POST   /api/v1/admin/freelance/disputes/:id/resolve                   freelance.admin.write
+POST   /api/v1/admin/freelance/payouts/:id/retry                      freelance.admin.write
 POST   /api/v1/admin/freelance/projects/:id/cancel                    freelance.admin.write
 POST   /api/v1/admin/freelancers/:id/reinstate                        freelancers.manage
 POST   /api/v1/admin/freelancers/:id/suspend                          freelancers.manage

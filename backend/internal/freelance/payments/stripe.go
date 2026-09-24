@@ -34,6 +34,12 @@ type StripeConfig struct {
 	SecretKey string
 	// WebhookSecret is the signing secret of the webhook endpoint (whsec_...).
 	WebhookSecret string
+	// ConnectWebhookSecret is the signing secret of the Connect endpoint, the
+	// one Stripe sends connected accounts' events (account.updated) to. Stripe
+	// signs those with a secret of their own even when both endpoints share
+	// this URL. Optional: without it, account changes are still picked up when
+	// the freelancer returns from onboarding.
+	ConnectWebhookSecret string
 	// AppBaseURL is the web client's public address, where Checkout returns the
 	// client after paying or cancelling.
 	AppBaseURL string
@@ -53,9 +59,9 @@ type StripeConfig struct {
 // flow needs four calls, and a small, fully visible client is easier to review
 // and to test against a fake server than a large dependency.
 //
-// Paying freelancers out of that balance (Connect transfers to their connected
-// accounts) is not part of this gateway; releasing a milestone records a pending
-// payout, which the payout work sends.
+// Freelancers are paid out of that balance with Connect: each has an Express
+// connected account, onboarded on Stripe's hosted pages, and a released
+// milestone becomes a transfer into it (stripe_payouts.go).
 type StripeGateway struct {
 	cfg    StripeConfig
 	client *http.Client
@@ -230,13 +236,20 @@ type stripeEvent struct {
 // Events the escrow flow does not act on verify and come back as EventIgnored,
 // so they are acknowledged rather than retried by Stripe for days.
 func (g *StripeGateway) ParseWebhook(payload []byte, headers http.Header) (WebhookEvent, error) {
-	if err := verifyStripeSignature(payload, headers.Get(StripeSignatureHeader), g.cfg.WebhookSecret, g.now()); err != nil {
-		return WebhookEvent{}, err
+	header := headers.Get(StripeSignatureHeader)
+	if err := verifyStripeSignature(payload, header, g.cfg.WebhookSecret, g.now()); err != nil {
+		if g.cfg.ConnectWebhookSecret == "" ||
+			verifyStripeSignature(payload, header, g.cfg.ConnectWebhookSecret, g.now()) != nil {
+			return WebhookEvent{}, err
+		}
 	}
 
 	var event stripeEvent
 	if err := json.Unmarshal(payload, &event); err != nil || event.Type == "" {
 		return WebhookEvent{}, ErrMalformedEvent
+	}
+	if event.Type == "account.updated" {
+		return parseAccountEvent(payload)
 	}
 	obj := event.Data.Object
 	if obj.Object != "checkout.session" || obj.ID == "" {

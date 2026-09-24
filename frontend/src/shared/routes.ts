@@ -191,6 +191,8 @@ export const routes = {
     /** One contract: its milestones, escrow and disputes. Either party. */
     contract: (id: string) => `/freelance/contracts/${encodeURIComponent(id)}`,
     dispute: (id: string) => `/freelance/disputes/${encodeURIComponent(id)}`,
+    /** The freelancer's payout account and payouts. */
+    payouts: () => '/freelance/payouts',
   },
   events: { home: () => '/events' },
 
@@ -264,6 +266,7 @@ export const routes = {
     freelance: () => '/admin/freelance',
     freelanceDisputes: () => '/admin/freelance/disputes',
     freelanceDispute: (id: string) => `/admin/freelance/disputes/${encodeURIComponent(id)}`,
+    freelancePayouts: () => '/admin/freelance/payouts',
     moderation: () => '/admin/moderation',
     reports: () => '/admin/reports',
     security: () => '/admin/security',
