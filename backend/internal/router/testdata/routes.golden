@@ -338,6 +338,7 @@ GET /api/v1/files/:id/download
 GET /api/v1/files/:id/signed-url
 GET /api/v1/files/:id/view
 GET /api/v1/freelance/contracts
+GET /api/v1/freelance/contracts/:id
 GET /api/v1/freelance/my/projects
 GET /api/v1/freelance/my/projects/:id
 GET /api/v1/freelance/onboarding
@@ -710,7 +711,14 @@ POST /api/v1/feedback
 POST /api/v1/feedback/bugs
 POST /api/v1/files/presign
 POST /api/v1/files/upload
+POST /api/v1/freelance/contracts/:id/milestones
+POST /api/v1/freelance/contracts/:id/milestones/:milestoneId/approve
+POST /api/v1/freelance/contracts/:id/milestones/:milestoneId/cancel
+POST /api/v1/freelance/contracts/:id/milestones/:milestoneId/fund
+POST /api/v1/freelance/contracts/:id/milestones/:milestoneId/request-revision
+POST /api/v1/freelance/contracts/:id/milestones/:milestoneId/submit
 POST /api/v1/freelance/onboarding/complete
+POST /api/v1/freelance/payments/webhooks/:provider
 POST /api/v1/freelance/profile
 POST /api/v1/freelance/profile/enable
 POST /api/v1/freelance/projects

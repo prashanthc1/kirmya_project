@@ -59,6 +59,10 @@ type FreelanceRepository interface {
 	FreelancerCapability(ctx context.Context, userID uuid.UUID) (CapabilityStatus, error)
 	ActivateFreelancerCapability(ctx context.Context, userID uuid.UUID) error
 	SetFreelancerCapability(ctx context.Context, userID uuid.UUID, status CapabilityStatus) error
+
+	// The escrow flow: milestones, their funding, delivery and release. See
+	// escrow_repository.go.
+	EscrowRepository
 }
 
 type pgxFreelanceRepository struct {
@@ -69,6 +73,9 @@ type pgxFreelanceRepository struct {
 	projects  map[uuid.UUID]*domain.Project
 	proposals map[uuid.UUID]*domain.Proposal
 	contracts map[uuid.UUID]*domain.Contract
+	// escrow is the no-database store for the escrow tables, created on first
+	// use. See escrow_repository.go.
+	escrow *escrowMemory
 }
 
 func NewFreelanceRepository(pool *pgxpool.Pool) FreelanceRepository {

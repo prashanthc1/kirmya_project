@@ -104,6 +104,7 @@ import (
 	eventSvc "kirmya/internal/event/service"
 
 	freelanceHttp "kirmya/internal/freelance/delivery/http"
+	freelancePayments "kirmya/internal/freelance/payments"
 	freelanceRepo "kirmya/internal/freelance/repository"
 	freelanceSvc "kirmya/internal/freelance/service"
 
@@ -660,6 +661,15 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 	freelanceRepository := freelanceRepo.NewFreelanceRepository(dbPool)
 	freelanceService := freelanceSvc.NewFreelanceService(freelanceRepository)
 	freelanceHandler := freelanceHttp.NewFreelanceHandler(freelanceService)
+	// The escrow flow. With no payment processor integrated, production gets no
+	// gateway and milestone funding answers 503; outside production the signed
+	// sandbox runs when FREELANCE_SANDBOX_WEBHOOK_SECRET is set.
+	freelanceGateway := freelancePayments.FromEnv(cfg.AppEnv, os.Getenv)
+	if freelanceGateway == nil {
+		slog.Warn("Freelance escrow: no payment processor configured; milestone funding is disabled")
+	}
+	freelanceEscrowHandler := freelanceHttp.NewEscrowHandler(
+		freelanceSvc.NewEscrowService(freelanceRepository, freelanceGateway, nil))
 
 	enterpriseRepository := enterpriseRepo.NewEnterpriseRepository(dbPool)
 	enterpriseService := enterpriseSvc.NewEnterpriseService(enterpriseRepository)
@@ -927,6 +937,7 @@ func buildDependencies(cfg *configPkg.Config, dbPool *pgxpool.Pool, appCache cac
 		FreelanceService:                 freelanceService,
 		AdminFreelanceHandler:            freelanceHttp.NewAdminFreelanceHandler(freelanceService),
 		AdminFreelanceMarketplaceHandler: freelanceHttp.NewAdminMarketplaceHandler(freelanceService),
+		FreelanceEscrowHandler:           freelanceEscrowHandler,
 		EnterpriseHandler:                enterpriseHandler,
 		TrustHandler:                     trustHandler,
 		TrustSafetyHandler:               trustSafetyHandler,

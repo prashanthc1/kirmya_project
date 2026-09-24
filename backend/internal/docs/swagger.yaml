@@ -167,6 +167,84 @@ definitions:
       total_data_subject_requests:
         type: integer
     type: object
+  domain.ContractDetail:
+    properties:
+      client_id:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      escrow:
+        $ref: '#/definitions/domain.EscrowSummary'
+      freelancer_id:
+        type: string
+      id:
+        type: string
+      milestones:
+        items:
+          $ref: '#/definitions/domain.ContractMilestone'
+        type: array
+      project_id:
+        type: string
+      project_title:
+        type: string
+      proposal_id:
+        type: string
+      status:
+        $ref: '#/definitions/domain.ContractStatus'
+      total_amount:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  domain.ContractMilestone:
+    properties:
+      amount:
+        type: integer
+      completed_at:
+        type: string
+      contract_id:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      due_at:
+        type: string
+      id:
+        type: string
+      position:
+        type: integer
+      status:
+        $ref: '#/definitions/domain.MilestoneStatus'
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.ContractStatus:
+    enum:
+    - pending
+    - active
+    - in_progress
+    - submitted
+    - revision_requested
+    - completed
+    - cancelled
+    - disputed
+    type: string
+    x-enum-varnames:
+    - ContractPending
+    - ContractActive
+    - ContractInProgress
+    - ContractSubmitted
+    - ContractRevisionRequested
+    - ContractCompleted
+    - ContractCancelled
+    - ContractDisputed
   domain.CreateAccessReviewPayload:
     properties:
       comments:
@@ -283,6 +361,19 @@ definitions:
     - reason
     - reference_case
     - user_id
+    type: object
+  domain.CreateMilestonePayload:
+    properties:
+      amount:
+        type: integer
+      description:
+        type: string
+      due_at:
+        type: string
+      title:
+        type: string
+    required:
+    - title
     type: object
   domain.CreateOrganizationPayload:
     properties:
@@ -716,6 +807,26 @@ definitions:
     - skill_name
     - user_id
     type: object
+  domain.EscrowSummary:
+    properties:
+      allocated:
+        description: Allocated is the sum of every milestone that has not been cancelled.
+        type: integer
+      contract_total:
+        description: ContractTotal is the agreed value of the whole contract.
+        type: integer
+      currency:
+        type: string
+      in_escrow:
+        description: InEscrow is funded and not yet released.
+        type: integer
+      released:
+        description: Released is owed to the freelancer.
+        type: integer
+      unallocated:
+        description: Unallocated is what the client may still schedule into new milestones.
+        type: integer
+    type: object
   domain.FeaturedJob:
     properties:
       company:
@@ -810,6 +921,16 @@ definitions:
         type: string
       user_id:
         type: string
+    type: object
+  domain.FundingResult:
+    properties:
+      checkout_url:
+        description: |-
+          CheckoutURL is where the processor collects the payment. Empty when the
+          processor collects it some other way.
+        type: string
+      payment_intent:
+        $ref: '#/definitions/domain.PaymentIntent'
     type: object
   domain.GenerateCareerRequest:
     properties:
@@ -923,6 +1044,26 @@ definitions:
     - MembershipRejected
     - MembershipRemoved
     - MembershipSuspended
+  domain.MilestoneStatus:
+    enum:
+    - pending
+    - funded
+    - in_progress
+    - submitted
+    - approved
+    - released
+    - cancelled
+    - disputed
+    type: string
+    x-enum-varnames:
+    - MilestonePending
+    - MilestoneFunded
+    - MilestoneInProgress
+    - MilestoneSubmitted
+    - MilestoneApproved
+    - MilestoneReleased
+    - MilestoneCancelled
+    - MilestoneDisputed
   domain.OfferReferralPayload:
     properties:
       referrer_company:
@@ -993,6 +1134,49 @@ definitions:
     - candidate_id
     - job_id
     type: object
+  domain.PaymentIntent:
+    properties:
+      amount:
+        type: integer
+      contract_id:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      milestone_id:
+        type: string
+      payer_id:
+        type: string
+      provider:
+        type: string
+      provider_reference:
+        type: string
+      status:
+        $ref: '#/definitions/domain.PaymentIntentStatus'
+      updated_at:
+        type: string
+    type: object
+  domain.PaymentIntentStatus:
+    enum:
+    - requires_payment
+    - processing
+    - held_in_escrow
+    - released
+    - refunded
+    - failed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - PaymentRequiresPayment
+    - PaymentProcessing
+    - PaymentHeldInEscrow
+    - PaymentReleased
+    - PaymentRefunded
+    - PaymentFailed
+    - PaymentCancelled
   domain.Permission:
     enum:
     - company:view
@@ -1354,6 +1538,13 @@ definitions:
         description: jobs, people, companies, communities, all
         type: string
     type: object
+  domain.RequestRevisionPayload:
+    properties:
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
   domain.ResumeCritiqueRequest:
     properties:
       resume_text:
@@ -1568,6 +1759,17 @@ definitions:
     - rating
     - recommendation
     - technical_score
+    type: object
+  domain.SubmitMilestonePayload:
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      summary:
+        type: string
+    required:
+    - summary
     type: object
   domain.SubmitProposalPayload:
     properties:
@@ -24478,6 +24680,369 @@ paths:
       summary: Get user contracts
       tags:
       - Jobs
+  /api/v1/freelance/contracts/{id}:
+    get:
+      description: Returns one contract with its milestones and escrow totals (allocated,
+        unallocated, in escrow, released), in the contract's currency. Available to
+        the client and the freelancer on the contract; anyone else gets 404, so walking
+        ids reveals nothing. Requires a valid Bearer access token.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ContractDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get contract
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones:
+    post:
+      consumes:
+      - application/json
+      description: The client schedules part of the contract's value as a milestone,
+        in the contract's currency. The amount must be positive, and live milestones
+        may not add up to more than the contract total (400 on amount). The freelancer
+        on the contract gets 403; anyone else 404. Requires a valid Bearer access
+        token.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateMilestonePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.ContractMilestone'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: The contract is completed or cancelled
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add milestone
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/approve:
+    post:
+      description: 'The client accepts submitted work. In one transaction the milestone
+        and its escrowed payment move to released and a payout is recorded for the
+        freelancer (status pending: sending payouts is not available yet). When this
+        was the last open milestone and the milestones cover the whole contract, the
+        contract and its project complete. Requires a valid Bearer access token.'
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ContractMilestone'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Approve milestone and release escrow
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/cancel:
+    post:
+      description: 'The client cancels a milestone that has not been paid for, returning
+        its amount to the unallocated part of the contract. A funded milestone cannot
+        be cancelled here (refunds are not available yet), and neither can one with
+        a payment in progress: both answer 409. Requires a valid Bearer access token.'
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ContractMilestone'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel milestone
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/fund:
+    post:
+      description: 'The client asks to pay a pending milestone into escrow. Answers
+        202 with a payment intent (status requires_payment) and, when the processor
+        uses one, a checkout_url. This does not fund the milestone: it becomes funded
+        only when the payment processor''s signed webhook confirms the money, and
+        the contract becomes active on its first funded milestone. 409 (FREELANCE_ESCROW_CONFLICT)
+        while another payment for the milestone is in progress; 503 (FREELANCE_PAYMENTS_UNAVAILABLE)
+        when this deployment has no payment processor; 502 (FREELANCE_PAYMENT_PROVIDER_ERROR)
+        when the processor could not start the payment. Requires a valid Bearer access
+        token.'
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/domain.FundingResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Fund milestone
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/request-revision:
+    post:
+      consumes:
+      - application/json
+      description: The client sends submitted work back to the freelancer with a reason.
+        The milestone returns to in_progress and its money stays in escrow. Requires
+        a valid Bearer access token.
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RequestRevisionPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ContractMilestone'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Request milestone revision
+      tags:
+      - Jobs
+  /api/v1/freelance/contracts/{id}/milestones/{milestoneId}/submit:
+    post:
+      consumes:
+      - application/json
+      description: 'The freelancer delivers the work for a funded milestone, with
+        a summary and optional http(s) links. An unfunded milestone cannot be submitted
+        against (409): escrow means nobody works on a step that has not been paid
+        for. The client on the contract gets 403. Requires a valid Bearer access token.'
+      parameters:
+      - description: Contract ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Milestone ID
+        in: path
+        name: milestoneId
+        required: true
+        type: string
+      - description: Delivery
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SubmitMilestonePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ContractMilestone'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Submit milestone work
+      tags:
+      - Jobs
   /api/v1/freelance/my/projects:
     get:
       description: 'Returns the projects posted by the authenticated account, including
@@ -24725,6 +25290,54 @@ paths:
       security:
       - BearerAuth: []
       summary: Complete freelancer onboarding
+      tags:
+      - Jobs
+  /api/v1/freelance/payments/webhooks/{provider}:
+    post:
+      consumes:
+      - application/json
+      description: 'Called by the payment processor, not by clients. Authenticated
+        only by the processor''s signature over the raw body (the sandbox processor
+        uses an HMAC-SHA256 in X-Kirmya-Signature as sha256=<hex>); an unverifiable
+        request is refused with 401 and changes nothing. A confirmed charge funds
+        its milestone; a failed one frees the milestone for another attempt. Idempotent:
+        redelivered events are acknowledged without applying twice. 404 for a provider
+        this deployment does not use; 409 when the event cannot apply in the milestone''s
+        current state.'
+      parameters:
+      - description: Payment provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/swagger.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/swagger.ErrorResponse'
+      summary: Payment processor webhook
       tags:
       - Jobs
   /api/v1/freelance/profile:
