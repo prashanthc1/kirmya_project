@@ -59,20 +59,21 @@ func ParseMilestoneStatus(value string) (MilestoneStatus, bool) {
 
 // milestoneTransitions.
 //
-// Only an unfunded milestone can be cancelled here. Cancelling a funded one
-// means refunding the client, and refunds belong to the dispute and refund work
-// that has not been built - so the table refuses it rather than letting money
-// sit in escrow against a milestone nobody will ever deliver.
+// A funded milestone reaches cancelled only by refunding the client - the
+// freelancer giving the money back, or a dispute decided in the client's
+// favour. The service enforces that: CancelMilestone itself only ever cancels
+// an unfunded one, so money is never left in escrow against a cancelled step.
 //
 // submitted -> in_progress is the revision loop, and like the contract's it may
-// go round more than once.
+// go round more than once. A disputed milestone returns to wherever it was when
+// the dispute was withdrawn, or moves on as the dispute is decided.
 var milestoneTransitions = map[MilestoneStatus][]MilestoneStatus{
 	MilestonePending:    {MilestoneFunded, MilestoneCancelled},
-	MilestoneFunded:     {MilestoneInProgress, MilestoneSubmitted, MilestoneDisputed},
-	MilestoneInProgress: {MilestoneSubmitted, MilestoneDisputed},
-	MilestoneSubmitted:  {MilestoneInProgress, MilestoneApproved, MilestoneReleased, MilestoneDisputed},
+	MilestoneFunded:     {MilestoneInProgress, MilestoneSubmitted, MilestoneDisputed, MilestoneCancelled},
+	MilestoneInProgress: {MilestoneSubmitted, MilestoneDisputed, MilestoneCancelled},
+	MilestoneSubmitted:  {MilestoneInProgress, MilestoneApproved, MilestoneReleased, MilestoneDisputed, MilestoneCancelled},
 	MilestoneApproved:   {MilestoneReleased, MilestoneDisputed},
-	MilestoneDisputed:   {MilestoneInProgress, MilestoneReleased, MilestoneCancelled},
+	MilestoneDisputed:   {MilestoneFunded, MilestoneInProgress, MilestoneSubmitted, MilestoneReleased, MilestoneCancelled},
 	// Terminal.
 	MilestoneReleased:  nil,
 	MilestoneCancelled: nil,
@@ -80,6 +81,12 @@ var milestoneTransitions = map[MilestoneStatus][]MilestoneStatus{
 
 func (s MilestoneStatus) CanTransitionTo(next MilestoneStatus) bool {
 	return allowed(milestoneTransitions[s], s, next)
+}
+
+// HoldsEscrow reports whether the client's money is held for the milestone
+// and it is still in play - the states a dispute or a refund can reach.
+func (s MilestoneStatus) HoldsEscrow() bool {
+	return s == MilestoneFunded || s == MilestoneInProgress || s == MilestoneSubmitted
 }
 
 func (s MilestoneStatus) IsTerminal() bool {

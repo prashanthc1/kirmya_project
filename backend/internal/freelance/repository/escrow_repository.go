@@ -109,6 +109,8 @@ type escrowMemory struct {
 	intents    map[uuid.UUID]*domain.PaymentIntent
 	deliveries map[uuid.UUID]*domain.Delivery
 	payouts    map[uuid.UUID]*domain.Payout
+	disputes   map[uuid.UUID]*domain.Dispute
+	evidence   map[uuid.UUID]*domain.DisputeEvidence
 }
 
 func (r *pgxFreelanceRepository) mem() *escrowMemory {
@@ -119,6 +121,8 @@ func (r *pgxFreelanceRepository) mem() *escrowMemory {
 			intents:    map[uuid.UUID]*domain.PaymentIntent{},
 			deliveries: map[uuid.UUID]*domain.Delivery{},
 			payouts:    map[uuid.UUID]*domain.Payout{},
+			disputes:   map[uuid.UUID]*domain.Dispute{},
+			evidence:   map[uuid.UUID]*domain.DisputeEvidence{},
 		}
 	}
 	return r.escrow
@@ -394,14 +398,15 @@ func (r *pgxFreelanceRepository) liveIntentLocked(milestoneID uuid.UUID) *domain
 // ---------------------------------------------------------------------------
 
 const intentColumns = `id, contract_id, milestone_id, payer_id, amount_minor_units, currency, status,
-	COALESCE(provider, ''), COALESCE(provider_reference, ''), created_at, updated_at`
+	COALESCE(provider, ''), COALESCE(provider_reference, ''),
+	COALESCE(refund_reference, ''), refunded_at, created_at, updated_at`
 
 func scanIntent(row pgx.Row) (*domain.PaymentIntent, error) {
 	p := &domain.PaymentIntent{}
 	var amount int64
 	var status string
 	if err := row.Scan(&p.ID, &p.ContractID, &p.MilestoneID, &p.PayerID, &amount, &p.Currency, &status,
-		&p.Provider, &p.ProviderReference, &p.CreatedAt, &p.UpdatedAt); err != nil {
+		&p.Provider, &p.ProviderReference, &p.RefundReference, &p.RefundedAt, &p.CreatedAt, &p.UpdatedAt); err != nil {
 		return nil, err
 	}
 	p.Amount = domain.Amount(amount)
@@ -839,14 +844,7 @@ func (r *pgxFreelanceRepository) ReleaseMilestone(ctx context.Context, milestone
 		r.mem().payouts[payout.ID] = &stored
 
 		outcome := &ReleaseOutcome{Milestone: *m, Payout: *payout}
-		c := r.contracts[m.ContractID]
-		if c != nil && c.Status == domain.ContractActive && r.contractFullyReleasedLocked(c) {
-			c.Status, c.UpdatedAt = domain.ContractCompleted, now
-			outcome.ContractCompleted = true
-			if p := r.projects[c.ProjectID]; p != nil && p.Status == domain.ProjectActive {
-				p.Status = domain.ProjectCompleted
-			}
-		}
+		outcome.ContractCompleted = r.completeContractIfDoneLocked(m.ContractID, now)
 		return outcome, nil
 	}
 
@@ -896,10 +894,21 @@ func (r *pgxFreelanceRepository) ReleaseMilestone(ctx context.Context, milestone
 	}
 
 	outcome := &ReleaseOutcome{Milestone: *m, Payout: *payout}
+	if outcome.ContractCompleted, err = completeContractIfDone(ctx, tx, m.ContractID); err != nil {
+		return nil, err
+	}
 
-	// Complete the contract when this was the last open milestone and the
-	// milestones account for the whole contract. A contract with value still
-	// unscheduled is not finished just because everything scheduled so far is.
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return outcome, nil
+}
+
+// completeContractIfDone completes an active contract, and its project, when
+// every milestone is settled and the released ones account for the whole
+// contract. A contract with value still unscheduled is not finished just
+// because everything scheduled so far is. Runs inside the caller's transaction.
+func completeContractIfDone(ctx context.Context, tx pgx.Tx, contractID uuid.UUID) (bool, error) {
 	var total, allocated int64
 	var open int
 	var status string
@@ -911,27 +920,37 @@ func (r *pgxFreelanceRepository) ReleaseMilestone(ctx context.Context, milestone
 		   FROM freelance_contracts c
 		   LEFT JOIN freelance_contract_milestones m ON m.contract_id = c.id
 		  WHERE c.id = $1
-		  GROUP BY c.id`, m.ContractID).Scan(&total, &status, &projectID, &allocated, &open); err != nil {
-		return nil, err
+		  GROUP BY c.id`, contractID).Scan(&total, &status, &projectID, &allocated, &open); err != nil {
+		return false, err
 	}
-	if status == string(domain.ContractActive) && open == 0 && allocated == total {
-		if _, err := tx.Exec(ctx,
-			`UPDATE freelance_contracts SET status = 'completed', updated_at = NOW()
-			  WHERE id = $1 AND status = 'active'`, m.ContractID); err != nil {
-			return nil, err
-		}
-		if _, err := tx.Exec(ctx,
-			`UPDATE freelance_projects SET status = 'completed', updated_at = NOW()
-			  WHERE id = $1 AND status = 'active'`, projectID); err != nil {
-			return nil, err
-		}
-		outcome.ContractCompleted = true
+	if status != string(domain.ContractActive) || open != 0 || allocated != total {
+		return false, nil
 	}
+	if _, err := tx.Exec(ctx,
+		`UPDATE freelance_contracts SET status = 'completed', updated_at = NOW()
+		  WHERE id = $1 AND status = 'active'`, contractID); err != nil {
+		return false, err
+	}
+	if _, err := tx.Exec(ctx,
+		`UPDATE freelance_projects SET status = 'completed', updated_at = NOW()
+		  WHERE id = $1 AND status = 'active'`, projectID); err != nil {
+		return false, err
+	}
+	return true, nil
+}
 
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
+// completeContractIfDoneLocked is completeContractIfDone in memory mode. Called
+// with r.mu held.
+func (r *pgxFreelanceRepository) completeContractIfDoneLocked(contractID uuid.UUID, now time.Time) bool {
+	c := r.contracts[contractID]
+	if c == nil || c.Status != domain.ContractActive || !r.contractFullyReleasedLocked(c) {
+		return false
 	}
-	return outcome, nil
+	c.Status, c.UpdatedAt = domain.ContractCompleted, now
+	if p := r.projects[c.ProjectID]; p != nil && p.Status == domain.ProjectActive {
+		p.Status = domain.ProjectCompleted
+	}
+	return true
 }
 
 // contractFullyReleasedLocked is the completion rule in memory mode. Called with

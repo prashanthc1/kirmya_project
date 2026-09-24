@@ -13,8 +13,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// The escrow surface: a contract's milestones, and the processor webhook that
-// confirms their funding.
+// The escrow surface: a contract's milestones, the disputes and refunds over
+// their money, and the processor webhook that confirms their funding.
 //
 // Every authenticated handler here passes the verified caller to the service,
 // which decides - per contract - whether they are the client, the freelancer, or
@@ -213,6 +213,119 @@ func (h *EscrowHandler) ApproveMilestone(c *gin.Context) {
 	c.JSON(http.StatusOK, m)
 }
 
+// OpenDispute handles POST /freelance/contracts/:id/milestones/:milestoneId/dispute
+func (h *EscrowHandler) OpenDispute(c *gin.Context) {
+	userID, contractID, milestoneID, ok := h.ids(c, true)
+	if !ok {
+		return
+	}
+	var payload domain.OpenDisputePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dispute payload", "details": err.Error()})
+		return
+	}
+	d, err := h.svc.OpenDispute(c.Request.Context(), userID, contractID, milestoneID, payload)
+	if err != nil {
+		respondEscrowError(c, err)
+		return
+	}
+	c.JSON(http.StatusCreated, d)
+}
+
+// RefundMilestone handles POST /freelance/contracts/:id/milestones/:milestoneId/refund
+func (h *EscrowHandler) RefundMilestone(c *gin.Context) {
+	userID, contractID, milestoneID, ok := h.ids(c, true)
+	if !ok {
+		return
+	}
+	var payload domain.RefundMilestonePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "A reason is required", "details": err.Error()})
+		return
+	}
+	m, err := h.svc.RefundMilestone(c.Request.Context(), userID, contractID, milestoneID, payload)
+	if err != nil {
+		respondEscrowError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, m)
+}
+
+// ListContractDisputes handles GET /freelance/contracts/:id/disputes
+func (h *EscrowHandler) ListContractDisputes(c *gin.Context) {
+	userID, contractID, _, ok := h.ids(c, false)
+	if !ok {
+		return
+	}
+	disputes, err := h.svc.ListContractDisputes(c.Request.Context(), userID, contractID)
+	if err != nil {
+		respondEscrowError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": disputes, "count": len(disputes)})
+}
+
+// disputeIDs parses the caller and the path's dispute.
+func (h *EscrowHandler) disputeIDs(c *gin.Context) (uuid.UUID, uuid.UUID, bool) {
+	userID, ok := h.caller(c)
+	if !ok {
+		return uuid.Nil, uuid.Nil, false
+	}
+	disputeID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dispute ID format"})
+		return uuid.Nil, uuid.Nil, false
+	}
+	return userID, disputeID, true
+}
+
+// GetDispute handles GET /freelance/disputes/:id
+func (h *EscrowHandler) GetDispute(c *gin.Context) {
+	userID, disputeID, ok := h.disputeIDs(c)
+	if !ok {
+		return
+	}
+	detail, err := h.svc.GetDispute(c.Request.Context(), userID, disputeID)
+	if err != nil {
+		respondEscrowError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, detail)
+}
+
+// AddEvidence handles POST /freelance/disputes/:id/evidence
+func (h *EscrowHandler) AddEvidence(c *gin.Context) {
+	userID, disputeID, ok := h.disputeIDs(c)
+	if !ok {
+		return
+	}
+	var payload domain.AddEvidencePayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid evidence payload", "details": err.Error()})
+		return
+	}
+	e, err := h.svc.AddEvidence(c.Request.Context(), userID, disputeID, payload)
+	if err != nil {
+		respondEscrowError(c, err)
+		return
+	}
+	c.JSON(http.StatusCreated, e)
+}
+
+// WithdrawDispute handles POST /freelance/disputes/:id/withdraw
+func (h *EscrowHandler) WithdrawDispute(c *gin.Context) {
+	userID, disputeID, ok := h.disputeIDs(c)
+	if !ok {
+		return
+	}
+	d, err := h.svc.WithdrawDispute(c.Request.Context(), userID, disputeID)
+	if err != nil {
+		respondEscrowError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, d)
+}
+
 // PaymentWebhook handles POST /freelance/payments/webhooks/:provider
 //
 // Anonymous by necessity - the processor has no Kirmya session - so the
@@ -281,6 +394,19 @@ func RegisterEscrowRoutes(api *gin.RouterGroup, handler *EscrowHandler) {
 			contracts.POST("/:id/milestones/:milestoneId/submit", handler.SubmitMilestone)
 			contracts.POST("/:id/milestones/:milestoneId/request-revision", handler.RequestRevision)
 			contracts.POST("/:id/milestones/:milestoneId/approve", handler.ApproveMilestone)
+			contracts.POST("/:id/milestones/:milestoneId/dispute", handler.OpenDispute)
+			contracts.POST("/:id/milestones/:milestoneId/refund", handler.RefundMilestone)
+			contracts.GET("/:id/disputes", handler.ListContractDisputes)
+		}
+
+		// A dispute is read and added to by either party to its contract; the
+		// service decides which contract that is from the dispute itself.
+		disputes := freelanceGroup.Group("/disputes")
+		disputes.Use(sharedMiddleware.AuthRequired())
+		{
+			disputes.GET("/:id", handler.GetDispute)
+			disputes.POST("/:id/evidence", handler.AddEvidence)
+			disputes.POST("/:id/withdraw", handler.WithdrawDispute)
 		}
 	}
 }

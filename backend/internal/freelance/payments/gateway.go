@@ -54,6 +54,15 @@ type EscrowCharge struct {
 	CheckoutURL string
 }
 
+// RefundRequest asks the processor to return a held charge to the payer.
+type RefundRequest struct {
+	IntentID uuid.UUID
+	// Reference is the charge being refunded, as the processor named it.
+	Reference        string
+	AmountMinorUnits int64
+	Currency         string
+}
+
 // EventKind is the outcome a webhook reports.
 type EventKind string
 
@@ -89,6 +98,14 @@ type Gateway interface {
 	// real processor should also refuse a success whose captured amount or
 	// currency differs from the charge it created.
 	ParseWebhook(payload []byte, headers http.Header) (WebhookEvent, error)
+	// RefundEscrowCharge returns a held charge to the payer in full and returns
+	// the processor's reference for the refund.
+	//
+	// Called while the escrow rows are locked, and it must be idempotent per
+	// IntentID: if the transaction recording the refund fails after the
+	// processor accepted it, the retry must name the same refund rather than
+	// return the money twice.
+	RefundEscrowCharge(ctx context.Context, req RefundRequest) (string, error)
 }
 
 // FromEnv picks the gateway for a deployment.

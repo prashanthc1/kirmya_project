@@ -241,3 +241,94 @@ func TestOverSchedulingIsA400OnAmount(t *testing.T) {
 		t.Fatalf("over-scheduling = %d %s, want 400 on amount", rec.Code, rec.Body)
 	}
 }
+
+// fundedAndSubmittedOverHTTP is a single-milestone contract, funded and
+// delivered, through the routes.
+func (r *escrowRoutes) fundedAndSubmittedOverHTTP(t *testing.T) string {
+	t.Helper()
+	milestoneID := r.addMilestone(t, 1000.00)
+	milestone := r.path("/milestones/" + milestoneID)
+	rec := request(t, r.engine, http.MethodPost, milestone+"/fund", tokenFor(t, r.client), nil)
+	var funding struct {
+		Intent struct {
+			ProviderReference string `json:"provider_reference"`
+		} `json:"payment_intent"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &funding)
+	body := []byte(`{"type":"charge.succeeded","reference":"` + funding.Intent.ProviderReference + `"}`)
+	if rec := r.webhook(t, "sandbox", body, sign(body)); rec.Code != http.StatusOK {
+		t.Fatalf("confirm: %d %s", rec.Code, rec.Body)
+	}
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/submit", tokenFor(t, r.freelancer),
+		map[string]any{"summary": "Done"}); rec.Code != http.StatusOK {
+		t.Fatalf("submit: %d %s", rec.Code, rec.Body)
+	}
+	return milestoneID
+}
+
+func TestDisputeRoutes(t *testing.T) {
+	r := newEscrowRoutes(t, payments.NewSandboxGateway(webhookSecret))
+	client, freelancer, stranger := tokenFor(t, r.client), tokenFor(t, r.freelancer), tokenFor(t, uuid.New())
+	milestone := r.path("/milestones/" + r.fundedAndSubmittedOverHTTP(t))
+
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/dispute", stranger,
+		map[string]any{"reason": "quality", "detail": "x"}); rec.Code != http.StatusNotFound {
+		t.Errorf("stranger opening a dispute = %d, want 404", rec.Code)
+	}
+	rec := request(t, r.engine, http.MethodPost, milestone+"/dispute", client,
+		map[string]any{"reason": "quality", "detail": "Not what we agreed."})
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("open dispute = %d %s", rec.Code, rec.Body)
+	}
+	var dispute struct {
+		ID     string `json:"id"`
+		Status string `json:"status"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &dispute)
+	disputePath := "/api/v1/freelance/disputes/" + dispute.ID
+
+	// Frozen: approval is refused while the dispute is open.
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/approve", client, nil); rec.Code != http.StatusConflict {
+		t.Errorf("approve while disputed = %d, want 409", rec.Code)
+	}
+	if rec := request(t, r.engine, http.MethodPost, disputePath+"/evidence", freelancer,
+		map[string]any{"kind": "link", "file_url": "https://example.com/proof"}); rec.Code != http.StatusCreated {
+		t.Errorf("freelancer evidence = %d %s", rec.Code, rec.Body)
+	}
+	if rec := request(t, r.engine, http.MethodGet, disputePath, stranger, nil); rec.Code != http.StatusNotFound {
+		t.Errorf("stranger reading the dispute = %d, want 404", rec.Code)
+	}
+	if rec := request(t, r.engine, http.MethodGet, r.path("/disputes"), freelancer, nil); rec.Code != http.StatusOK {
+		t.Errorf("freelancer listing the contract's disputes = %d", rec.Code)
+	}
+	if rec := request(t, r.engine, http.MethodPost, disputePath+"/withdraw", freelancer, nil); rec.Code != http.StatusForbidden {
+		t.Errorf("the other party withdrawing = %d, want 403", rec.Code)
+	}
+	if rec := request(t, r.engine, http.MethodPost, disputePath+"/withdraw", client, nil); rec.Code != http.StatusOK {
+		t.Fatalf("withdraw = %d %s", rec.Code, rec.Body)
+	}
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/approve", client, nil); rec.Code != http.StatusOK {
+		t.Fatalf("approve after withdrawal = %d %s", rec.Code, rec.Body)
+	}
+}
+
+func TestRefundRoute(t *testing.T) {
+	r := newEscrowRoutes(t, payments.NewSandboxGateway(webhookSecret))
+	milestone := r.path("/milestones/" + r.fundedAndSubmittedOverHTTP(t))
+	reason := map[string]any{"reason": "We agreed to stop."}
+
+	if rec := request(t, r.engine, http.MethodPost, milestone+"/refund", tokenFor(t, r.client), reason); rec.Code != http.StatusForbidden {
+		t.Errorf("client refunding = %d, want 403", rec.Code)
+	}
+	rec := request(t, r.engine, http.MethodPost, milestone+"/refund", tokenFor(t, r.freelancer), reason)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("freelancer refunding = %d %s", rec.Code, rec.Body)
+	}
+	var m struct {
+		Status string `json:"status"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &m)
+	if m.Status != "cancelled" {
+		t.Fatalf("refunded milestone status = %q", m.Status)
+	}
+}

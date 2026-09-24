@@ -63,6 +63,8 @@ type FreelanceRepository interface {
 	// The escrow flow: milestones, their funding, delivery and release. See
 	// escrow_repository.go.
 	EscrowRepository
+	// Disputes over escrowed money, and refunds. See dispute_repository.go.
+	DisputeRepository
 }
 
 type pgxFreelanceRepository struct {
