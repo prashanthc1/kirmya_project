@@ -1,4 +1,5 @@
 import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { settled } from './helpers';
 
 /**
  * The navigation architecture, driven through a real browser against the real
@@ -25,10 +26,18 @@ async function register(request: APIRequestContext, api: string, label: string) 
 async function signIn(page: Page, api: string, email: string) {
   await page.goto('/signin');
   const emailField = page.getByRole('textbox', { name: 'Email Address' });
-  await expect(emailField).toHaveCount(1, { timeout: 15_000 });
-  await expect(emailField).toBeVisible({ timeout: 15_000 });
-  await emailField.fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  const passwordField = page.getByLabel('Password', { exact: true });
+  // Hydration briefly mounts a second copy of the form (see settled() in
+  // helpers.ts). Waiting on one field does not cover the other, so both are
+  // settled and filled together, and retried as a unit if the window reopens.
+  await expect(async () => {
+    await settled(emailField);
+    await settled(passwordField);
+    await emailField.fill(email);
+    await passwordField.fill(PASSWORD);
+    await expect(emailField).toHaveValue(email, { timeout: 1_000 });
+    await expect(passwordField).toHaveValue(PASSWORD, { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   const signedIn = page.waitForResponse(
     r => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST'
   );
