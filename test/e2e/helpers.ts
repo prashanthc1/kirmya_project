@@ -19,6 +19,44 @@ export async function settled(locator: Locator): Promise<void> {
   await expect(locator).toBeVisible();
 }
 
+/**
+ * Waits until React has hydrated the element - taken it over from the server
+ * HTML and attached its handlers.
+ *
+ * Nothing on the page says so, and "visible" is true long before: the server
+ * HTML is visible, and typing into it works, until hydration sets each
+ * controlled input back to its state. React marks each node it hydrates with an
+ * internal props key; server-rendered nodes have none until then. It is a React
+ * internal, which is acceptable in a test helper and nowhere else.
+ */
+export async function hydrated(locator: Locator): Promise<void> {
+  await settled(locator);
+  await expect
+    .poll(() => locator.evaluate((el) => Object.keys(el).some((key) => key.startsWith('__reactProps$'))), {
+      message: 'React never hydrated this element',
+      timeout: 15_000,
+    })
+    .toBe(true);
+}
+
+/**
+ * Fills form fields once React has hydrated them, and proves the values held.
+ *
+ * Filled before hydration, the text is typed into the server-rendered input and
+ * wiped when hydration resets the controlled input; a click before hydration
+ * submits the bare HTML form instead of running the page's handler. On a slow
+ * runner (WebKit in CI) that is how a search lost its keyword and a sign-in its
+ * email. The fill and the check are retried together, for a field that is
+ * mounted again after hydration.
+ */
+export async function fillWhenInteractive(fields: Array<[Locator, string]>, timeout = 15_000): Promise<void> {
+  for (const [field] of fields) await hydrated(field);
+  await expect(async () => {
+    for (const [field, value] of fields) await field.fill(value);
+    for (const [field, value] of fields) await expect(field).toHaveValue(value, { timeout: 1_000 });
+  }).toPass({ timeout });
+}
+
 /** A password used only by disposable accounts these specs create. */
 export const DISPOSABLE_PASSWORD = 'Disposable-CI-password-123!';
 
@@ -210,11 +248,10 @@ export async function seedRecruiterWithApplicant(
 export async function signIn(page: Page, api: string, email: string): Promise<void> {
   await page.goto('/signin');
 
-  const emailField = page.getByRole('textbox', { name: 'Email Address' });
-  await expect(emailField).toHaveCount(1, { timeout: 15_000 });
-  await expect(emailField).toBeVisible({ timeout: 15_000 });
-  await emailField.fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(DISPOSABLE_PASSWORD);
+  await fillWhenInteractive([
+    [page.getByRole('textbox', { name: 'Email Address' }), email],
+    [page.getByLabel('Password', { exact: true }), DISPOSABLE_PASSWORD],
+  ]);
 
   const signedIn = page.waitForResponse(
     (r) => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST'

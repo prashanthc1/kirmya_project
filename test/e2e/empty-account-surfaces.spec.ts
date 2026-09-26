@@ -1,4 +1,5 @@
 import { test, expect, Page, APIRequestContext } from '@playwright/test';
+import { fillWhenInteractive } from './helpers';
 
 /**
  * The pages a brand-new account sees first, in a real browser against the real
@@ -77,13 +78,10 @@ async function registerAccount(request: APIRequestContext, api: string): Promise
 async function signIn(page: Page, api: string, email: string) {
   await page.goto('/signin');
 
-  // These pages hydrate by mounting a second copy of the tree briefly; filling
-  // before that window closes types into the copy about to be discarded.
-  const emailField = page.getByRole('textbox', { name: 'Email Address' });
-  await expect(emailField).toHaveCount(1, { timeout: 15_000 });
-  await expect(emailField).toBeVisible({ timeout: 15_000 });
-  await emailField.fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(PASSWORD);
+  await fillWhenInteractive([
+    [page.getByRole('textbox', { name: 'Email Address' }), email],
+    [page.getByLabel('Password', { exact: true }), PASSWORD],
+  ]);
 
   const signedIn = page.waitForResponse(
     (r) => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST'

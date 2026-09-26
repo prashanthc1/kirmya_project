@@ -3,11 +3,9 @@ package storage
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,7 +20,30 @@ type S3Config struct {
 	AccessKeyID     string
 	SecretAccessKey string
 	PublicBaseURL   string
-	UsePathStyle    bool
+	// UsePathStyle addresses objects as <endpoint>/<bucket>/<key> rather than
+	// <bucket>.<endpoint-host>/<key>. Virtual-hosted style is the S3 standard,
+	// and what Railway buckets require; path style is for MinIO and other
+	// local servers. See PathStyleFor.
+	UsePathStyle bool
+}
+
+// PathStyleFor decides the URL style for an endpoint: an explicit
+// STORAGE_USE_PATH_STYLE setting wins; otherwise a local server (localhost or
+// an IP address, as MinIO in docker-compose) is addressed by path, and
+// anything else virtual-hosted.
+func PathStyleFor(endpoint, setting string) bool {
+	switch strings.ToLower(strings.TrimSpace(setting)) {
+	case "true", "1", "yes":
+		return true
+	case "false", "0", "no":
+		return false
+	}
+	u, err := url.Parse(strings.TrimSpace(endpoint))
+	if err != nil {
+		return false
+	}
+	host := u.Hostname()
+	return host == "localhost" || net.ParseIP(host) != nil
 }
 
 // S3StorageProvider provides S3/R2/MinIO object storage capabilities with fallback.
@@ -75,6 +96,61 @@ func (p *S3StorageProvider) canUseFallback() bool {
 	return true
 }
 
+// objectURL addresses one object at the endpoint, virtual-hosted or by path.
+func (p *S3StorageProvider) objectURL(key string) (*url.URL, error) {
+	u, err := url.Parse(strings.TrimRight(strings.TrimSpace(p.config.Endpoint), "/"))
+	if err != nil || u.Host == "" {
+		return nil, fmt.Errorf("invalid storage endpoint %q", p.config.Endpoint)
+	}
+	key = strings.TrimPrefix(key, "/")
+	if p.config.UsePathStyle {
+		u.Path = strings.TrimRight(u.Path, "/") + "/" + p.config.Bucket + "/" + key
+	} else {
+		u.Host = p.config.Bucket + "." + u.Host
+		u.Path = strings.TrimRight(u.Path, "/") + "/" + key
+	}
+	// Send the path exactly as it is signed. Go would leave some characters
+	// raw ('+', for one) that SigV4 encodes, and the service checks the
+	// signature against the path it received - so a key with a '+' in it
+	// would be refused.
+	u.RawPath = canonicalPath(u)
+	return u, nil
+}
+
+func (p *S3StorageProvider) credentials() sigV4Credentials {
+	return sigV4Credentials{
+		AccessKeyID:     p.config.AccessKeyID,
+		SecretAccessKey: p.config.SecretAccessKey,
+		Region:          p.config.Region,
+	}
+}
+
+// do sends one SigV4-signed request for an object.
+func (p *S3StorageProvider) do(ctx context.Context, method, key string, body []byte, contentType string) (*http.Response, error) {
+	u, err := p.objectURL(key)
+	if err != nil {
+		return nil, err
+	}
+	var reader io.Reader
+	payloadHash := emptyPayloadHash
+	if body != nil {
+		reader = bytes.NewReader(body)
+		payloadHash = hexSHA256(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), reader)
+	if err != nil {
+		return nil, err
+	}
+	if body != nil {
+		req.ContentLength = int64(len(body))
+	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	signRequest(req, p.credentials(), payloadHash, time.Now())
+	return p.httpClient.Do(req)
+}
+
 func (p *S3StorageProvider) Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) (string, error) {
 	if !p.isConfigured() {
 		if p.canUseFallback() {
@@ -83,29 +159,15 @@ func (p *S3StorageProvider) Upload(ctx context.Context, key string, reader io.Re
 		return "", ErrStorageAccess
 	}
 
-	endpoint := strings.TrimRight(p.config.Endpoint, "/")
-	uploadURL := fmt.Sprintf("%s/%s/%s", endpoint, p.config.Bucket, strings.TrimPrefix(key, "/"))
-
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return "", fmt.Errorf("failed to read payload for S3 upload: %w", err)
 	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadURL, bytes.NewReader(data))
-	if err != nil {
-		return "", fmt.Errorf("failed to construct S3 PUT request: %w", err)
-	}
-
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
-	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(data)))
 
-	// Basic authorization header for compatible gateways / MinIO / mock
-	req.SetBasicAuth(p.config.AccessKeyID, p.config.SecretAccessKey)
-
-	resp, err := p.httpClient.Do(req)
+	resp, err := p.do(ctx, http.MethodPut, key, data, contentType)
 	if err != nil {
 		if p.canUseFallback() {
 			return p.fallback.Upload(ctx, key, bytes.NewReader(data), size, contentType)
@@ -132,16 +194,7 @@ func (p *S3StorageProvider) Download(ctx context.Context, key string) (io.ReadCl
 		return nil, "", 0, ErrStorageAccess
 	}
 
-	endpoint := strings.TrimRight(p.config.Endpoint, "/")
-	downloadURL := fmt.Sprintf("%s/%s/%s", endpoint, p.config.Bucket, strings.TrimPrefix(key, "/"))
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
-	if err != nil {
-		return nil, "", 0, err
-	}
-	req.SetBasicAuth(p.config.AccessKeyID, p.config.SecretAccessKey)
-
-	resp, err := p.httpClient.Do(req)
+	resp, err := p.do(ctx, http.MethodGet, key, nil, "")
 	if err != nil {
 		if p.canUseFallback() {
 			return p.fallback.Download(ctx, key)
@@ -181,16 +234,7 @@ func (p *S3StorageProvider) Delete(ctx context.Context, key string) error {
 		return nil
 	}
 
-	endpoint := strings.TrimRight(p.config.Endpoint, "/")
-	deleteURL := fmt.Sprintf("%s/%s/%s", endpoint, p.config.Bucket, strings.TrimPrefix(key, "/"))
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, deleteURL, nil)
-	if err != nil {
-		return err
-	}
-	req.SetBasicAuth(p.config.AccessKeyID, p.config.SecretAccessKey)
-
-	resp, err := p.httpClient.Do(req)
+	resp, err := p.do(ctx, http.MethodDelete, key, nil, "")
 	if err != nil {
 		if p.canUseFallback() {
 			return p.fallback.Delete(ctx, key)
@@ -198,7 +242,11 @@ func (p *S3StorageProvider) Delete(ctx context.Context, key string) error {
 		return err
 	}
 	defer resp.Body.Close()
-
+	// S3 answers 204 whether or not the object existed; anything else means the
+	// object may still be there, and the caller must not believe it is gone.
+	if resp.StatusCode >= 400 && resp.StatusCode != http.StatusNotFound {
+		return fmt.Errorf("S3 cluster returned HTTP %d on DELETE", resp.StatusCode)
+	}
 	return nil
 }
 
@@ -210,16 +258,7 @@ func (p *S3StorageProvider) Exists(ctx context.Context, key string) (bool, error
 		return false, nil
 	}
 
-	endpoint := strings.TrimRight(p.config.Endpoint, "/")
-	headURL := fmt.Sprintf("%s/%s/%s", endpoint, p.config.Bucket, strings.TrimPrefix(key, "/"))
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodHead, headURL, nil)
-	if err != nil {
-		return false, err
-	}
-	req.SetBasicAuth(p.config.AccessKeyID, p.config.SecretAccessKey)
-
-	resp, err := p.httpClient.Do(req)
+	resp, err := p.do(ctx, http.MethodHead, key, nil, "")
 	if err != nil {
 		if p.canUseFallback() {
 			return p.fallback.Exists(ctx, key)
@@ -228,28 +267,34 @@ func (p *S3StorageProvider) Exists(ctx context.Context, key string) (bool, error
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
+	switch resp.StatusCode {
+	case http.StatusOK:
 		return true, nil
-	}
-	if resp.StatusCode == http.StatusNotFound {
+	case http.StatusNotFound:
 		return false, nil
 	}
-	return false, nil
+	// A refusal (403 for wrong credentials, 301 for the wrong URL style or
+	// region) is not "absent": the health probe relies on this to prove the
+	// endpoint, bucket and credentials actually work.
+	return false, fmt.Errorf("S3 cluster returned HTTP %d on HEAD", resp.StatusCode)
 }
 
+// GetPublicURL is the object's address for anyone to fetch, which exists only
+// when STORAGE_PUBLIC_BASE_URL names one (a public bucket or a CDN in front of
+// it). A private bucket - every Railway bucket - has none, and "" sends the
+// caller to the application's own file route instead.
 func (p *S3StorageProvider) GetPublicURL(ctx context.Context, key string) string {
 	if strings.TrimSpace(p.config.PublicBaseURL) != "" {
 		return fmt.Sprintf("%s/%s", strings.TrimRight(p.config.PublicBaseURL, "/"), strings.TrimPrefix(key, "/"))
 	}
-	if p.isConfigured() {
-		return fmt.Sprintf("%s/%s/%s", strings.TrimRight(p.config.Endpoint, "/"), p.config.Bucket, strings.TrimPrefix(key, "/"))
-	}
-	if p.canUseFallback() {
+	if !p.isConfigured() && p.canUseFallback() {
 		return p.fallback.GetPublicURL(ctx, key)
 	}
 	return ""
 }
 
+// GenerateSignedURL is a SigV4 presigned GET for the object, valid for expiry
+// (at most the seven days SigV4 allows).
 func (p *S3StorageProvider) GenerateSignedURL(ctx context.Context, key string, expiry time.Duration) (string, error) {
 	if !p.isConfigured() {
 		if p.canUseFallback() {
@@ -257,21 +302,9 @@ func (p *S3StorageProvider) GenerateSignedURL(ctx context.Context, key string, e
 		}
 		return "", ErrStorageAccess
 	}
-
-	expiresAt := time.Now().Add(expiry).Unix()
-	msg := fmt.Sprintf("GET\n\n\n%d\n/%s/%s", expiresAt, p.config.Bucket, key)
-
-	mac := hmac.New(sha256.New, []byte(p.config.SecretAccessKey))
-	mac.Write([]byte(msg))
-	sig := hex.EncodeToString(mac.Sum(nil))
-
-	endpoint := strings.TrimRight(p.config.Endpoint, "/")
-	return fmt.Sprintf("%s/%s/%s?AWSAccessKeyId=%s&Expires=%d&Signature=%s",
-		endpoint,
-		p.config.Bucket,
-		strings.TrimPrefix(key, "/"),
-		url.QueryEscape(p.config.AccessKeyID),
-		expiresAt,
-		sig,
-	), nil
+	u, err := p.objectURL(key)
+	if err != nil {
+		return "", err
+	}
+	return presignGet(u, p.credentials(), expiry, time.Now()), nil
 }

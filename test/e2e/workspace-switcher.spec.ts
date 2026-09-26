@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { becomeRecruiter, registerAccount } from './helpers';
+import {
+  becomeRecruiter,
+  DISPOSABLE_PASSWORD,
+  fillWhenInteractive,
+  registerAccount,
+  signIn as signInThroughTheForm,
+} from './helpers';
 
 /*
  * The workspace switcher against the real API and the production build.
@@ -10,13 +16,8 @@ import { becomeRecruiter, registerAccount } from './helpers';
  * against a fixture and not against /auth/me would be worse than none.
  */
 
-const password = 'Disposable-CI-password-123!';
-
 async function signIn(page: import('@playwright/test').Page, email: string) {
-  await page.goto('/signin');
-  await page.getByLabel(/email/i).first().fill(email);
-  await page.getByLabel(/password/i).first().fill(password);
-  await page.getByRole('button', { name: 'Sign In' }).click();
+  await signInThroughTheForm(page, process.env.TEST_API_URL!, email);
   await page.waitForURL(/\/feed/, { timeout: 15_000 });
 }
 
@@ -121,8 +122,10 @@ test('switching enters the workspace, and the control follows the URL', async ({
 
 async function submitSignIn(page: import('@playwright/test').Page, email: string) {
   await page.goto('/signin');
-  await page.getByLabel(/email/i).first().fill(email);
-  await page.getByLabel(/password/i).first().fill(password);
+  await fillWhenInteractive([
+    [page.getByLabel(/email/i).first(), email],
+    [page.getByLabel(/password/i).first(), DISPOSABLE_PASSWORD],
+  ]);
   await page.getByRole('button', { name: 'Sign In' }).click();
 }
 
@@ -182,8 +185,10 @@ test('a requested page wins over the workspace the account last chose', async ({
 
   // Asking for a page is a stronger statement than a remembered workspace.
   await page.goto('/signin?returnUrl=%2Fjobs');
-  await page.getByLabel(/email/i).first().fill(account.email);
-  await page.getByLabel(/password/i).first().fill(password);
+  await fillWhenInteractive([
+    [page.getByLabel(/email/i).first(), account.email],
+    [page.getByLabel(/password/i).first(), DISPOSABLE_PASSWORD],
+  ]);
   await page.getByRole('button', { name: 'Sign In' }).click();
 
   await page.waitForURL(/\/jobs/, { timeout: 15_000 });

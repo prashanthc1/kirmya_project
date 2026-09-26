@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { settled } from './helpers';
+import { fillWhenInteractive, settled } from './helpers';
 
 // /jobs is a public route backed by the public GET /api/v1/jobs endpoint
 // (backend/internal/jobs/delivery/http/routes.go registers it with no auth
@@ -45,8 +45,10 @@ test.describe('Job Search & Discovery Flow', () => {
     await page.goto('/jobs');
     await settled(page.getByRole('heading', { name: 'Explore Opportunities', level: 1 }));
 
-    await page.getByLabel('Search jobs by title or keyword').fill('backend engineer');
-    await page.getByLabel('Filter by location').fill('Remote');
+    await fillWhenInteractive([
+      [page.getByLabel('Search jobs by title or keyword'), 'backend engineer'],
+      [page.getByLabel('Filter by location'), 'Remote'],
+    ]);
     await page.getByRole('button', { name: 'Find Jobs' }).click();
 
     await expect(page).toHaveURL(/[?&]q=backend\+engineer/);
