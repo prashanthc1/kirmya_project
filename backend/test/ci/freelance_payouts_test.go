@@ -215,7 +215,12 @@ func TestFreelancePayoutAdminRetry(t *testing.T) {
 // same payout twice. Claims under a provider name the running API does not
 // use, so its own sender stays out of the way.
 func TestFreelancePayoutClaimIsExclusive(t *testing.T) {
-	const provider, payouts, senders = "ci-claim", 30, 8
+	const payouts, senders = 30, 8
+	// A provider name of its own per run: a database reused across runs keeps
+	// earlier runs' payouts in processing, and once they are an hour old the
+	// claim rightly takes them over as stale - which would be another run's
+	// payouts turning up here.
+	provider := "ci-claim-" + uuid.NewString()[:8]
 	pool := escrowPool(t)
 	ctx := context.Background()
 	payee := registerAndLogin(t, required(t, "TEST_API_URL"))
