@@ -91,7 +91,8 @@ describe('Landing Page & Home Experience (Prompt 15/50)', () => {
   it('renders FeedPage with personalized feed shell and recommended jobs', () => {
     renderWithProviders(<FeedPage />);
     expect(screen.getByText(/Job Matches/i)).toBeDefined();
-    expect(screen.getByText(/AI Career Assistant/i)).toBeDefined();
+    // AI is hidden for now (shared/features), and its launcher card with it.
+    expect(screen.queryByText(/AI Career Assistant/i)).toBeNull();
     expect(screen.getByText(/Peer Communities/i)).toBeDefined();
     expect(screen.getByText(/Welcome back, Alex/i)).toBeDefined();
   });

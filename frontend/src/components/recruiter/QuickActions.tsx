@@ -9,19 +9,20 @@ import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import EventIcon from '@mui/icons-material/Event';
 import MessageIcon from '@mui/icons-material/Message';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import { visibleItems } from '../../shared/features';
 
 export const QuickActions: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
 
-  const actions = [
+  const actions = visibleItems([
     { label: 'Post New Job', icon: <AddCircleIcon />, route: '/recruiter/jobs/create', color: '#6366f1' },
     { label: 'Search Candidates', icon: <PersonSearchIcon />, route: '/recruiter/candidates', color: '#10b981' },
     { label: 'Review ATS Pipeline', icon: <ViewKanbanIcon />, route: '/recruiter/applications', color: '#f59e0b' },
     { label: 'Schedule Interview', icon: <EventIcon />, route: '/recruiter/interviews', color: '#ec4899' },
     { label: 'Candidate Messages', icon: <MessageIcon />, route: '/recruiter/messages', color: '#06b6d4' },
     { label: 'Hiring Analytics', icon: <BarChartIcon />, route: '/recruiter/analytics', color: '#8b5cf6' },
-  ];
+  ]);
 
   return (
     <Grid container spacing={2} sx={{ mb: 4 }}>

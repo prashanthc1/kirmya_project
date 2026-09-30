@@ -5,18 +5,16 @@ import React from 'react';
 
 
 export const metadata: Metadata = {
-  title: 'Kirmya - Restart Your Career With Confidence | AI Career Recovery & Professional Network',
+  title: 'Kirmya - Restart Your Career With Confidence | Jobs, Freelance Work & Career Recovery',
   description:
-    'Kirmya is a free professional networking and AI-powered career platform built for professionals recovering from job loss or seeking career growth. Find jobs, build connections, receive referrals, and optimize your resume.',
+    'Kirmya is a free career platform built for professionals recovering from job loss or seeking career growth. Find jobs, join communities, receive referrals, and build your resume.',
   keywords: [
     'Job Search',
     'Career Recovery',
-    'AI Career Assistant',
-    'Professional Networking',
     'Employee Referrals',
     'Resume Optimizer',
-    'ATS Resume Scanner',
-    'Interview Coaching',
+    'Resume Builder',
+    'Freelance Jobs',
     'Facilities Management Jobs',
     'Tech Careers',
   ],
@@ -30,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Kirmya - Restart Your Career With Confidence',
     description:
-      'A free professional network helping people find jobs, build connections, improve skills, and recover careers faster with AI guidance.',
+      'A free career platform helping people find jobs, join communities, get referrals, and recover careers faster.',
     url: 'https://kirmya.com',
     siteName: 'Kirmya',
     locale: 'en_US',
@@ -40,7 +38,7 @@ export const metadata: Metadata = {
         url: 'https://kirmya.com/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Kirmya AI Career Platform',
+        alt: 'Kirmya Career Platform',
       },
     ],
   },
@@ -48,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Kirmya - Restart Your Career With Confidence',
     description:
-      'Find jobs, build connections, get employee referrals, and accelerate your career with AI guidance.',
+      'Find jobs, join communities, get employee referrals, and accelerate your career.',
     creator: '@kirmya',
     images: ['https://kirmya.com/twitter-card.png'],
   },

@@ -33,6 +33,7 @@ import { useRouter } from 'next/navigation';
 
 import { NotificationItemDTO } from '../../features/notifications/types';
 import { tokens } from '../../theme/tokens';
+import { isHiddenRoute } from '../../shared/features';
 
 interface NotificationItemProps {
   item: NotificationItemDTO;
@@ -94,8 +95,14 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
     }
   };
 
-  // Determine canonical target URL
+  // Determine canonical target URL. A notification from an area that is hidden
+  // for now (shared/features) opens the notification list instead of a 404.
   const resolveTargetUrl = (): string => {
+    const target = resolveUnfilteredTargetUrl();
+    return isHiddenRoute(target) ? '/notifications' : target;
+  };
+
+  const resolveUnfilteredTargetUrl = (): string => {
     if (item.actionUrl) return item.actionUrl;
     switch (item.category) {
       case 'Networking':

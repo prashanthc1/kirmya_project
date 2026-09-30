@@ -34,7 +34,7 @@ it('omits deferred destinations from the navigation registries', () => {
     /^\/recruiter\/offers(\/|$)/.test(href),
   )).toEqual([]);
   expect(hrefs).toEqual(expect.arrayContaining([
-    '/jobs', '/applications', '/profile', '/network', '/messages', '/companies',
+    '/jobs', '/applications', '/profile', '/companies',
     '/recruiter/pipeline', '/admin', '/settings',
   ]));
 });

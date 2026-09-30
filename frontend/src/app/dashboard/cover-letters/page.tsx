@@ -49,7 +49,7 @@ export default function CoverLettersPage() {
           Cover Letter Hub
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Craft ATS-friendly, job-tailored cover letters powered by Kirmya AI Copilot.
+          Craft ATS-friendly, job-tailored cover letters.
         </Typography>
       </Box>
 

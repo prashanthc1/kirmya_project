@@ -49,7 +49,7 @@ export const CTASection: React.FC = () => {
               fontSize: { xs: '1rem', md: '1.2rem' },
             }}
           >
-            Accelerate your career recovery with AI guidance, verified networking, and employee referrals.
+            Accelerate your career recovery with verified employers, peer communities and employee referrals.
           </Typography>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">

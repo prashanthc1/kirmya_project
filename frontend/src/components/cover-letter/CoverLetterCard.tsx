@@ -26,6 +26,7 @@ import {
 import { motion } from 'framer-motion';
 import { springs } from '../../theme/motion';
 import { CoverLetter } from '@/features/cover-letter/types';
+import { FEATURES } from '../../shared/features';
 
 interface CoverLetterCardProps {
   letter: CoverLetter;
@@ -77,7 +78,7 @@ export const CoverLetterCard: React.FC<CoverLetterCardProps> = ({
               </Typography>
             </Box>
             <Stack direction="row" spacing={0.5}>
-              {letter.isAiGenerated && (
+              {FEATURES.ai && letter.isAiGenerated && (
                 <Tooltip title="AI Generated">
                   <Chip
                     icon={<AIIcon sx={{ fontSize: '14px !important', color: "primary.main" }} />}

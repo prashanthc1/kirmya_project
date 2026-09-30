@@ -1,4 +1,5 @@
 import { test, expect, Page, APIRequestContext, BrowserContext } from '@playwright/test';
+import { hydrated } from './helpers';
 
 /**
  * The acceptance criterion, driven through a real browser against the real API:
@@ -205,11 +206,21 @@ test.describe('Session persistence across reloads', () => {
     );
     // The control lives in the header menu on desktop and the drawer on narrow
     // viewports; open whichever this project has before clicking.
+    //
+    // Opening it is retried until the item shows. A click before hydration, or
+    // on the button the header swaps in once the profile has loaded, lands on
+    // markup with no handler and the menu never opens; that failed this about
+    // one run in four.
     const menu = page.getByRole('button', { name: /account|profile|menu/i }).first();
-    if (await menu.isVisible().catch(() => false)) {
-      await menu.click();
-    }
-    await page.getByRole('menuitem', { name: /sign out|log out/i }).first().click();
+    const signOut = page.getByRole('menuitem', { name: /sign out|log out/i }).first();
+    await expect(async () => {
+      if (!(await signOut.isVisible()) && (await menu.isVisible())) {
+        await hydrated(menu);
+        await menu.click();
+      }
+      await expect(signOut).toBeVisible({ timeout: 2_000 });
+    }).toPass({ timeout: 30_000 });
+    await signOut.click();
     expect((await loggedOut).status()).toBe(200);
 
     // The cookie must be gone from the browser, not merely dead on the server.

@@ -50,7 +50,7 @@ export const CandidateMatch: React.FC<Props> = ({ candidateId, candidateName }) 
   return (
     <Box>
       <Alert severity="info" icon={<ShieldIcon />} sx={{ mb: 3, borderRadius: '14px' }}>
-        <strong>Fair Hiring Policy:</strong> AI match recommendations must never be the sole basis for rejecting candidates. Recruiters must always inspect underlying candidate profile credentials and verified experience.
+        <strong>Fair Hiring Policy:</strong> Match scores must never be the sole basis for rejecting candidates. Recruiters must always inspect underlying candidate profile credentials and verified experience.
       </Alert>
 
       <Card
@@ -65,7 +65,7 @@ export const CandidateMatch: React.FC<Props> = ({ candidateId, candidateName }) 
           <AutoAwesomeIcon color="primary" sx={{ fontSize: 32 }} />
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 900 }}>
-              AI Candidate Match Breakdown
+              Candidate Match Breakdown
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Explaining suitability for {candidateName} against active job requirements.

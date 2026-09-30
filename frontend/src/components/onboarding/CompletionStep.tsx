@@ -20,6 +20,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import { motion } from 'framer-motion';
 import { springs } from '../../theme/motion';
 import GlassCard from '../landing/GlassCard';
+import { visibleItems } from '../../shared/features';
 
 interface StepProps {
   onFinish: () => void;
@@ -70,11 +71,11 @@ export const CompletionStep: React.FC<StepProps> = ({ onFinish }) => {
         </Typography>
 
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          {[
-            { title: 'Browse Jobs', desc: 'Explore 90%+ AI matched job openings.', icon: <WorkIcon sx={{ color: "primary.main" }} />, route: '/jobs' },
+          {visibleItems([
+            { title: 'Browse Jobs', desc: 'Explore open roles that fit your profile.', icon: <WorkIcon sx={{ color: "primary.main" }} />, route: '/jobs' },
             { title: 'Find Connections', desc: 'Connect with corporate recruiters.', icon: <PeopleIcon sx={{ color: '#ec4899' }} />, route: '/networking' },
             { title: 'Join Communities', desc: 'Engage in active industry guilds.', icon: <GroupsIcon sx={{ color: '#10b981' }} />, route: '/communities' },
-          ].map((act, idx) => (
+          ]).map((act, idx) => (
             <Grid item xs={12} sm={4} key={idx}>
               <Paper
                 elevation={0}

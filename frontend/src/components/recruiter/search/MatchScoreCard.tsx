@@ -29,7 +29,7 @@ export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ match }) => {
         <Stack direction="row" spacing={1} alignItems="center">
           <AutoAwesomeIcon sx={{ color: '#10b981' }} />
           <Typography variant="h6" sx={{ fontWeight: 900 }}>
-            AI Match Score Breakdown
+            Match Score Breakdown
           </Typography>
         </Stack>
         <Chip label={`${match.overallScore}% MATCH`} color="success" sx={{ fontWeight: 900, fontSize: '0.85rem' }} />

@@ -45,7 +45,7 @@ export const HeroSection: React.FC = () => {
             <Box>
               <Chip
                 icon={<AutoAwesomeIcon sx={{ fontSize: 16, color: `${theme.palette.primary.main} !important` }} />}
-                label="AI-Powered Career Recovery & Professional Network"
+                label="Jobs, Freelance Work & Career Recovery"
                 size="small"
                 sx={{
                   fontWeight: 700,
@@ -201,7 +201,7 @@ export const HeroSection: React.FC = () => {
                     </Typography>
                   </Stack>
                   <Typography variant="body2" sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-                    Matched to your profile via AI Career Optimizer based on Go, TypeScript, and distributed systems skills.
+                    Matched to your profile based on Go, TypeScript, and distributed systems skills.
                   </Typography>
                 </Stack>
 

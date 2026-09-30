@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { DISPOSABLE_PASSWORD, signIn } from './helpers';
 
 // /messaging is a redirect stub (frontend/src/app/messaging/page.tsx) onto
 // /messages. The conversation endpoints sit behind AuthRequired
@@ -20,17 +21,13 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     await expect(page).toHaveURL(/\/(messages|signin|login)/);
   });
 
-  test('An anonymous visitor is sent to sign in rather than shown the inbox', async ({ page }) => {
-    const api = process.env.TEST_API_URL;
-    expect(api, 'TEST_API_URL is mandatory').toBeTruthy();
-
-    await page.goto('/messages');
-
-    // The inbox is never rendered for a signed-out visitor. The page's own
-    // useEffect still fires its conversation request — the guard sits inside the
-    // page component rather than around it — and the API refuses that request,
-    // which is asserted separately below.
-    await expect(page).toHaveURL(/signin|login/, { timeout: 20_000 });
+  // Messaging is hidden for now (frontend/src/shared/features.ts): the inbox
+  // answers not-found for everyone, before the sign-in guard is reached. The
+  // API is unchanged and still refuses an anonymous caller on its own.
+  test('The inbox answers not-found while messaging is hidden', async ({ page }) => {
+    const response = await page.goto('/messages');
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { name: /couldn.t find that page/i })).toBeVisible();
   });
 
   test('The conversations endpoint refuses an anonymous caller', async ({ request }) => {
@@ -44,35 +41,19 @@ test.describe('Messaging Shell & Anonymous Access', () => {
     expect(response.status()).toBe(401);
   });
 
-  test('The inbox is reachable once signed in', async ({ page, request }) => {
+  test('The inbox stays hidden once signed in', async ({ page, request }) => {
     test.slow();
     const api = process.env.TEST_API_URL!;
-    const password = 'Disposable-CI-password-123!';
     const email = `pw-messaging-${Date.now()}-${Math.random().toString(16).slice(2)}@example.invalid`;
 
     const registration = await request.post(`${api}/api/v1/auth/register`, {
-      data: { firstName: 'Inbox', lastName: 'Reader', email, password, acceptTerms: true, acceptPrivacy: true },
+      data: { firstName: 'Inbox', lastName: 'Reader', email, password: DISPOSABLE_PASSWORD, acceptTerms: true, acceptPrivacy: true },
     });
     expect(registration.status()).toBe(201);
+    await signIn(page, api, email);
 
-    await page.goto('/signin');
-    const emailField = page.getByRole('textbox', { name: 'Email Address' });
-    await expect(emailField).toHaveCount(1, { timeout: 15_000 });
-    await emailField.fill(email);
-    await page.getByLabel('Password', { exact: true }).fill(password);
-    const signedIn = page.waitForResponse(
-      (r) => r.url() === `${api}/api/v1/auth/login` && r.request().method() === 'POST'
-    );
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    expect((await signedIn).status()).toBe(200);
-    await expect(page).not.toHaveURL(/signin/, { timeout: 15_000 });
-
-    // The point of this test: the guard admits an authenticated visitor. It
-    // asserts the absence of a redirect rather than any particular heading,
-    // because what is being verified is the guard's decision, not the inbox's
-    // markup.
-    await page.goto('/messages');
-    await expect(page).toHaveURL(/\/messages/, { timeout: 20_000 });
-    await expect(page).not.toHaveURL(/signin|login/);
+    const response = await page.goto('/messages');
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { name: /couldn.t find that page/i })).toBeVisible();
   });
 });

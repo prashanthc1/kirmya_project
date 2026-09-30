@@ -87,7 +87,7 @@ export const CandidateSearchPage: React.FC = () => {
           Enterprise Candidate Search &amp; Talent Discovery
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Search qualified professionals, apply advanced multi-attribute filters, evaluate AI match ratings, and manage talent pools.
+          Search qualified professionals, apply advanced multi-attribute filters, evaluate match ratings, and manage talent pools.
         </Typography>
       </Box>
 

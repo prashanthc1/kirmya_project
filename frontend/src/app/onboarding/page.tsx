@@ -23,7 +23,24 @@ import AIReviewStep from '../../components/onboarding/AIReviewStep';
 import CompletionStep from '../../components/onboarding/CompletionStep';
 
 import { onboardingApi } from '../../features/onboarding/api';
+import { FEATURES } from '../../shared/features';
 import { useAuth } from '../../features/auth/context/authContext';
+
+const LAST_STEP = 15;
+
+// Connection suggestions and the AI profile review belong to areas that are
+// hidden for now (shared/features). The steps keep their numbers, because the
+// saved progress is a step number, and are stepped over in both directions.
+const SKIPPED_STEPS = new Set<number>([
+  ...(FEATURES.networking ? [] : [13]),
+  ...(FEATURES.ai ? [] : [14]),
+]);
+
+const stepFrom = (step: number, direction: 1 | -1): number => {
+  let next = step;
+  while (SKIPPED_STEPS.has(next) && next > 1 && next < LAST_STEP) next += direction;
+  return next;
+};
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -42,7 +59,7 @@ export default function OnboardingPage() {
         if (res.is_completed) {
           router.push('/jobs');
         } else if (res.current_step > 1) {
-          setCurrentStep(res.current_step);
+          setCurrentStep(stepFrom(res.current_step, 1));
         }
       })
       .catch(() => {});
@@ -53,13 +70,13 @@ export default function OnboardingPage() {
       setFormData((prev: any) => ({ ...prev, ...stepData }));
     }
 
-    const next = Math.min(currentStep + 1, 15);
+    const next = stepFrom(Math.min(currentStep + 1, LAST_STEP), 1);
     setCurrentStep(next);
     onboardingApi.saveProgress(next).catch(() => {});
   };
 
   const handlePrevStep = () => {
-    const prev = Math.max(currentStep - 1, 1);
+    const prev = stepFrom(Math.max(currentStep - 1, 1), -1);
     setCurrentStep(prev);
     onboardingApi.saveProgress(prev).catch(() => {});
   };

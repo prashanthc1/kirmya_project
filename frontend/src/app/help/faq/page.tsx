@@ -34,12 +34,7 @@ export default function FAQPage() {
     {
       category: 'Jobs & Applications',
       q: 'How do job alert recommendations work on Kirmya?',
-      a: 'Kirmya AI analyzes your verified skills, candidate location preferences, and career history to calculate a match percentage and send real-time job alert notifications.',
-    },
-    {
-      category: 'Messaging & Networking',
-      q: 'Who can send me direct messages on Kirmya?',
-      a: 'By default, verified 1st-degree connections can message you directly. For non-connections, direct messages land in your Message Requests inbox.',
+      a: 'Kirmya compares your skills, location preferences and career history with each new job to score how well it matches, and sends job alert notifications for the best matches.',
     },
     {
       category: 'Privacy & Security',
@@ -62,7 +57,7 @@ export default function FAQPage() {
             Frequently Asked Questions (FAQ)
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            Quick answers to common questions about accounts, job applications, messaging, and privacy.
+            Quick answers to common questions about accounts, job applications, and privacy.
           </Typography>
         </Box>
       </Stack>

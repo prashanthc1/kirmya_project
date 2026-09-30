@@ -145,7 +145,7 @@ describe('Kirmya Observability, Error Handling & API Reliability Suite', () => {
       expect(screen.getByText(/Error 404/i)).toBeInTheDocument();
       expect(screen.getByText(/We couldn't find that page/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/Search jobs, companies, people/i)).toBeInTheDocument();
-      expect(screen.getByText(/Job matches/i)).toBeInTheDocument();
+      expect(screen.getByText(/Companies hiring/i)).toBeInTheDocument();
       expect(screen.getByText(/Recommended for you/i)).toBeInTheDocument();
     });
 

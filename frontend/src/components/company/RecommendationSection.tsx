@@ -18,7 +18,7 @@ export const RecommendationSection: React.FC<RecommendationSectionProps> = ({ re
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
         <Chip
           icon={<AutoAwesomeIcon sx={{ color: '#a855f7 !important' }} />}
-          label="AI RECOMMENDED FOR YOU"
+          label="RECOMMENDED FOR YOU"
           sx={{
             fontWeight: 800,
             bgcolor: 'rgba(168, 85, 247, 0.15)',

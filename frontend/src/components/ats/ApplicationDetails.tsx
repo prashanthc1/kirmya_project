@@ -146,7 +146,7 @@ export const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({ applicat
 
       {/* Sub-tabs */}
       <Tabs value={tab} onChange={(_, val) => setTab(val)} sx={{ mb: 3, borderBottom: '1px solid rgba(255, 255, 255, 0.1)', '& .MuiTab-root': { fontWeight: 800, textTransform: 'none' } }}>
-        <Tab label="Candidate Summary & AI Analysis" />
+        <Tab label="Candidate Summary" />
         <Tab label="Application Audit Timeline" />
         <Tab label="Recruiter & Team Notes" />
         <Tab label="Interview Evaluation & Feedback" />

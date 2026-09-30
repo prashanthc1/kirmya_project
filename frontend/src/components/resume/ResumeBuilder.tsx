@@ -9,6 +9,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import WorkIcon from '@mui/icons-material/Work';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useRouter } from 'next/navigation';
+import { FEATURES } from '../../shared/features';
 
 interface ResumeBuilderProps {
   onCreateResume: (title: string, template: string) => Promise<any>;
@@ -86,7 +87,7 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ onCreateResume }) 
         />
 
         <Grid container spacing={3}>
-          {methods.map((m) => {
+          {methods.filter(m => FEATURES.ai || m.id !== 'ai').map((m) => {
             const isSelected = selectedMethod === m.id;
             return (
               <Grid item xs={12} md={6} key={m.id}>

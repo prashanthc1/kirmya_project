@@ -21,13 +21,13 @@ export const WhyKirmyaSection: React.FC = () => {
     },
     {
       icon: <PeopleAltIcon sx={{ fontSize: 28, color: 'secondary.main' }} />,
-      title: 'Authentic Professional Networking',
-      description: 'Connect directly with hiring managers, internal advocates, and industry mentors.',
+      title: 'Peer Communities',
+      description: 'Join industry communities to share advice, ask questions and hear about openings.',
     },
     {
       icon: <AutoAwesomeIcon sx={{ fontSize: 28, color: 'success.main' }} />,
-      title: 'AI-Powered Career Guidance',
-      description: 'Real-time resume scoring, tailored cover letter drafting, and structured interview coaching.',
+      title: 'Practical Career Tools',
+      description: 'Resume building, tailored cover letters and job alerts, all in one place.',
     },
     {
       icon: <CardGiftcardIcon sx={{ fontSize: 28, color: 'warning.main' }} />,

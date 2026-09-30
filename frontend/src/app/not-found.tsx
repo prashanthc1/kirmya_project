@@ -21,7 +21,6 @@ import BrandMark from '../components/brand/BrandMark';
 // Every destination here was checked against the running app. Note that `/jobs`
 // itself has no page, so these point at the job routes that do resolve.
 const RECOVERY_LINKS = [
-  { href: '/jobs/match', label: 'Job matches' },
   { href: '/jobs/recommendations', label: 'Recommended for you' },
   { href: '/companies', label: 'Companies hiring' },
   { href: '/feed', label: 'Your feed' },

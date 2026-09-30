@@ -115,7 +115,7 @@ test.describe('Navigation architecture', () => {
       const account = await register(request, api, 'reach');
       await signIn(page, api, account.email);
 
-      for (const path of ['/feed', '/network', '/jobs', '/communities', '/messages', '/notifications', '/settings', '/profile']) {
+      for (const path of ['/feed', '/jobs', '/communities', '/notifications', '/settings', '/profile']) {
         const response = await page.goto(path);
         expect(response?.status(), `${path} answered ${response?.status()}`).toBeLessThan(400);
 
@@ -129,6 +129,28 @@ test.describe('Navigation architecture', () => {
           page.getByRole('heading', { name: /couldn.t find that page/i }),
           `${path} rendered the not-found page`
         ).toHaveCount(0);
+      }
+    });
+
+  // AI, networking and messaging are hidden for now (frontend/src/shared/features.ts):
+  // their pages answer 404 and nothing in the navigation leads to them.
+  test('the hidden areas answer not-found and are not offered in the navigation',
+    async ({ page, request }) => {
+      const api = process.env.TEST_API_URL!;
+      const account = await register(request, api, 'hidden');
+      await signIn(page, api, account.email);
+
+      for (const path of ['/network', '/messages', '/people', '/career-companion', '/resume-analysis', '/jobs/match']) {
+        const response = await page.goto(path);
+        expect(response?.status(), `${path} answered ${response?.status()}`).toBe(404);
+        await expect(page.getByRole('heading', { name: /couldn.t find that page/i })).toBeVisible();
+      }
+
+      await page.goto('/feed');
+      const primary = page.getByRole('navigation', { name: 'Primary' });
+      await expect(primary).toBeVisible({ timeout: 15_000 });
+      for (const label of ['Network', 'Messages']) {
+        await expect(primary.getByRole('link', { name: label, exact: true })).toHaveCount(0);
       }
     });
 
@@ -204,7 +226,7 @@ test.describe('Navigation architecture', () => {
 test.describe('Navigation on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('offers the five primary destinations in a bottom bar, and does not overflow',
+  test('offers the primary destinations in a bottom bar, and does not overflow',
     async ({ page, request }) => {
       const api = process.env.TEST_API_URL!;
       const account = await register(request, api, 'phone');
@@ -213,7 +235,7 @@ test.describe('Navigation on a phone', () => {
 
       const bar = page.getByRole('navigation', { name: 'Primary' });
       await expect(bar).toBeVisible({ timeout: 15_000 });
-      for (const label of ['Feed', 'Network', 'Jobs', 'Messages', 'Me']) {
+      for (const label of ['Feed', 'Jobs', 'Communities', 'Me']) {
         await expect(bar.getByRole('link', { name: label, exact: true })).toBeVisible();
       }
 
@@ -270,7 +292,7 @@ test.describe('Navigation on a desktop', () => {
 
       const primary = page.getByRole('navigation', { name: 'Primary' });
       await expect(primary).toBeVisible({ timeout: 15_000 });
-      for (const label of ['Feed', 'Network', 'Jobs', 'Communities', 'Messages']) {
+      for (const label of ['Feed', 'Jobs', 'Communities']) {
         await expect(primary.getByRole('link', { name: label, exact: true })).toBeVisible();
       }
     });

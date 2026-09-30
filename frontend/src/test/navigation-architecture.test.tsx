@@ -67,13 +67,13 @@ describe('route matching', () => {
 });
 
 describe('global navigation', () => {
+  // Network and Messages are hidden for now (shared/features); they return to
+  // their places between these when switched back on.
   it('offers Feed as the signed-in home and stays to five destinations', () => {
     expect(PRIMARY_NAV_ITEMS[0].id).toBe('feed');
     expect(PRIMARY_NAV_ITEMS[0].href).toBe('/feed');
-    expect(PRIMARY_NAV_ITEMS).toHaveLength(5);
-    expect(PRIMARY_NAV_ITEMS.map(i => i.id)).toEqual([
-      'feed', 'network', 'jobs', 'communities', 'messages',
-    ]);
+    expect(PRIMARY_NAV_ITEMS.length).toBeLessThanOrEqual(5);
+    expect(PRIMARY_NAV_ITEMS.map(i => i.id)).toEqual(['feed', 'jobs', 'communities']);
   });
 
   it('names no dashboard anywhere', () => {
@@ -81,10 +81,8 @@ describe('global navigation', () => {
     expect(every.some(i => i.href.startsWith('/dashboard'))).toBe(false);
   });
 
-  it('offers the five thumb destinations on mobile, ending in Me', () => {
-    expect(MOBILE_NAV_ITEMS.map(i => i.id)).toEqual([
-      'feed', 'network', 'jobs', 'messages', 'profile',
-    ]);
+  it('offers the thumb destinations on mobile, ending in Me', () => {
+    expect(MOBILE_NAV_ITEMS.map(i => i.id)).toEqual(['feed', 'jobs', 'communities', 'profile']);
   });
 
   it('marks Feed active on /feed and not on another section', () => {

@@ -17,6 +17,7 @@ import { ToneSelector } from './ToneSelector';
 import { LengthSelector } from './LengthSelector';
 import { AIWritingAssistant } from './AIWritingAssistant';
 import { CoverLetter } from '@/features/cover-letter/types';
+import { FEATURES } from '../../shared/features';
 
 export interface CoverLetterEditorProps {
   initialLetter: CoverLetter;
@@ -88,7 +89,7 @@ export const CoverLetterEditor: React.FC<CoverLetterEditorProps> = ({
         </Stack>
       </Box>
 
-      <AIWritingAssistant onAction={handleAiAction} />
+      {FEATURES.ai && <AIWritingAssistant onAction={handleAiAction} />}
 
       <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "action.hover", backdropFilter: 'blur(16px)' }}>
         <Typography variant="h6" fontWeight={700} mb={2}>

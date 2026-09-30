@@ -21,15 +21,11 @@ export const FAQSection: React.FC = () => {
   const faqs = [
     {
       q: 'What is Kirmya?',
-      a: 'Kirmya is a professional networking and AI-powered career platform specifically built to help job seekers find opportunities, receive employee referrals, optimize resumes, and accelerate career recovery.',
+      a: 'Kirmya is a career platform built to help job seekers find opportunities, receive employee referrals, build strong resumes, and accelerate career recovery.',
     },
     {
       q: 'Is Kirmya free?',
-      a: 'Yes! Kirmya is 100% free for job seekers. You can build profiles, apply for jobs, use AI resume tools, join communities, and request referrals at zero cost.',
-    },
-    {
-      q: 'How does AI help in my job search?',
-      a: 'Kirmya AI analyzes job descriptions against your experience, calculates match percentages, rewrites resume bullet points for ATS compliance, provides simulated mock interviews, and suggests skills to boost your salary.',
+      a: 'Yes! Kirmya is 100% free for job seekers. You can build profiles, apply for jobs, use the resume tools, join communities, and request referrals at zero cost.',
     },
     {
       q: 'How do employee referrals work?',
@@ -37,7 +33,7 @@ export const FAQSection: React.FC = () => {
     },
     {
       q: 'Can recruiters and companies use Kirmya?',
-      a: 'Yes, corporate recruiters and hiring managers can register company pages, post open roles, and utilize AI candidate vector ranking to find pre-screened talent 3x faster.',
+      a: 'Yes, corporate recruiters and hiring managers can register company pages, post open roles, and search candidates by skills, experience and location.',
     },
     {
       q: 'How secure is my data?',
@@ -49,7 +45,7 @@ export const FAQSection: React.FC = () => {
     },
     {
       q: 'Can I upload my existing resume?',
-      a: 'Absolutey! You can upload your PDF or DOCX resume, and Kirmya AI will automatically extract your work history, skills, and achievements to populate your profile in seconds.',
+      a: 'Absolutey! You can upload your PDF or DOCX resume, and Kirmya will extract your work history, skills, and achievements to populate your profile in seconds.',
     },
   ];
 

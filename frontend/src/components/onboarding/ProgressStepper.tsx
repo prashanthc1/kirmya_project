@@ -19,7 +19,7 @@ const STEP_TITLES: { [key: number]: { title: string; estMinutes: number } } = {
   6: { title: 'Work Experience', estMinutes: 3 },
   7: { title: 'Education History', estMinutes: 2 },
   8: { title: 'Certifications & Licenses', estMinutes: 2 },
-  9: { title: 'Resume Upload & AI Parsing', estMinutes: 2 },
+  9: { title: 'Resume Upload', estMinutes: 2 },
   10: { title: 'Career Preferences', estMinutes: 2 },
   11: { title: 'Job Alerts & Notifications', estMinutes: 1 },
   12: { title: 'Recommended Communities', estMinutes: 1 },

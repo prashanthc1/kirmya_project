@@ -94,7 +94,6 @@ async function signIn(page: Page, api: string, email: string) {
 
 test.describe('A brand-new account can open the pages it lands on', () => {
   const surfaces = [
-    { path: '/network', heading: /professional network/i },
     { path: '/notifications', heading: /notification/i },
     { path: '/communities', heading: /communit/i },
     { path: '/endorsements', heading: /endorsement/i },

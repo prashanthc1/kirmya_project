@@ -99,7 +99,7 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
 
               <Chip
                 icon={<AutoAwesomeIcon sx={{ fontSize: '14px !important', color: '#10b981 !important' }} />}
-                label={`${candidate.aiMatch.overallScore}% AI MATCH`}
+                label={`${candidate.aiMatch.overallScore}% MATCH`}
                 size="small"
                 sx={{ bgcolor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: 900, fontSize: '0.7rem' }}
               />

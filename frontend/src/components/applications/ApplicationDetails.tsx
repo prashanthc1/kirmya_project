@@ -38,6 +38,7 @@ import { ApplicationDetail, ApplicationSummary } from '../../features/applicatio
 import { ApplicationTimeline } from './ApplicationTimeline';
 import { getStatusChipProps } from './ApplicationCard';
 import { tokens } from '../../theme/tokens';
+import { FEATURES } from '../../shared/features';
 
 interface ApplicationDetailsProps {
   application?: ApplicationDetail;
@@ -472,16 +473,18 @@ export const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({
                   </Box>
                 </Stack>
 
-                <Button
-                  component={Link}
-                  href="/messages"
-                  variant="outlined"
-                  fullWidth
-                  startIcon={<EmailOutlinedIcon />}
-                  sx={{ mt: 2, borderRadius: `${tokens.radius.sm}px`, textTransform: 'none', fontWeight: 700 }}
-                >
-                  Send Message
-                </Button>
+                {FEATURES.messaging && (
+                  <Button
+                    component={Link}
+                    href="/messages"
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<EmailOutlinedIcon />}
+                    sx={{ mt: 2, borderRadius: `${tokens.radius.sm}px`, textTransform: 'none', fontWeight: 700 }}
+                  >
+                    Send Message
+                  </Button>
+                )}
               </Paper>
             )}
           </Stack>

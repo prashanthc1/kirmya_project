@@ -157,7 +157,7 @@ export const CandidateProfile: React.FC<Props> = ({ candidateId }) => {
         <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
           <Tab label="Professional Profile" sx={{ fontWeight: 800 }} />
           <Tab label="Resume & ATS Analysis" sx={{ fontWeight: 800 }} />
-          <Tab label="AI Job Match Scorecard" sx={{ fontWeight: 800 }} />
+          <Tab label="Job Match Scorecard" sx={{ fontWeight: 800 }} />
           <Tab label="Recruiter Internal Notes" sx={{ fontWeight: 800 }} />
         </Tabs>
       </Card>

@@ -129,7 +129,7 @@ export default function AssessmentsPage() {
               Professional Skill Assessment System
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              Take standardized technical & practical scenario assessments, receive AI evaluation feedback, and earn verified skill badges.
+              Take standardized technical & practical scenario assessments, receive evaluation feedback, and earn verified skill badges.
             </Typography>
           </Box>
         </Box>
@@ -269,7 +269,7 @@ export default function AssessmentsPage() {
                     <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Assessment Title</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Score %</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>MCQ Score</TableCell>
-                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>AI Practical Score</TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Practical Score</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Percentile Rank</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Status</TableCell>
                     <TableCell sx={{ color: 'text.secondary', fontWeight: 'bold' }}>Badge Awarded</TableCell>

@@ -24,20 +24,12 @@ export const FeaturesSection: React.FC = () => {
   const theme = useTheme();
 
   const features = [
-    { title: 'AI Job Matching', desc: 'Neural match scoring between your profile and live job descriptions.', icon: <AutoAwesomeIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Resume Builder', desc: 'Create executive-ready, ATS-compliant CVs in under 5 minutes.', icon: <DescriptionIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Resume Optimizer', desc: 'Scan and rewrite bullet points to pass corporate ATS screeners.', icon: <TuneIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Cover Letter Generator', desc: 'Generate tailored cover letters customized for each position.', icon: <EditNoteIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Interview Preparation', desc: 'Simulated AI mock interviews with instant voice and answer feedback.', icon: <QuestionAnswerIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Career Roadmap', desc: 'AI-guided career progression timelines and milestone tracking.', icon: <MapIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Skill Gap Analysis', desc: 'Identify high-value missing skills required to unlock senior roles.', icon: <BarChartIcon sx={{ color: 'primary.main' }} /> },
+    { title: 'Cover Letters', desc: 'Write a tailored cover letter for each position from ready-made templates.', icon: <EditNoteIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Salary Insights', desc: 'Real-time compensation benchmarks across countries and job titles.', icon: <AttachMoneyIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Messaging', desc: 'Direct, encrypted 1-on-1 messaging with peers and recruiters.', icon: <ChatIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Professional Networking', desc: 'Build meaningful connections with industry leaders and advocates.', icon: <PeopleIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Communities', desc: 'Join active career guilds, industry groups, and discussion forums.', icon: <GroupsIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Job Alerts', desc: 'Instant notifications when high-match opportunities go live.', icon: <NotificationsActiveIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Application Tracking', desc: 'Kanban-style tracking board for submitted applications.', icon: <TrackChangesIcon sx={{ color: 'primary.main' }} /> },
-    { title: 'Recruiter Connections', desc: 'Direct access to verified corporate recruiters and talent leads.', icon: <ConnectWithoutContactIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Referral Requests', desc: 'Request internal employee referrals to bypass cold applications.', icon: <CardGiftcardIcon sx={{ color: 'primary.main' }} /> },
     { title: 'Saved Jobs', desc: 'Bookmark interesting job postings to apply when ready.', icon: <BookmarkIcon sx={{ color: 'primary.main' }} /> },
   ];
@@ -63,7 +55,7 @@ export const FeaturesSection: React.FC = () => {
             Everything You Need To Fast-Track Your Career
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 680, mx: 'auto', fontSize: '1.05rem' }}>
-            Comprehensive suite of AI tools, networking features, and referral channels designed for modern job seekers.
+            Career tools, communities and referral channels designed for modern job seekers.
           </Typography>
         </Box>
 

@@ -24,6 +24,7 @@ import MessageIcon from '@mui/icons-material/Message';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { FEATURES, visibleItems } from '../../shared/features';
 
 export const RecruiterSidebar: React.FC = () => {
   const pathname = usePathname();
@@ -31,7 +32,7 @@ export const RecruiterSidebar: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const menuItems = [
+  const menuItems = visibleItems([
     { label: 'Dashboard', icon: <DashboardIcon />, route: '/recruiter/dashboard' },
     { label: 'Job Management', icon: <WorkIcon />, route: '/recruiter/jobs' },
     { label: 'Post New Job', icon: <AddCircleIcon />, route: '/recruiter/jobs/create' },
@@ -41,7 +42,7 @@ export const RecruiterSidebar: React.FC = () => {
     { label: 'Messages', icon: <MessageIcon />, route: '/recruiter/messages' },
     { label: 'Analytics', icon: <BarChartIcon />, route: '/recruiter/analytics' },
     { label: 'Team & Settings', icon: <SettingsIcon />, route: '/recruiter/settings' },
-  ];
+  ]);
 
   return (
     <Box
@@ -104,7 +105,8 @@ export const RecruiterSidebar: React.FC = () => {
         })}
       </List>
 
-      {/* AI Hiring Assistant Promo Footer */}
+      {/* AI Hiring Assistant Promo Footer, hidden while AI is (shared/features) */}
+      {FEATURES.ai && (
       <Box
         sx={{
           mt: 'auto',
@@ -123,6 +125,7 @@ export const RecruiterSidebar: React.FC = () => {
           Automated candidate match ranking &amp; ATS resume scoring.
         </Typography>
       </Box>
+      )}
     </Box>
   );
 };

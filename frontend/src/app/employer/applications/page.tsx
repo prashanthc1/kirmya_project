@@ -341,7 +341,7 @@ export default function EmployerApplicationsPage() {
 
                     <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
                       <Typography variant="caption">Applied: {selectedApp.appliedDate}</Typography>
-                      <Typography variant="caption">AI Match: {selectedApp.matchScore}%</Typography>
+                      <Typography variant="caption">Match: {selectedApp.matchScore}%</Typography>
                     </Stack>
                   </Box>
 

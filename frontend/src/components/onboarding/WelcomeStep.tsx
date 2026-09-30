@@ -44,7 +44,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
         </Typography>
 
         <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 580, mx: 'auto', mb: 4, lineHeight: 1.65, fontSize: '1.05rem' }}>
-          Let&apos;s build your complete professional profile so we can recommend better jobs, recruiters, communities, and authentic employee connections.
+          Let&apos;s build your complete professional profile so we can recommend better jobs, recruiters and communities.
         </Typography>
 
         {/* Feature Badges Grid */}
@@ -52,7 +52,7 @@ export const WelcomeStep: React.FC<StepProps> = ({ onNext }) => {
           {[
             { icon: <WorkIcon sx={{ color: "primary.main" }} />, text: 'Targeted Job Matching' },
             { icon: <PeopleIcon sx={{ color: '#ec4899' }} />, text: 'Employee Referral Network' },
-            { icon: <VerifiedUserIcon sx={{ color: '#10b981' }} />, text: '24/7 AI Resume Coach' },
+            { icon: <VerifiedUserIcon sx={{ color: '#10b981' }} />, text: 'Verified Employers' },
           ].map((item, idx) => (
             <Paper
               key={idx}

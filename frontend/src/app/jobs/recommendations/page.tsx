@@ -206,7 +206,7 @@ export default function JobRecommendationsPage() {
         >
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>
-              AI Job Recommendations
+              Job Recommendations
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Personalized career matches powered by multi-factor scoring (Skills, Title, Location, Compensation, Industry).

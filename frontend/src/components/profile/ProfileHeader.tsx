@@ -42,6 +42,7 @@ interface ProfileHeaderProps {
 }
 
 import { resolveAssetUrl } from '../../shared/utils/assets';
+import { FEATURES } from '../../shared/features';
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   profile,
   isOwner = true,
@@ -298,12 +299,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             </Button>
           ) : (
             <>
-              <ConnectionActionButton
-                userId={profile.userId || profile.id}
-                userName={fullName}
-                userUsername={profile.username}
-                initialStatus={profile.connectionStatus || 'none'}
-              />
+              {FEATURES.networking && (
+                <ConnectionActionButton
+                  userId={profile.userId || profile.id}
+                  userName={fullName}
+                  userUsername={profile.username}
+                  initialStatus={profile.connectionStatus || 'none'}
+                />
+              )}
               {onReport && (
                 <Tooltip title="Report Profile">
                   <IconButton onClick={onReport} size="small" aria-label="Report this profile">

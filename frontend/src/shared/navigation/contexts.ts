@@ -9,6 +9,7 @@
  * Only sections the product actually serves appear here. A tab that leads
  * nowhere is worse than an absent one.
  */
+import { visibleItems } from '../features';
 import { ROUTES, routes } from '../routes';
 import type { MatchableItem } from './matchRoute';
 
@@ -43,12 +44,12 @@ export const STATIC_CONTEXTS = {
   network: {
     id: 'network',
     title: 'Network',
-    items: [
+    items: visibleItems([
       { id: 'overview', label: 'Overview', href: ROUTES.NETWORK, exact: true },
       { id: 'connections', label: 'Connections', href: '/network/connections' },
       { id: 'requests', label: 'Requests', href: '/network/requests' },
       { id: 'suggestions', label: 'Suggestions', href: '/network/suggestions' },
-    ],
+    ]),
   },
   communities: {
     id: 'communities',
@@ -97,13 +98,13 @@ export const STATIC_CONTEXTS = {
   notifications: {
     id: 'notifications',
     title: 'Notifications',
-    items: [
+    items: visibleItems([
       { id: 'all', label: 'All', href: ROUTES.NOTIFICATIONS, exact: true },
       { id: 'unread', label: 'Unread', href: '/notifications/unread' },
       { id: 'jobs', label: 'Jobs', href: '/notifications/jobs' },
       { id: 'network', label: 'Network', href: '/notifications/network' },
       { id: 'messages', label: 'Messages', href: '/notifications/messages' },
-    ],
+    ]),
   },
   ats: {
     id: 'ats',

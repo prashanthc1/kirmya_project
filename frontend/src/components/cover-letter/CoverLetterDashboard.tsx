@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { CoverLetterCard } from './CoverLetterCard';
 import { CoverLetter } from '@/features/cover-letter/types';
+import { FEATURES } from '../../shared/features';
 
 export interface CoverLetterDashboardProps {
   letters: CoverLetter[];
@@ -76,6 +77,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
             </CardContent>
           </Card>
         </Grid>
+        {FEATURES.ai && (
         <Grid item xs={12} sm={4}>
           <Card sx={{ bgcolor: "action.hover", backdropFilter: 'blur(16px)', borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}` }}>
             <CardContent>
@@ -88,6 +90,7 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
             </CardContent>
           </Card>
         </Grid>
+        )}
       </Grid>
 
       {/* Primary Action Buttons */}
@@ -95,9 +98,11 @@ export const CoverLetterDashboard: React.FC<CoverLetterDashboardProps> = ({
         <Button variant="contained" size="large" startIcon={<AddIcon />} onClick={onCreateNew} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700 }}>
           Create Cover Letter
         </Button>
-        <Button variant="outlined" size="large" startIcon={<AIIcon />} onClick={onGenerateAI} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700, borderColor: "primary.main", color: "primary.main" }}>
-          Generate With AI
-        </Button>
+        {FEATURES.ai && (
+          <Button variant="outlined" size="large" startIcon={<AIIcon />} onClick={onGenerateAI} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700, borderColor: "primary.main", color: "primary.main" }}>
+            Generate With AI
+          </Button>
+        )}
         <Button variant="outlined" size="large" startIcon={<TemplateIcon />} onClick={onBrowseTemplates} sx={{ borderRadius: 3, py: 1.5, px: 3, fontWeight: 700 }}>
           Browse Templates
         </Button>

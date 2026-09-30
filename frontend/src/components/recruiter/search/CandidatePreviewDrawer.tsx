@@ -90,7 +90,7 @@ export const CandidatePreviewDrawer: React.FC<CandidatePreviewDrawerProps> = ({ 
 
         {/* AI Match Insights */}
         <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AutoAwesomeIcon /> AI Fit &amp; Match Analysis
+          <AutoAwesomeIcon /> Fit &amp; Match Analysis
         </Typography>
 
         <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', bgcolor: isDark ? "background.paper" : 'rgba(241, 245, 249, 0.8)', mb: 3 }}>

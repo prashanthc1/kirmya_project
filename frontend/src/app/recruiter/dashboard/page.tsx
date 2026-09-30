@@ -11,6 +11,7 @@ import JobManager from '../../../components/recruiter/JobManager';
 import AIRecruiterAssistant from '../../../components/recruiter/AIRecruiterAssistant';
 import { recruiterApi } from '../../../features/recruiter/api';
 import { RecruiterDashboardOverview, RecruiterJob } from '../../../features/recruiter/types';
+import { FEATURES } from '../../../shared/features';
 
 export default function RecruiterDashboardPage() {
   const [overview, setOverview] = useState<RecruiterDashboardOverview | null>(null);
@@ -40,8 +41,8 @@ export default function RecruiterDashboardPage() {
       {/* Active Jobs Table */}
       <JobManager jobs={jobs} />
 
-      {/* AI Recruiter Assistant */}
-      <AIRecruiterAssistant />
+      {/* AI Recruiter Assistant, hidden while AI is (shared/features) */}
+      {FEATURES.ai && <AIRecruiterAssistant />}
     </RecruiterLayout>
   );
 }

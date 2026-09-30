@@ -1,48 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { settled } from './helpers';
 
-// The assistant lives at /career-assistant (frontend/src/app/career-assistant),
-// not the /career-ai route the previous version of this spec invented. The page
-// falls back to local sample recommendations when the AI endpoints are
-// unavailable, so its shell and tab wiring are assertable without a live model.
+// The AI tools are hidden for now (frontend/src/shared/features.ts). Every one
+// of them runs on keyword heuristics rather than a language model, so none is
+// offered as AI until one is connected. The career assistant, which lived at
+// /career-assistant and redirects to /career-companion, answers not-found, as
+// do the other AI pages.
 
-test.describe('AI Career Assistant Studio', () => {
-  test('Studio renders its tools and keeps inputs editable', async ({ page }) => {
-    await page.goto('/career-assistant');
-
-    await settled(page.getByRole('heading', { name: 'AI-Ready Career Assistant Studio' }));
-
-    for (const label of [
-      'Career Trajectory',
-      'Resume Critique',
-      'Skill Gap Bridge',
-      'Job Search Strategy',
-      'Mock Interview Prep',
-    ]) {
-      await expect(page.getByRole('tab', { name: label })).toBeVisible();
-    }
-
-    const currentRole = page.getByLabel('Current Role');
-    await settled(currentRole);
-    await currentRole.fill('Backend Engineer');
-    await expect(currentRole).toHaveValue('Backend Engineer');
-
-    await expect(page.getByRole('button', { name: 'Generate Career Strategy' })).toBeVisible();
-  });
-
-  test('Switching tabs swaps the input and its action', async ({ page }) => {
-    await page.goto('/career-assistant');
-    await settled(page.getByRole('heading', { name: 'AI-Ready Career Assistant Studio' }));
-
-    await page.getByRole('tab', { name: 'Resume Critique' }).click();
-    await expect(page.getByLabel('Paste Resume Text for AI Critique')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Critique & Fix Resume' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Generate Career Strategy' })).toHaveCount(0);
-
-    await page.getByRole('tab', { name: 'Mock Interview Prep' }).click();
-    await expect(page.getByLabel('Interview Focus Area')).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: 'Generate Mock Interview Guide' })
-    ).toBeVisible();
-  });
+test.describe('AI tools while hidden', () => {
+  for (const path of ['/career-assistant', '/career-companion', '/resume-analysis', '/jobs/match', '/dashboard/interview-prep']) {
+    test(`${path} answers not-found`, async ({ page }) => {
+      const response = await page.goto(path);
+      expect(response?.status()).toBe(404);
+      await expect(page.getByRole('heading', { name: /couldn.t find that page/i })).toBeVisible();
+    });
+  }
 });

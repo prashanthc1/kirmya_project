@@ -51,7 +51,7 @@ export const CandidateGrid: React.FC<CandidateGridProps> = ({
 
         <Stack direction="row" spacing={2} alignItems="center">
           <TextField select size="small" label="Sort By" value={sortBy} onChange={(e) => setSortBy(e.target.value)} sx={{ minWidth: 160 }}>
-            <MenuItem value="match_score">AI Match Score</MenuItem>
+            <MenuItem value="match_score">Match Score</MenuItem>
             <MenuItem value="relevance">Relevance</MenuItem>
             <MenuItem value="experience">Years Experience</MenuItem>
             <MenuItem value="newest">Recently Active</MenuItem>

@@ -67,7 +67,7 @@ export const CompareCandidates: React.FC<CompareCandidatesProps> = ({ open, onCl
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell sx={{ fontWeight: 800 }}>AI Match Score</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>Match Score</TableCell>
                 {candidates.map((c) => (
                   <TableCell key={c.id} align="center">
                     <Chip

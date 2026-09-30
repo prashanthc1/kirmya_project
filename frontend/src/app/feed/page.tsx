@@ -30,6 +30,7 @@ import { ROUTES } from '../../shared/routes';
 import { tokens } from '../../theme/tokens';
 import { LoadingState } from '../../components/common';
 import { PersonalizedFeedStream } from '../../components/recommendations';
+import { FEATURES, visibleItems } from '../../shared/features';
 
 export default function FeedPage() {
   const theme = useTheme();
@@ -112,13 +113,13 @@ export default function FeedPage() {
             <Card elevation={1} sx={{ borderRadius: `${tokens.radius.lg}px` }}>
               <CardContent sx={{ p: 1 }}>
                 <Stack spacing={0.5}>
-                  {[
+                  {visibleItems([
                     { label: 'My Applications', href: ROUTES.APPLICATIONS, icon: <AssignmentOutlinedIcon fontSize="small" /> },
                     { label: 'Saved Jobs', href: ROUTES.SAVED_JOBS, icon: <BookmarkBorderIcon fontSize="small" /> },
                     { label: 'Job Alerts', href: ROUTES.JOB_ALERTS, icon: <NotificationsNoneIcon fontSize="small" /> },
                     { label: 'Resumes & Documents', href: ROUTES.RESUME, icon: <DescriptionOutlinedIcon fontSize="small" /> },
                     { label: 'Network & Referrals', href: ROUTES.NETWORK, icon: <PeopleOutlineIcon fontSize="small" /> },
-                  ].map((link, idx) => (
+                  ]).map((link, idx) => (
                     <Button
                       key={idx}
                       component={Link}
@@ -169,13 +170,6 @@ export default function FeedPage() {
 
               <Stack direction="row" spacing={1.5} flexWrap="wrap">
                 <Chip
-                  icon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />}
-                  label="Multi-Factor AI Ranking Active"
-                  color="primary"
-                  size="small"
-                  sx={{ fontWeight: 600 }}
-                />
-                <Chip
                   label="Verified Employers"
                   size="small"
                   variant="outlined"
@@ -217,7 +211,8 @@ export default function FeedPage() {
               </Button>
             </Card>
 
-            {/* AI Career Assistant Launcher */}
+            {/* AI Career Assistant Launcher, hidden while AI is (shared/features) */}
+            {FEATURES.ai && (
             <Card
               elevation={1}
               sx={{
@@ -248,6 +243,7 @@ export default function FeedPage() {
                 Launch Optimizer
               </Button>
             </Card>
+            )}
 
             {/* Communities Action */}
             <Card elevation={1} sx={{ p: 2.5, borderRadius: `${tokens.radius.lg}px` }}>

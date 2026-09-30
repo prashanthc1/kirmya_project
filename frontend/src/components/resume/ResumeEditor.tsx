@@ -13,6 +13,7 @@ import { ResumePreview } from './ResumePreview';
 import { ATSScoreCard } from './ATSScoreCard';
 import { AIResumeAssistant } from './AIResumeAssistant';
 import { ResumeVersionManager } from './ResumeVersionManager';
+import { FEATURES } from '../../shared/features';
 
 interface ResumeEditorProps {
   resume: Resume;
@@ -86,7 +87,7 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
         <Grid item xs={12} lg={showPreview ? 7 : 12}>
           <Stack spacing={3}>
             <ATSScoreCard score={resume.atsScore} />
-            <AIResumeAssistant onOptimize={onOptimize} />
+            {FEATURES.ai && <AIResumeAssistant onOptimize={onOptimize} />}
             <ResumeSectionEditor sections={sections} onChange={handleSectionsChange} />
             <ResumeVersionManager versions={versions} onRestore={onRestoreVersion} />
           </Stack>

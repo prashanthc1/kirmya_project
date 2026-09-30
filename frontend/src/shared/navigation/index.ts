@@ -1,3 +1,4 @@
+import { visibleItems } from '../features';
 import { ROUTES } from '../routes';
 
 export interface NavItem {
@@ -26,13 +27,13 @@ export interface NavItem {
  *
  * Feed is first because it is the signed-in home. There is no dashboard.
  */
-export const PRIMARY_NAV_ITEMS: NavItem[] = [
+export const PRIMARY_NAV_ITEMS: NavItem[] = visibleItems([
   { id: 'feed', label: 'Feed', href: ROUTES.FEED, iconName: 'HomeOutlined', exact: true },
   { id: 'network', label: 'Network', href: ROUTES.NETWORK, iconName: 'PeopleOutline' },
   { id: 'jobs', label: 'Jobs', href: ROUTES.JOBS, iconName: 'WorkOutline' },
   { id: 'communities', label: 'Communities', href: ROUTES.COMMUNITIES, iconName: 'ForumOutlined' },
   { id: 'messages', label: 'Messages', href: ROUTES.MESSAGES, iconName: 'ChatBubbleOutline', badgeKey: 'messages' },
-];
+]);
 
 /**
  * Mobile primary destinations.
@@ -40,14 +41,18 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
  * Feed, Network, Jobs, Messages and Me — the five a thumb reaches for. Not the
  * desktop row made smaller: Communities moves into the drawer because a phone
  * bottom bar with six targets has none that are comfortable to hit.
+ *
+ * Network and Messages are hidden for now (see shared/features), which leaves
+ * room for Communities; it comes back out when they are switched on.
  */
-export const MOBILE_NAV_ITEMS: NavItem[] = [
+export const MOBILE_NAV_ITEMS: NavItem[] = visibleItems([
   { id: 'feed', label: 'Feed', href: ROUTES.FEED, iconName: 'HomeOutlined', exact: true },
   { id: 'network', label: 'Network', href: ROUTES.NETWORK, iconName: 'PeopleOutline' },
   { id: 'jobs', label: 'Jobs', href: ROUTES.JOBS, iconName: 'WorkOutline' },
   { id: 'messages', label: 'Messages', href: ROUTES.MESSAGES, iconName: 'ChatBubbleOutline', badgeKey: 'messages' },
+  { id: 'communities', label: 'Communities', href: ROUTES.COMMUNITIES, iconName: 'ForumOutlined' },
   { id: 'profile', label: 'Me', href: ROUTES.PROFILE, iconName: 'PersonOutline' },
-];
+]);
 
 /**
  * Public and unauthenticated navigation.
