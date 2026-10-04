@@ -107,7 +107,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({ company, membe
             <Typography variant="body2" color="text.secondary">
               Public address:
             </Typography>
-            <MuiLink component={NextLink} href={`/companies/${encodeURIComponent(company.slug)}`} underline="hover">
+            <MuiLink component={NextLink} href={`/company/${encodeURIComponent(company.slug)}`} underline="hover">
               /companies/{company.slug}
             </MuiLink>
             <Chip size="small" variant="outlined" label="Fixed at creation" />

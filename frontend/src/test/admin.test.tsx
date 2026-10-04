@@ -134,7 +134,7 @@ describe('Admin & Platform Administration Module Test Suite', () => {
       expect(updated.message).toBe('Maintenance active');
     });
 
-    it('handles support impersonation requests and sessions', async () => {
+    it('handles support impersonation requests', async () => {
       http.post.mockResolvedValueOnce(
         resolveWith({ ...MOCK_IMPERSONATION_SESSIONS[0], id: 'imp-new', targetUserId: 'u1' })
       );
@@ -145,9 +145,6 @@ describe('Admin & Platform Administration Module Test Suite', () => {
       });
       expect(session.id).toBeDefined();
       expect(session.targetUserId).toBe('u1');
-
-      const sessions = await adminApi.listImpersonationSessions();
-      expect(sessions.length).toBeGreaterThan(0);
 
       const termRes = await adminApi.terminateImpersonationSession(session.id);
       expect(termRes.success).toBe(true);

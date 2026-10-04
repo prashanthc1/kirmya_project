@@ -35,11 +35,11 @@ export const TermsAgreement: React.FC<TermsAgreementProps> = ({
         label={
           <Typography variant="body2">
             I agree to Kirmya{' '}
-            <MuiLink href="/terms" underline="hover" color="primary.main" target="_blank">
+            <MuiLink href="/legal/terms" underline="hover" color="primary.main" target="_blank">
               Terms of Service
             </MuiLink>{' '}
             and{' '}
-            <MuiLink href="/privacy" underline="hover" color="primary.main" target="_blank">
+            <MuiLink href="/legal/privacy" underline="hover" color="primary.main" target="_blank">
               Privacy Policy
             </MuiLink>
           </Typography>

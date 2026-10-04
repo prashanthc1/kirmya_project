@@ -78,7 +78,6 @@ describe('API clients', () => {
       await expect(adminApi.listIncidents()).rejects.toThrow('500 Internal Server Error');
       await expect(adminApi.listBackgroundJobs()).rejects.toThrow('500 Internal Server Error');
       await expect(adminApi.getMaintenanceModeConfig()).rejects.toThrow('500 Internal Server Error');
-      await expect(adminApi.listImpersonationSessions()).rejects.toThrow('500 Internal Server Error');
       await expect(adminApi.getDashboardStats()).rejects.toThrow('500 Internal Server Error');
     } finally {
       getSpy.mockRestore();

@@ -221,13 +221,13 @@ export const Footer: React.FC = () => {
               Legal & Trust
             </Typography>
             <Stack spacing={1.2}>
-              <MuiLink component={Link} href={ROUTES.PRIVACY} variant="body2" color="text.secondary" underline="hover">
+              <MuiLink component={Link} href="/legal/privacy" variant="body2" color="text.secondary" underline="hover">
                 Privacy Policy
               </MuiLink>
-              <MuiLink component={Link} href={ROUTES.TERMS} variant="body2" color="text.secondary" underline="hover">
+              <MuiLink component={Link} href="/legal/terms" variant="body2" color="text.secondary" underline="hover">
                 Terms of Service
               </MuiLink>
-              <MuiLink component={Link} href="/cookies" variant="body2" color="text.secondary" underline="hover">
+              <MuiLink component={Link} href="/legal/cookies" variant="body2" color="text.secondary" underline="hover">
                 Cookie Policy
               </MuiLink>
             </Stack>

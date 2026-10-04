@@ -151,10 +151,6 @@ export const adminApi = {
     return res.data;
   },
 
-  triggerBackgroundJob: async (jobName: string): Promise<{ success: boolean; jobId: string }> => {
-    const res = await apiClient.post('/admin/background-jobs/trigger', { jobName });
-    return res.data;
-  },
 
   // Incidents API
   listIncidents: async (): Promise<IncidentDTO[]> => {
@@ -192,10 +188,6 @@ export const adminApi = {
     return res.data;
   },
 
-  listImpersonationSessions: async (): Promise<UserImpersonationSessionDTO[]> => {
-    const res = await apiClient.get<UserImpersonationSessionDTO[]>('/admin/impersonate/sessions');
-    return res.data;
-  },
 
   terminateImpersonationSession: async (sessionId: string): Promise<{ success: boolean }> => {
     const res = await apiClient.post(`/admin/impersonate/sessions/${sessionId}/terminate`);

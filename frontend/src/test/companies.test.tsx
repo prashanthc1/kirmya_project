@@ -1,8 +1,5 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ThemeProvider } from '@mui/material/styles';
-import { getTheme } from '../theme';
 
 import { companiesApi } from '../features/companies/api';
 import { companyApi } from '../features/company/services/companyApi';
@@ -21,6 +18,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/companies/acme-corp',
   useSearchParams: () => new URLSearchParams(''),
   useParams: () => ({ handle: 'acme-corp' }),
+  redirect: (url: string) => { throw new Error(`NEXT_REDIRECT:${url}`); },
 }));
 
 vi.mock('../services/authService', () => ({
@@ -50,12 +48,6 @@ vi.mock('../context/AuthContext', () => ({
   }),
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-
-const theme = getTheme('light');
-
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
-};
 
 describe('Company & Employer Experience (Prompt 26/50)', () => {
   const mockCompanyData = {
@@ -155,40 +147,11 @@ describe('Company & Employer Experience (Prompt 26/50)', () => {
     });
   });
 
-  describe('CompanyDetailPage Component', () => {
-    it('renders company name, verified state, location, and about section', async () => {
-      renderWithTheme(
-        <CompanyDetailPage
-          params={Promise.resolve({ handle: 'acme-corp' })}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Follow' })).toBeDefined();
-      }, { timeout: 4000 });
-
-      expect(screen.getAllByText(/Acme Cloud Technologies/i)[0]).toBeDefined();
-      expect(screen.getByText(/About Acme Cloud Technologies/i)).toBeDefined();
-      expect(screen.getByText(/Company Facts/i)).toBeDefined();
-    });
-
-    it('toggles follow state on button click', async () => {
-      renderWithTheme(
-        <CompanyDetailPage
-          params={Promise.resolve({ handle: 'acme-corp' })}
-        />
-      );
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Follow' })).toBeDefined();
-      }, { timeout: 4000 });
-
-      const followBtn = screen.getByRole('button', { name: 'Follow' });
-      fireEvent.click(followBtn);
-
-      await waitFor(() => {
-        expect(authApiClient.post).toHaveBeenCalledWith('/companies/comp-101/follow');
-      }, { timeout: 4000 });
+  describe('/companies/[handle]', () => {
+    it('redirects to the public profile at /company/[handle]', async () => {
+      await expect(
+        CompanyDetailPage({ params: Promise.resolve({ handle: 'acme-corp' }) }),
+      ).rejects.toThrow('NEXT_REDIRECT:/company/acme-corp');
     });
   });
 });

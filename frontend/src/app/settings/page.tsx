@@ -24,7 +24,6 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import StorageIcon from '@mui/icons-material/Storage';
 import BlockIcon from '@mui/icons-material/Block';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import BusinessIcon from '@mui/icons-material/Business';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PaletteOutlinedIcon from '@mui/icons-material/PaletteOutlined';
@@ -97,12 +96,6 @@ const SETTING_SECTIONS: SettingSection[] = [
     description: 'Review premium plans, payment methods, receipts, and invoice history.',
     icon: <CreditCardIcon fontSize="medium" color="primary" />,
     href: '/settings/billing',
-  },
-  {
-    title: 'Employer & Organization Settings',
-    description: 'Manage company recruitment workspace, recruiter permissions, and team members.',
-    icon: <BusinessIcon fontSize="medium" color="primary" />,
-    href: '/employer/settings',
   },
 ];
 

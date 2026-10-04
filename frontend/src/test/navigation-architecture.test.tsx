@@ -12,6 +12,7 @@ import {
   STATIC_CONTEXTS,
   resolveContext,
   companyAdminContext,
+  communityContext,
   communityAdminContext,
   type NavContext,
 } from '../shared/navigation/contexts';
@@ -104,7 +105,10 @@ describe('context navigation', () => {
   });
 
   it('resolves entity contexts, and their management contexts, from the slug', () => {
-    expect(resolveContext('/companies/acme')?.id).toBe('company-detail');
+    // There is no company-detail context any more. /companies/acme redirects to
+    // the public profile at /company/acme, which renders its own tab row, so
+    // this path falls through to the directory context and never paints.
+    expect(resolveContext('/companies/acme')?.id).toBe('companies');
     expect(resolveContext('/companies/acme/admin/jobs')?.id).toBe('company-admin');
     expect(resolveContext('/communities/go/admin/settings')?.id).toBe('community-admin');
   });
@@ -208,7 +212,7 @@ describe('route registry', () => {
 
   it('encodes a slug once, so a crafted one cannot escape its entity', () => {
     expect(routes.company.admin.jobs('a/b')).toBe('/companies/a%2Fb/admin/jobs');
-    expect(routes.company.view('../admin')).toBe('/companies/..%2Fadmin');
+    expect(routes.company.view('../admin')).toBe('/company/..%2Fadmin');
   });
 });
 
@@ -258,6 +262,9 @@ describe('broken links', () => {
       ...(Object.values(STATIC_CONTEXTS) as NavContext[]).flatMap(context => context.items),
       ...companyAdminContext('acme').items,
       ...communityAdminContext('go').items,
+      // The public entity contexts were absent from this list, which is how
+      // companyContext shipped four tabs pointing at routes that do not exist.
+      ...communityContext('go').items,
     ];
 
     const broken = everyItem.map(i => i.href).filter(href => !resolves(href));
