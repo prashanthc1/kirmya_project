@@ -347,7 +347,7 @@ export const CompanyDashboardShell: React.FC<CompanyDashboardShellProps> = ({
 
           <Button
             component={NextLink}
-            href={`/companies/${encodeURIComponent(active.company.slug)}`}
+            href={`/company/${encodeURIComponent(active.company.slug)}`}
             size="small"
             fullWidth
             variant="outlined"

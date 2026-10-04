@@ -1,8 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import React from 'react';
-import LegalDocumentViewer from '@/components/legal/LegalDocumentViewer';
-
-export default function PrivacyPolicyPage() {
-  return <LegalDocumentViewer slug="privacy" title="Privacy Policy" />;
+/** See /terms: the duplicate of /legal/privacy, kept as the address people type. */
+export default function PrivacyPage() {
+  redirect('/legal/privacy');
 }

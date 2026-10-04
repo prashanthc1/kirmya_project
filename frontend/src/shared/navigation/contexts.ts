@@ -147,27 +147,26 @@ export const communityContext = (slug: string): NavContext => ({
   id: 'community-detail',
   items: [
     { id: 'home', label: 'Home', href: routes.community.view(slug), exact: true },
-    { id: 'discussions', label: 'Discussions', href: routes.community.discussions(slug) },
+    // Discussions is absent: /communities/[slug]/discussions is not a route in
+    // this application. The discussion list is the community home.
     { id: 'members', label: 'Members', href: routes.community.members(slug) },
     { id: 'about', label: 'About', href: routes.community.about(slug) },
   ],
 });
 
-export const companyContext = (slug: string): NavContext => ({
-  id: 'company-detail',
-  items: [
-    { id: 'overview', label: 'Overview', href: routes.company.view(slug), exact: true },
-    { id: 'posts', label: 'Posts', href: routes.company.posts(slug) },
-    { id: 'jobs', label: 'Jobs', href: routes.company.jobs(slug) },
-    { id: 'people', label: 'People', href: routes.company.people(slug) },
-    { id: 'about', label: 'About', href: routes.company.about(slug) },
-  ],
-});
-
-export const pageContext = (slug: string): NavContext => ({
-  id: 'page-detail',
-  items: [{ id: 'overview', label: 'Overview', href: routes.page.view(slug), exact: true }],
-});
+/*
+ * There is deliberately no public company or page context here.
+ *
+ * companyContext built a five tab row - Overview, Posts, Jobs, People, About -
+ * on /companies/[slug], and four of the five pointed at routes this
+ * application does not serve. The public profile is /company/[slug], which
+ * renders its own tab row in components/company/CompanyProfile.tsx against the
+ * pages that exist; /companies/[slug] now redirects there.
+ *
+ * pageContext and pageAdminContext described a Pages feature - seven tabs under
+ * /pages/[slug] - of which not one route exists. A tab that answers 404 is
+ * worse than a missing one.
+ */
 
 /**
  * Company management.
@@ -209,19 +208,6 @@ export const communityAdminContext = (slug: string): NavContext => ({
   ],
 });
 
-export const pageAdminContext = (slug: string): NavContext => ({
-  id: 'page-admin',
-  title: 'Page management',
-  items: [
-    { id: 'overview', label: 'Overview', href: routes.page.admin.home(slug), exact: true },
-    { id: 'content', label: 'Content', href: routes.page.admin.content(slug) },
-    { id: 'followers', label: 'Followers', href: routes.page.admin.followers(slug) },
-    { id: 'analytics', label: 'Analytics', href: routes.page.admin.analytics(slug) },
-    { id: 'settings', label: 'Settings', href: routes.page.admin.settings(slug) },
-    { id: 'admins', label: 'Admins', href: routes.page.admin.admins(slug) },
-  ],
-});
-
 /**
  * The context for a pathname, where it can be decided from the path alone.
  *
@@ -237,11 +223,8 @@ export const resolveContext = (pathname: string): NavContext | null => {
   if (first === 'communities' && second && second !== 'create') {
     return third === 'admin' ? communityAdminContext(second) : communityContext(second);
   }
-  if (first === 'companies' && second) {
-    return third === 'admin' ? companyAdminContext(second) : companyContext(second);
-  }
-  if (first === 'pages' && second) {
-    return third === 'admin' ? pageAdminContext(second) : pageContext(second);
+  if (first === 'companies' && second && third === 'admin') {
+    return companyAdminContext(second);
   }
 
   switch (first) {

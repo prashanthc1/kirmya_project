@@ -26,10 +26,10 @@ export const AuthFooter: React.FC = () => {
       </Stack>
 
       <Stack direction="row" useFlexGap flexWrap="wrap" spacing={2} justifyContent="center">
-        <MuiLink component={Link} href="/terms" variant="caption" color="text.secondary" underline="hover">
+        <MuiLink component={Link} href="/legal/terms" variant="caption" color="text.secondary" underline="hover">
           Terms of Service
         </MuiLink>
-        <MuiLink component={Link} href="/privacy" variant="caption" color="text.secondary" underline="hover">
+        <MuiLink component={Link} href="/legal/privacy" variant="caption" color="text.secondary" underline="hover">
           Privacy Policy
         </MuiLink>
         <MuiLink component={Link} href="/help" variant="caption" color="text.secondary" underline="hover">

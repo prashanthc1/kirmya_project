@@ -82,10 +82,8 @@ export const ROUTES = {
 
   // Companies & Organizations
   COMPANIES: '/companies',
-  COMPANY_DETAIL: (handle: string) => `/companies/${encodeURIComponent(handle)}`,
-  COMPANY_DASHBOARD: '/company/dashboard',
+  COMPANY_DETAIL: (handle: string) => `/company/${encodeURIComponent(handle)}`,
   COMPANY_CREATE: '/company/create',
-  COMPANY_JOBS: '/company/jobs',
   COMPANY_ANALYTICS: '/company/analytics',
 
   // Recruiter & ATS
@@ -198,11 +196,18 @@ export const routes = {
 
   companies: { home: () => ROUTES.COMPANIES },
   company: {
-    view: (slug: string) => slugPath('/companies', slug),
-    posts: (slug: string) => slugPath('/companies', slug, 'posts'),
-    jobs: (slug: string) => slugPath('/companies', slug, 'jobs'),
-    people: (slug: string) => slugPath('/companies', slug, 'people'),
-    about: (slug: string) => slugPath('/companies', slug, 'about'),
+    /*
+     * The public profile is /company/[slug] - the tree that carries the
+     * screens. /companies/[slug] redirects there, and /companies/[slug]/admin
+     * below is the management console, which is a different thing at a
+     * deliberately different address.
+     */
+    view: (slug: string) => slugPath('/company', slug),
+    jobs: (slug: string) => slugPath('/company', slug, 'jobs'),
+    people: (slug: string) => slugPath('/company', slug, 'people'),
+    about: (slug: string) => slugPath('/company', slug, 'about'),
+    reviews: (slug: string) => slugPath('/company', slug, 'reviews'),
+    updates: (slug: string) => slugPath('/company', slug, 'updates'),
     admin: {
       home: (slug: string) => slugPath('/companies', slug, 'admin'),
       profile: (slug: string) => slugPath('/companies', slug, 'admin', 'profile'),
@@ -218,7 +223,6 @@ export const routes = {
   communities: { home: () => ROUTES.COMMUNITIES },
   community: {
     view: (slug: string) => slugPath('/communities', slug),
-    discussions: (slug: string) => slugPath('/communities', slug, 'discussions'),
     members: (slug: string) => slugPath('/communities', slug, 'members'),
     events: (slug: string) => slugPath('/communities', slug, 'events'),
     about: (slug: string) => slugPath('/communities', slug, 'about'),

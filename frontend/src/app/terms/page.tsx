@@ -1,8 +1,16 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import React from 'react';
-import LegalDocumentViewer from '@/components/legal/LegalDocumentViewer';
-
+/**
+ * Kept as a redirect, not a page.
+ *
+ * This rendered the same LegalDocumentViewer with the same slug as
+ * /legal/terms, so the identical document was served under two URLs and a
+ * crawler had to pick one. /legal is the canonical tree: it carries all
+ * fourteen documents the legal module publishes, not just these three.
+ *
+ * The route stays because /terms is the address people type and the one any
+ * existing link points at.
+ */
 export default function TermsPage() {
-  return <LegalDocumentViewer slug="terms" title="Terms of Service" />;
+  redirect('/legal/terms');
 }

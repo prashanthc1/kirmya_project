@@ -288,11 +288,11 @@ export const SignUpForm: React.FC = () => {
                   label={
                     <Typography variant="caption" color="text.secondary">
                       I agree to the{' '}
-                      <MuiLink component={Link} href="/terms" underline="hover" color="primary">
+                      <MuiLink component={Link} href="/legal/terms" underline="hover" color="primary">
                         Terms of Service
                       </MuiLink>{' '}
                       and{' '}
-                      <MuiLink component={Link} href="/privacy" underline="hover" color="primary">
+                      <MuiLink component={Link} href="/legal/privacy" underline="hover" color="primary">
                         Privacy Policy
                       </MuiLink>
                       .

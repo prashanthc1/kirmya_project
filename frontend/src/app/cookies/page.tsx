@@ -1,8 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import React from 'react';
-import LegalDocumentViewer from '@/components/legal/LegalDocumentViewer';
-
+/** See /terms: the duplicate of /legal/cookies, kept as the address people type. */
 export default function CookiesPolicyPage() {
-  return <LegalDocumentViewer slug="cookies" title="Cookie Policy" />;
+  redirect('/legal/cookies');
 }

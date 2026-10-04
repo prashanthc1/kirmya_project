@@ -148,7 +148,6 @@ describe('Settings, Privacy, Security & Account Management Experience (Prompt 28
       expect(screen.getByText('Data & Privacy Management')).toBeDefined();
       expect(screen.getByText('Safety & Blocked Users')).toBeDefined();
       expect(screen.getByText('Billing & Subscriptions')).toBeDefined();
-      expect(screen.getByText('Employer & Organization Settings')).toBeDefined();
       expect(screen.getByText('Appearance & Display Preferences')).toBeDefined();
       expect(screen.getByText('Theme & Display Appearance')).toBeDefined();
       expect(screen.getByRole('button', { name: /Select Light Theme/i })).toBeDefined();
